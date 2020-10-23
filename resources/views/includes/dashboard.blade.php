@@ -204,7 +204,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                 <span class="icono" style="padding-bottom: 50px;">
                                   @svg('home','iconoHome')
                                 </span>
-                                <span>Inicio</span>
+                                <span>Inicio <small>[CASINO ONLINE]</small></span>
                             </div>
                         </li>
                         <!-- CASINOS -->

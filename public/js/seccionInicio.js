@@ -1,7 +1,7 @@
 $(document).ready(function(){
     //Agregar barra
     // $('#menu_inicio').parent().css('border-right','6px solid #3fbbff');
-    $('.tituloSeccionPantalla').text('Inicio');
+    $('.tituloSeccionPantalla').empty().append('Inicio  <small>[CASINO ONLINE]</small>');
     $('#opcInicio').attr('style','border-left: 6px solid #185891;');
     $('#opcInicio').addClass('opcionesSeleccionado');
 
