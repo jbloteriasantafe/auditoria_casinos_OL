@@ -24,5 +24,8 @@ class TipoMoneda extends Model
   public function beneficios_mensuales(){
     return $this->HasMany('App\BeneficioMensual','id_tipo_moneda','id_tipo_moneda');
   }
+  public function juegos(){
+    return $this->hasMany('App\Juego','id_tipo_moneda','id_tipo_moneda');
+  }
 
 }

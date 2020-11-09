@@ -10,7 +10,10 @@ class Juego extends Model
   protected $connection = 'mysql';
   protected $table = 'juego';
   protected $primaryKey = 'id_juego';
-  protected $visible = array('id_juego','nombre_juego', 'id_progresivo','id_gli_soft','cod_identificacion','cod_juego');
+  protected $visible = array(
+    'id_juego','nombre_juego','id_gli_soft','cod_identificacion','cod_juego',
+    'denominacion_contable','denominacion_juego','porcentaje_devolucion','id_unidad_medida','id_tipo_moneda'
+  );
   public $timestamps = false;
   protected $appends = array('cod_identificacion');
 
@@ -65,10 +68,6 @@ class Juego extends Model
     return $this->belongsToMany('App\Casino','casino_tiene_juego','id_juego','id_casino');
  }
 
-  public function progresivo(){
-    return $this->belongsTo('App\Progresivo','id_progresivo','id_progresivo');
-  }
-
   public function maquinas(){//En realidad obtiene las maquinas que lo tienen como activo.
     return $this->hasMany('App\Maquina','id_juego','id_juego');
   }
@@ -76,6 +75,15 @@ class Juego extends Model
   public function pack(){
     return $this->belongsToMany('App\PackJuego','pack_tiene_juego','id_juego','id_pack');
   }
+
+  public function unidad_medida(){
+    return $this->belongsTo('App\UnidadMedida','id_unidad_medida','id_unidad_medida');
+  }
+
+  public function tipo_moneda(){
+    return $this->belongsTo('App\TipoMoneda','id_tipo_moneda','id_tipo_moneda');
+  }
+
   public static function boot(){
     parent::boot();
     Juego::observe(new JuegoObserver());

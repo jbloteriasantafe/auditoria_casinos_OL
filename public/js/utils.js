@@ -21,10 +21,12 @@ function parseError(response){
         'validation.before'       :'El valor supera el limite.',
         'validation.after'        :'El valor precede el limite.',
         'validation.max.numeric'  :'El valor supera el limite.',
+        'validation.numeric'      : 'El valor tiene que ser numérico',
+        'validation.between.numeric' : 'El valor no es valido',
     };
     if(response in errors) return errors[response];
     return response;
-}
+  }
   
 //Saca los errores custom de un response y los retorna en una lista.
 function sacarErrores(errorResponse){

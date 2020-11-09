@@ -54,8 +54,8 @@ $('#btn-ayuda').click(function(e){
 //Mostrar modal para agregar nuevo Juego
 $('#btn-nuevo').click(function(e){
   e.preventDefault();
-  ocultarErrorValidacion($('#inputJuego'));
-  ocultarErrorValidacion($('#inputCodigoJuego'));
+  ocultarErrorValidacion($('#modalJuego input'));
+  ocultarErrorValidacion($('#modalJuego select'));
   $('#mensajeExito').hide();
   $('.modal-title').text(' | NUEVO JUEGO');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
@@ -84,8 +84,8 @@ $('#btn-nuevo').click(function(e){
 
 //Muestra el modal con todos los datos del JUEGO
 $(document).on('click','.detalle', function(){
-  ocultarErrorValidacion($('#inputJuego'));
-  ocultarErrorValidacion($('#inputCodigoJuego'));
+  ocultarErrorValidacion($('#modalJuego input'));
+  ocultarErrorValidacion($('#modalJuego select'));
   $('.modal-title').text('| VER MÁS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #4FC3F7; color: #FFF');
   $('#boton-cancelar').hide();
@@ -106,8 +106,8 @@ $(document).on('click','.detalle', function(){
 });
 
 $('.modal').on('hidden.bs.modal', function() {
-  ocultarErrorValidacion($('#inputJuego'));
-  ocultarErrorValidacion($('#inputCodigoJuego'));
+  ocultarErrorValidacion($('#modalJuego input'));
+  ocultarErrorValidacion($('#modalJuego select'));
   $('#btn-guardar').val('');
   $('#id_juego').val(0);
   $('#inputJuego').val('');
@@ -352,18 +352,24 @@ $('#btn-eliminarModal').click(function (e) {
 });
 
 function parseError(response){
-  if(response == 'validation.unique'){
-    return 'El valor tiene que ser único y ya existe el mismo.';
-  }
-  else if(response == 'validation.required'){
-    return 'El campo es obligatorio.'
-  }
-  else if(response == 'validation.max.string'){
-    return 'El valor es muy largo.'
-  }
-  else{
-    return null;
-  }
+  errors = {
+      'validation.unique'       :'El valor tiene que ser único y ya existe el mismo.',
+      'validation.required'     :'El campo es obligatorio.',
+      'validation.max.string'   :'El valor es muy largo.',
+      'validation.exists'       :'El valor no es valido.',
+      'validation.min.numeric'  :'El valor no es valido.',
+      'validation.integer'      :'El valor tiene que ser un número entero.',
+      'validation.regex'        :'El valor no es valido.',
+      'validation.required_if'  :'El valor es requerido.',
+      'validation.required_with':'El valor es requerido.',
+      'validation.before'       :'El valor supera el limite.',
+      'validation.after'        :'El valor precede el limite.',
+      'validation.max.numeric'  :'El valor supera el limite.',
+      'validation.numeric'      : 'El valor tiene que ser numérico',
+      'validation.between.numeric' : 'El valor no es valido',
+  };
+  if(response in errors) return errors[response];
+  return response;
 }
 
 //Crear nuevo Juego / actualizar si existe
@@ -419,6 +425,11 @@ $('#btn-guardar').click(function (e) {
       tabla_pago: tablas,
       maquinas: maquinas,
       certificados: certificados,
+      denominacion_contable: $('#denominacion_contable').val(),
+      denominacion_juego:  $('#denominacion_juego').val(),
+      porcentaje_devolucion:  $('#porcentaje_devolucion').val(),
+      id_unidad_medida:  $('#unidad_medida').val(),
+      id_tipo_moneda:  $('#tipo_moneda').val(),
     }
 
     if (state == "modificar") {
@@ -444,9 +455,23 @@ $('#btn-guardar').click(function (e) {
             if(typeof response.nombre_juego !== 'undefined'){
               mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
             }
-
             if(typeof response.cod_identificacion !== 'undefined'){
               mostrarErrorValidacion($('#inputCodigo'),parseError(response.cod_identificacion),true);
+            }
+            if(typeof response.denominacion_contable !== 'undefined'){
+              mostrarErrorValidacion($('#denominacion_contable'),parseError(response.denominacion_contable),true);
+            }
+            if(typeof response.denominacion_juego !== 'undefined'){
+              mostrarErrorValidacion($('#denominacion_juego'),parseError(response.denominacion_juego),true);
+            }
+            if(typeof response.porcentaje_devolucion !== 'undefined'){
+              mostrarErrorValidacion($('#porcentaje_devolucion'),parseError(response.porcentaje_devolucion),true);
+            }
+            if(typeof response.id_tipo_moneda !== 'undefined'){
+              mostrarErrorValidacion($('#tipo_moneda'),parseError(response.id_tipo_moneda),true);
+            }
+            if(typeof response.id_unidad_medida !== 'undefined'){
+              mostrarErrorValidacion($('#unidad_medida'),parseError(response.id_unidad_medida),true);
             }
 
             $('#tablas_pago .copia input').each(function(){
@@ -607,6 +632,12 @@ function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
     const c = casinos[i];
     selectCasinosJuego.append($('<option disabled>').val(c.id_casino).text(c.nombre));
   }
+
+  $('#denominacion_contable').val(juego.denominacion_contable);
+  $('#denominacion_juego').val(juego.denominacion_juego);
+  $('#porcentaje_devolucion').val(juego.porcentaje_devolucion);
+  $('#unidad_medida').val(juego.id_unidad_medida);
+  $('#tipo_moneda').val(juego.id_tipo_moneda);
 }
 
 function agregarRenglonCertificado(){

@@ -11,6 +11,8 @@ use App\Casino;
 use App\GliSoft;
 use App\Maquina;
 use App\Usuario;
+use App\UnidadMedida;
+use App\TipoMoneda;
 use Validator;
 
 class JuegoController extends Controller
@@ -40,7 +42,9 @@ class JuegoController extends Controller
     return view('seccionJuegos' , 
     ['casinos' => $casinos,
      'maquinas_casinos' => $maquinas_casinos,
-     'certificados' => GliSoftController::getInstancia()->gliSoftsPorCasinos($casinos)
+     'certificados' => GliSoftController::getInstancia()->gliSoftsPorCasinos($casinos),
+     'unidades_medida' => UnidadMedida::all(),
+     'monedas' => TipoMoneda::all()
     ]);
   }
 
@@ -151,7 +155,6 @@ class JuegoController extends Controller
       'maquinas.*.porcentaje' => 'nullable',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
-      'id_progresivo' => 'nullable',
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos) {
       $data = $validator->getData();
       $nombre_juego = $data['nombre_juego'];
@@ -246,7 +249,11 @@ class JuegoController extends Controller
       'maquinas.*.activo' => 'required|boolean',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
-      'id_progresivo' => 'nullable',
+      'denominacion_contable' => 'required|numeric|between:0,100',
+      'denominacion_juego' => 'required|numeric|between:0,100',
+      'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
+      'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
+      'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos){
       $data = $validator->getData();
       $id_juego = $data['id_juego'];
@@ -282,6 +289,12 @@ class JuegoController extends Controller
       if($request->cod_juego!=null){
         $juego->cod_juego= $request->cod_juego;
       }
+
+      $juego->denominacion_contable = $request->denominacion_contable;
+      $juego->denominacion_juego = $request->denominacion_juego;
+      $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
+      $juego->id_unidad_medida = $request->id_unidad_medida;
+      $juego->id_tipo_moneda = $request->id_tipo_moneda;
       
       $juego->save();
 

@@ -120,7 +120,7 @@ function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje
                              ));
 
   var tablasPago = $('<select>').addClass('form-control');
-  if(typeof(tablas) != 'undefined' ){
+  if(typeof(tablas) != 'undefined' && tablas !== null){
     for (var i = 0; i < tablas.length; i++) {
       var tabla = $('<option>').val(tablas[i].id_tabla_pago).text(tablas[i].codigo);
       tablasPago.append(tabla);

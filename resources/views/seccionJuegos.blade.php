@@ -174,7 +174,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
           <div class="modal-body">
             <div id="juegoPlegado" class="row">
                 <div class="row">
-                  <div class="row" style="padding-bottom: 15px;">
+                  <div class="row">
                     <div class="col-md-12">
                       <div class="col-md-3">
                           <h5>Nombre Juego</h5>
@@ -191,7 +191,8 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </div>
                     </div>
                   </div>
-                  <div class="row" style="padding-bottom: 15px;">
+                  <hr>
+                  <div class="row">
                     <div class="col-md-12">
                       <h5 style="display:inline;">Certificados Software</h5>
                       <button style="display:inline;" id="btn-agregarCertificado" class="btn btn-success borrarFila" type="button">
@@ -216,8 +217,8 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </div>
                     </div>
                   </div>
-                  <br>
-                  <div class="row" style="padding-bottom: 15px;">
+                  <hr>
+                  <div class="row">
                       <div id="tablas_de_pago" class="col-md-12">
                           <h5 style="display:inline; margin-right:5px;">Tablas de pago</h5>
                           <button style="display:inline;" id="btn-agregarTablaDePago" class="btn btn-success borrarFila" type="button">
@@ -227,6 +228,46 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           </div>
                       </div>
                   </div>
+                  <hr>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="col-md-4">
+                        <h5>Denominación Contable</h5>
+                        <input id="denominacion_contable" class="form-control" type="text" autocomplete="off" placeholder="-"/>
+                      </div>
+                      <div class="col-md-4">
+                        <h5>Denominación Juego</h5>
+                        <input id="denominacion_juego" class="form-control" type="text" autocomplete="off" placeholder="-" />
+                      </div>
+                      <div class="col-md-4">
+                        <h5>Porcentaje Devolución</h5>
+                        <input id="porcentaje_devolucion" class="form-control" type="text" autocomplete="off" placeholder="-" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="col-md-4">
+                        <h5>Unidad de medida</h5>
+                        <select id="unidad_medida" class="form-control">
+                          <option value="">- Seleccionar - </option>
+                          @foreach ($unidades_medida as $unidad)
+                          <option value="{{$unidad->id_unidad_medida}}">{{$unidad->descripcion}}</option>
+                          @endforeach
+                        </select>         
+                      </div>
+                      <div class="col-md-4">
+                        <h5>Moneda</h5>
+                        <select id="tipo_moneda" class="form-control">
+                          <option value="">- Seleccionar - </option>
+                          @foreach ($monedas as $moneda)
+                          <option value="{{$moneda->id_tipo_moneda}}">{{$moneda->descripcion}}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <hr>
                   <div class="row">
                     <div class="col-md-12">
                       <h5>Vincular Máquinas  <button style="display:inline;" id="btn-agregarMaquina" class="btn btn-success borrarFila" type="button">

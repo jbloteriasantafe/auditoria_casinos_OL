@@ -19,5 +19,7 @@ class UnidadMedida extends Model
   public function casinos(){
     return $this->belongsToMany('App\Casino','casino_tiene_unidad_medida','id_unidad_medida','id_casino');
   }
-
+  public function juegos(){
+    return $this->hasMany('App\Juego','id_tipo_moneda','id_tipo_moneda');
+  }
 }
