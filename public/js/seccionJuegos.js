@@ -578,6 +578,11 @@ function clickIndice(e,pageNumber,tam){
 function habilitarControles(habilitado){
   $('#inputJuego').prop('readonly',!habilitado);
   $('#inputCodigoJuego').prop('readonly',!habilitado);
+  $('#denominacion_contable').prop('readonly',!habilitado);
+  $('#denominacion_juego').prop('readonly',!habilitado);
+  $('#porcentaje_devolucion').prop('readonly',!habilitado);
+  $('#tipo_moneda').attr('disabled',!habilitado);
+  $('#unidad_medida').attr('disabled',!habilitado);
   if(habilitado){
     $('.borrarTablaPago').show();
     $('#btn-agregarMaquina').show();
