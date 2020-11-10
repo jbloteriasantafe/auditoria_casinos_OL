@@ -39,6 +39,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     </select>
                                   </div>
                                   <div class="col-md-3">
+                                    <h5>Categoría</h5>
+                                    <select id="buscadorCategoria" class="form-control">
+                                      <option value="">- Todas -</option>
+                                      @foreach($categoria_juego as $c)
+                                      <option value="{{$c->id_categoria_juego}}">{{$c->nombre}}</option>
+                                      @endforeach
+                                    </select>
+                                  </div>
+                                  <div class="col-md-3">
                                     <h5>Nombre del juego</h5>
                                     <input id="buscadorNombre" class="form-control" placeholder="Nombre del juego">
                                   </div>
@@ -181,6 +190,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       <div class="col-md-3">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
+                      </div>
+                      <div class="col-md-3">
+                        <h5>Categoría</h5>
+                        <select id="selectCategoria" class="form-control">
+                          <option value="">- Seleccionar -</option>
+                          @foreach($categoria_juego as $c)
+                          <option value="{{$c->id_categoria_juego}}">{{$c->nombre}}</option>
+                          @endforeach
+                        </select>
                       </div>
                       <div class="col-md-3">
                         <h5>Código Juego</h5>

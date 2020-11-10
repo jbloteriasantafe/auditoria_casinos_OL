@@ -216,6 +216,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   formData={
     id_casino: $('#buscadorCasino').val(),
+    id_categoria_juego: $('#buscadorCategoria').val(),
     nombreJuego: $('#buscadorNombre').val(),
     cod_Juego: $('#buscadorCodigoJuego').val(),
     codigoId: $('#buscadorCodigo').val(),
@@ -356,6 +357,7 @@ $('#btn-guardar').click(function (e) {
       nombre_juego: $('#inputJuego').val(),
       cod_identificacion: $('#inputCodigo').val(),
       cod_juego:$('#inputCodigoJuego').val(),
+      id_categoria_juego: $('#selectCategoria').val(),
       tabla_pago: tablas,
       certificados: certificados,
       denominacion_contable: $('#denominacion_contable').val(),
@@ -405,6 +407,9 @@ $('#btn-guardar').click(function (e) {
             }
             if(typeof response.id_unidad_medida !== 'undefined'){
               mostrarErrorValidacion($('#unidad_medida'),parseError(response.id_unidad_medida),true);
+            }
+            if(typeof response.id_categoria_juego !== 'undefined'){
+              mostrarErrorValidacion($('#selectCategoria'),parseError(response.id_categoria_juego),true);
             }
 
             $('#tablas_pago .copia input').each(function(){
@@ -509,33 +514,19 @@ function clickIndice(e,pageNumber,tam){
 }
 
 function habilitarControles(habilitado){
-  $('#inputJuego').prop('readonly',!habilitado);
-  $('#inputCodigoJuego').prop('readonly',!habilitado);
-  $('#denominacion_contable').prop('readonly',!habilitado);
-  $('#denominacion_juego').prop('readonly',!habilitado);
-  $('#porcentaje_devolucion').prop('readonly',!habilitado);
-  $('#tipo_moneda').attr('disabled',!habilitado);
-  $('#unidad_medida').attr('disabled',!habilitado);
-  if(habilitado){
-    $('.borrarTablaPago').show();
-    $('#btn-agregarTablaDePago').show();
-    $('.borrarFila').show();
-    $('#btn-agregarCertificado').show();
-  }
-  else{
-    $('.borrarTablaPago').hide();
-    $('#btn-agregarTablaDePago').hide();
-    $('.borrarFila').hide();
-    $('#btn-agregarCertificado').hide();
-  }
-  $('#modalJuego .copia input').prop('readonly',!habilitado);
-  $('#modalJuego .copia select').attr('disabled',!habilitado);
+  $('#modalJuego input').prop('readonly',!habilitado);
+  $('#modalJuego select').attr('disabled',!habilitado);
+  $('.borrarTablaPago').attr('disabled',!habilitado);
+  $('#btn-agregarTablaDePago').attr('disabled',!habilitado)
+  $('.borrarFila').attr('disabled',!habilitado)
+  $('#btn-agregarCertificado').attr('disabled',!habilitado)
 }
 
 
 function mostrarJuego(juego, tablas,certificados,casinos){
   $('#inputJuego').val(juego.nombre_juego);
   $('#inputCodigoJuego').val(juego.cod_juego);
+  $('#selectCategoria').val(juego.id_categoria_juego);
 
   for (var i = 0; i < tablas.length; i++) {
     let fila = agregarRenglonTablaDePago();

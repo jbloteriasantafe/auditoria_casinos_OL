@@ -13,6 +13,7 @@ use App\Maquina;
 use App\Usuario;
 use App\UnidadMedida;
 use App\TipoMoneda;
+use App\CategoriaJuego;
 use Validator;
 
 class JuegoController extends Controller
@@ -41,7 +42,8 @@ class JuegoController extends Controller
     ['casinos' => $casinos,
      'certificados' => GliSoftController::getInstancia()->gliSoftsPorCasinos($casinos),
      'unidades_medida' => UnidadMedida::all(),
-     'monedas' => TipoMoneda::all()
+     'monedas' => TipoMoneda::all(),
+     'categoria_juego' => CategoriaJuego::all(),
     ]);
   }
 
@@ -113,6 +115,7 @@ class JuegoController extends Controller
     Validator::make($request->all(), [
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
+      'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
@@ -144,6 +147,7 @@ class JuegoController extends Controller
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
+      $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->save();
       
       // asocio el nuevo juego con los casinos del usuario 
@@ -196,6 +200,7 @@ class JuegoController extends Controller
       'id_juego' => 'required|integer|exists:juego,id_juego',
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
+      'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
@@ -241,7 +246,7 @@ class JuegoController extends Controller
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
-      
+      $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->save();
 
       //Le saco las tablas de pago
@@ -378,6 +383,9 @@ class JuegoController extends Controller
     if(!empty($request->id_casino)){
       $reglas[] = ['casino_tiene_juego.id_casino','=',$request->id_casino];
     }
+    if(!empty($request->id_categoria_juego)){
+      $reglas[] = ['juego.id_categoria_juego','=',$request->id_categoria_juego];
+    }
 
     foreach($casinos as $casino){
       $reglaCasinos [] = $casino->id_casino;
@@ -446,16 +454,6 @@ class JuegoController extends Controller
       $GLI->save();
     }
   }
-
-  public function obtenerTablasDePago($id){
-    $juego=Juego::find($id);
-    if($juego != null){
-    return['tablasDePago' => $juego->tablasPago];
-  }else{
-    return['tablasDePago' => null];
-  }
-  }
-
   public function obtenerCertificadosSoft($id){
     $juego=Juego::find($id);
     if($juego != null){
