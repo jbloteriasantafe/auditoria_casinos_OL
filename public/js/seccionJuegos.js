@@ -217,6 +217,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   formData={
     id_casino: $('#buscadorCasino').val(),
     id_categoria_juego: $('#buscadorCategoria').val(),
+    id_estado_juego: $('#buscadorEstado').val(),
     nombreJuego: $('#buscadorNombre').val(),
     cod_Juego: $('#buscadorCodigoJuego').val(),
     codigoId: $('#buscadorCodigo').val(),
@@ -358,6 +359,7 @@ $('#btn-guardar').click(function (e) {
       cod_identificacion: $('#inputCodigo').val(),
       cod_juego:$('#inputCodigoJuego').val(),
       id_categoria_juego: $('#selectCategoria').val(),
+      id_estado_juego: $('#selectEstado').val(),
       tabla_pago: tablas,
       certificados: certificados,
       denominacion_contable: $('#denominacion_contable').val(),
@@ -411,6 +413,9 @@ $('#btn-guardar').click(function (e) {
             if(typeof response.id_categoria_juego !== 'undefined'){
               mostrarErrorValidacion($('#selectCategoria'),parseError(response.id_categoria_juego),true);
             }
+            if(typeof response.id_estado_juego !== 'undefined'){
+              mostrarErrorValidacion($('#selectEstado'),parseError(response.id_estado_juego),true);
+            }
 
             $('#tablas_pago .copia input').each(function(){
               $(this).removeClass('alerta');
@@ -451,6 +456,8 @@ function crearFilaJuego(juego){
   var codigo;
   juego.certificados == null ?  codigo = '-' :   codigo= juego.certificados;
   juego.cod_juego == null ?  codigojuego = '-' :   codigojuego= juego.cod_juego;
+  const categoria = $(`#buscadorCategoria option[value="${juego.id_categoria_juego}"]`);
+  const estado = $(`#buscadorEstado option[value="${juego.id_estado_juego}"]`);
 
   fila.attr('id',juego.id_juego)
   .append($('<td>')
@@ -459,7 +466,17 @@ function crearFilaJuego(juego){
       .text(juego.nombre_juego)
   )
   .append($('<td>')
-      .addClass('col-xs-3')
+      .addClass('col-xs-1')
+      .addClass('categoria')
+      .text(categoria.length > 0? categoria.text() : "-")
+  )
+  .append($('<td>')
+      .addClass('col-xs-1')
+      .addClass('estado')
+      .text(estado.length > 0? estado.text() : "-")
+  )
+  .append($('<td>')
+      .addClass('col-xs-2')
       .addClass('codigo_juego')
       .text(codigojuego)
   )
@@ -470,7 +487,7 @@ function crearFilaJuego(juego){
       .attr('title',codigo)
   )
   .append($('<td>')
-      .addClass('col-xs-3')
+      .addClass('col-xs-2')
       .append($('<button>')
           .append($('<i>')
               .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
@@ -527,6 +544,7 @@ function mostrarJuego(juego, tablas,certificados,casinos){
   $('#inputJuego').val(juego.nombre_juego);
   $('#inputCodigoJuego').val(juego.cod_juego);
   $('#selectCategoria').val(juego.id_categoria_juego);
+  $('#selectEstado').val(juego.id_estado_juego);
 
   for (var i = 0; i < tablas.length; i++) {
     let fila = agregarRenglonTablaDePago();

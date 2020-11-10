@@ -12,7 +12,7 @@ class Juego extends Model
   protected $primaryKey = 'id_juego';
   protected $visible = array(
     'id_juego','nombre_juego','id_gli_soft','cod_identificacion','cod_juego',
-    'denominacion_contable','denominacion_juego','porcentaje_devolucion','id_unidad_medida','id_tipo_moneda','id_categoria_juego'
+    'denominacion_contable','denominacion_juego','porcentaje_devolucion','id_unidad_medida','id_tipo_moneda','id_categoria_juego','id_estado_juego'
   );
   public $timestamps = false;
   protected $appends = array('cod_identificacion');
@@ -86,6 +86,10 @@ class Juego extends Model
 
   public function categoria_juego(){
     return $this->belongsTo('App\CategoriaJuego','id_categoria_juego','id_categoria_juego');
+  }
+
+  public function estado_juego(){
+    return $this->belongsTo('App\EstadoJuego','id_estado_juego','id_estado_juego');
   }
 
   public static function boot(){

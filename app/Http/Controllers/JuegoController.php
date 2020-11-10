@@ -14,6 +14,7 @@ use App\Usuario;
 use App\UnidadMedida;
 use App\TipoMoneda;
 use App\CategoriaJuego;
+use App\EstadoJuego;
 use Validator;
 
 class JuegoController extends Controller
@@ -44,6 +45,7 @@ class JuegoController extends Controller
      'unidades_medida' => UnidadMedida::all(),
      'monedas' => TipoMoneda::all(),
      'categoria_juego' => CategoriaJuego::all(),
+     'estado_juego' => EstadoJuego::all(),
     ]);
   }
 
@@ -116,6 +118,7 @@ class JuegoController extends Controller
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
+      'id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
@@ -148,6 +151,7 @@ class JuegoController extends Controller
       $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
+      $juego->id_estado_juego = $request->id_estado_juego;
       $juego->save();
       
       // asocio el nuevo juego con los casinos del usuario 
@@ -201,6 +205,7 @@ class JuegoController extends Controller
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
+      'id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
@@ -247,6 +252,7 @@ class JuegoController extends Controller
       $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
+      $juego->id_estado_juego = $request->id_estado_juego;
       $juego->save();
 
       //Le saco las tablas de pago
@@ -375,16 +381,17 @@ class JuegoController extends Controller
     if(!empty($request->nombreJuego) ){
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
- 
     if(!empty($request->cod_Juego)){
       $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_Juego  .'%'];
     }
-
     if(!empty($request->id_casino)){
       $reglas[] = ['casino_tiene_juego.id_casino','=',$request->id_casino];
     }
     if(!empty($request->id_categoria_juego)){
       $reglas[] = ['juego.id_categoria_juego','=',$request->id_categoria_juego];
+    }
+    if(!empty($request->id_estado_juego)){
+      $reglas[] = ['juego.id_estado_juego','=',$request->id_estado_juego];
     }
 
     foreach($casinos as $casino){
