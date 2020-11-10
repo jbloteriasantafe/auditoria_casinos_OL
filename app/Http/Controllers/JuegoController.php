@@ -37,11 +37,8 @@ class JuegoController extends Controller
     $uc->agregarSeccionReciente('Juegos','juegos');
     $usuario = $uc->quienSoy()['usuario'];
     $casinos = $usuario->casinos;
-    $maquinas_casinos = [];
-    foreach($casinos as $c) $maquinas_casinos[$c->id_casino] = $c->maquinas->toArray();
     return view('seccionJuegos' , 
     ['casinos' => $casinos,
-     'maquinas_casinos' => $maquinas_casinos,
      'certificados' => GliSoftController::getInstancia()->gliSoftsPorCasinos($casinos),
      'unidades_medida' => UnidadMedida::all(),
      'monedas' => TipoMoneda::all()
@@ -65,34 +62,6 @@ class JuegoController extends Controller
       return $this->errorOut(['acceso'=>['']]);
     }
 
-    $maquinas= [];
-    $maquina_agregada = [];
-    foreach ($juego->maquinas_juegos->whereIn('id_casino',$reglaCasinos) as $key => $mtm) {
-      $maquina = new \stdClass();
-      $maquina->id_maquina = $mtm->id_maquina;
-      $maquina->id_casino = $mtm->id_casino;
-      $maquina->nro_admin = $mtm->nro_admin;
-      $maquina->porcentaje_devolucion =  $mtm->pivot->porcentaje_devolucion;
-      $maquina->denominacion = $mtm->pivot->denominacion;
-      $maquina->activo = $mtm->juego_activo->id_juego == $id;
-      $maquinas[] = $maquina;
-      $maquina_agregada[$maquina->id_maquina] = true;
-    }
-    //Puede ser que en la BD queden maquinas con juegos activos, pero sin juegos asociados
-    //por la tabla maquina_tiene_juego, los mandamos por aca.
-    foreach ($juego->maquinas->whereIn('id_casino',$reglaCasinos) as $key => $mtm) {
-      if(!array_key_exists($mtm->id_maquina,$maquina_agregada)){
-        $maquina = new \stdClass();
-        $maquina->id_maquina = $mtm->id_maquina;
-        $maquina->id_casino = $mtm->id_casino;
-        $maquina->nro_admin = $mtm->nro_admin;
-        $maquina->porcentaje_devolucion =  null;
-        $maquina->denominacion = null;
-        $maquina->activo = true;
-        $maquinas[] = $maquina;
-      }
-    }
-
     $packJuego=DB::table('pack_juego')
                   ->select('pack_juego.*')
                   ->distinct()
@@ -107,7 +76,6 @@ class JuegoController extends Controller
 
     return ['juego' => $juego ,
             'tablasDePago' => $tabla,
-            'maquinas' => $maquinas,
             'pack'=>$packJuego,
             'certificadoSoft' => $this->obtenerCertificadosSoft($id),
             'casinosJuego' => $juego->casinos,
@@ -147,14 +115,13 @@ class JuegoController extends Controller
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.codigo' => 'required|max:150',
-      'maquinas.*' => 'nullable',
-      'maquinas.*.nro_admin' => 'required|integer|exists:maquina,nro_admin',
-      'maquinas.*.id_casino' => 'required|integer|exists:casino,id_casino',
-      'maquinas.*.id_maquina' => 'required|integer',
-      'maquinas.*.denominacion' => 'nullable',
-      'maquinas.*.porcentaje' => 'nullable',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
+      'denominacion_contable' => 'required|numeric|between:0,100',
+      'denominacion_juego' => 'required|numeric|between:0,100',
+      'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
+      'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
+      'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos) {
       $data = $validator->getData();
       $nombre_juego = $data['nombre_juego'];
@@ -172,24 +139,15 @@ class JuegoController extends Controller
     DB::transaction(function() use($juego,$ids_casinos,$request){
       $juego->nombre_juego = $request->nombre_juego;
       $juego->cod_juego = $request->cod_juego;
+      $juego->denominacion_contable = $request->denominacion_contable;
+      $juego->denominacion_juego = $request->denominacion_juego;
+      $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
+      $juego->id_unidad_medida = $request->id_unidad_medida;
+      $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->save();
       
       // asocio el nuevo juego con los casinos del usuario 
       $juego->casinos()->syncWithoutDetaching($ids_casinos);
-  
-      if(isset($request->maquinas)){
-        foreach ($request->maquinas as $maquina) {
-          if($maquina['id_maquina'] == 0){
-            $mtm = Maquina::where([['id_casino' , $maquina['id_casino']] , ['nro_admin' , $maquina['nro_admin']]])->first();
-          }else {
-            $mtm = Maquina::find($maquina['id_maquina']);
-          }
-          if($mtm != null){
-            $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
-            $mtm->save();
-          }
-        }
-      }
   
       if(!empty($request->tabla_pago)){
         foreach ($request->tabla_pago as $tabla){
@@ -240,13 +198,6 @@ class JuegoController extends Controller
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.codigo' => 'required|max:150',
-      'maquinas.*' => 'nullable',
-      'maquinas.*.nro_admin' => 'required|integer|exists:maquina,nro_admin',
-      'maquinas.*.id_casino' => 'required|integer|exists:casino,id_casino',
-      'maquinas.*.id_maquina' => 'required|integer',
-      'maquinas.*.denominacion' => 'nullable',
-      'maquinas.*.porcentaje' => 'nullable',
-      'maquinas.*.activo' => 'required|boolean',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
       'denominacion_contable' => 'required|numeric|between:0,100',
@@ -279,12 +230,7 @@ class JuegoController extends Controller
 
     $juego = Juego::find($request->id_juego);
 
-
-    //Solo toco las maquinas que no tienen el juego como activo, del casino del usuario
-    $mtms_accesibles = $juego->maquinas_juegos()
-    ->whereIn('id_casino',$ids_casinos)->where('maquina.id_juego','<>',$juego->id_juego)->get();
-
-    DB::transaction(function() use($request,$mtms_accesibles,$juego){
+    DB::transaction(function() use($request,$juego){
       $juego->nombre_juego= $request->nombre_juego;
       if($request->cod_juego!=null){
         $juego->cod_juego= $request->cod_juego;
@@ -310,25 +256,6 @@ class JuegoController extends Controller
         };
       }
 
-      //Al juego le saco las maquinas
-      foreach($mtms_accesibles as $mtm){
-        $mtm->juegos()->detach($juego->id_juego);
-        $mtm->save();
-      }
-      
-      if(isset($request->maquinas)){
-        //Agrego las que me mande
-        foreach ($request->maquinas as $maquina){
-          if ($maquina['id_maquina'] == 0) {
-            $mtm = Maquina::where([['id_casino' , $maquina['id_casino']],['nro_admin', $maquina['nro_admin']]])->first();
-          }else {
-            $mtm = Maquina::find($maquina['id_maquina']);
-          }
-          $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
-          $mtm->save();
-        }
-      }
-      
       foreach($juego->gliSoft as $gli){
         $juego->gliSoft()->detach($gli->id_gli_soft);
       }
@@ -448,6 +375,10 @@ class JuegoController extends Controller
       $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_Juego  .'%'];
     }
 
+    if(!empty($request->id_casino)){
+      $reglas[] = ['casino_tiene_juego.id_casino','=',$request->id_casino];
+    }
+
     foreach($casinos as $casino){
       $reglaCasinos [] = $casino->id_casino;
     }
@@ -485,6 +416,7 @@ class JuegoController extends Controller
     }
 
     $resultados = $resultados->groupBy('juego.id_juego');
+    $resultados = $resultados->orderBy('juego.id_juego','desc');
     $resultados = $resultados->paginate($request->page_size);
     return $resultados;
   }

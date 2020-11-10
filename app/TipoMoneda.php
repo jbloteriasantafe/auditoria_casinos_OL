@@ -27,5 +27,4 @@ class TipoMoneda extends Model
   public function juegos(){
     return $this->hasMany('App\Juego','id_tipo_moneda','id_tipo_moneda');
   }
-
 }

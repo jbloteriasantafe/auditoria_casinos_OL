@@ -13,13 +13,6 @@
 <?php
 setlocale(LC_TIME, 'es_ES.UTF-8');
 ?>
-@foreach($maquinas_casinos as $id_casino => $maquinas)
-  <datalist id="datalistMaquinas{{$id_casino}}">
-    @foreach($maquinas as $m)
-    <option data-id="{{$m['id_maquina']}}">{{$m['nro_admin']}}</option>
-    @endforeach
-  </datalist>
-@endforeach
 <datalist id="datalistCertificados">
 @foreach($certificados as $cert)
 <option data-id="{{$cert->id_gli_soft}}">{{$cert->nro_archivo}}</option>
@@ -36,6 +29,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                             <div id="collapseFiltros" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
+                                  <div class="col-md-3">
+                                    <h5>Casino</h5>
+                                    <select id="buscadorCasino" class="form-control">
+                                      <option value="">- Todos los casinos -</option>
+                                      @foreach($casinos as $casino)
+                                      <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                      @endforeach
+                                    </select>
+                                  </div>
                                   <div class="col-md-3">
                                     <h5>Nombre del juego</h5>
                                     <input id="buscadorNombre" class="form-control" placeholder="Nombre del juego">
@@ -266,44 +268,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         </select>
                       </div>
                     </div>
-                  </div>
-                  <hr>
-                  <div class="row">
-                    <div class="col-md-12">
-                      <h5>Vincular Máquinas  <button style="display:inline;" id="btn-agregarMaquina" class="btn btn-success borrarFila" type="button">
-                        <i class="fa fa-fw fa-link"></i>
-                      </button></h5>
-                        <div id="listaMaquinas" class="pre-scrollable" style="margin-top:15px;min-height: 350px;">
-                          <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;" hidden>
-                            <div class="col-md-1" title="Juego activo en la máquina">
-                              <span class="esActivo" style="font-size: 20px;color: gold;" hidden><i class="fa fa-fw fa-star"></i></span>
-                            </div>
-                            <div class="col-md-9">
-                              <div class="input-group">
-                                <select class="selectCasinos selectpicker form-control" name="" style="width: 25%;">
-                                  @foreach($casinos as $casino)
-                                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                  @endforeach
-                                </select>
-
-                                <input type="text" class="form-control nro_admin" name="snpid" placeholder="Nro Admin" style="width: 25%;">
-                                <input type="text" class="form-control denominacion" name="snpid" placeholder="Denominación" style="width: 25%;">
-                                <input type="text" class="form-control porcentaje" name="snpid" placeholder="% Devolución" style="width: 25%;">
-                              </div>
-                            </div>
-                            <div class="col-md-1">
-                              <button class="btn btn-link verMaquina">
-                                <i class="fa fa-fw fa-search"></i>
-                              </button>
-                            </div>
-                            <div class="col-md-1">
-                              <button class="btn btn-danger borrarFila borrarJuego"><i class="fa fa-fw fa-trash"></i></button>
-                            </div>
-                          </div>
-                        
-                        </div>
-                    </div><!-- col-md-12 -->
-
                   </div>
                 </div>
               </div>

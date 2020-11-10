@@ -68,15 +68,14 @@ $('#btn-nuevo').click(function(e){
 
   const juego = {nombre_juego: "", cod_juego: ""};
   const tablas = [];
-  const maquinas = [];
   const certificados = [];
   let casinos = [];
-  $('#maquina_mod .selectCasinos option').each(function(){
+  $('#buscadorCasino option').each(function(){
     const t = $(this);
-    casinos.push({id_casino: t.val(), nombre: t.text()});
+    if(t.val().length > 0) casinos.push({id_casino: t.val(), nombre: t.text()});
   });
 
-  mostrarJuego(juego,tablas,maquinas,certificados,casinos);
+  mostrarJuego(juego,tablas,certificados,casinos);
   habilitarControles(true);
 
   $('#modalJuego').modal('show');
@@ -98,7 +97,7 @@ $(document).on('click','.detalle', function(){
 
   $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
+      mostrarJuego(data.juego, data.tablasDePago,data.certificadoSoft,data.casinosJuego);
       $('#id_juego').val(data.juego.id_juego);
       habilitarControles(false);
       $('#modalJuego').modal('show');
@@ -135,47 +134,15 @@ $(document).on('click','.modificar',function(){
     habilitarControles(true);
     $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
+      mostrarJuego(data.juego, data.tablasDePago,data.certificadoSoft,data.casinosJuego);
       $('#modalJuego').modal('show');
     });
 
 });
 
-$('#btn-agregarMaquina').click(function(){
-  agregarRenglonMaquina();
-})
-
-function agregarRenglonMaquina(){
-  var modelo = $('#maquina_mod');
-  var renglon = modelo.clone();
-  renglon.addClass('copia').removeAttr('id').show();
-  $('#listaMaquinas').append(renglon);
-  renglon.find('select').trigger('change');
-  return renglon;
-};
-
 $(document).on('click' , '.borrarJuego' , function(){
   $(this).parent().parent().remove();
 })
-$(document).on('change','.selectCasinos',function(){
-  const t  = $(this);
-  const fila = t.parent().parent().parent();
-  const id_casino = t.val();
-  const nro_admin = fila.find('.nro_admin').attr('list','datalistMaquinas'+id_casino).val();
-  const id_maquina = obtenerIdMaquina(id_casino,nro_admin);
-  if(id_maquina != null) fila.attr('data-id',id_maquina);
-  else fila.removeAttr('data-id');
-})
-$(document).on('change','.copia input.nro_admin',function(){
-  const t = $(this);
-  const fila = t.parent().parent().parent();
-  const id_casino = fila.find('.selectCasinos').val();
-  const nro_admin = t.val();
-  const id_maquina = obtenerIdMaquina(id_casino,nro_admin);
-  if(id_maquina != null) fila.attr('data-id',id_maquina);
-  else fila.removeAttr('data-id');
-});
-
 function agregarRenglonTablaDePago(){
   let fila = $('<div>').addClass('row').addClass('col-md-12').addClass('copia')
   .css('padding-top','2px').css('padding-bottom','2px');
@@ -217,31 +184,12 @@ function obtenerIdCertificado(nro_archivo){
   }
   return cert;
 }
-function obtenerIdMaquina(id_casino,nro_admin){
-  const found = $('#datalistMaquinas'+id_casino+' option:contains('+nro_admin+')');
-  let maq = null;
-  for(let i = 0;i<found.length;i++){
-    if(found[i].textContent == nro_admin){
-      maq = found[i].getAttribute('data-id');
-      break;
-    }
-  }
-  return maq;
-}
 
 $(document).on('click', '.verCertificado', function(){
   const input = $(this).parent().parent().find('.codigo');
   const val = input.val();
   const id = obtenerIdCertificado(val);
   if(id != null) window.open('/certificadoSoft/' + id,'_blank');
-});
-
-$(document).on('click','.verMaquina',function(){
-  const fila = $(this).parent().parent();
-  const id_casino = fila.find('.selectCasinos').val();
-  const nro_admin = fila.find('.nro_admin').val();
-  const id_maquina = obtenerIdMaquina(id_casino,nro_admin);
-  if(id_maquina != null) window.open('/maquinas/' + id_maquina,'_blank');
 });
 
 /* busqueda de usuarios */
@@ -267,6 +215,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
 
   formData={
+    id_casino: $('#buscadorCasino').val(),
     nombreJuego: $('#buscadorNombre').val(),
     cod_Juego: $('#buscadorCodigoJuego').val(),
     codigoId: $('#buscadorCodigo').val(),
@@ -381,21 +330,6 @@ $('#btn-guardar').click(function (e) {
         }
     });
 
-    var maquinas = [];
-   
-    $('#listaMaquinas .copia').each(function (){
-      var id_m = $(this).attr('data-id') == undefined ? 0 : $(this).attr('data-id') ;
-      var maquina = {
-        id_maquina: id_m,
-        id_casino: $('.selectCasinos',$(this)).val(),
-        nro_admin: $('.nro_admin',$(this)).val() ,
-        denominacion: $('.denominacion',$(this)).val(),
-        porcentaje: $('.porcentaje',$(this)).val(),
-        activo: $('.esActivo',$(this)).css('display') != "none"? "1" : "0"
-      }
-      maquinas.push(maquina);
-    })
-
     var tablas = [];
     $('#tablas_de_pago input').each(function(){
       var id_t = $(this).attr('data-id') == undefined ? 0 : $(this).attr('data-id') ;
@@ -423,7 +357,6 @@ $('#btn-guardar').click(function (e) {
       cod_identificacion: $('#inputCodigo').val(),
       cod_juego:$('#inputCodigoJuego').val(),
       tabla_pago: tablas,
-      maquinas: maquinas,
       certificados: certificados,
       denominacion_contable: $('#denominacion_contable').val(),
       denominacion_juego:  $('#denominacion_juego').val(),
@@ -585,14 +518,12 @@ function habilitarControles(habilitado){
   $('#unidad_medida').attr('disabled',!habilitado);
   if(habilitado){
     $('.borrarTablaPago').show();
-    $('#btn-agregarMaquina').show();
     $('#btn-agregarTablaDePago').show();
     $('.borrarFila').show();
     $('#btn-agregarCertificado').show();
   }
   else{
     $('.borrarTablaPago').hide();
-    $('#btn-agregarMaquina').hide();
     $('#btn-agregarTablaDePago').hide();
     $('.borrarFila').hide();
     $('#btn-agregarCertificado').hide();
@@ -602,7 +533,7 @@ function habilitarControles(habilitado){
 }
 
 
-function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
+function mostrarJuego(juego, tablas,certificados,casinos){
   $('#inputJuego').val(juego.nombre_juego);
   $('#inputCodigoJuego').val(juego.cod_juego);
 
@@ -613,16 +544,6 @@ function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
     fila.attr('data-id' , tablas[i].id_tabla_pago);
   }
 
-  for (var i = 0; i < maquinas.length; i++) {
-    var div = agregarRenglonMaquina();
-    div.attr('data-id' ,maquinas[i].id_maquina);
-    div.find('.selectCasinos').val(maquinas[i].id_casino).trigger('change');
-    div.find('.nro_admin').val(maquinas[i].nro_admin).trigger('change');
-    div.find('.denominacion').val(maquinas[i].denominacion);
-    div.find('.porcentaje').val(maquinas[i].porcentaje_devolucion);
-    if(maquinas[i].activo){ div.find('.esActivo').show(); div.find('.borrarJuego').attr('disabled',true);}
-    else{ div.find('.esActivo').hide(); }
-  } 
   for (var i = 0; i < certificados.length; i++){
     let fila = agregarRenglonCertificado();
     const cert = certificados[i].certificado;
