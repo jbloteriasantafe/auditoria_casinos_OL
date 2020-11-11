@@ -6,10 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Juego;
-use App\TablaPago;
 use App\Casino;
 use App\GliSoft;
-use App\Maquina;
 use App\Usuario;
 use App\UnidadMedida;
 use App\TipoMoneda;
@@ -20,11 +18,7 @@ use Validator;
 
 class JuegoController extends Controller
 {
-  private static $atributos = [
-    'nombre_juego' => 'Nombre de Juego',
-    'cod_identificacion' => 'Código de Identificación',
-    'tablasDePago.*.codigo' => 'Código de Identificación',
-  ];
+  private static $atributos = [ ];
 
   private static $instance;
 
@@ -63,25 +57,11 @@ class JuegoController extends Controller
     }
 
     $acceso = $juego->casinos()->whereIn('casino_tiene_juego.id_casino',$reglaCasinos)->count();
-    if($acceso == 0){
+    if($acceso == 0 && $juego->casinos()->count() != 0){
       return $this->errorOut(['acceso'=>['']]);
     }
 
-    $packJuego=DB::table('pack_juego')
-                  ->select('pack_juego.*')
-                  ->distinct()
-                  ->join('pack_tiene_juego','pack_tiene_juego.id_pack','=','pack_juego.id_pack')
-                  ->join('pack_juego_tiene_casino','pack_juego_tiene_casino.id_pack','=','pack_juego.id_pack')
-                  ->where('pack_tiene_juego.id_juego','=',$juego->id_juego)
-                  ->wherein('pack_juego_tiene_casino.id_casino',$reglaCasinos)
-                  ->get();
-
-    $tabla = TablaPago::where('id_juego', '=', $id)->get();
-
-
     return ['juego' => $juego ,
-            'tablasDePago' => $tabla,
-            'pack'=>$packJuego,
             'certificadoSoft' => $this->obtenerCertificadosSoft($id),
             'casinosJuego' => $juego->casinos,
             'casinos' => $this->obtenerListaCodigosCasinos($juego)];
@@ -120,8 +100,6 @@ class JuegoController extends Controller
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
       'id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
-      'tabla_pago.*' => 'nullable',
-      'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
       'denominacion_juego' => 'required|numeric|between:0,100',
@@ -163,12 +141,6 @@ class JuegoController extends Controller
       // asocio el nuevo juego con los casinos del usuario 
       $juego->casinos()->syncWithoutDetaching($ids_casinos);
   
-      if(!empty($request->tabla_pago)){
-        foreach ($request->tabla_pago as $tabla){
-          TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
-        }
-      }
-
       foreach($juego->gliSoft as $gli){
         $juego->gliSoft()->detach($gli->id_gli_soft);
       }
@@ -187,25 +159,6 @@ class JuegoController extends Controller
     return ['juego' => $juego];
   }
 
-  public function guardarJuego_gestionarMaquina($nombre_juego,$arreglo_tablas){
-    //funcion encargada de crear juego si este fue creado en "GESTIONAR MÁQUINA"
-    Validator::make(['nombre_juego' => $nombre_juego], [
-      'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
-    ], array(), self::$atributos)->validate();
-
-    $juego = new Juego;
-    $juego->nombre_juego = $nombre_juego;
-    $juego->save();
-
-    if(!empty($arreglo_tablas)){//si no viene vacio
-      foreach ($arreglo_tablas as $tabla){
-        TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
-      }
-    }
-
-    return $juego;
-  }
-
   public function modificarJuego(Request $request){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ids_casinos = [];
@@ -218,8 +171,6 @@ class JuegoController extends Controller
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
       'id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
-      'tabla_pago.*' => 'nullable',
-      'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
       'denominacion_juego' => 'required|numeric|between:0,100',
@@ -272,18 +223,6 @@ class JuegoController extends Controller
       $juego->id_estado_juego = $request->id_estado_juego;
       $juego->save();
 
-      //Le saco las tablas de pago
-      foreach ($juego->tablasPago as $tabla) {
-        $tabla->delete();
-      };
-
-      //Seteo las enviadas
-      if(isset($request->tabla_pago)){
-        foreach ($request->tabla_pago as $key => $tabla) {
-          TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
-        };
-      }
-
       foreach($juego->gliSoft as $gli){
         $juego->gliSoft()->detach($gli->id_gli_soft);
       }
@@ -302,49 +241,9 @@ class JuegoController extends Controller
   }
 
   public function eliminarJuego($id){
-    $casinos = Usuario::find(session('id_usuario'))->casinos;
-    $reglaCasinos=array();
-    foreach($casinos as $casino){
-      $reglaCasinos [] = $casino->id_casino;
-    }
-
     $juego = Juego::find($id);
     if(is_null($juego)) return ['juego' => null];
-
-
-    $mtms_accesibles_con_juego_activo = $juego->maquinas()
-    ->whereIn('id_casino',$reglaCasinos);
-
-    if($mtms_accesibles_con_juego_activo->count()>0){
-      $errores = [];
-      foreach($mtms_accesibles_con_juego_activo->get() as $mtm){
-        $errores[] = $mtm->nro_admin;
-      }
-      return $this->errorOut(['maquina_juego_activo' => $errores]);
-    }
-
-    $mtms_accesibles = $juego->maquinas_juegos()
-    ->whereIn('id_casino',$reglaCasinos)->get();
-
-    DB::transaction(function() use($juego,$reglaCasinos,$mtms_accesibles){
-      foreach($mtms_accesibles as $mtm){
-        $mtm->juegos()->detach($juego->id_juego);
-        $mtm->save();
-      }
-      $juego->casinos()->detach($reglaCasinos);
-      $juego->save();
-      // @TODO: Si tuvieramos GLISOFT por casino, podriamos detachearlo aca nomas
-      // Solo si no queda asociado a ningun casino se puede eliminar el juego
-      $casRestantes= DB::table('casino_tiene_juego')->where('casino_tiene_juego.id_juego','=',$juego->id_juego)->count();
-      if ($casRestantes==0){
-        foreach ($juego->tablasPago as $tabla) {
-          TablaPagoController::getInstancia()->eliminarTablaPago($tabla->id_tabla_pago);
-        }        
-        $juego->setearGliSofts([]);
-        $juego->delete();
-      }
-    });
-
+    $juego->delete();
     return ['juego' => $juego];
   }
 
@@ -431,7 +330,10 @@ class JuegoController extends Controller
                   ->when($sort_by,function($query) use ($sort_by){
                                   return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                               })
-                  ->wherein('casino_tiene_juego.id_casino',$reglaCasinos)
+                  ->where(function($query) use ($reglaCasinos){
+                    return $query->wherein('casino_tiene_juego.id_casino',$reglaCasinos)->orWhereNull('casino_tiene_juego.id_casino');
+                  })
+                  ->whereNull('juego.deleted_at')
                   ->where($reglas);
     
     if(!empty($request->codigoId)){

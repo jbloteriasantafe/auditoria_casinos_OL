@@ -270,17 +270,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                   </div>
                   <hr>
                   <div class="row">
-                      <div id="tablas_de_pago" class="col-md-12">
-                          <h5 style="display:inline; margin-right:5px;">Tablas de pago</h5>
-                          <button style="display:inline;" id="btn-agregarTablaDePago" class="btn btn-success borrarFila" type="button">
-                            <i class="fa fa-fw fa-plus"></i>
-                          </button>
-                          <div id="tablas_pago" class="pre-scrollable" style="margin-top:15px;max-height: 150px;">
-                          </div>
-                      </div>
-                  </div>
-                  <hr>
-                  <div class="row">
                     <div class="col-md-12">
                       <div class="col-md-4">
                         <h5>Denominación Juego</h5>
@@ -367,8 +356,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     <div class="col-md-12">
       <h5>Tarjeta de Juegos</h5>
       <p>
-        Define juegos con sus respectivas tablas de pago. Luego, se podrán vincular a máquinas con su n° de admin,
-        denominación y % de devolución.
+        Define juegos para ser utilizados en otros modulos.
       </p>
     </div>
     @endsection
