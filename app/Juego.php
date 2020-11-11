@@ -12,7 +12,8 @@ class Juego extends Model
   protected $primaryKey = 'id_juego';
   protected $visible = array(
     'id_juego','nombre_juego','id_gli_soft','cod_identificacion','cod_juego',
-    'denominacion_contable','denominacion_juego','porcentaje_devolucion','id_unidad_medida','id_tipo_moneda','id_categoria_juego','id_estado_juego'
+    'denominacion_contable','denominacion_juego','porcentaje_devolucion', 'escritorio','movil',
+    'id_unidad_medida','id_tipo_moneda','id_categoria_juego','id_estado_juego',
   );
   public $timestamps = false;
   protected $appends = array('cod_identificacion');

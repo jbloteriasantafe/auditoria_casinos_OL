@@ -225,6 +225,17 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                       </div>
                       <div class="col-md-4">
+                        <h5>EN</h5>
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" id="escritorio">
+                          <label class="form-check-label" for="escritorio">Escritorio</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" id="movil">
+                          <label class="form-check-label" for="movil">Móvil</label>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
                         <h5>Casinos</h5>
                         <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="1" style="height: 100%;" readonly>
                         </select>
@@ -234,7 +245,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                   <hr>
                   <div class="row">
                     <div class="col-md-12">
-                      <h5 style="display:inline;">Certificados Software</h5>
+                      <h5 style="display:inline;">Certificados</h5>
                       <button style="display:inline;" id="btn-agregarCertificado" class="btn btn-success borrarFila" type="button">
                         <i class="fa fa-fw fa-link"></i>
                       </button>

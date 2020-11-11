@@ -17,14 +17,6 @@ $(document).ready(function(){
   $('#btn-buscar').trigger('click');
 })
 
-//enter en buscador
-$('#modalJuego input').on("keypress" , function(e){
-  if(e.which == 13) {
-    e.preventDefault();
-    $('#btn-guardar').click();
-  }
-})
-
 //enter en modal
 $('#contenedorFiltros input').on("keypress" , function(e){
   if(e.which == 13) {
@@ -86,6 +78,7 @@ $('#btn-nuevo').click(function(e){
 $(document).on('click','.detalle', function(){
   ocultarErrorValidacion($('#modalJuego input'));
   ocultarErrorValidacion($('#modalJuego select'));
+  ocultarErrorValidacion($('#modalJuego #motivo'));
   $('#modalJuego .modal-title').text('| VER MÁS');
   $('#modalJuego .modal-header').attr('style','background-color: #4FC3F7; color: #FFF');
   $('#boton-cancelar').hide();
@@ -108,6 +101,7 @@ $(document).on('click','.detalle', function(){
 $('.modal').on('hidden.bs.modal', function() {
   ocultarErrorValidacion($('#modalJuego input'));
   ocultarErrorValidacion($('#modalJuego select'));
+  ocultarErrorValidacion($('#modalJuego #motivo'));
   $('#btn-guardar').val('');
   $('#id_juego').val(0);
   $('#inputJuego').val('');
@@ -115,17 +109,12 @@ $('.modal').on('hidden.bs.modal', function() {
   $('.copia').remove();
   $('#tablas_pago').empty();
 })
-$('#inputJuego').mouseleave(function(){
-  ocultarErrorValidacion($('#inputJuego'));
-});
-$('#inputCodigoJuego').mouseleave(function(){
-  ocultarErrorValidacion($('#inputJuego'));
-});
 
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
-    ocultarErrorValidacion($('#inputJuego'));
-    ocultarErrorValidacion($('#inputCodigoJuego'));
+    ocultarErrorValidacion($('#modalJuego input'));
+    ocultarErrorValidacion($('#modalJuego select'));
+    ocultarErrorValidacion($('#modalJuego #motivo'));
     var id_juego = $(this).val();
     //Modificar los colores del modal
     $('#modalJuego .modal-title').text('| MODIFICAR JUEGO');
@@ -369,6 +358,8 @@ $('#btn-guardar').click(function (e) {
       id_unidad_medida:  $('#unidad_medida').val(),
       id_tipo_moneda:  $('#tipo_moneda').val(),
       motivo: $('#motivo').val(),
+      escritorio: $('#escritorio').prop('checked') * 1,
+      movil: $('#movil').prop('checked') * 1,
     }
 
     if (state == "modificar") {
@@ -408,6 +399,12 @@ $('#btn-guardar').click(function (e) {
             }
             if(typeof response.motivo !== 'undefined'){
               mostrarErrorValidacion($('#motivo'),parseError(response.motivo),true);
+            }
+            if(typeof response.escritorio !== 'undefined'){
+              mostrarErrorValidacion($('#escritorio'),parseError(response.escritorio),true);
+            }
+            if(typeof response.movil !== 'undefined'){
+              mostrarErrorValidacion($('#movil'),parseError(response.movil),true);
             }
             if(typeof response.id_tipo_moneda !== 'undefined'){
               mostrarErrorValidacion($('#tipo_moneda'),parseError(response.id_tipo_moneda),true);
@@ -552,6 +549,8 @@ function mostrarJuego(juego, tablas,certificados,casinos){
   $('#selectCategoria').val(juego.id_categoria_juego);
   $('#selectEstado').val(juego.id_estado_juego);
   $('#motivo').val("");
+  $('#escritorio').prop('checked',juego.escritorio == 1);
+  $('#movil').prop('checked',juego.movil == 1);
 
   for (var i = 0; i < tablas.length; i++) {
     let fila = agregarRenglonTablaDePago();

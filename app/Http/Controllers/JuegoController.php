@@ -129,7 +129,9 @@ class JuegoController extends Controller
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
       'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
-      'motivo' => 'nullable|string|max:256'
+      'motivo' => 'nullable|string|max:256',
+      'movil' => 'nullable|boolean',
+      'escritorio' => 'nullable|boolean'
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos) {
       $data = $validator->getData();
       $nombre_juego = $data['nombre_juego'];
@@ -141,6 +143,10 @@ class JuegoController extends Controller
       if($juegos_mismo_nombre->count() > 0){
         $validator->errors()->add('nombre_juego', 'validation.unique');
       }
+      if(!$data['movil'] && !$data['escritorio']){
+        $validator->errors()->add('movil','validation.required');
+        $validator->errors()->add('escritorio','validation.required');
+      }
     })->validate();
 
     $juego = new Juego;
@@ -150,6 +156,8 @@ class JuegoController extends Controller
       $juego->denominacion_contable = $request->denominacion_contable;
       $juego->denominacion_juego = $request->denominacion_juego;
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
+      $juego->escritorio = $request->escritorio;
+      $juego->movil = $request->movil;
       $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
@@ -223,7 +231,9 @@ class JuegoController extends Controller
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
       'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
-      'motivo' => 'nullable|string|max:256'
+      'motivo' => 'nullable|string|max:256',
+      'movil' => 'nullable|boolean',
+      'escritorio' => 'nullable|boolean'
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos){
       $data = $validator->getData();
       $id_juego = $data['id_juego'];
@@ -244,6 +254,10 @@ class JuegoController extends Controller
       && $juegos_mismo_nombre->where('j.id_juego',$id_juego)->count() == 0){
         $validator->errors()->add('nombre_juego', 'validation.unique');
       }
+      if(!$data['movil'] && !$data['escritorio']){
+        $validator->errors()->add('movil','validation.required');
+        $validator->errors()->add('escritorio','validation.required');
+      }
     })->validate();
 
 
@@ -258,6 +272,8 @@ class JuegoController extends Controller
       $juego->denominacion_contable = $request->denominacion_contable;
       $juego->denominacion_juego = $request->denominacion_juego;
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
+      $juego->escritorio = $request->escritorio;
+      $juego->movil = $request->movil;
       $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
