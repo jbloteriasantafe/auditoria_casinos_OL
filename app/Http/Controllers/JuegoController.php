@@ -124,7 +124,6 @@ class JuegoController extends Controller
       'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
-      'denominacion_contable' => 'required|numeric|between:0,100',
       'denominacion_juego' => 'required|numeric|between:0,100',
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
@@ -152,7 +151,6 @@ class JuegoController extends Controller
     DB::transaction(function() use($juego,$ids_casinos,$request){
       $juego->nombre_juego = $request->nombre_juego;
       $juego->cod_juego = $request->cod_juego;
-      $juego->denominacion_contable = $request->denominacion_contable;
       $juego->denominacion_juego = $request->denominacion_juego;
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->escritorio = $request->escritorio;
@@ -224,7 +222,6 @@ class JuegoController extends Controller
       'tabla_pago.*.codigo' => 'required|max:150',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
-      'denominacion_contable' => 'required|numeric|between:0,100',
       'denominacion_juego' => 'required|numeric|between:0,100',
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
@@ -266,7 +263,6 @@ class JuegoController extends Controller
         $juego->cod_juego= $request->cod_juego;
       }
 
-      $juego->denominacion_contable = $request->denominacion_contable;
       $juego->denominacion_juego = $request->denominacion_juego;
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->escritorio = $request->escritorio;

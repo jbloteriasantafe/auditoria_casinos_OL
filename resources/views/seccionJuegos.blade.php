@@ -283,10 +283,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                   <div class="row">
                     <div class="col-md-12">
                       <div class="col-md-4">
-                        <h5>Denominación Contable</h5>
-                        <input id="denominacion_contable" class="form-control" type="text" autocomplete="off" placeholder="-"/>
-                      </div>
-                      <div class="col-md-4">
                         <h5>Denominación Juego</h5>
                         <input id="denominacion_juego" class="form-control" type="text" autocomplete="off" placeholder="-" />
                       </div>
@@ -294,10 +290,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <h5>Porcentaje Devolución</h5>
                         <input id="porcentaje_devolucion" class="form-control" type="text" autocomplete="off" placeholder="-" />
                       </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-12">
                       <div class="col-md-4">
                         <h5>Moneda</h5>
                         <select id="tipo_moneda" class="form-control">
