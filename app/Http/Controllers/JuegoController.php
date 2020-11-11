@@ -127,7 +127,6 @@ class JuegoController extends Controller
       'denominacion_contable' => 'required|numeric|between:0,100',
       'denominacion_juego' => 'required|numeric|between:0,100',
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
-      'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
       'motivo' => 'nullable|string|max:256',
       'movil' => 'nullable|boolean',
@@ -158,7 +157,6 @@ class JuegoController extends Controller
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->escritorio = $request->escritorio;
       $juego->movil = $request->movil;
-      $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->id_estado_juego = $request->id_estado_juego;
@@ -229,7 +227,6 @@ class JuegoController extends Controller
       'denominacion_contable' => 'required|numeric|between:0,100',
       'denominacion_juego' => 'required|numeric|between:0,100',
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
-      'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
       'motivo' => 'nullable|string|max:256',
       'movil' => 'nullable|boolean',
@@ -274,7 +271,6 @@ class JuegoController extends Controller
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->escritorio = $request->escritorio;
       $juego->movil = $request->movil;
-      $juego->id_unidad_medida = $request->id_unidad_medida;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->id_estado_juego = $request->id_estado_juego;

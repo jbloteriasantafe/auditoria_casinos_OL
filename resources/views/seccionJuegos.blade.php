@@ -299,15 +299,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                   <div class="row">
                     <div class="col-md-12">
                       <div class="col-md-4">
-                        <h5>Unidad de medida</h5>
-                        <select id="unidad_medida" class="form-control">
-                          <option value="">- Seleccionar - </option>
-                          @foreach ($unidades_medida as $unidad)
-                          <option value="{{$unidad->id_unidad_medida}}">{{$unidad->descripcion}}</option>
-                          @endforeach
-                        </select>         
-                      </div>
-                      <div class="col-md-4">
                         <h5>Moneda</h5>
                         <select id="tipo_moneda" class="form-control">
                           <option value="">- Seleccionar - </option>

@@ -355,7 +355,6 @@ $('#btn-guardar').click(function (e) {
       denominacion_contable: $('#denominacion_contable').val(),
       denominacion_juego:  $('#denominacion_juego').val(),
       porcentaje_devolucion:  $('#porcentaje_devolucion').val(),
-      id_unidad_medida:  $('#unidad_medida').val(),
       id_tipo_moneda:  $('#tipo_moneda').val(),
       motivo: $('#motivo').val(),
       escritorio: $('#escritorio').prop('checked') * 1,
@@ -409,9 +408,7 @@ $('#btn-guardar').click(function (e) {
             if(typeof response.id_tipo_moneda !== 'undefined'){
               mostrarErrorValidacion($('#tipo_moneda'),parseError(response.id_tipo_moneda),true);
             }
-            if(typeof response.id_unidad_medida !== 'undefined'){
-              mostrarErrorValidacion($('#unidad_medida'),parseError(response.id_unidad_medida),true);
-            }
+
             if(typeof response.id_categoria_juego !== 'undefined'){
               mostrarErrorValidacion($('#selectCategoria'),parseError(response.id_categoria_juego),true);
             }
@@ -577,7 +574,6 @@ function mostrarJuego(juego, tablas,certificados,casinos){
   $('#denominacion_contable').val(juego.denominacion_contable);
   $('#denominacion_juego').val(juego.denominacion_juego);
   $('#porcentaje_devolucion').val(juego.porcentaje_devolucion);
-  $('#unidad_medida').val(juego.id_unidad_medida);
   $('#tipo_moneda').val(juego.id_tipo_moneda);
 }
 
