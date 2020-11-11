@@ -92,6 +92,10 @@ class Juego extends Model
     return $this->belongsTo('App\EstadoJuego','id_estado_juego','id_estado_juego');
   }
 
+  public function logs(){
+    return $this->hasMany('App\LogJuego','id_juego','id_juego');
+  }
+
   public static function boot(){
     parent::boot();
     Juego::observe(new JuegoObserver());

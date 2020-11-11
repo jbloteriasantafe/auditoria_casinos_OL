@@ -198,11 +198,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                 <div class="row">
                   <div class="row">
                     <div class="col-md-12">
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <h5>Categoría</h5>
                         <select id="selectCategoria" class="form-control">
                           <option value="">- Seleccionar -</option>
@@ -211,7 +211,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           @endforeach
                         </select>
                       </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <h5>Estado</h5>
                         <select id="selectEstado" class="form-control">
                           <option value="">- Seleccionar -</option>
@@ -220,11 +220,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           @endforeach
                         </select>
                       </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <h5>Código Juego</h5>
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                       </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <h5>Casinos</h5>
                         <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="1" style="height: 100%;" readonly>
                         </select>
@@ -305,6 +305,13 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           @endforeach
                         </select>
                       </div>
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5>Motivo</h5>
+                      <textarea class="form-control" id="motivo" rows="3" maxlength="256"></textarea>
                     </div>
                   </div>
                 </div>

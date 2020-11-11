@@ -15,6 +15,7 @@ use App\UnidadMedida;
 use App\TipoMoneda;
 use App\CategoriaJuego;
 use App\EstadoJuego;
+use App\LogJuego;
 use Validator;
 
 class JuegoController extends Controller
@@ -128,6 +129,7 @@ class JuegoController extends Controller
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
       'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
+      'motivo' => 'nullable|string|max:256'
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos) {
       $data = $validator->getData();
       $nombre_juego = $data['nombre_juego'];
@@ -170,6 +172,12 @@ class JuegoController extends Controller
         $juego->setearGliSofts($request->certificados,True);
       }
       $juego->save();
+
+      $log = new LogJuego;
+      $log->id_juego = $juego->id_juego;
+      $log->fecha = date('Y-m-d h:i:s');
+      $log->json = $request->all();
+      $log->save();
     });
 
     return ['juego' => $juego];
@@ -215,6 +223,7 @@ class JuegoController extends Controller
       'porcentaje_devolucion' => 'required|numeric|between:0,99.99',
       'id_unidad_medida' => 'required|integer|exists:unidad_medida,id_unidad_medida',
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
+      'motivo' => 'nullable|string|max:256'
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos){
       $data = $validator->getData();
       $id_juego = $data['id_juego'];
@@ -274,6 +283,11 @@ class JuegoController extends Controller
         $juego->setearGliSofts($request->certificados,True);
       }
       $juego->save();
+      $log = new LogJuego;
+      $log->id_juego = $juego->id_juego;
+      $log->fecha = date('Y-m-d h:i:s');
+      $log->json = $request->all();
+      $log->save();
     });
 
     return ['juego' => $juego];
