@@ -321,6 +321,8 @@ $('#btn-guardar').click(function (e) {
       motivo: $('#motivo').val(),
       escritorio: $('#escritorio').prop('checked') * 1,
       movil: $('#movil').prop('checked') * 1,
+      codigo_operador: $('#inputCodigoOperador').val(),
+      codigo_proveedor: $('#inputCodigoProveedor').val(),
     }
 
     if (state == "modificar") {

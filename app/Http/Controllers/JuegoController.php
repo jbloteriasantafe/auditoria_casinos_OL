@@ -9,7 +9,6 @@ use App\Juego;
 use App\Casino;
 use App\GliSoft;
 use App\Usuario;
-use App\UnidadMedida;
 use App\TipoMoneda;
 use App\CategoriaJuego;
 use App\EstadoJuego;
@@ -37,7 +36,6 @@ class JuegoController extends Controller
     return view('seccionJuegos' , 
     ['casinos' => $casinos,
      'certificados' => GliSoftController::getInstancia()->gliSoftsPorCasinos($casinos),
-     'unidades_medida' => UnidadMedida::all(),
      'monedas' => TipoMoneda::all(),
      'categoria_juego' => CategoriaJuego::all(),
      'estado_juego' => EstadoJuego::all(),
@@ -107,7 +105,9 @@ class JuegoController extends Controller
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
       'motivo' => 'nullable|string|max:256',
       'movil' => 'nullable|boolean',
-      'escritorio' => 'nullable|boolean'
+      'escritorio' => 'nullable|boolean',
+      'codigo_operador' => 'nullable|string|max:100',
+      'codigo_proveedor' => 'nullable|string|max:100',
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos) {
       $data = $validator->getData();
       $nombre_juego = $data['nombre_juego'];
@@ -133,6 +133,8 @@ class JuegoController extends Controller
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->escritorio = $request->escritorio;
       $juego->movil = $request->movil;
+      $juego->codigo_operador = $request->codigo_operador;
+      $juego->codigo_proveedor = $request->codigo_proveedor;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->id_estado_juego = $request->id_estado_juego;
@@ -178,7 +180,9 @@ class JuegoController extends Controller
       'id_tipo_moneda' => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
       'motivo' => 'nullable|string|max:256',
       'movil' => 'nullable|boolean',
-      'escritorio' => 'nullable|boolean'
+      'escritorio' => 'nullable|boolean',
+      'codigo_operador' => 'nullable|string|max:100',
+      'codigo_proveedor' => 'nullable|string|max:100',
     ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos){
       $data = $validator->getData();
       $id_juego = $data['id_juego'];
@@ -218,6 +222,8 @@ class JuegoController extends Controller
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->escritorio = $request->escritorio;
       $juego->movil = $request->movil;
+      $juego->codigo_operador = $request->codigo_operador;
+      $juego->codigo_proveedor = $request->codigo_proveedor;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->id_estado_juego = $request->id_estado_juego;

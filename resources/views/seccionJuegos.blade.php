@@ -240,6 +240,14 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="1" style="height: 100%;" readonly>
                         </select>
                       </div>
+                      <div class="col-md-6">
+                        <h5>Codigo de operador</h5>
+                        <input id="inputCodigoOperador" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
+                      </div>
+                      <div class="col-md-6">
+                        <h5>Codigo de proveedor</h5>
+                        <input id="inputCodigoProveedor" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
+                      </div>
                     </div>
                   </div>
                   <hr>
