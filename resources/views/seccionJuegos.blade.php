@@ -29,6 +29,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                             <div id="collapseFiltros" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
+                                <div class="col-md-3">
+                                    <h5>Plataforma</h5>
+                                    <select id="buscadorPlataforma" class="form-control">
+                                      <option value="">- Todas -</option>
+                                      @foreach($plataformas as $p)
+                                      <option value="{{$p->id_plataforma}}" data-casinos="{{implode(',',array_map(function($c){return $c['id_casino'];},$p->casinos->toArray()))}}">{{$p->nombre}}</option>
+                                      @endforeach
+                                    </select>
+                                  </div>
                                   <div class="col-md-3">
                                     <h5>Casino</h5>
                                     <select id="buscadorCasino" class="form-control">
@@ -48,7 +57,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     </select>
                                   </div>
                                   <div class="col-md-3">
-                                    <h5>Categoría</h5>
+                                    <h5>Estado</h5>
                                     <select id="buscadorEstado" class="form-control">
                                       <option value="">- Todos -</option>
                                       @foreach($estado_juego as $e)
@@ -220,11 +229,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           @endforeach
                         </select>
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-3">
                         <h5>Código Juego</h5>
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-3" id="tipos">
                         <h5>EN</h5>
                         <div class="form-check">
                           <input class="form-check-input" type="checkbox" value="" id="escritorio">
@@ -235,9 +244,19 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           <label class="form-check-label" for="movil">Móvil</label>
                         </div>
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-3" id="plataformas">
+                        <h5>Plataformas</h5>
+                        @foreach($plataformas as $idx => $p)
+                        <div class="form-check">
+                          <input class="form-check-input plataforma" type="checkbox" id="plataforma{{$idx}}" data-id="{{$p->id_plataforma}}" 
+                          data-casinos="{{implode(',',array_map(function($c){return $c['id_casino'];},$p->casinos->toArray()))}}">
+                          <label class="form-check-label" for="plataforma{{$idx}}">{{$p->nombre}}</label>
+                        </div>
+                        @endforeach
+                      </div>
+                      <div class="col-md-3">
                         <h5>Casinos</h5>
-                        <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="1" style="height: 100%;" readonly>
+                        <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="3" style="height: 100%;" readonly>
                         </select>
                       </div>
                       <div class="col-md-6">

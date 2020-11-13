@@ -70,7 +70,11 @@ class Juego extends Model
 
   public function casinos(){
     return $this->belongsToMany('App\Casino','casino_tiene_juego','id_juego','id_casino');
- }
+  }
+
+  public function plataformas(){
+    return $this->belongsToMany('App\Plataforma','plataforma_tiene_juego','id_juego','id_plataforma');
+  }
 
   public function maquinas(){//En realidad obtiene las maquinas que lo tienen como activo.
     return $this->hasMany('App\Maquina','id_juego','id_juego');

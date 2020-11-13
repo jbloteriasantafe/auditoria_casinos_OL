@@ -101,6 +101,10 @@ class Casino extends Model
   public function estadosAE(){
     return $this->hasMany('App\Autoexclusion\EstadoAE','id_casino','id_casino');
   }
+
+  public function plataformas(){
+    return $this->belongsToMany('App\Plataforma','plataforma_tiene_casino','id_casino','id_plataforma');
+  }
   
   public static function boot(){
         parent::boot();

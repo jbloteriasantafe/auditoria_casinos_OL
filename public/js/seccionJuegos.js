@@ -46,9 +46,6 @@ $('#btn-ayuda').click(function(e){
 //Mostrar modal para agregar nuevo Juego
 $('#btn-nuevo').click(function(e){
   e.preventDefault();
-  ocultarErrorValidacion($('#modalJuego input'));
-  ocultarErrorValidacion($('#modalJuego select'));
-  ocultarErrorValidacion($('#modalJuego #motivo'));
   $('#mensajeExito').hide();
   $('#modalJuego .modal-title').text(' | NUEVO JUEGO');
   $('#modalJuego .modal-header').attr('style','background-color: #6dc7be; color: #fff');
@@ -59,15 +56,7 @@ $('#btn-nuevo').click(function(e){
   $('#btn-guardar').css('display','inline-block');
   $('#boton-salir').text('CANCELAR');
 
-  const juego = {nombre_juego: "", cod_juego: ""};
-  const certificados = [];
-  let casinos = [];
-  $('#buscadorCasino option').each(function(){
-    const t = $(this);
-    if(t.val().length > 0) casinos.push({id_casino: t.val(), nombre: t.text()});
-  });
-
-  mostrarJuego(juego,certificados,casinos);
+  mostrarJuego({},[],[]);
   habilitarControles(true);
 
   $('#modalJuego').modal('show');
@@ -75,9 +64,6 @@ $('#btn-nuevo').click(function(e){
 
 //Muestra el modal con todos los datos del JUEGO
 $(document).on('click','.detalle', function(){
-  ocultarErrorValidacion($('#modalJuego input'));
-  ocultarErrorValidacion($('#modalJuego select'));
-  ocultarErrorValidacion($('#modalJuego #motivo'));
   $('#modalJuego .modal-title').text('| VER MÁS');
   $('#modalJuego .modal-header').attr('style','background-color: #4FC3F7; color: #FFF');
   $('#boton-cancelar').hide();
@@ -90,7 +76,7 @@ $(document).on('click','.detalle', function(){
 
   $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego,data.certificadoSoft,data.casinosJuego);
+      mostrarJuego(data.juego,data.certificadoSoft,data.plataformas);
       $('#id_juego').val(data.juego.id_juego);
       habilitarControles(false);
       $('#modalJuego').modal('show');
@@ -98,21 +84,13 @@ $(document).on('click','.detalle', function(){
 });
 
 $('.modal').on('hidden.bs.modal', function() {
-  ocultarErrorValidacion($('#modalJuego input'));
-  ocultarErrorValidacion($('#modalJuego select'));
-  ocultarErrorValidacion($('#modalJuego #motivo'));
   $('#btn-guardar').val('');
   $('#id_juego').val(0);
-  $('#inputJuego').val('');
-  $('#inputCodigoJuego').val('');
   $('.copia').remove();
 })
 
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
-    ocultarErrorValidacion($('#modalJuego input'));
-    ocultarErrorValidacion($('#modalJuego select'));
-    ocultarErrorValidacion($('#modalJuego #motivo'));
     var id_juego = $(this).val();
     //Modificar los colores del modal
     $('#modalJuego .modal-title').text('| MODIFICAR JUEGO');
@@ -122,7 +100,7 @@ $(document).on('click','.modificar',function(){
     habilitarControles(true);
     $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego,data.certificadoSoft,data.casinosJuego);
+      mostrarJuego(data.juego,data.certificadoSoft,data.plataformas);
       $('#modalJuego').modal('show');
     });
 
@@ -179,6 +157,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
 
   formData={
+    id_plataforma: $('#buscadorPlataforma').val(),
     id_casino: $('#buscadorCasino').val(),
     id_categoria_juego: $('#buscadorCategoria').val(),
     id_estado_juego: $('#buscadorEstado').val(),
@@ -202,7 +181,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         $('#cuerpoTabla').append(crearFilaJuego(resultados.data[i]));
       }
       $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-
     },
     error: function (data) {
       console.log('Error:', data);
@@ -306,7 +284,6 @@ $('#btn-guardar').click(function (e) {
     var state = $('#btn-guardar').val();
     var type = "POST";
     var url = '/juegos/guardarJuego';
-    var id_juego = $('#id_juego').val();
 
     var formData = {
       nombre_juego: $('#inputJuego').val(),
@@ -323,6 +300,7 @@ $('#btn-guardar').click(function (e) {
       movil: $('#movil').prop('checked') * 1,
       codigo_operador: $('#inputCodigoOperador').val(),
       codigo_proveedor: $('#inputCodigoProveedor').val(),
+      plataformas: $.map($('.plataforma:checked'), p => $(p).attr('data-id')),
     }
 
     if (state == "modificar") {
@@ -360,21 +338,21 @@ $('#btn-guardar').click(function (e) {
             if(typeof response.motivo !== 'undefined'){
               mostrarErrorValidacion($('#motivo'),parseError(response.motivo),true);
             }
-            if(typeof response.escritorio !== 'undefined'){
-              mostrarErrorValidacion($('#escritorio'),parseError(response.escritorio),true);
-            }
-            if(typeof response.movil !== 'undefined'){
-              mostrarErrorValidacion($('#movil'),parseError(response.movil),true);
-            }
+
             if(typeof response.id_tipo_moneda !== 'undefined'){
               mostrarErrorValidacion($('#tipo_moneda'),parseError(response.id_tipo_moneda),true);
             }
-
             if(typeof response.id_categoria_juego !== 'undefined'){
               mostrarErrorValidacion($('#selectCategoria'),parseError(response.id_categoria_juego),true);
             }
             if(typeof response.id_estado_juego !== 'undefined'){
               mostrarErrorValidacion($('#selectEstado'),parseError(response.id_estado_juego),true);
+            }
+            if(typeof response.tipos !== 'undefined'){
+              mostrarErrorValidacion($('#tipos'),parseError(response.tipos),true);
+            }
+            if(typeof response.plataformas !== 'undefined'){
+              mostrarErrorValidacion($('#plataformas'),parseError(response.plataformas),true);
             }
         }
     });
@@ -488,7 +466,12 @@ function habilitarControles(habilitado){
 }
 
 
-function mostrarJuego(juego, certificados,casinos){
+function mostrarJuego(juego, certificados,plataformas){
+  ocultarErrorValidacion($('#modalJuego input'));
+  ocultarErrorValidacion($('#modalJuego select'));
+  ocultarErrorValidacion($('#modalJuego #motivo'));
+  ocultarErrorValidacion($('#modalJuego #tipos'));
+  ocultarErrorValidacion($('#modalJuego #plataformas'));
   $('#inputJuego').val(juego.nombre_juego);
   $('#inputCodigoJuego').val(juego.cod_juego);
   $('#selectCategoria').val(juego.id_categoria_juego);
@@ -504,13 +487,11 @@ function mostrarJuego(juego, certificados,casinos){
     .attr('data-id',cert.id_gli_soft);
   }
 
-  let selectCasinosJuego = $('#selectCasinosJuego');
-  selectCasinosJuego.empty();
-  selectCasinosJuego.attr('size',Math.max(casinos.length,2));
-  for(let i = 0;i < casinos.length; i++){
-    const c = casinos[i];
-    selectCasinosJuego.append($('<option disabled>').val(c.id_casino).text(c.nombre));
-  }
+  $('#selectCasinosJuego').empty();
+  $('.plataforma').prop('checked',false);
+  plataformas.forEach( p => {
+    $(`.plataforma[data-id="${p.id_plataforma}"`).prop('checked',true).change();
+  });
 
   $('#denominacion_juego').val(juego.denominacion_juego);
   $('#porcentaje_devolucion').val(juego.porcentaje_devolucion);
@@ -542,3 +523,15 @@ function mensajeError(errores) {
       $('#mensajeError').show();
   }, 250);
 }
+
+$('.plataforma').change(function(){
+  const casinos = $(this).attr('data-casinos').split(',');
+  const agregar = $(this).prop('checked');
+  for(let i = 0;i < casinos.length; i++){
+    const c = casinos[i];
+    const existente = $(`#selectCasinosJuego option[value="${c}"]`);
+    const nombre = $(`#buscadorCasino option[value="${c}"]`).text();
+    if(agregar && existente.length == 0) $('#selectCasinosJuego').append($('<option disabled>').val(c).text(nombre));
+    else if(!agregar) existente.remove();
+  }
+});
