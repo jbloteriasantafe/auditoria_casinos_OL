@@ -497,8 +497,9 @@ class GliSoftController extends Controller
     } 
     $gli_softs = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
     ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
-    ->join('casino_tiene_juego as cj','cj.id_juego','=','jgl.id_juego')
-    ->whereIn('cj.id_casino',$casinos_ids)
+    ->join('plataforma_tiene_juego as pj','pj.id_juego','=','jgl.id_juego')
+    ->join('plataforma_tiene_casino as pc','pc.id_plataforma','=','pj.id_plataforma')
+    ->whereIn('pc.id_casino',$casinos_ids)
     ->groupBy('gl.id_gli_soft')
     ->get();
     $ret = [];
