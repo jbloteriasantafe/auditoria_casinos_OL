@@ -141,7 +141,7 @@ class JuegoController extends Controller
     })->validate();
 
     $juego = new Juego;
-    DB::transaction(function() use($juego,$plataformas_usuario,$request){
+    DB::transaction(function() use($juego,$request){
       $juego->nombre_juego = $request->nombre_juego;
       $juego->cod_juego = $request->cod_juego;
       $juego->denominacion_juego = $request->denominacion_juego;
