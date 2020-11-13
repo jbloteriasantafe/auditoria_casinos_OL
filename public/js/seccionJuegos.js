@@ -458,7 +458,7 @@ function clickIndice(e,pageNumber,tam){
 }
 
 function habilitarControles(habilitado){
-  $('#modalJuego input').prop('readonly',!habilitado);
+  $('#modalJuego input').prop('disabled',!habilitado);
   $('#modalJuego select').attr('disabled',!habilitado);
   $('.borrarFila').attr('disabled',!habilitado);
   $('#btn-agregarCertificado').attr('disabled',!habilitado);
