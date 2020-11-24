@@ -34,14 +34,15 @@ class GliSoftController extends Controller
       $uc = UsuarioController::getInstancia();
       $uc->agregarSeccionReciente('Certificados Software' , 'certificadoSoft');
       $user = $uc->quienSoy()['usuario'];
-      $casinos_ids = [];
-      foreach($user->casinos as $c){
-        $casinos_ids[] = $c->id_casino;
+      $plats = [];
+      foreach($user->plataformas as $p){
+        $plats[] = $p->id_plataforma;
       }
       //Ordenar por nombre ascendiente ignorando mayusculas
       $query = DB::table('juego')->select('juego.id_juego')
-      ->join('casino_tiene_juego as cj','juego.id_juego','=','cj.id_juego')
-      ->whereIn('cj.id_casino',$casinos_ids)
+      ->leftjoin('plataforma_tiene_juego as pj','juego.id_juego','=','pj.id_juego')
+      ->whereIn('pj.id_plataforma',$plats)
+      ->orWhereNull('pj.id_plataforma')
       ->groupBy('juego.id_juego')
       ->orderBy('juego.nombre_juego','ASC')
       ->get();
@@ -49,8 +50,8 @@ class GliSoftController extends Controller
       $juegosarr = [];
       foreach($query as $q){
         $j = Juego::find($q->id_juego);
-        $casinos = JuegoController::getInstancia()->obtenerListaCodigosCasinos($j);
-        $nombre = $j->nombre_juego . ' ‣ ' . $casinos;
+        $plataformas = $this->obtenerListaCodigosPlataformas($j);
+        $nombre = $j->nombre_juego . ' ‣ ' . $plataformas;
         if(!isset($juegosarr[$nombre])){
           $juegosarr[$nombre] = [];
         }
@@ -60,6 +61,7 @@ class GliSoftController extends Controller
       return view('seccionGLISoft' , 
       ['superusuario' => $user->es_superusuario,
       'casinos' => $user->casinos,
+      'plataformas' => $user->plataformas,
       'juegos' => $juegosarr]);
   }
 
@@ -79,11 +81,6 @@ class GliSoftController extends Controller
       }
     });
 
-    $casinos_ids = [];
-    foreach($user->casinos as $c){
-      $casinos_ids[] = $c->id_casino;
-    }
-
     $glisoft = GliSoft::find($id);
 
     if(!empty($glisoft->archivo)){
@@ -94,29 +91,44 @@ class GliSoftController extends Controller
       $nombre_archivo = null;
       $size = 0;
     }
-    $juegosYTPagos = array();
+
+    $casinos_ids = [];
+    foreach($user->casinos as $c){
+      $casinos_ids[] = $c->id_casino;
+    }
+    $juegos = array();
     foreach ($glisoft->juegos as $juego) {
-      $visible = $juego->casinos()->whereIn('casino.id_casino',$casinos_ids)->count();
+      $visible = $juego->casinos->whereIn('casino.id_casino',$casinos_ids)->count();
       if($visible>0){
-        $juegosYTPagos[]= ['juego'=> $juego, 
-        'tablas_de_pago' => $juego->tablasPago,
-        'casinos' => JuegoController::getInstancia()->obtenerListaCodigosCasinos($juego)];
+        $juegos[]= ['juego'=> $juego, 
+        'plataformas' => $juego->plataformas];
       }
     }
-    $casinos_certificado = DB::table('gli_soft')
-    ->select('casino.id_casino','casino.nombre','casino.codigo')
-    ->selectRaw('( casino.id_casino in ('.join(',',$casinos_ids).') ) as visible')
+    $plataformas_certificado = DB::table('gli_soft')
+    ->select('plataforma.id_plataforma','plataforma.nombre')
+    ->selectRaw('( plataforma_tiene_casino.id_casino in ('.join(',',$casinos_ids).') ) as visible')
     ->join('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
-    ->join('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego_glisoft.id_juego')
-    ->join('casino','casino_tiene_juego.id_casino','=','casino.id_casino')
+    ->join('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
+    ->join('plataforma_tiene_casino','plataforma_tiene_casino.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+    ->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->where('gli_soft.id_gli_soft',$id)
     ->distinct()->get();
     return ['glisoft' => $glisoft ,
             'expedientes' => $glisoft->expedientes,
             'nombre_archivo' => $nombre_archivo ,
-            'juegos' => $juegosYTPagos,
+            'juegos' => $juegos,
             'size' =>$size,
-            'casinos' => $casinos_certificado];
+            'plataformas' => $plataformas_certificado];
+  }
+
+  public function obtenerListaCodigosPlataformas($juego,$sep=', '){
+    $lista = '';
+    $plataformas_juego = $juego->plataformas()->orderBy('codigo')->get();
+    foreach($plataformas_juego as $idx => $p){
+      if($idx!=0) $lista = $lista . $sep;
+      $lista = $lista . $p->codigo;
+    }
+    return $lista;
   }
 
   public function leerArchivoGliSoft(Request $request,$id){
@@ -155,17 +167,18 @@ class GliSoftController extends Controller
       'juegos' => 'nullable|string',
     ], array(), self::$atributos)->after(function ($validator){
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-        $casinos_ids = [];
-        foreach($user->casinos as $c){
-          $casinos_ids[] = $c->id_casino;
+        $plats = [];
+        foreach($user->plataformas as $p){
+          $plats[] = $p->id_plataforma;
         }
         $data = $validator->getData();
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
-          $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
+          $juegos_user = DB::table('plataforma_tiene_juego')->whereIn('id_casino',$casinos_ids);
           foreach($juegos as $j){
             $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
-            if($acceso == 0){
+            $tiene_plataforma = DB::table('plataforma_tiene_juego')->where('id_juego',$j)->count();
+            if($tiene_plataforma > 0 && $acceso == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
           }
@@ -263,13 +276,14 @@ class GliSoftController extends Controller
     ->select('gli_soft.*', 'archivo.nombre_archivo')
     ->leftJoin('archivo' , 'archivo.id_archivo' , '=' , 'gli_soft.id_archivo')
     ->leftJoin('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
-    ->leftJoin('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego_glisoft.id_juego')
+    ->leftJoin('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
+    ->leftJoin('plataforma_tiene_casino','plataforma_tiene_casino.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->where($reglas);
     if($request->id_casino == -1){
       $resultados=$resultados->whereNull('juego_glisoft.id_juego');
     }
     else if($request->id_casino != 0){
-      $resultados=$resultados->where('casino_tiene_juego.id_casino','=',$request->id_casino);
+      $resultados=$resultados->where('plataforma_tiene_casino.id_casino','=',$request->id_casino);
     }
     $resultados=$resultados->when($sort_by,function($query) use ($sort_by){
       return $query->orderBy($sort_by['columna'],$sort_by['orden']);
@@ -282,9 +296,9 @@ class GliSoftController extends Controller
 
   public function modificarGliSoft(Request $request){
       $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-      $casinos_ids = [];
-      foreach($user->casinos as $c){
-        $casinos_ids[] = $c->id_casino;
+      $plats = [];
+      foreach($user->plataformas as $p){
+        $plats[] = $p->id_plataforma;
       }
       Validator::make($request->all(), [
         'id_gli_soft' => 'required|exists:gli_soft,id_gli_soft',
@@ -293,18 +307,19 @@ class GliSoftController extends Controller
         'file' => 'sometimes|mimes:pdf',
         'expedientes' => 'nullable',
         'juegos' => 'nullable|string'
-      ])->after(function ($validator) use ($user,$casinos_ids){
+      ])->after(function ($validator) use ($user,$plats){
         $data = $validator->getData();
         //Verifico que pueda ver el certificado
         $GLI = GliSoft::find($data['id_gli_soft']);
         //Verifico que pueda ver los juegos que me mando
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
-          $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
+          $juegos_user = DB::table('plataforma_tiene_juego')->whereIn('id_plataforma',$plats);
           foreach($juegos as $j){
             //Se necesita clonar porque el where y count modifican la estructura
             $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
-            if($acceso == 0){
+            $tiene_plataforma = DB::table('plataforma_tiene_juego')->where('id_juego',$j)->count();
+            if($tiene_plataforma > 0 && $acceso == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
           }
@@ -313,7 +328,7 @@ class GliSoftController extends Controller
 
       $GLI = null;
       $nombre_archivo = null;
-      DB::transaction(function() use($request,$casinos_ids,$GLI,$nombre_archivo){
+      DB::transaction(function() use($request,$plats,$GLI,$nombre_archivo){
         $GLI=GliSoft::find($request->id_gli_soft);
         $GLI->nro_archivo =$request->nro_certificado;
         $GLI->observaciones=$request->observaciones;
@@ -343,9 +358,11 @@ class GliSoftController extends Controller
         $juegos_accesibles = DB::table('gli_soft as gl')->select('j.id_juego')
         ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
         ->join('juego as j','j.id_juego','=','jgl.id_juego')
-        ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+        ->leftjoin('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
         ->where('gl.id_gli_soft',$GLI->id_gli_soft)
-        ->whereIn('cj.id_casino',$casinos_ids)->get();
+        ->where(function ($q) use ($plats){
+          return $q->whereIn('pj.id_plataforma',$plats)->orWhereNull('pj.id_plataforma');
+        })->get();
 
         foreach($juegos_accesibles as $j){
           $juego = Juego::find($j->id_juego);
@@ -354,17 +371,11 @@ class GliSoftController extends Controller
           $juego->save();
         }
 
-        //Agrego los nuevos
         if(!empty($request->juegos)){
           $juegos=explode("," , $request->juegos);
-          foreach($juegos as $id_juego){
-            $juego = Juego::find($id_juego);
-            $juego->gliSoftOld()->associate($GLI->id_gli_soft);
-            $juego->gliSoft()->attach($GLI->id_gli_soft);
-            $juego->save();
-          }
+          JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft);
         }
-  
+
         $GLI->save();
   
         if(!empty($request->file)){
@@ -440,24 +451,24 @@ class GliSoftController extends Controller
     if(is_null($GLI)) return ['gli' => null,'se_borro' => false];
 
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $casinos = $user->casinos;
-    $casinos_ids=array();
-    foreach($casinos as $c){
-      $casinos_ids [] = $c->id_casino;
+    $plataformas = $user->plataformas;
+    $pats = array();
+    foreach($plataformas as $p){
+      $plats [] = $p->id_plataforma;
     }
 
     $juegos_accesibles = DB::table('gli_soft as gl')->select('j.id_juego')
     ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
     ->join('juego as j','j.id_juego','=','jgl.id_juego')
-    ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+    ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
     ->where('gl.id_gli_soft',$GLI->id_gli_soft)
-    ->whereIn('cj.id_casino',$casinos_ids);
+    ->whereIn('pj.id_plataforma',$plats);
 
     $juegos_old = DB::table('gli_soft as gl')->select('j.id_juego')
     ->join('juego as j','j.id_gli_soft','=','gl.id_gli_soft')
-    ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+    ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
     ->where('gl.id_gli_soft',$GLI->id_gli_soft)
-    ->whereIn('cj.id_casino',$casinos_ids);
+    ->whereIn('pj.id_plataforma',$plats);
 
     $juegos_accesibles = $juegos_accesibles->union($juegos_old)->distinct()->get();
 
@@ -504,6 +515,14 @@ class GliSoftController extends Controller
     ->get();
     $ret = [];
     foreach($gli_softs as $gl){
+      $ret[]=GliSoft::find($gl->id_gli_soft);
+    }
+    $gli_softs_sin_cas = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
+    ->leftjoin('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
+    ->whereNull('jgl.id_juego')
+    ->groupBy('gl.id_gli_soft')
+    ->get();
+    foreach($gli_softs_sin_cas as $gl){
       $ret[]=GliSoft::find($gl->id_gli_soft);
     }
     return $ret;

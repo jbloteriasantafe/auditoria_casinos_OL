@@ -51,32 +51,19 @@ class JuegoController extends Controller
       return $this->errorOut(['acceso'=>['']]);
     }
 
-    $casinosUser = Usuario::find(session('id_usuario'))->casinos;
-    $reglaCasinos=array();
-    foreach($casinosUser as $casino){
-      $reglaCasinos [] = $casino->id_casino;
+    $platsUser = Usuario::find(session('id_usuario'))->plataformas;
+    $idsplats = array();
+    foreach($platsUser as $p){
+      $idsplats [] = $p->id_plataforma;
     }
-
-    $acceso = $juego->casinos()->whereIn('casino_tiene_juego.id_casino',$reglaCasinos)->count();
-    if($acceso == 0 && $juego->casinos()->count() != 0){
+    $acceso = $juego->plataformas()->whereIn('plataforma.id_plataforma',$idsplats)->count();
+    if($acceso == 0 && $juego->plataformas()->count() != 0){
       return $this->errorOut(['acceso'=>['']]);
     }
 
     return ['juego' => $juego ,
             'certificadoSoft' => $this->obtenerCertificadosSoft($id),
-            'plataformas' => $juego->plataformas,
-            'casinosJuego' => $juego->casinos,
-            'casinos' => $this->obtenerListaCodigosCasinos($juego)];
-  }
-
-  public function obtenerListaCodigosCasinos($juego,$sep=', '){
-    $lista = '';
-    $casinos_juego = $juego->casinos()->orderBy('codigo')->get();
-    foreach($casinos_juego as $idx => $c){
-      if($idx!=0) $lista = $lista . $sep;
-      $lista = $lista . $c->codigo;
-    }
-    return $lista;
+            'plataformas' => $juego->plataformas];
   }
 
   public function encontrarOCrear($juego){
@@ -279,48 +266,12 @@ class JuegoController extends Controller
     return $todos;
   }
 
-  //busca juegos bajo el criterio "contiene". @param nombre_juego, cod_identificacion
-  public function buscarJuegoPorCodigoYNombre($busqueda){
-    $casinos = Usuario::find(session('id_usuario'))->casinos;
-    $reglaCasinos=array();
-    foreach($casinos as $casino){
-      $reglaCasinos [] = $casino->id_casino;
-     }
-    $resultados=Juego::distinct()
-                      ->select('juego.*')
-                      ->join('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
-                      ->wherein('casino_tiene_juego.id_casino',$reglaCasinos)
-                      ->where('nombre_juego' , 'like' , $busqueda . '%')->get();
-                      //->orWhere('cod_identificacion' , 'like' , $busqueda . '%')->get();
-
-    return ['resultados' => $resultados];
-  }
-
-    public function buscarJuegoPorCasinoYNombre($id_casino,$busqueda){
-      $casino = Usuario::find(session('id_usuario'))
-      ->casinos()->where('usuario_tiene_casino.id_casino',$id_casino)->get();
-      if($casino->count() == 0) return ['resultados' => []];
-
-      $resultados=Juego::distinct()
-                        ->select('juego.*')
-                        ->join('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
-                        ->where('casino_tiene_juego.id_casino',$casino->first()->id_casino)
-                        ->where('nombre_juego' , 'like' , $busqueda . '%')->get();
-  
-      return ['resultados' => $resultados];
-    }
 
   //busca UN juego que coincida con el nombre  @param $nombre_juego
   public function buscarJuegoPorNombre($nombre_juego){
     $resultado=Juego::where('nombre_juego' , '=' , trim($nombre_juego))->get();
     return $resultado;
   }
-
-  public function buscarJuegoMovimientos($nombre_juego){
-    $resultado=Juego::where('nombre_juego' , 'like' , '%' .$nombre_juego.'%')->get();
-    return ['juegos' =>$resultado];
-  }
-
 
   public function buscarJuegos(Request $request){
     $reglas=array();

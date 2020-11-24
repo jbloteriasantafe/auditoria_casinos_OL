@@ -114,8 +114,6 @@ Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_ju
   Route::post('/guardarJuego','JuegoController@guardarJuego');
   Route::post('/modificarJuego','JuegoController@modificarJuego');
   Route::delete('/eliminarJuego/{id}','JuegoController@eliminarJuego');
-  Route::get('/buscarJuegos/{busqueda}','JuegoController@buscarJuegoPorCodigoYNombre');
-  Route::get('/buscarJuegos/{id_casino}/{busqueda}','JuegoController@buscarJuegoPorCasinoYNombre');
   Route::post('/buscar','JuegoController@buscarJuegos');
 });
 

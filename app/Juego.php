@@ -5,6 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\JuegoObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Juego extends Model
 {
@@ -19,7 +20,7 @@ class Juego extends Model
   );
   public $timestamps = true;
   protected $dates = ['deleted_at'];
-  protected $appends = array('cod_identificacion');
+  protected $appends = array('cod_identificacion','casinos');
 
   public function getCodIdentificacionAttribute(){
     if($this->id_gli_soft != null){
@@ -68,8 +69,14 @@ class Juego extends Model
      return $this->belongsToMany('App\Maquina','maquina_tiene_juego','id_juego','id_maquina')->withPivot('denominacion' , 'porcentaje_devolucion');;
   }
 
-  public function casinos(){
-    return $this->belongsToMany('App\Casino','casino_tiene_juego','id_juego','id_casino');
+  public function getCasinosAttribute(){
+    $casinos = DB::table('plataforma_tiene_juego')->select('plataforma_tiene_casino.id_casino')
+    ->join('plataforma_tiene_casino','plataforma_tiene_juego.id_plataforma','=','plataforma_tiene_casino.id_plataforma')
+    ->where('plataforma_tiene_juego.id_juego','=',$this->id_juego)
+    ->distinct()->get();
+    $ids = [];
+    foreach($casinos as $c) $ids[]=$c->id_casino;
+    return Casino::whereIn('casino.id_casino',$ids);
   }
 
   public function plataformas(){

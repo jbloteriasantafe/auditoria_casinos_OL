@@ -192,8 +192,8 @@ $id_usuario = session('id_usuario');
                         </div>
                         <div class="row">
                           <div class="col-md-12">
-                            <h5>Casinos utilizando el certificado</h5>
-                            <select id="selectCasinosGLI" class="form-control" list="dataCasinos" size="2" style="height: 100%;" readonly="">
+                            <h5>Plataformas utilizando el certificado</h5>
+                            <select id="selectPlataformasGLI" class="form-control" size="2" style="height: 100%;" readonly="">
                             </select>
                           </div>
                         </div>
@@ -277,8 +277,7 @@ $id_usuario = session('id_usuario');
                             <thead>
                                 <th class="col-xs-3">NOMBRE</th>
                                 <th class="col-xs-2">CÓDIGO JUEGO</th>
-                                <th class="col-xs-2">CASINOS</th>
-                                <th class="col-xs-3">TABLA PAGOS</th>
+                                <th class="col-xs-2">PLATAFORMAS</th>
                                 <th class="col-xs-2">ACCIÓN</th>
                             </thead>
                             <tbody>
