@@ -145,14 +145,11 @@ $(document).on('click','.detalle',function(){
     $('#modalGLI .modal-title').text('| VER MÁS');
     $('#modalGLI .modal-header').attr('style','background: #4FC3F7');
     $('#btn-guardar').hide();
-    //Resetear formulario para llevar los datos
-    $('#frmG').trigger('reset');
-    $('#listaExpedientes').empty();
-    $('#listaJuegos li').each(function(){
-      if($(this).attr("id")!=0)
-      $(this).remove();
-    })
-    $('#cuerpoTablaDePago tr').remove();
+
+    //Limpiar tablas
+    $('#tablaExpedientesSoft tbody').empty();
+    $('#tablaJuegos tbody').empty();
+
     $('#modalGLI .modal-footer .cancelar').text('SALIR');
     //limpia la tabla de juegos
     $('#tablaJuegos tbody').empty();
@@ -165,6 +162,11 @@ $(document).on('click','.detalle',function(){
       $('#nroCertificado').val(data.glisoft.nro_archivo);
       $('#observaciones').val(data.glisoft.observaciones);
 
+      //Cargar los expedientes
+      for (var i = 0; i < data.expedientes.length; i++) {
+        agregarFilaExpediente(data.expedientes[i]);
+      }
+      
       mostrarArchivo(data);
 
       for (var i = 0; i < data.juegos.length; i++) {

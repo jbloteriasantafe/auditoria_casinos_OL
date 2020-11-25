@@ -216,7 +216,7 @@ $id_usuario = session('id_usuario');
                                 <h6>EXPEDIENTES DEL CERTIFICADO SOFTWARE</h6>
                                 <table id="tablaExpedientesSoft" class="table">
                                   <thead>
-                                      <th class="col-xs-9">N° DE CERTIFICADO</th>
+                                      <th class="col-xs-9">N° DE EXPEDIENTE</th>
                                       <th class="col-xs-3">ACCIONES</th>
                                   </thead>
                                   <tbody>

@@ -476,6 +476,8 @@ function mostrarJuego(juego, certificados,plataformas){
   $('#inputCodigoJuego').val(juego.cod_juego);
   $('#selectCategoria').val(juego.id_categoria_juego);
   $('#selectEstado').val(juego.id_estado_juego);
+  $('#inputCodigoOperador').val(juego.codigo_operador);
+  $('#inputCodigoProveedor').val(juego.codigo_proveedor);
   $('#motivo').val("");
   $('#escritorio').prop('checked',juego.escritorio == 1);
   $('#movil').prop('checked',juego.movil == 1);
