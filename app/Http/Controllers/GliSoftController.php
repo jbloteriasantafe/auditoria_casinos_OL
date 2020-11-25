@@ -8,6 +8,7 @@ use Response;
 use App\GliSoft;
 use App\Archivo;
 use App\Casino;
+use App\Plataforma;
 use Illuminate\Support\Facades\DB;
 use App\Juego;
 
@@ -39,7 +40,7 @@ class GliSoftController extends Controller
         $plats[] = $p->id_plataforma;
       }
       //Ordenar por nombre ascendiente ignorando mayusculas
-      $query = DB::table('juego')->select('juego.id_juego')
+      $query = Juego::select('juego.id_juego')
       ->leftjoin('plataforma_tiene_juego as pj','juego.id_juego','=','pj.id_juego')
       ->whereIn('pj.id_plataforma',$plats)
       ->orWhereNull('pj.id_plataforma')
@@ -92,13 +93,13 @@ class GliSoftController extends Controller
       $size = 0;
     }
 
-    $casinos_ids = [];
-    foreach($user->casinos as $c){
-      $casinos_ids[] = $c->id_casino;
+    $plats = [];
+    foreach($user->plataformas as $p){
+      $plats[] = $p->id_plataforma;
     }
     $juegos = array();
     foreach ($glisoft->juegos as $juego) {
-      $visible = $juego->casinos->whereIn('casino.id_casino',$casinos_ids)->count();
+      $visible = $juego->plataformas()->whereIn('plataforma.id_plataforma',$plats)->count();
       if($visible>0){
         $juegos[]= ['juego'=> $juego, 
         'plataformas' => $juego->plataformas];
@@ -106,11 +107,12 @@ class GliSoftController extends Controller
     }
     $plataformas_certificado = DB::table('gli_soft')
     ->select('plataforma.id_plataforma','plataforma.nombre')
-    ->selectRaw('( plataforma_tiene_casino.id_casino in ('.join(',',$casinos_ids).') ) as visible')
     ->join('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
     ->join('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
     ->join('plataforma_tiene_casino','plataforma_tiene_casino.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+    ->join('juego','juego.id_juego','=','juego_glisoft.id_juego')
+    ->whereNull('juego.deleted_at')
     ->where('gli_soft.id_gli_soft',$id)
     ->distinct()->get();
     return ['glisoft' => $glisoft ,
@@ -174,11 +176,16 @@ class GliSoftController extends Controller
         $data = $validator->getData();
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
-          $juegos_user = DB::table('plataforma_tiene_juego')->whereIn('id_casino',$casinos_ids);
           foreach($juegos as $j){
-            $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
-            $tiene_plataforma = DB::table('plataforma_tiene_juego')->where('id_juego',$j)->count();
-            if($tiene_plataforma > 0 && $acceso == 0){
+            if(is_null(Juego::find($j))) continue;
+
+            $tiene_plataforma = DB::table('plataforma_tiene_juego')
+            ->where('id_juego',$j)->count();
+
+            $accesibles = DB::table('plataforma_tiene_juego as pj')
+            ->whereIn('pj.id_plataforma',$plats)
+            ->where('id_juego',$j)->count();
+            if($tiene_plataforma > 0 && $accesibles == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
           }
@@ -311,15 +318,18 @@ class GliSoftController extends Controller
         $data = $validator->getData();
         //Verifico que pueda ver el certificado
         $GLI = GliSoft::find($data['id_gli_soft']);
-        //Verifico que pueda ver los juegos que me mando
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
-          $juegos_user = DB::table('plataforma_tiene_juego')->whereIn('id_plataforma',$plats);
           foreach($juegos as $j){
-            //Se necesita clonar porque el where y count modifican la estructura
-            $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
-            $tiene_plataforma = DB::table('plataforma_tiene_juego')->where('id_juego',$j)->count();
-            if($tiene_plataforma > 0 && $acceso == 0){
+            if(is_null(Juego::find($j))) continue;
+
+            $tiene_plataforma = DB::table('plataforma_tiene_juego')
+            ->where('id_juego',$j)->count();
+
+            $accesibles = DB::table('plataforma_tiene_juego as pj')
+            ->whereIn('pj.id_plataforma',$plats)
+            ->where('id_juego',$j)->count();
+            if($tiene_plataforma > 0 && $accesibles == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
           }
@@ -373,7 +383,10 @@ class GliSoftController extends Controller
 
         if(!empty($request->juegos)){
           $juegos=explode("," , $request->juegos);
-          JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft);
+          $plataformas_a_ignorar = Plataforma::whereNotIn('plataforma.id_plataforma',$plats)->get();
+          $aux = [];
+          foreach($plataformas_a_ignorar as $p) $aux[] = $p->id_plataforma;
+          JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft, $aux);
         }
 
         $GLI->save();

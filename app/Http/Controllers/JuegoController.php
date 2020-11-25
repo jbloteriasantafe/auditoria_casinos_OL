@@ -353,17 +353,27 @@ class JuegoController extends Controller
     $GLI->setearJuegos([]);
   }
 
-  public function asociarGLI($listaJuegos , $id_gli_soft){
+  public function asociarGLI($listaJuegos, $id_gli_soft, $mantener_los_de_plataformas = []){
+    $lista_limpia = [];
     foreach ($listaJuegos as $id_juego) {
        $juego=Juego::find($id_juego);
+       if(is_null($juego)) continue;
        $juego->gliSoftOld()->associate($id_gli_soft);
        $juego->save();
+       $lista_limpia[] = $id_juego;
     }
+    //Por si manda varias veces el mismo juego lo filtro
+    $lista_limpia = array_unique($lista_limpia);
     $GLI = GliSoft::find($id_gli_soft);
     if($GLI != null){
+      $mantenidos = [];
+      foreach($GLI->juegos as $j){
+        $mantener = $j->plataformas()->whereIn('plataforma.id_platafora',$mantener_los_de_plataformas)->count() > 0;
+        if($mantener) $mantenidos[] = $j->id_juego;
+      }
+      $asociar = array_unique(array_merge($lista_limpia,$mantenidos));
       $GLI->setearJuegos([]);
-      //Por si manda varias veces el mismo juego lo filtro
-      $GLI->setearJuegos(array_unique($listaJuegos),true);
+      $GLI->setearJuegos($asociar,true);
       $GLI->save();
     }
   }
