@@ -241,23 +241,6 @@ class GliSoftController extends Controller
     return ['gli_soft' => $GLI,  'nombre_archivo' =>$nombre_archivo];
   }
 
-  public function guardarGliSoft_gestionarMaquina($nro_certificado,$observaciones,$file){
-        $GLI=new GliSoft;
-        $GLI->nro_archivo =$nro_certificado;
-        $GLI->observaciones=$observaciones;
-        if($file != null){
-          $archivo=new Archivo;
-          $data=base64_encode(file_get_contents($file->getRealPath()));
-          $nombre_archivo=$file->getClientOriginalName();
-          $archivo->nombre_archivo=$nombre_archivo;
-          $archivo->archivo=$data;
-          $archivo->save();
-          $GLI->archivo()->associate($archivo->id_archivo);
-        }
-        $GLI->save();
-        return $GLI;
-  }
-
   public function buscarGliSofts(Request $request){
     Validator::make($request->all(), ['id_casino' => 'required|integer'], 
     array(), self::$atributos)->after(function ($validator){
@@ -363,31 +346,16 @@ class GliSoftController extends Controller
             }
           }
         }
-        
-        //Saco los viejos que puede ver el usuario
-        $juegos_accesibles = DB::table('gli_soft as gl')->select('j.id_juego')
-        ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
-        ->join('juego as j','j.id_juego','=','jgl.id_juego')
-        ->leftjoin('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
-        ->where('gl.id_gli_soft',$GLI->id_gli_soft)
-        ->where(function ($q) use ($plats){
-          return $q->whereIn('pj.id_plataforma',$plats)->orWhereNull('pj.id_plataforma');
-        })->get();
 
-        foreach($juegos_accesibles as $j){
-          $juego = Juego::find($j->id_juego);
-          $juego->gliSoftOld()->dissociate();
-          $juego->gliSoft()->detach($GLI->id_gli_soft);
-          $juego->save();
-        }
-
+        $juegos = [];
         if(!empty($request->juegos)){
           $juegos=explode("," , $request->juegos);
-          $plataformas_a_ignorar = Plataforma::whereNotIn('plataforma.id_plataforma',$plats)->get();
-          $aux = [];
-          foreach($plataformas_a_ignorar as $p) $aux[] = $p->id_plataforma;
-          JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft, $aux);
         }
+
+        $plataformas_a_ignorar = Plataforma::whereNotIn('plataforma.id_plataforma',$plats)->get();
+        $aux = [];
+        foreach($plataformas_a_ignorar as $p) $aux[] = $p->id_plataforma;
+        JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft, $aux);
 
         $GLI->save();
   
@@ -475,26 +443,16 @@ class GliSoftController extends Controller
     ->join('juego as j','j.id_juego','=','jgl.id_juego')
     ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
     ->where('gl.id_gli_soft',$GLI->id_gli_soft)
-    ->whereIn('pj.id_plataforma',$plats);
-
-    $juegos_old = DB::table('gli_soft as gl')->select('j.id_juego')
-    ->join('juego as j','j.id_gli_soft','=','gl.id_gli_soft')
-    ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
-    ->where('gl.id_gli_soft',$GLI->id_gli_soft)
-    ->whereIn('pj.id_plataforma',$plats);
-
-    $juegos_accesibles = $juegos_accesibles->union($juegos_old)->distinct()->get();
+    ->whereIn('pj.id_plataforma',$plats)->get();
 
     DB::transaction(function() use ($GLI,$juegos_accesibles,&$se_borro){
       foreach($juegos_accesibles as $j){
-        $juego = Juego::find($j->id_juego);
-        $juego->gliSoftOld()->dissociate();
+        $juego = Juego::withTrashed()->find($j->id_juego);
         $juego->gliSoft()->detach($GLI->id_gli_soft);
         $juego->save();
       }
       $GLI->save();
-      $cant_juegos = $GLI->juegos()->count()+$GLI->juegosOld()->count();
-      if($cant_juegos == 0){//Si el GLI no tiene mas juegos, lo borro
+      if($GLI->juegos()->count() == 0){//Si el GLI no tiene mas juegos, lo borro
         $GLI->expedientes()->sync([]);
         $archivo = $GLI->archivo;
         $GLI->archivo()->dissociate();

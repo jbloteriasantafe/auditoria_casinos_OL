@@ -345,11 +345,6 @@ class JuegoController extends Controller
   public function desasociarGLI($id_gli_soft){
     $GLI = GliSoft::find($id_gli_soft);
     if($GLI===null) return;
-    $juegos=$GLI->juegos;
-    foreach ($juegos as $juego) {
-      $juego->gliSoftOld()->dissociate();
-      $juego->save();
-    }
     $GLI->setearJuegos([]);
   }
 
@@ -358,8 +353,6 @@ class JuegoController extends Controller
     foreach ($listaJuegos as $id_juego) {
        $juego=Juego::find($id_juego);
        if(is_null($juego)) continue;
-       $juego->gliSoftOld()->associate($id_gli_soft);
-       $juego->save();
        $lista_limpia[] = $id_juego;
     }
     //Por si manda varias veces el mismo juego lo filtro
@@ -368,7 +361,7 @@ class JuegoController extends Controller
     if($GLI != null){
       $mantenidos = [];
       foreach($GLI->juegos as $j){
-        $mantener = $j->plataformas()->whereIn('plataforma.id_platafora',$mantener_los_de_plataformas)->count() > 0;
+        $mantener = $j->plataformas()->whereIn('plataforma.id_plataforma',$mantener_los_de_plataformas)->count() > 0;
         if($mantener) $mantenidos[] = $j->id_juego;
       }
       $asociar = array_unique(array_merge($lista_limpia,$mantenidos));

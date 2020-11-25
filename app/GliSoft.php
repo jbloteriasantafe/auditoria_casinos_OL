@@ -17,17 +17,6 @@ class GliSoft extends Model
   public function archivo(){
       return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
   }
-
-  // El modelo viejo tenia una relacion Juego n->1 GLISoft
-  // Por lo que con una columna en el juego foranea id_gli_soft era suficiente
-  // Pero habia casos que el juego tenia muchos glisoft, y el glisoft tenia muchos juegos
-  // Por lo que hay que expandir sobre ese modelo a una tabla intermedia.
-  // En principio habria que migrar todas las foraneas de juego a la intermedia juego_glisoft
-  // pero por ahora voy a hacerlo asi
-  public function juegosOld(){
-      return $this->hasMany('App\Juego','id_gli_soft','id_gli_soft');
-  }
-
   public function juegos(){
       return $this->belongsToMany('App\Juego','juego_glisoft','id_gli_soft','id_juego');
   }

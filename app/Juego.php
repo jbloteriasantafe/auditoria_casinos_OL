@@ -14,7 +14,7 @@ class Juego extends Model
   protected $table = 'juego';
   protected $primaryKey = 'id_juego';
   protected $visible = array(
-    'id_juego','nombre_juego','id_gli_soft','cod_identificacion','cod_juego',
+    'id_juego','nombre_juego','cod_identificacion','cod_juego',
     'denominacion_contable','denominacion_juego','porcentaje_devolucion', 'escritorio','movil',
     'id_unidad_medida','id_tipo_moneda','id_categoria_juego','id_estado_juego','deleted_at'
   );
@@ -26,16 +26,6 @@ class Juego extends Model
     if($this->id_gli_soft != null){
       return GliSoft::find($this->id_gli_soft)->nro_archivo;}
       return null;
-  }
-
-  // El modelo viejo tenia una relacion Juego n->1 GLISoft
-  // Por lo que con una columna en el juego foranea id_gli_soft era suficiente
-  // Pero habia casos que el juego tenia muchos glisoft, y el glisoft tenia muchos juegos
-  // Por lo que hay que expandir sobre ese modelo a una tabla intermedia.
-  // En principio habria que migrar todas las foraneas de juego a la intermedia juego_glisoft
-  // pero por ahora voy a hacerlo asi
-  public function gliSoftOld(){
-    return $this->belongsTo('App\GliSoft','id_gli_soft','id_gli_soft');
   }
 
   public function gliSoft(){
