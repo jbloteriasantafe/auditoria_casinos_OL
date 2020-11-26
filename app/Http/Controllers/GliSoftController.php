@@ -121,7 +121,8 @@ class GliSoftController extends Controller
             'nombre_archivo' => $nombre_archivo ,
             'juegos' => $juegos,
             'size' =>$size,
-            'plataformas' => $plataformas_certificado];
+            'plataformas' => $plataformas_certificado,
+            'laboratorio' => $glisoft->laboratorio];
   }
 
   public function obtenerListaCodigosPlataformas($juego,$sep=', '){
@@ -162,13 +163,21 @@ class GliSoftController extends Controller
 
   //METODO QUE RESPONDEN A GUARDAR
   public function guardarGliSoft(Request $request){
+    $tipo_lab = 'sin';
     Validator::make($request->all(), [
       'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo'],
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
       'expedientes' => 'nullable',
       'juegos' => 'nullable|string',
-    ], array(), self::$atributos)->after(function ($validator){
+      'laboratorio' => 'required',
+      'laboratorio.id_laboratorio' => 'required|integer',
+      'laboratorio.codigo' => 'nullable|string|max:64',
+      'laboratorio.denominacion' => 'nullable|string|max:64',
+      'laboratorio.pais' => 'nullable|string|max:64',
+      'laboratorio.url' => 'nullable|string|max:64',
+      'laboratorio.nota' => 'nullable|string|max:200',
+    ], array(), self::$atributos)->after(function ($validator) use (&$tipo_lab){
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
         $plats = [];
         foreach($user->plataformas as $p){
@@ -191,12 +200,43 @@ class GliSoftController extends Controller
             }
           }
         }
+
+        $lab = $data['laboratorio'];
+        $id_lab = $lab['id_laboratorio'];
+        $codigo = $lab['codigo'];
+        $denominacion = $lab['denominacion'];
+
+        if($id_lab != '0'){
+          $tipo_lab = 'seteando/modificando';
+          if(is_null(Laboratorio::find($id_lab))){
+            $validator->errors()->add('laboratorio.id_laboratorio','No existe tal laboratorio');
+            return;
+          }
+        }
+        else if(isset($codigo)) $tipo_lab = 'nuevo'; 
+
+        if($tipo_lab != 'sin'){
+          $ya_existe = Laboratorio::where([
+            ['codigo','=',$codigo],
+            ['id_laboratorio','<>',$id_lab]
+          ])->count() > 0;
+          if($ya_existe){
+            $validator->errors()->add('laboratorio.codigo','Ya existe un laboratorio con ese codigo');
+          }
+          $ya_existe = Laboratorio::where([
+            ['denominacion','=',$denominacion],
+            ['id_laboratorio','<>',$id_lab]
+          ])->count() > 0;
+          if($ya_existe){
+            $validator->errors()->add('laboratorio.denominacion','Ya existe un laboratorio con esa denominacion');
+          }
+        }
     })->validate();
 
     $GLI = null;
     $nombre_archivo = null;
 
-    DB::transaction(function() use($GLI,$nombre_archivo,$request){
+    DB::transaction(function() use($GLI,$nombre_archivo,$request,$tipo_lab){
       $GLI=new GliSoft;
       $GLI->nro_archivo =$request->nro_certificado;
       $GLI->observaciones=$request->observaciones;
@@ -237,6 +277,24 @@ class GliSoftController extends Controller
       if(!empty($GLI->archivo)){
         $nombre_archivo = $GLI->archivo->nombre_archivo;
       }
+
+      if($tipo_lab == 'sin'){
+        $GLI->id_laboratorio = null;
+      }
+      else if($tipo_lab == 'seteando/modificando' || $tipo_lab == 'nuevo'){
+        $lab = $request->laboratorio;
+        $labBD = null;
+        if($tipo_lab == 'seteando/modificando') $labBD = Laboratorio::find($lab['id_laboratorio']);
+        else $labBD = new Laboratorio;
+        $labBD->codigo = $lab['codigo'];
+        $labBD->denominacion = $lab['denominacion'];
+        $labBD->pais = $lab['pais'];
+        $labBD->url = $lab['url'];
+        $labBD->nota = $lab['nota'];
+        $labBD->save();
+        $GLI->id_laboratorio = $labBD->id_laboratorio;
+      }
+      $GLI->save();
     });
     
     return ['gli_soft' => $GLI,  'nombre_archivo' =>$nombre_archivo];
@@ -291,14 +349,22 @@ class GliSoftController extends Controller
       foreach($user->plataformas as $p){
         $plats[] = $p->id_plataforma;
       }
+      $tipo_lab = 'sin';
       Validator::make($request->all(), [
         'id_gli_soft' => 'required|exists:gli_soft,id_gli_soft',
         'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft'],
         'observaciones' => 'nullable|string',
         'file' => 'sometimes|mimes:pdf',
         'expedientes' => 'nullable',
-        'juegos' => 'nullable|string'
-      ])->after(function ($validator) use ($user,$plats){
+        'juegos' => 'nullable|string',
+        'laboratorio' => 'required',
+        'laboratorio.id_laboratorio' => 'required|integer',
+        'laboratorio.codigo' => 'nullable|string|max:64',
+        'laboratorio.denominacion' => 'nullable|string|max:64',
+        'laboratorio.pais' => 'nullable|string|max:64',
+        'laboratorio.url' => 'nullable|string|max:64',
+        'laboratorio.nota' => 'nullable|string|max:200',
+      ])->after(function ($validator) use ($user,$plats,&$tipo_lab){
         $data = $validator->getData();
         //Verifico que pueda ver el certificado
         $GLI = GliSoft::find($data['id_gli_soft']);
@@ -318,11 +384,42 @@ class GliSoftController extends Controller
             }
           }
         }
+
+        $lab = $data['laboratorio'];
+        $id_lab = $lab['id_laboratorio'];
+        $codigo = $lab['codigo'];
+        $denominacion = $lab['denominacion'];
+
+        if($id_lab != '0'){
+          $tipo_lab = 'seteando/modificando';
+          if(is_null(Laboratorio::find($id_lab))){
+            $validator->errors()->add('laboratorio.id_laboratorio','No existe tal laboratorio');
+            return;
+          }
+        }
+        else if(isset($codigo)) $tipo_lab = 'nuevo'; 
+
+        if($tipo_lab != 'sin'){
+          $ya_existe = Laboratorio::where([
+            ['codigo','=',$codigo],
+            ['id_laboratorio','<>',$id_lab]
+          ])->count() > 0;
+          if($ya_existe){
+            $validator->errors()->add('laboratorio.codigo','Ya existe un laboratorio con ese codigo');
+          }
+          $ya_existe = Laboratorio::where([
+            ['denominacion','=',$denominacion],
+            ['id_laboratorio','<>',$id_lab]
+          ])->count() > 0;
+          if($ya_existe){
+            $validator->errors()->add('laboratorio.denominacion','Ya existe un laboratorio con esa denominacion');
+          }
+        }
       })->validate();
 
       $GLI = null;
       $nombre_archivo = null;
-      DB::transaction(function() use($request,$plats,$GLI,$nombre_archivo){
+      DB::transaction(function() use($request,$plats,$GLI,$nombre_archivo,$tipo_lab){
         $GLI=GliSoft::find($request->id_gli_soft);
         $GLI->nro_archivo =$request->nro_certificado;
         $GLI->observaciones=$request->observaciones;
@@ -391,6 +488,24 @@ class GliSoftController extends Controller
         if(!empty($GLI->archivo)){
           $nombre_archivo = $GLI->archivo->nombre_archivo;
         }
+
+        if($tipo_lab == 'sin'){
+          $GLI->id_laboratorio = null;
+        }
+        else if($tipo_lab == 'seteando/modificando' || $tipo_lab == 'nuevo'){
+          $lab = $request->laboratorio;
+          $labBD = null;
+          if($tipo_lab == 'seteando/modificando') $labBD = Laboratorio::find($lab['id_laboratorio']);
+          else $labBD = new Laboratorio;
+          $labBD->codigo = $lab['codigo'];
+          $labBD->denominacion = $lab['denominacion'];
+          $labBD->pais = $lab['pais'];
+          $labBD->url = $lab['url'];
+          $labBD->nota = $lab['nota'];
+          $labBD->save();
+          $GLI->id_laboratorio = $labBD->id_laboratorio;
+        }
+        $GLI->save();
       });
 
       return ['gli_soft' => $GLI , 'nombre_archivo' => $nombre_archivo ];

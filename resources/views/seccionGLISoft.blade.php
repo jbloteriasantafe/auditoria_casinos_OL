@@ -254,29 +254,41 @@ $id_usuario = session('id_usuario');
                 </div>
 
                 <br>
-                <div class="row">
+                <div class="row controlLab">
                   <div class="col-lg-6">
                     <h5>Buscar LABORATORIO <i class="fa fa-search"></i></h5>
                     <input id="inputLab" class="form-control" type="text" autocomplete="off" placeholder="Codigo Laboratorio" />
                   </div>
+                  <div class="col-lg-1">
+                    <h5 style="visibility: hidden;">.</h5>
+                    <button id="modifLab" type="button" class="btn btn-default" title="MODIFICAR"><i class="fa fa-fw fa-pencil-alt"></i></button>
+                  </div>
+                  <div class="col-lg-1">
+                    <h5 style="visibility: hidden;">.</h5>
+                    <button id="nuevoLab" type="button" class="btn btn-default" title="NUEVO"><i class="fa fa-fw fa-plus"></i></button>
+                  </div>
+                  <div class="col-lg-1">
+                    <h5 style="visibility: hidden;">.</h5>
+                    <button id="desenlazarLab" type="button" class="btn btn-default" title="DESENLAZAR"><i class="fa fa-fw fa-unlink"></i></button>
+                  </div>
                 </div>
                 <br>
-                <div class="row">
+                <div class="row datosLab">
                   <div class="col-lg-6">
                     <h5>Denominación</h5>
-                    <input class="form-control"/>
+                    <input id="denominacionLab" class="form-control"/>
                   </div>
                   <div class="col-lg-6">
                     <h5>País</h5>
-                    <input class="form-control"/>
+                    <input id="paisLab" class="form-control"/>
                   </div>
                   <div class="col-lg-6">
                     <h5>URL</h5>
-                    <input class="form-control"/>
+                    <input id="urlLab" class="form-control"/>
                   </div>
                   <div class="col-lg-6">
                     <h5>Nota</h5>
-                    <input class="form-control"/>
+                    <input id="notaLab" class="form-control"/>
                   </div>
                 </div>
                 <br>

@@ -144,6 +144,7 @@ Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_se
   Route::post('/buscarGliSoft','GliSoftController@buscarGliSofts');
   Route::post('/modificarGliSoft','GliSoftController@modificarGliSoft');
   Route::get('/buscarLabs/{codigo?}','GliSoftController@buscarLabs');
+  Route::get('/obtenerLab/{id_laboratorio}','GliSoftController@obtenerLab');
 });
 
 //Lo necesitan los auditores

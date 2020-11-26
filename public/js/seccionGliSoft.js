@@ -160,6 +160,8 @@ $(document).on('click','.detalle',function(){
 
       agregarPlataformasModal(data.plataformas);
 
+      setearLaboratorio(data.laboratorio);
+
       habilitarModalGli(false);
       $('#modalGLI').modal('show');
   });
@@ -210,12 +212,9 @@ $(document).on('click','.modificarGLI',function(){
     $('#modalGLI .modal-footer .btn-default').text('CANCELAR');
 
     limpiarModalGli();
-    habilitarModalGli(false);
 
     const id = $(this).val();
     $('#id_gli').val(id);
-
-
     $.get("/certificadoSoft/obtenerGliSoft/" +id , function(data){
         console.log(data);
 
@@ -237,8 +236,10 @@ $(document).on('click','.modificarGLI',function(){
 
         agregarPlataformasModal(data.plataformas);
 
-        $('.borrarJuego').prop('disabled',false);
-        $('.borrarExpediente').prop('disabled',false);
+        setearLaboratorio(data.laboratorio);
+
+        habilitarModalGli(true);
+
         $('#modalGLI').modal('show');
     });
 });
@@ -405,6 +406,24 @@ $('#btn-guardar').click(function (e){
     formData.append('expedientes' , expedientes);
     formData.append('juegos' , juegos);
     formData.append('borrado', $('#cargaArchivo').attr('data-borrado'));
+
+    //Al mandar con un archivo tengo armar el objeto a pata en el formData
+    //No funciona el "autoserializador" de Jquery
+    const strRequest = function (objectName,keyname){
+      return objectName + '[' + keyname + ']';
+    }
+    const laboratorio = {
+      id_laboratorio: $('#inputLab').attr('data-elemento-seleccionado'),
+      codigo: $('#inputLab').val(),
+      denominacion: $('#denominacionLab').val(),
+      pais: $('#paisLab').val(),
+      url: $('#urlLab').val(),
+      nota: $('#notaLab').val()
+    };
+    for(const key in laboratorio){
+      formData.append(strRequest('laboratorio',key),laboratorio[key]);
+    }
+
 
     let url = "";
     const estado = $(this).val();
@@ -656,18 +675,6 @@ function agregarPlataformasModal(plats,limpiar = true){
   $('#selectPlataformasGLI').attr('size',Math.max(2,$('#selectPlataformasGLI option').length)); 
 }
 
-$('#inputLab').on('seleccionado', setearLab);
-$('#inputLab').on('deseleccionado', nuevoLab);
-
-function setearLab(){
-  const id = $('#inputLab').attr('data-elemento-seleccionado');
-  console.log(id);
-}
-
-function nuevoLab(){
-  console.log('Nuevo!');
-}
-
 function limpiarModalGli(){
   $('#tablaExpedientesSoft tbody').empty();
   $('#tablaJuegos tbody').empty();
@@ -691,8 +698,10 @@ function limpiarModalGli(){
   $('#cargaArchivo').attr('data-borrado','false');
 
   //Preparar los datalist
+  $('#inputExpediente').borrarDataList();
   $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
   $('#inputExpediente').setearElementoSeleccionado(0,"");
+  $('#inputLab').borrarDataList();
   $('#inputLab').generarDataList("http://" + window.location.host + "/certificadoSoft/buscarLabs" ,'laboratorios','id_laboratorio','codigo', 1, false);
   $('#inputLab').setearElementoSeleccionado(0,"");
 
@@ -708,4 +717,61 @@ function habilitarModalGli(estado){
   $('.borrarExpediente').prop('disabled',!estado);
   if(!estado) $('#cargaArchivo').parent().css({'display':'none'});
   $('#cargaArchivo').prop('disabled' , !estado);
+  $('#modalGLI .datosLab input').prop('disabled',true);
+  $('#modalGLI .controlLab button').prop('disabled',!estado);
+}
+
+$('#inputLab').on('seleccionado', setearLab);
+
+function setearLab(){
+  $('#modalGLI .datosLab input').prop('disabled',true);
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+
+  const id = $('#inputLab').attr('data-elemento-seleccionado');
+  $.ajax({
+    type: "GET",
+    url: '/certificadoSoft/obtenerLab/' + id,
+    dataType: 'json',
+    success: function (data) {
+      $('#denominacionLab').val(data.denominacion);
+      $('#paisLab').val(data.pais);
+      $('#urlLab').val(data.url);
+      $('#notaLab').val(data.nota);
+    },
+    error: function (data) {
+      console.log('Error:', data);
+    },
+  });
+}
+
+$('#modifLab').click(function(){
+  $('#modalGLI .datosLab input').prop('disabled',false);
+});
+
+$('#nuevoLab').click(function(){
+  if($('#inputLab').attr('data-elemento-seleccionado') != '0'){
+    $('#modalGLI .datosLab input').prop('disabled',true);
+    return;
+  }
+  $('#modalGLI .datosLab input').prop('disabled',false);
+})
+
+$('#desenlazarLab').click(function(){
+  $('#modalGLI .datosLab input').prop('disabled',true).val('');
+  $('#inputLab').borrarDataList();
+  $('#inputLab').generarDataList("http://" + window.location.host + "/certificadoSoft/buscarLabs" ,'laboratorios','id_laboratorio','codigo', 1, false);
+  $('#inputLab').setearElementoSeleccionado(0,"");
+})
+
+function setearLaboratorio(lab){
+  if(lab == null) return;
+  $('#inputLab').setearElementoSeleccionado(lab.id_laboratorio,lab.codigo);
+  $('#denominacionLab').val(lab.denominacion);
+  $('#paisLab').val(lab.pais);
+  $('#urlLab').val(lab.url);
+  $('#notaLab').val(lab.nota);
 }

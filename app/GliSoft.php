@@ -10,7 +10,7 @@ class GliSoft extends Model
   protected $connection = 'mysql';
   protected $table = 'gli_soft';
   protected $primaryKey = 'id_gli_soft';
-  protected $visible = array('id_gli_soft','observaciones','nro_archivo','id_archivo');
+  protected $visible = array('id_gli_soft','observaciones','nro_archivo','id_archivo','id_laboratorio');
   public $timestamps = false;
 
   //si esta fk en la entidad es belongs to, si esta en la otra es has one
@@ -20,6 +20,10 @@ class GliSoft extends Model
   public function juegos(){
       return $this->belongsToMany('App\Juego','juego_glisoft','id_gli_soft','id_juego');
   }
+  public function laboratorio(){
+    return $this->belongsTo('App\Laboratorio','id_laboratorio','id_laboratorio');
+  }
+  
 
   public function agregarJuegos($jarray,$id=False){
     $arr = [];
