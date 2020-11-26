@@ -1,7 +1,7 @@
 <?php
 /* Secuencia Random de Imagen Index*/
 $ruta = 'imgIndex';
-$varImg= rand(1,3);
+$varImg= rand(1,2);
 $rutaImagen = $ruta.$varImg;
 
  ?>

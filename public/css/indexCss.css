@@ -1,21 +1,14 @@
 
 
 .imgIndex1 {
-  background-image: url(../img/img_principal1.jpg);
+  background-image: url(../img/img_principalOL1.jpg);
   background-repeat:no-repeat;
   background-position: center center;
   background-attachment: fixed;
   background-size: cover;
 }
 .imgIndex2 {
-  background-image: url(../img/img_principal2.jpg);
-  background-repeat:no-repeat;
-  background-position: center center;
-  background-attachment: fixed;
-  background-size: cover;
-}
-.imgIndex3 {
-  background-image: url(../img/img_principal3.jpg);
+  background-image: url(../img/img_principalOL2.jpg);
   background-repeat:no-repeat;
   background-position: center center;
   background-attachment: fixed;
