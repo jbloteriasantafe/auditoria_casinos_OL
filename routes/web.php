@@ -143,6 +143,7 @@ Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_se
   Route::delete('/eliminarGliSoft/{id}','GliSoftController@eliminarGLI');
   Route::post('/buscarGliSoft','GliSoftController@buscarGliSofts');
   Route::post('/modificarGliSoft','GliSoftController@modificarGliSoft');
+  Route::get('/buscarLabs/{codigo?}','GliSoftController@buscarLabs');
 });
 
 //Lo necesitan los auditores

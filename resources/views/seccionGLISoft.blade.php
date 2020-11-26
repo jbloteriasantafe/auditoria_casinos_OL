@@ -254,7 +254,32 @@ $id_usuario = session('id_usuario');
                 </div>
 
                 <br>
-
+                <div class="row">
+                  <div class="col-lg-6">
+                    <h5>Buscar LABORATORIO <i class="fa fa-search"></i></h5>
+                    <input id="inputLab" class="form-control" type="text" autocomplete="off" placeholder="Codigo Laboratorio" />
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <div class="col-lg-6">
+                    <h5>Denominación</h5>
+                    <input class="form-control"/>
+                  </div>
+                  <div class="col-lg-6">
+                    <h5>País</h5>
+                    <input class="form-control"/>
+                  </div>
+                  <div class="col-lg-6">
+                    <h5>URL</h5>
+                    <input class="form-control"/>
+                  </div>
+                  <div class="col-lg-6">
+                    <h5>Nota</h5>
+                    <input class="form-control"/>
+                  </div>
+                </div>
+                <br>
                 <div class="row" style="border-top: 1px solid #fff;padding-top:20px;">
                     <div class="col-lg-6">
                       <h5>Buscar JUEGOS <i class="fa fa-search"></i></h5>

@@ -11,6 +11,7 @@ use App\Casino;
 use App\Plataforma;
 use Illuminate\Support\Facades\DB;
 use App\Juego;
+use App\Laboratorio;
 
 use Validator;
 
@@ -497,5 +498,12 @@ class GliSoftController extends Controller
       $ret[]=GliSoft::find($gl->id_gli_soft);
     }
     return $ret;
+  }
+
+  public function buscarLabs($codigo = ""){
+    return ['laboratorios' => Laboratorio::where('codigo','like',$codigo.'%')->get()];
+  }
+  public function obtenerLab($id_laboratorio){
+    return Laboratorio::find($id_laboratorio);
   }
 }
