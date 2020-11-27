@@ -17,13 +17,9 @@ $id_usuario = session('id_usuario');
 ?>
 
 @section('contenidoVista')
-
-
   <div class="row">
-
       <!-- columna FILTRO Y TABLA juego-->
       <div class="col-lg-9">
-
                 <div class="row">
                   <div class="col-md-12">
                       <div class="panel panel-default">
@@ -32,7 +28,6 @@ $id_usuario = session('id_usuario');
                         </div>
                         <div id="collapseFiltros" class="panel-collapse collapse">
                           <div class="panel-body">
-
                             <div class="row"> <!-- Primera fila -->
                               <!-- 5 / 7 / 1 -->
                               <div class="col-lg-3">
@@ -69,9 +64,7 @@ $id_usuario = session('id_usuario');
                                 <input id="B_ubicacion" type="text" class="form-control" maxlength="100" placeholder="Ubicación">
                               </div>
                             </div> <!-- / Primera fila -->
-
                             <br>
-
                             <div class="row"> <!-- Segunda fila -->
                               <div class="col-lg-3">
                                 <h5>Remitente</h5>
@@ -90,9 +83,7 @@ $id_usuario = session('id_usuario');
                                 <input id="B_destino" type="text" class="form-control" maxlength="45" placeholder="Destino">
                               </div>
                             </div> <!-- / Segunda fila -->
-
                             <br>
-
                             <div class="row">
                               <div class="col-lg-4">
                                 <h5>IDENTIFICACIÓN NOTA</h5>
@@ -103,15 +94,10 @@ $id_usuario = session('id_usuario');
                                 <center><button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button></center>
                               </div>
                             </div>
-                            <div class="row">
-
-                            </div>
-
+                            <div class="row"></div>
                           </div>
                         </div>
-
                       </div>
-
                   </div>
                 </div> <!-- / .row  Tarjeta FILTROS -->
                 <!-- TABLA -->
@@ -127,24 +113,18 @@ $id_usuario = session('id_usuario');
                             <tr>
                               <th class="col-xs-3" value="expediente.nro_expediente" estado="">NRO EXPEDIENTE  <i class="fas fa-sort"></i></th>
                               <th class="col-xs-3 activa" value="expediente.fecha_iniciacion" estado="desc">FECHA DE INICIO  <i class="fas fa-sort-down"></i></th>
-                              <!-- <th class="col-xs-2">UBICACIÓN  <i class="fa fa-sort"></i></th> -->
                               <th class="col-xs-3" value="plataforma.nombre" estado="">PLATAFORMA  <i class="fas fa-sort"></i></th>
                               <th class="col-xs-3">ACCIONES</th>
                             </tr>
                           </thead>
-                          <tbody id="cuerpoTabla" style="height: 350px;">
-
-                          </tbody>
+                          <tbody id="cuerpoTabla" style="height: 350px;"></tbody>
                         </table>
                         <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                       </div>
-
                     </div> <!-- ./panel -->
                   </div> <!-- ./col-md-12 -->
                 </div> <!-- /.row -->
-
       </div>      <!-- /.col-lg-12 col-xl-9 -->
-
       <!-- columna AGREGAR juego-->
       <div class="col-lg-3">
           <div class="row">
@@ -165,7 +145,6 @@ $id_usuario = session('id_usuario');
                </a>
               </div>
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_resoluciones'))
-
               <div class="col-xl-12 ">
                 <a href="resoluciones" style="text-decoration:none;">
                     <div class="tarjetaSeccionMenor" align="center">
@@ -177,7 +156,6 @@ $id_usuario = session('id_usuario');
               </div>
             @endif
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_disposiciones'))
-
               <div class="col-xl-12">
                 <a href="disposiciones" style="text-decoration:none;">
                     <div class="tarjetaSeccionMenor" align="center">
@@ -189,22 +167,13 @@ $id_usuario = session('id_usuario');
               </div>
             </div>
             @endif
-
       </div>
-
   </div>  <!-- /row -->
-
-      <!-- </div> -->
-    <!-- /#container-fluid -->
-  <!-- </div> -->
-  <!-- /#page-wrapper -->
-
     <style media="screen">
         #modalExpediente h6 {
             font-family: Roboto-Condensed;
         }
     </style>
-
     <!-- Modal Expediente -->
     <div class="modal fade" id="modalExpediente" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:94%;">
@@ -215,40 +184,31 @@ $id_usuario = session('id_usuario');
                     data-placement="bottom">
                     <i class="fa fa-fw fa-question-circle fa-2x"></i>
                   </a>
-
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-
-                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                   <h3 class="modal-title" style="margin-left:33px; color: #fff; text-align:center">NUEVO EXPEDIENTE</h3>
-
                   <style media="screen">
                       .navModal > div {
                         display: inline-block;
                         margin: 0px 15px 0px 15px;
                       }
-
                       .navModal > div a{
                         outline: none;
                         text-decoration: none;
                         margin-bottom: 0px !important;
                       }
-
                       .navModal h4 {
                         font-family: Roboto-BoldCondensed;
                         padding-bottom: 20px;
                         margin-bottom: 0px !important;
                       }
-
                       .navModal a.navModalActivo h4 {
                           color: white;
                           font-size: 20px;
                           border-bottom: 5px solid #fff;
                       }
                   </style>
-
                   <div class="navModal" style="position:relative; bottom:-15px; text-align:center; font-family: Roboto-Regular; font-size: 20px; color: #999;">
-
                         <div style="width:25%;">
                               <i id="error_nav_config" class="fa fa-times" style="color:red;"></i>
                               <a href="" id="navConfig"><h4>CONFIGURACIÓN</h4></a>
@@ -257,24 +217,11 @@ $id_usuario = session('id_usuario');
                               <i id="error_nav_notas" class="fa fa-times" style="color:red;"></i>
                               <a href="" id="navNotas"><h4>NOTAS</h4></a>
                         </div>
-                        <div style="width:25%;">
-                              <i id="error_nav_mov" class="fa fa-times" style="color:red;"></i>
-                              <a href="" id="navMov"><h4>NOTAS & MOVIMIENTOS</h4></a>
-                        </div>
-
                   </div>
-
-
-
                 </div> <!-- modal-header -->
-
-
-
                 <div class="modal-body modalCuerpo" style="padding-bottom:0px;">
-
                   <!-- Panel que se minimiza -->
                   <div  id="colapsado" class="collapse in">
-
                       <!-- seccion CONFIGURACION -->
                       <div class="seccion" id="secConfig">
                               <div class="row" style="border-bottom: 1px solid #eee;">
@@ -288,13 +235,11 @@ $id_usuario = session('id_usuario');
                                   <br>
                                   <span id="alerta-nroExpediente" class="alertaSpan"></span>
                                 </div>
-
                                 <style media="screen">
                                     div#contenedorPlataformas.alerta {
                                         border:3px solid #EF5350; padding:5px; border-radius:4px;
                                     }
                                 </style>
-
                                 <div class="col-md-8 col-lg-8" style="text-align:center;">
                                   <h5 style="padding-left:0px;">Plataformas</h5>
                                   <div id="contenedorPlataformas">
@@ -303,16 +248,11 @@ $id_usuario = session('id_usuario');
                                       <span style="font-family:Roboto-Light; font-size:18px; margin-left:2px; margin-right:40px">{{$p->nombre}}</span>
                                       @endforeach
                                   </div>
-
                                 </div>
-
                               </div>
-
                               <div class="row" style="padding-bottom: 8px; padding-top: 8px; border-bottom: 1px solid #eee;">
-
                                 <div class="col-md-6 col-lg-4">
                                   <h5>Fecha de Inicio</h5>
-
                                     <div class="form-group">
                                        <div class='input-group date' id='dtpFechaInicio' data-link-field="fecha_inicio" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                            <input type='text' class="form-control" placeholder="Fecha de inicio"/>
@@ -321,11 +261,9 @@ $id_usuario = session('id_usuario');
                                        </div>
                                        <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
                                     </div>
-
                                 </div>
                                 <div class="col-md-6 col-lg-4">
                                   <h5>Fecha de pase</h5>
-
                                   <div class="form-group">
                                      <div class='input-group date' id='dtpFechaPase' data-link-field="fecha_pase" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha de pase"/>
@@ -334,7 +272,6 @@ $id_usuario = session('id_usuario');
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_pase" value=""/>
                                   </div>
-
                                 </div>
                                 <div class="col-md-6 col-lg-6">
                                   <h5>Destino</h5>
@@ -347,11 +284,8 @@ $id_usuario = session('id_usuario');
                                   <br>
                                   <span id="alerta-ubicacion" class="alertaSpan"></span>
                                 </div>
-
                               </div>
-
                               <div class="row">
-
                                 <div class="col-md-6 col-lg-6" >
                                   <h5>Iniciador</h5>
                                   <input id="iniciador" type="text" class="form-control" maxlength="60" placeholder="Ingresar iniciador">
@@ -364,12 +298,8 @@ $id_usuario = session('id_usuario');
                                   <br>
                                   <span id="alerta-remitente" class="alertaSpan"></span>
                                 </div>
-
                               </div>
-
-
                               <div class="row">
-
                                 <div class="col-md-6 col-lg-6">
                                   <h5>Concepto</h5>
                                   <textarea id="concepto" type="text" class="form-control" maxlength="150" style="height:80px;" placeholder="Ingresar concepto"></textarea>
@@ -382,11 +312,8 @@ $id_usuario = session('id_usuario');
                                   <br>
                                   <span id="alerta-tema" class="alertaSpan"></span>
                                 </div>
-
                               </div>
-
                               <div class="row" style="padding-bottom: 4px; padding-top: 4px; border-bottom: 1px solid #eee;">
-
                                 <div class="col-md-6 col-lg-4">
                                   <h5>Cantidad de Cuerpos</h5>
                                   <input id="nro_cuerpos" type="text" class="form-control" placeholder="Ingresar número de cuerpos">
@@ -405,9 +332,7 @@ $id_usuario = session('id_usuario');
                                   <br>
                                   <span id="alerta-anexo" class="alertaSpan"></span>
                                 </div>
-
                               </div> <!-- / Row Primera sección  style="padding-right: 0px;-->
-
                               <div class="row" style="">
                                 <div id="columna" class="col-lg-6" style="margin-top:8px;">
                                   <div></div>
@@ -416,7 +341,6 @@ $id_usuario = session('id_usuario');
                                   <div class="input-group triple-input" style="padding-top:8px;">
                                     <input id="nro_resolucion" style="width:60%;" type="text" placeholder="---" maxlength="3" class="form-control" />
                                     <input id="nro_resolucion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2" class="form-control" />
-                                    
                                   </div> 
                                   <button id="btn-agregarResolucion" class="btn btn-success borrarFila" type="button">
                                     <i class="fa fa-fw fa-plus"></i>
@@ -430,22 +354,8 @@ $id_usuario = session('id_usuario');
                                           <th width="20%">ACCIÓN</th>
                                       </tr>
                                     </thead>
-                                    <tbody>
-
-                                    </tbody>
+                                    <tbody></tbody>
                                   </table>
-
-                                 
-
-                                  <!-- Acá -->
-                                  <!-- <div class="row" style="margin-bottom:20px;">
-                                    <div class="col-xs-6" style="padding-right: 0px;">
-                                      <input id="nro_resolucion" type="text" class="form-control" maxlength="3" placeholder="- - -">
-                                    </div>
-                                    <div class="col-xs-6">
-                                      <input id="nro_resolucion_anio" type="text" class="form-control" maxlength="2" placeholder="- -">
-                                    </div>
-                                  </div> -->
                                 </div>
                               </div>
                               <br>
@@ -465,18 +375,16 @@ $id_usuario = session('id_usuario');
                                       </thead>
                                       <tbody>
                                          <tr id="moldeDispoCargada" class="filaDispo" style="display:none;">
-
                                            <td class="col-xs-2 nro_dCreada">9</td>
                                            <td class="col-xs-2 anio_dCreada">11 AGO 2018</td>
                                            <td class="col-xs-4 desc_dCreada">EGRESO</td>
                                            <td class="col-xs-3 mov_dCreada" style="resize:vertical;"> dsfs </td>
-                                          <td class="col-xs-1"><button class="btn btn-danger borrarDispoCargada" type="button">
-                                               <i class="fas fa-fw fa-trash-alt"></i> </td>
-                                           <!-- <td class="col-xl-6 detalleNota">Acá tiene que ir algún detalle que se le puso a la nota con movimiento o sin movimiento.</td> -->
+                                           <td class="col-xs-1"><button class="btn btn-danger borrarDispoCargada" type="button">
+                                            <i class="fas fa-fw fa-trash-alt"></i>
+                                           </td>
                                          </tr>
                                       </tbody>
                                   </table>
-
                                 </div>
                               </div>
                               <div class="row">
@@ -485,9 +393,7 @@ $id_usuario = session('id_usuario');
                                   <button id="btn-agregarDisposicion" class="btn btn-success borrarFila" type="button" style="display:inline;position:relative;top:-2px;">
                                     <i class="fa fa-fw fa-plus"></i>
                                   </button>
-
                                   <div id="columnaDisposicion" style="padding-top:10px;">
-
                                       <div id="moldeDisposicion" class="row disposicion" style="padding-bottom:15px;" hidden>
                                           <div class="col-md-3">
                                             <div class="input-group triple-input">
@@ -498,36 +404,25 @@ $id_usuario = session('id_usuario');
                                           <div class="col-md-4">
                                             <input class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción">
                                           </div>
-
                                           <div class="col-md-3">
-                                            <select class="form-control" id="tiposMovimientosDisp" disabled>
-
-                                             </select>
+                                            <select class="form-control" id="tiposMovimientosDisp" disabled></select>
                                           </div>
-
                                           <div class="col-md-2">
                                             <button class="btn btn-danger borrarFila borrarDisposicion" type="button" name="button">
                                               <i class="fa fa-fw fa-trash-alt"></i>
                                             </button>
                                           </div>
                                       </div> <!-- disposicion -->
-
                                   </div> <!-- columnaDisposicion -->
-
                                 </div>
-
                               </div> <!-- / Row Segunda sección -->
-
                       </div>
-
                       <!-- seccion NOTAS -->
                       <div class="seccion" id="secNotas">
-
                           <!-- notas creadas -->
                           <div class="row notasCreadas" style="border-bottom:1px solid #ddd; padding-bottom:20px; margin-bottom:20px !important;">
                               <div class="col-md-12">
                                   <h6>Notas creadas</h6>
-
                                   <style media="screen">
                                       #tablaNotasCreadas h5 {
                                         padding-left: 0px;
@@ -546,7 +441,6 @@ $id_usuario = session('id_usuario');
                                            <th class="col-xs-3"><h5>FECHA</h5></th>
                                            <th class="col-xs-3"><h5>MOVIMIENTO</h5></th>
                                            <th class="col-xs-4"><h5>DETALLE</h5></th>
-                                           <!-- <th class="col-xl-6"><h5>DETALLE</h5></th> -->
                                          </tr>
                                       </thead>
                                       <tbody>
@@ -556,17 +450,12 @@ $id_usuario = session('id_usuario');
                                            <td class="col-xs-1 identificacion">9</td>
                                            <td class="col-xs-3 fecha">11 AGO 2018</td>
                                            <td class="col-xs-3 movimiento">EGRESO</td>
-                                           <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class="">
-
-                                           </div> </td>
-                                           <!-- <td class="col-xl-6 detalleNota">Acá tiene que ir algún detalle que se le puso a la nota con movimiento o sin movimiento.</td> -->
+                                           <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class=""></div> </td>
                                          </tr>
                                       </tbody>
                                   </table>
                               </div>
                           </div>
-
-
 
                           <!-- mensaje -->
                           <div class="row mensajeNotas" style="padding-top:20px;">
@@ -604,8 +493,6 @@ $id_usuario = session('id_usuario');
                                      </div>
                                      <input class="form-control fecha_notaNueva" type="hidden" id="" value=""/>
                                   </div>
-
-                                  <!-- <input class="form-control" type="text" name="" value=""> -->
                                 </div>
                                 <div class="col-md-3">
                                   <h5>IDENTIFICACIÓN</h5>
@@ -637,103 +524,16 @@ $id_usuario = session('id_usuario');
                                   </a>
                               </div>
                           </div>
-
-                      </div>
-
-
-                      <div class="seccion" id="secMov">
-                        <!-- mensaje -->
-                        <div class="row mensajeNotas" style="padding-top:20px;">
-                              <div class="col-md-12">
-                                  <i class="fa fa-exclamation" style="margin-left:10px; color:#44f;"></i>
-                                  <span style="font-family:Roboto-Regular;font-size:18px; margin-left:10px;">Para habilitar esta sección debe seleccionar SOLO UNA PLATAFORMA para el expediente.</span>
-                              </div>
-                        </div>
-
-                        <!-- formulario de notas con EXPEDIENTE EXISTENTE -->
-                        <div class="formularioNotas" hidden>
-                            <div class="row" style="padding:10px 0px 20px 0px;">
-                              <div class="col-md-12">
-                                <h6 style="display:inline">Notas con movimientos existentes</h6>
-                                <!-- <span id="cantidadMovimientos" class="badge" style="position:relative;top:-2px;display:inline;margin-left:15px;font-size:16px;">0 Movimientos disponibles</span> -->
-                              </div>
-                            </div>
-
-                            <div id="moldeNotaMov" class="row notaMov" hidden>
-
-                                <div class="col-md-8 col-md-offset-2">
-                                  <h5>TIPO MOVIMIENTO</h5>
-                                  <input class="form-control descripcionTipoMovimiento" type="text" value="" readonly="true">
-                                </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-danger borrarFila borrarNotaMov" type="button" style="float:right; position:relative; top:32px; right:20px;">
-                                        <i class="fa fa-fw fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="col-md-4 col-md-offset-2">
-                                  <h5>FECHA</h5>
-                                  <!-- FORM GROUP -->
-                                  <div class="form-group" style="padding-left:20px;">
-                                     <div class='input-group date dtpFechaMov' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                         <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
-                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                         <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                                     </div>
-                                     <input class="form-control fecha_notaMov" type="hidden" id="" value=""/>
-                                  </div>
-                                </div>
-                                <div class="col-md-4">
-                                  <h5>IDENTIFICACIÓN</h5>
-                                  <input class="form-control identificacion" type="text" name="" value="">
-                                </div>
-                                <div class="col-md-12">
-                                      <h5>DETALLE</h5>
-                                      <textarea class="form-control detalleNota" name="name" style="resize:none; height:80px;"></textarea>
-                                </div>
-
-                              <!-- <div class="col-md-1">
-                                <button class="btn btn-danger borrarFila borrarNotaMov" type="button" style="position:relative;top:35px;">
-                                  <i class="fa fa-fw fa-trash"></i>
-                                </button>
-                              </div> -->
-
-                            </div> <!-- molde -->
-
-                            <!-- btn agregar nota -->
-                            <div class="row agregarNota" style="text-align:center;height:100px;border-top:1px solid #ddd;">
-                                <br>
-                                <input id="cantidad_movimientos" type="text" name="" value="0" hidden>
-                                <div class="col-md-4 col-md-offset-4">
-                                    <select id="movimientosDisponibles" class="form-control" name="">
-                                        <option value="">INGRESO</option>
-                                        <option value="">BLA BLA</option>
-                                        <option value="">EGRESO</option>
-                                    </select>
-                                </div>
-                                <a id="btn-notaMov" href="#">
-                                  <div class="col-md-12">
-                                    <span style="margin-right:20px;font-family:Roboto-Regular; font-size:40px;color:#aaa;">+</span>
-                                    <span style="font-family:Roboto-BoldCondensed;font-size:16px;position:relative;top:-6px;color:#aaa;">AGREGAR NOTA CON MOVIMIENTO EXISTENTE</span>
-                                  </div>
-                                </a>
-                            </div>
-                        </div>
-
-
-
                       </div>
                   </div> <!-- /Fin panel minimizable -->
                   <br>
-
                   <div id="iconoCarga" class="sk-folding-cube">
                     <div class="sk-cube1 sk-cube"></div>
                     <div class="sk-cube2 sk-cube"></div>
                     <div class="sk-cube4 sk-cube"></div>
                     <div class="sk-cube3 sk-cube"></div>
                   </div>
-
                 </div> <!-- Fin modal-body -->
-
                 <div class="modal-footer">
                   <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ACEPTAR</button>
                   <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal">CANCELAR</button>
@@ -752,7 +552,6 @@ $id_usuario = session('id_usuario');
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                   <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
                 </div>
-
                 <div class="modal-body" style="color:#fff; background-color:#EF5350;">
                   <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
@@ -762,7 +561,6 @@ $id_usuario = session('id_usuario');
                       </div>
                   </form>
                 </div>
-
                 <div class="modal-footer">
                   <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarModal" value="0">ELIMINAR</button>
                   <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>

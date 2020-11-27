@@ -3,7 +3,6 @@ var lista_tipos_movimientos = [];
 
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
-
   $('#barraExpedientes').attr('aria-expanded','true');
   $('#expedientes').removeClass();
   $('#expedientes').addClass('subMenu1 collapse in');
@@ -19,7 +18,6 @@ $(document).ready(function() {
   $('#navConfig').click();
   $('#error_nav_config').hide();
   $('#error_nav_notas').hide();
-  $('#error_nav_mov').hide();
 
   //DTP filtros
   $('#B_dtpFechaInicio span:first').click();
@@ -59,13 +57,6 @@ $('#navNotas').click(function(){
   $('#secNotas').show();
 });
 
-//Cambiar a la sección de Notas con movimientos.
-$('#navMov').click(function(){
-  $('.seccion').hide();
-  $('#secMov').show();
-});
-
-
 /////////////////////////////////// NOTAS ////////////////////////////////////
 
 $(document).on('change','.plataformasExp', function() {
@@ -79,16 +70,11 @@ $(document).on('change','.plataformasExp', function() {
     }
 
     // Si hay 0 plataformas seleccionados: limpiar las secciones de notas y mostrar mensajes.
-    if (plataformas_seleccionadas.length == 0) {
+    if (plataformas_seleccionadas.length <= 1) {
         limpiarSeccionNotas();
         $('.mensajeNotas').show();
         $('.formularioNotas').hide();
     //Si hay un SOLO UNA seleccionado: habilitar las dos pestañas
-    } else if (plataformas_seleccionadas.length == 1) {
-        habilitarSeccionNotasMovimientos();
-        $('.mensajeNotas').hide();
-        $('.formularioNotas').show();
-    //Si hay más seleccionados: SOLO habilitar las notas nuevas
     } else {
         habilitarNotasNuevas();
     }
@@ -106,56 +92,9 @@ function limpiarNotasMovimientos() {
     $('#btn-notaMov').parent().show();                                          //Mostrar el botón de agregar notas
 }
 
-function habilitarSeccionNotasMovimientos() {
-  $('.mensajeNotas').hide();
-  $('.formularioNotas').show();
-  movimientosSinExpediente();
-}
-
-function movimientosSinExpediente() {
-  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-
-  var formData = {
-      id_plataforma: id_plataformas_seleccionadas,
-  }
-
-  $.ajax({
-      type: "POST",
-      url: 'expedientes/movimientosSinExpediente',
-      data: formData,
-      success: function (data) {
-        console.log('Mov sin expedientes: ', data);
-        var cantidadMovimientos = data.logs.length;
-        //
-        $('#cantidad_movimientos').val(cantidadMovimientos);
-        // mostrarMovimientosDisponibles(cantidadMovimientos);
-        var select = $('#movimientosDisponibles');
-        var optionDefecto = $('<option>').val(0).text("Seleccione un movimiento");
-
-        select.find('option').remove();
-        select.append(optionDefecto);
-
-        for (var i = 0; i < data.logs.length; i++) {
-            var option = $('<option>').val(data.logs[i].id_log_movimiento)
-                                      .text(data.logs[i].nombre + ' - ' +data.logs[i].descripcion + ' - '+ data.logs[i].fecha)
-                                      .attr('data-plataforma',data.logs[i].id_plataforma);
-            select.append(option);
-        }
-
-
-      },
-      error: function (data) {
-        console.log('Error: ', data);
-      }
-  });
-
-}
-
 function habilitarNotasNuevas() {
   $('#secNotas .mensajeNotas').hide();
   $('#secNotas .formularioNotas').show();
-  $('#secMov .mensajeNotas').show();
-  $('#secMov .formularioNotas').hide();
 }
 
 function obtenerTiposMovimientos() {
@@ -207,7 +146,6 @@ $(document).on('keypress',function(e){
     }
 });
 
-
 //DATETIMEPICKER de las fechas
 function habilitarDTP() {
   //Resetear DTP (Click en la cruz)
@@ -241,16 +179,11 @@ function habilitarDTP() {
 
 //Agregar nueva disposicion en el modal
 $('#btn-agregarDisposicion').click(function(){
-
   var moldeDisposicion = $('#moldeDisposicion').clone();
-
-
   moldeDisposicion.removeAttr('id');
   moldeDisposicion.find('#tiposMovimientosDisp').prop("disabled", false);
   moldeDisposicion.show();
-
   $('#columnaDisposicion').append(moldeDisposicion);
-
 });
 
 // Agregar resolucion
@@ -298,23 +231,6 @@ function generarListaMovimientos(expediente){
     }
   });
 }
-
-function generarListaAsocMovimientos(plataforma){
-  var espacio = ' | ';
-  $.get("movimientos/movimientosSinExpediente/" + plataforma, function(data){
-    console.log(data);
-      asocMov.children().remove();
-      console.log(data.length);
-      for(i=0; i<data.logs.length; i++){
-        asocMov.append($('<input>').attr('type','checkbox').addClass('asociaMovimiento').val(data.logs[i].id_log_movimiento))
-        .append($('<span>').text(data.logs[i].descripcion))
-        .append($('<span>').text(espacio))
-        .append($('<span>').text(data.logs[i].fecha))
-        .append($('<br>'));
-      }
-  });
-}
-
 //variable global para selectMovimientos
 var asocMov = $('#columnaAsociar').append($('<div>'));
 var selectMov = $('<select>').addClass('form-control').attr('id','selectMovimientos');
@@ -364,7 +280,6 @@ $('#modalExpediente').on('click','.borrarNotaMov', function(){
     cantidad_movimientos = parseInt(cantidadMovimientos) + 1;                   //Se aumenta la cantidad de movimientos disponibles
 
     $('#cantidad_movimientos').val(cantidad_movimientos);                       //Se setea la nueva cantidad de movimientos
-    $('#secMov .agregarNota').show();                                           //Mostrar el botón para agregar notas
     $('#movimientosDisponibles option[value="'+ id_movimiento +'"]').show();    //Mostrar el movimiento borrado nuevamente en el selector
 });
 
@@ -376,14 +291,12 @@ $('#btn-notaMov').click(function(e){
   var id_movimiento = $('#movimientosDisponibles').val();                       //Se obtiene el id del movimiento
 
   if (cantidadMovimientos > 0 && id_movimiento != 0) {                          //Si se seleccionó algún movimiento...
-
     $('#movimientosDisponibles option[value="' + id_movimiento + '"]').hide();  //Ocultar la opción del movimiento que se va a agregar
     $('#movimientosDisponibles').val(0);                                        //Cambiar el selector a la opción por defecto
 
     var clonNota = $('#moldeNotaMov').clone();
 
     $.get('expedientes/obtenerMovimiento/' + id_movimiento, function(data) {    //Se trae toda la información del movimiento seleccionado
-
         clonNota.removeAttr('id');
         clonNota.show();
 
@@ -415,21 +328,15 @@ $('#btn-notaMov').click(function(e){
           $('#btn-notaMov').parent().hide();
         }
     });
-
   }
-
 });
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-
   $('.modal-title').text('| GESTIONAR EXPEDIENTES');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
 	$('#modalAyuda').modal('show');
-
 });
-
 
 //Mostrar modal para agregar nuevo Expediente
 $('#btn-nuevo').click(function(e){
@@ -470,8 +377,6 @@ $('#btn-nuevo').click(function(e){
     $('#btn-cancelar').text('CANCELAR');
     $('#asociar').show();
 
-    // generarListaMovimientos(0);
-    // generarListaAsocMovimientos();
     $('#tiposMovimientosDisp option').remove();
     obtenerTiposMovimientos();
 
@@ -480,7 +385,6 @@ $('#btn-nuevo').click(function(e){
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
-
   $('#mensajeExito').hide();
   $('#modalExpediente').find('.modal-footer').children().show();
   $('#modalExpediente').find('.modal-body').children().show();
@@ -505,7 +409,6 @@ $(document).on('click','.detalle',function(){
       obtenerTiposMovimientos();
 
       $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-          console.log('aqui',data);
           generarListaMovimientos(id_expediente);
           mostrarExpedienteModif(data.expediente,data.plataformas,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
           habilitarControles(false);
@@ -648,18 +551,9 @@ $('#btn-guardar').click(function (e) {
 
     var fecha_pase = $('#fecha_pase').val();
     var fecha_iniciacion = $('#fecha_inicio').val();
-
-    // var resolucion = null;
-    // if($('#nro_resolucion').val() != '' || $('#nro_resolucion_anio').val() != ''){
-    //   var resolucion = {
-    //     nro_resolucion: $('#nro_resolucion').val(),
-    //     nro_resolucion_anio: $('#nro_resolucion_anio').val(),
-    //   }
-    // }
     var resolucion = obtenerResoluciones();
-
-
     var disposiciones = [];
+
     $('#columnaDisposicion .disposicion').not('#moldeDisposicion').each(function(){
         var disposicion = {
           nro_disposicion: $(this).find('.nro_disposicion').val(),
@@ -673,23 +567,16 @@ $('#btn-guardar').click(function (e) {
     var tabla = $('#tablaDispoCreadas tbody > tr').not('#moldeDispoCargada');
 
     $.each(tabla, function(index, value){
-
         var id_disposicion= $(this).attr('id');
-        console.log('dispoCar1',id_disposicion);
-
         dispo_cargadas.push(id_disposicion);
-        console.log('dispoCar',dispo_cargadas);
     });
 
-
     var notas = obtenerNotasNuevas();
-    console.log('notas',notas);
     var notas_asociadas = obtenerNotasMov();
     var tablaNotas=[];
     var tabla= $('#tablaNotasCreadas tbody > tr').not('#moldeFilaNota');
 
     $.each(tabla, function(index, value){
-      console.log(value.id);
       tablaNotas.push(value.id);
     });
 
@@ -756,7 +643,6 @@ $('#btn-guardar').click(function (e) {
             $('#modalExpediente').find('.modal-footer').children().show();
             $('#modalExpediente').find('.modal-body').children().show();
             $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-
 
             var response = JSON.parse(data.responseText);
 
@@ -833,26 +719,17 @@ $('#btn-guardar').click(function (e) {
               mostrarErrorValidacion($('#anexo'),response.anexo[0],false);
               $('#error_nav_config').show();
             }
-            var errorRes = ' ';
             if (typeof response["resolucion.nro_resolucion"] != "undefined") {
               mostrarErrorValidacion($('#nro_resolucion'),response['resolucion.nro_resolucion'][0],false);
               $('#error_nav_config').show();
-                // $('#nro_resolucion').addClass('alerta');
-                // errorRes += response["resolucion.nro_resolucion"][0] + "\n";
             }
             if (typeof response["resolucion.nro_resolucion_anio"] != "undefined") {
               mostrarErrorValidacion($('#nro_resolucion_anio'),response['resolucion.nro_resolucion_anio'][0],false);
               $('#error_nav_config').show();
-                // $('#nro_resolucion_anio').addClass('alerta');
-                // errorRes += response["resolucion.nro_resolucion_anio"][0];
             }
-            // if(errorRes != ' '){
-            //   $('#alerta-resolucion').text(errorRes).show();
-            // }
 
             var i=0;
             $('#columnaDisposicion .disposicion').not('#moldeDisposicion').each(function(){
-              // var error=' ';
               if(typeof response['disposiciones.'+ i +'.nro_disposicion'] !== 'undefined'){
                 mostrarErrorValidacion($(this).find('.nro_disposicion'),response['disposiciones.'+ i +'.nro_disposicion'][0],false);
                 $('#error_nav_config').show();
@@ -869,19 +746,8 @@ $('#btn-guardar').click(function (e) {
               i++;
             })
 
-            // var i=0;
-            // $('#columna .Movimiento').each(function(){
-            //   var error=' ';
-            //   if(error != ' '){
-            //   var alerta='<div class="col-xs-12"><span class="alertaTabla alertaSpan">'+error+'</span></div>';
-            //     $(this).append(alerta);
-            //   }
-            //   i++;
-            // })
-
             //////////////////////////  ALERTAS DE NOTAS /////////////////////////
             var i = 0;
-
             $('.notaNueva').not('#moldeNotaNueva').each(function(){
                 if(typeof response['notas.'+ i +'.fecha'] !== 'undefined'){
                   mostrarErrorValidacion($(this).find('.dtpFechaNota input'),response['notas.'+ i +'.fecha'][0],false);
@@ -899,12 +765,10 @@ $('#btn-guardar').click(function (e) {
                   mostrarErrorValidacion($(this).find('.tiposMovimientos'),response['notas.'+ i +'.id_tipo_movimiento'][0],false);
                   $('#error_nav_notas').show();
                 }
-
                 i++;
             });
 
             var j = 0;
-
             $('.notaMov').not('#moldeNotaMov').each(function(){
                 if(typeof response['notas_asociadas.'+ j +'.fecha'] !== 'undefined'){
                   mostrarErrorValidacion($(this).find('.dtpFechaMov input'),response['notas_asociadas.'+ j +'.fecha'][0],false);
@@ -918,12 +782,8 @@ $('#btn-guardar').click(function (e) {
                   mostrarErrorValidacion($(this).find('.detalleNota'),response['notas_asociadas.'+ j +'.detalle'][0],false);
                   $('#error_nav_mov').show();
                 }
-
                 j++;
             });
-
-            ///////////////////////  ALERTAS NOTAS Y MOVS ////////////////////////
-            // $('#error_nav_mov').hide();
         }
     });
 });
@@ -944,9 +804,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }else {
     var size = $('#herramientasPaginacion').getPageSize();
   }
-  console.log($('#herramientasPaginacion').getPageSize());
   var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
@@ -969,14 +827,12 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     sort_by: sort_by,
     page_size: page_size,
   }
-  console.log(formData);
   $.ajax({
       type: 'POST',
       url: 'expedientes/buscarExpedientes',
       data: formData,
       dataType: 'json',
       success: function (data) {
-        console.log(page_number,page_size,data.total);
         $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.expedientes.total,clickIndice);
         $('#cuerpoTabla tr').remove();
 
@@ -995,7 +851,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 });
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
-
   $('#tablaResultados th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
     $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
@@ -1029,8 +884,6 @@ function clickIndice(e,pageNumber,tam){
 
 function generarFilaTabla(expediente){
       var fila = $(document.createElement('tr'));
-      var ubicacion = expediente.ubicacion_fisica == "" ? "-" : expediente.ubicacion_fisica;
-      // var fecha = expediente.fecha_iniciacion == "" ? "-" : expediente.fecha_iniciacion;
       expediente.ubicacion_fisica != null ? ubicacion=expediente.ubicacion_fisica : ubicacion='-' ;
       expediente.fecha_iniciacion != null ? fecha= convertirDate(expediente.fecha_iniciacion) : fecha='-' ;
 
@@ -1124,21 +977,15 @@ function limpiarModal(){
   lista_tipos_movimientos= [];
   $('#frmExpediente').trigger('reset');
   $('#modalExpediente input').val('');
-  // $('div').remove(".Disposicion");
   $('#id_expediente').val(0);
-
-
   $('#columnaDisposicion .disposicion').not('#moldeDisposicion').remove();
-
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
-
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
   $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
   //limipar tabla de resoluciones
   $('#tablaResolucion tbody').empty();
-
   limpiarAlertas();
 }
 
@@ -1269,21 +1116,18 @@ function mostrarExpedienteModif(expediente,plataformas,resolucion,disposiciones,
   var j = 0;
 
   for (i; i < notas.length; i++) {
-      agregarNota(notas[i],false);
+    agregarNota(notas[i],false);
   }
   for (j; j < notasConMovimientos.length; j++) {
-      agregarNota(notasConMovimientos[j],true);
+    agregarNota(notasConMovimientos[j],true);
   }
-
 
   //Si hay notas mostrarlas
   if (i || j) {
-      $('.notasCreadas').show();
+    $('.notasCreadas').show();
   }else {
-      $('.notasCreadas').hide();
+    $('.notasCreadas').hide();
   }
-
-
 }
 
 function agregarNota(nota,conMovimiento) {
@@ -1304,7 +1148,6 @@ function agregarNota(nota,conMovimiento) {
 }
 
 function agregarDisposicion(disposicion, editable){
-
     var moldeDisposicion = $('#moldeDisposicion').clone();
 
     moldeDisposicion.removeAttr('id');
@@ -1313,27 +1156,19 @@ function agregarDisposicion(disposicion, editable){
     //Para el modificar
 
     if(editable==false){
-      $('#dispoCarg').hide();
-      //$('#tablaDispoCreadas').hide();
+      $('#dispoCarg').hide()
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
       moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
       moldeDisposicion.find('.borrarDisposicion').hide();
       moldeDisposicion.show();
       if(disposicion.id_nota != null){
-
-        //moldeDisposicion.find('#selectgay').remove();
-        console.log('holaaaaaaa',moldeDisposicion.find('#tiposMovimientosDisp'));
-
-      moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
-
+        moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
       }else {
-        console.log('rr',moldeDisposicion.find('#tiposMovimientosDisp'));
         moldeDisposicion.find('#tiposMovimientosDisp').hide();
       }
 
       $('#columnaDisposicion').append(moldeDisposicion);
-      //$('#columnaDisposicion').find('#' + disposicion.id_disposicion).prop('disabled',true);
     }
 
     if(editable==true) {
@@ -1344,7 +1179,6 @@ function agregarDisposicion(disposicion, editable){
       var fila=$('#moldeDispoCargada').clone();
       fila.removeAttr('id');
       fila.attr('id', disposicion.id_disposicion);
-
       fila.find('.nro_dCreada').text(disposicion.nro_disposicion);
       fila.find('.anio_dCreada').text(disposicion.nro_disposicion_anio);
       if(disposicion.descripcion != null){
@@ -1355,86 +1189,14 @@ function agregarDisposicion(disposicion, editable){
      if(disposicion.descripcion_movimiento != null){
      fila.find('.mov_dCreada').text(disposicion.descripcion_movimiento);}
      else{
-       fila.find('.mov_dCreada').text(" -- ");}
-
-     fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
-     fila.show();
-     //fila.css('display','block');
+      fila.find('.mov_dCreada').text(" -- ");}
+      fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
+      fila.show();
       $('#tablaDispoCreadas tbody').append(fila);
     }
-      //moldeDisposicion.show();
     if(editable=='vacia') {
-      $('#columnaDisposicion').append(moldeDisposicion);  }
-  // var id_disposicion = ((disposicion != null) ? disposicion.id_disposicion: null);
-  // var nro_disposicion = ((disposicion != null) ? disposicion.nro_disposicion: null);
-  // var nro_disposicion_anio = ((disposicion != null) ? disposicion.nro_disposicion_anio: null);
-  // var descripcion = ((disposicion != null) ? disposicion.descripcion: null);
-
-  // $('#columnaDisposicion')
-  //     .append($('<div>')
-  //         .addClass('row')
-  //         .css('margin-bottom','15px')
-  //         .addClass('Disposicion')
-  //         .attr('id_disposicion',id_disposicion)
-  //         .append($('<div>')
-  //             .addClass('col-xs-3')
-  //             .css('padding-right','0px')
-  //             .append($('<input>')
-  //                 .attr('id','nro_disposicion')
-  //                 .attr('type','text')
-  //                 .css('margin-top','6px')
-  //                 .addClass('form-control')
-  //                 .val(nro_disposicion)
-  //                 .attr('maxlength','3')
-  //                 .attr('placeholder','- - -')
-  //             )
-  //         )
-  //         .append($('<div>')
-  //             .addClass('col-xs-3')
-  //             .css('padding-right','0px')
-  //             .append($('<input>')
-  //                 .attr('id','nro_disposicion_anio')
-  //                 .attr('type','text')
-  //                 .css('margin-top','6px')
-  //                 .addClass('form-control')
-  //                 .val(nro_disposicion_anio)
-  //                 .attr('maxlength','2')
-  //                 .attr('placeholder','- -')
-  //             )
-  //         )
-  //         .append($('<div>')
-  //             .addClass('col-xs-5')
-  //             .css('padding-right','0px')
-  //             .append($('<input>')
-  //                 .attr('id','nro_disposicion_anio')
-  //                 .attr('type','text')
-  //                 .css('margin-top','6px')
-  //                 .addClass('form-control')
-  //                 .val('Descripción')
-  //                 .attr('placeholder','Descripción')
-  //             )
-  //         )
-  //     )
-
-      // if(editable){
-      //   $('#columnaDisposicion .Disposicion:last')
-      //         .append($('<div>')
-      //         .addClass('col-xs-1')
-      //         .append($('<button>')
-      //             .addClass('borrarDisposicion')
-      //             .addClass('btn')
-      //             .addClass('borrarInput')
-      //             .addClass('btn-danger')
-      //             .css('margin-top','6px')
-      //             .attr('type','button')
-      //             .append($('<i>')
-      //                 .addClass('fa')
-      //                 .addClass('fa-fw')
-      //                 .addClass('fa-trash')
-      //             )
-      //         )
-      //       )
-      // }
+      $('#columnaDisposicion').append(moldeDisposicion); 
+    }
 }
 $(document).on('click','.borrarDispoCargada', function(){
 
