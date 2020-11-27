@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Expediente;
 use App\Resolucion;
 use App\Disposicion;
-use App\Casino;
+use App\Plataforma;
 
 class DisposicionController extends Controller
 {
@@ -24,18 +24,18 @@ class DisposicionController extends Controller
   public function buscarTodoDisposiciones(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
     $disposiciones=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('casino', 'casino.id_casino', '=' , 'expediente.id_casino')->where('casino.id_casino' , '=' ,$casino->id_casino)->get()->toArray();
+    foreach($usuario['usuario']->plataformas as $p){
+      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('plataforma', 'plataforma.plataforma', '=' , 'expediente.id_plataforma')->where('plataforma.id_plataforma' , '=' ,$p->id_plataforma)->get()->toArray();
       $disposiciones=array_merge($disposiciones,$auxiliar);
       //añade las disposiciones de notas
-      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('casino', 'casino.id_casino', '=' , 'expediente.id_casino')->join('nota', 'nota.id_nota','=','expediente.id_expediente')->where('casino.id_casino' , '=' ,$casino->id_casino)->get()->toArray();
+      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('plataforma', 'plataforma.id_plataforma', '=' , 'expediente.id_plataforma')->join('nota', 'nota.id_nota','=','expediente.id_expediente')->where('plataforma.id_plataforma' , '=' ,$p->id_plataforma)->get()->toArray();
       $disposiciones=array_merge($disposiciones,$auxiliar);
     }
-    $casinos=Casino::all();
+    $plataformas=Plataforma::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Disposiciones' , 'disposiciones');
 
-    return view('seccionDisposiciones' , ['disposiciones' => $disposiciones , 'casinos' => $casinos]);
+    return view('seccionDisposiciones' , ['disposiciones' => $disposiciones , 'plataformas' => $plataformas]);
   }
 
   public function guardarDisposicion($disp, $id_expediente){
@@ -48,7 +48,7 @@ class DisposicionController extends Controller
     $disposicion->save();
     $e = Expediente::find($id_expediente);
     if(!empty($disp['id_tipo_movimiento']) || $disp['id_tipo_movimiento']!= 0){
-      $id_nota = NotaController::getInstancia()->guardarNotaParaDisposicionConMov($id_expediente, $e->casinos->first()->id_casino,$disposicion->nro_disposicion,$disp['id_tipo_movimiento']);
+      $id_nota = NotaController::getInstancia()->guardarNotaParaDisposicionConMov($id_expediente, $e->plataformas->first()->id_plataforma,$disposicion->nro_disposicion,$disp['id_tipo_movimiento']);
       $disposicion->nota()->associate($id_nota);
       $disposicion->save();
     }
@@ -87,8 +87,8 @@ class DisposicionController extends Controller
     if(!empty($request->nro_exp_control)){
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
-    if($request->casino!= 0){
-      $reglas[]=['expediente.id_casino', '=' ,  $request->casino ];
+    if($request->plataforma!= 0){
+      $reglas[]=['expediente.id_plataforma', '=' ,  $request->plataforma ];
     }
     if(!empty($request->nro_disposicion)){
       $reglas[]=['disposicion.nro_disposicion', 'like' ,'%' . $request->nro_disposicion . '%'];
@@ -99,7 +99,7 @@ class DisposicionController extends Controller
 
       $resultados=DB::table('expediente')
       ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
-      ->join('casino', 'casino.id_casino' , '=' , 'expediente.id_casino')
+      ->join('plataforma', 'plataforma.id_plataforma' , '=' , 'expediente.id_plataforma')
       ->leftJoin('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
       ->where($reglas)
       ->get();

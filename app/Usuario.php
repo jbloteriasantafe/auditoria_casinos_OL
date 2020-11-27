@@ -6,6 +6,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Observers\UsuarioObserver;
+use App\Plataforma;
 
 class Usuario extends Model
 {
@@ -22,9 +23,8 @@ class Usuario extends Model
     public function getPlataformasAttribute(){
       $plataformas = [];
       foreach($this->casinos as $c)
-        foreach($c->plataformas as $p)
-         $plataformas[$p->id_plataforma] = $p;
-      return $plataformas;
+        foreach($c->plataformas as $p) $plataformas[] = $p->id_plataforma;
+      return Plataforma::whereIn('id_plataforma',$plataformas)->get();
     }
     //en cierres y aperturas de mesas
     public function getEliminaCyaAttribute(){

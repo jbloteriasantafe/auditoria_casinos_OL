@@ -300,11 +300,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
                               <li>
                                 <div id="opcGestionarExpedientes" class="opcionesHover" 
-                                @if(false)
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/expedientes'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
                                 >
                                   <span>Gestionar expedientes</span>
                                 </div>
@@ -313,22 +309,14 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_resoluciones'))
                               <li>
                                 <div id="opcResoluciones" class="opcionesHover" 
-                                @if(false)
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/resoluciones'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
                                 >
                                   <span>Resoluciones</span>
                                 </div>
                               </li>
                               <li>
                                 <div id="opcNotas" class="opcionesHover" 
-                                @if(false)
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/notas'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
                                 >
                                   <span>Notas</span>
                                 </div>
@@ -337,11 +325,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_disposiciones'))
                               <li>
                                 <div id="opcDisposiciones" class="opcionesHover" 
-                                @if(false)
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/disposiciones'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
                                 >
                                   <span>Disposiciones</span>
                                 </div>

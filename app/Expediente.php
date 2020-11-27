@@ -14,8 +14,8 @@ class Expediente extends Model
   protected $appends = array('concatenacion');
   public $timestamps = false;
 
-  public function casinos(){
-    return $this->belongsToMany('App\Casino','expediente_tiene_casino','id_expediente','id_casino');
+  public function plataformas(){
+    return $this->belongsToMany('App\Plataforma','expediente_tiene_plataforma','id_expediente','id_plataforma');
   }
   public function resoluciones(){
     return $this->hasMany('App\Resolucion','id_expediente','id_expediente');

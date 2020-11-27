@@ -22,8 +22,8 @@ class Nota extends Model
       return $this->hasMany('App\Disposicion','id_nota','id_nota');
   }
 
-  public function casino(){
-    return $this->belongsTo('App\Casino','id_casino','id_casino');
+  public function plataforma(){
+    return $this->belongsTo('App\Plataforma','id_plataforma','id_plataforma');
   }
 
   public function log_movimiento(){

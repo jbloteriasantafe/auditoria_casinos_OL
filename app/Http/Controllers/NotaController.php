@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Expediente;
 use App\Disposicion;
-use App\Casino;
+use App\Plataforma;
 use App\Nota;
 use Validator;
 
@@ -16,7 +16,7 @@ class NotaController extends Controller
   private static $atributos = [
     'id_expediente' => 'Expediente',
     'id_tipo_movimiento' => 'Tipo de Movimiento',
-    'id_casino' => 'Casino',
+    'id_plataforma' => 'Plataforma',
     'fecha' => 'Fecha de creación de nota',
     'disposiciones' => 'Disposiciones',
     'disposiciones.*.nro_disposicion' => 'Nro Disposición',
@@ -34,31 +34,30 @@ class NotaController extends Controller
   public function buscarTodoNotas(){
 
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      $casinos = array();
-      foreach($usuario->casinos as $casino){
-        $casinos[] = $casino->id_casino;
+      $plataformas = array();
+      foreach($usuario->plataformas as $p){
+        $plataformas[] = $p->id_plataforma;
       }
       $notas=DB::table('nota')
                       ->join('expediente' , 'expediente.id_expediente' ,'=' , 'nota.id_expediente')
-                      ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-                      ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+                      ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+                      ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
                       ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-                      ->whereIn('casino.id_casino' ,$casinos)
+                      ->whereIn('plataforma.id_plataforma' ,$plataformas)
                       ->where('es_disposicion','=',0)
                       ->orderBy('nota.identificacion','asc')
                       ->take(30)
                       ->get();
 
-      $casinos=Casino::all();
-      return view('seccionNotasExpediente' , ['notas' => $notas , 'casinos' => $casinos]);
+      $plataformas = Plataforma::all();
+      return view('seccionNotasExpediente' , ['notas' => $notas , 'plataformas' => $plataformas]);
   }
 
-  public function guardarNota($request, $id_expediente, $id_casino)// se usa desde expedienteController
+  public function guardarNota($request, $id_expediente, $id_plataforma)// se usa desde expedienteController
   {
     $nota = new Nota;
     $nota->expediente()->associate($id_expediente);
-    $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
-    //$nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+    $nota->plataforma()->associate($id_plataforma); //asumiendo que los expedientes anuales son uno por plataforma copio el id_plataforma del expediente
     $nota->es_disposicion = 0;
     $nota->fecha = $request['fecha'];
     $nota->detalle = $request['detalle'];
@@ -78,7 +77,7 @@ class NotaController extends Controller
   }
 
   ///asociar nota con movimiento existente! no crearlos
-  public function guardarNotaConMovimiento($request, $id_expediente, $id_casino)// se usa desde expedienteController
+  public function guardarNotaConMovimiento($request, $id_expediente, $id_plataforma)// se usa desde expedienteController
   {
     $log_id = intval($request['id_log_movimiento']);
     $nota = new Nota;
@@ -90,7 +89,7 @@ class NotaController extends Controller
     $nota->save();
     $nota->log_movimiento()->associate($log_id);
     $nota->expediente()->associate($id_expediente);
-    $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
+    $nota->plataforma()->associate($id_plataforma); //asumiendo que los expedientes anuales son uno por plataforma copio el id_plataforma del expediente
 
     $logMov =LogMovimientoController::getInstancia()->asociarExpediente($log_id, $id_expediente);
     $nota->tipo_movimiento()->associate($logMov->id_tipo_movimiento);
@@ -99,11 +98,11 @@ class NotaController extends Controller
 
   //para no impactar en los movimientos-> se crea la disposicion pero en realidad
   //el movimiento esta asociado a una nota
-  public function guardarNotaParaDisposicionConMov($id_expediente, $id_casino,$nro_disposicion,$id_tipo_movimiento)// se usa desde expedienteController
+  public function guardarNotaParaDisposicionConMov($id_expediente, $id_plataforma,$nro_disposicion,$id_tipo_movimiento)// se usa desde expedienteController
   {
     $nota = new Nota;
     $nota->expediente()->associate($id_expediente);
-    $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
+    $nota->plataforma()->associate($id_plataforma); //asumiendo que los expedientes anuales son uno por plataforma copio el id_plataforma del expediente
     $nota->tipo_movimiento()->associate($id_tipo_movimiento);
     $nota->fecha = date('Y-m-d');
     $nota->detalle = $nro_disposicion;
@@ -118,7 +117,7 @@ class NotaController extends Controller
   {
     Validator::make($request->all(), [
         'id_expediente' => 'required|exists:expediente,id_expediente',
-        'id_casino' => 'required|exists:casino,id_casino',
+        'id_plataforma' => 'required|exists:plataforma,id_plataforma',
         'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
         'fecha' => 'required|date',
         'disposiciones' => 'nullable',
@@ -131,7 +130,7 @@ class NotaController extends Controller
 
     $nota = new Nota;
     $nota->expediente()->associate($request['id_expediente']);
-    $nota->casino()->associate($request['id_casino']); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
+    $nota->plataforma()->associate($request['id_plataforma']); //asumiendo que los expedientes anuales son uno por plataforma copio el id_plataforma del expediente
     $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
     $nota->fecha = $request['fecha'];
     $nota->save();
@@ -182,8 +181,8 @@ class NotaController extends Controller
     if(!empty($request->nro_exp_control)){
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
-    if($request->casino!= 0){
-      $reglas[]=['expediente.id_casino', '=' ,  $request->casino ];
+    if($request->plataforma!= 0){
+      $reglas[]=['expediente.id_plataforma', '=' ,  $request->plataforma ];
     }
 
     if(!empty($request->identificacion)){
@@ -194,8 +193,8 @@ class NotaController extends Controller
     if(empty($request->fecha)){
         $resultados=DB::table('expediente')
         ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-        ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-        ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+        ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+        ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
         ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
         ->where('es_disposicion','=',0)
         ->orderBy('nota.identificacion','asc')
@@ -206,8 +205,8 @@ class NotaController extends Controller
         $fecha=explode("-", $request->fecha);
         $resultados=DB::table('expediente')
         ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-        ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-        ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+        ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+        ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
         ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
         ->where('es_disposicion','=',0)
         ->orderBy('nota.identificacion','asc')

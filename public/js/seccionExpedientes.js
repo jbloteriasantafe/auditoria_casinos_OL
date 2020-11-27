@@ -1,4 +1,4 @@
-var id_casinos_seleccionados = [];
+var id_plataformas_seleccionadas = [];
 var lista_tipos_movimientos = [];
 
 //Resaltar la sección en el menú del costado
@@ -63,40 +63,32 @@ $('#navNotas').click(function(){
 $('#navMov').click(function(){
   $('.seccion').hide();
   $('#secMov').show();
-
-  // if (id_casinos_seleccionados.length > 0) {
-  //   //Cargar sección notas
-  //   movimientosSinExpediente();
-  // }
 });
 
 
 /////////////////////////////////// NOTAS ////////////////////////////////////
 
-//Detectar casino de/seleccionado.
-$(document).on('change','.casinosExp', function() {
-    //Revisar todos los casinos para ver si hay uno seleccionado
-    var casinos_seleccionados = $('.casinosExp:checked');
-    id_casinos_seleccionados = [];
+$(document).on('change','.plataformasExp', function() {
+    var plataformas_seleccionadas = $('.plataformasExp:checked');
+    id_plataformas_seleccionadas = [];
 
     limpiarNotasMovimientos();                                                  //Limpiar la sección de notas con movimientos existentes
 
-    for (var i = 0; i < casinos_seleccionados.length; i++) {
-      id_casinos_seleccionados.push(parseInt(casinos_seleccionados[i].id));
+    for (var i = 0; i < plataformas_seleccionadas.length; i++) {
+      id_plataformas_seleccionadas.push(parseInt(plataformas_seleccionadas[i].id));
     }
 
-    // Si hay 0 casinos seleccionados: limpiar las secciones de notas y mostrar mensajes.
-    if (casinos_seleccionados.length == 0) {
+    // Si hay 0 plataformas seleccionados: limpiar las secciones de notas y mostrar mensajes.
+    if (plataformas_seleccionadas.length == 0) {
         limpiarSeccionNotas();
         $('.mensajeNotas').show();
         $('.formularioNotas').hide();
-
-    //Si hay un SOLO UN CASINO seleccionado: habilitar las dos pestañas
-    } else if (casinos_seleccionados.length == 1) {
+    //Si hay un SOLO UNA seleccionado: habilitar las dos pestañas
+    } else if (plataformas_seleccionadas.length == 1) {
         habilitarSeccionNotasMovimientos();
         $('.mensajeNotas').hide();
         $('.formularioNotas').show();
-    //Si hay más casinos seleccionados: SOLO habilitar las notas nuevas
+    //Si hay más seleccionados: SOLO habilitar las notas nuevas
     } else {
         habilitarNotasNuevas();
     }
@@ -124,7 +116,7 @@ function movimientosSinExpediente() {
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
   var formData = {
-      id_casino: id_casinos_seleccionados,
+      id_plataforma: id_plataformas_seleccionadas,
   }
 
   $.ajax({
@@ -146,7 +138,7 @@ function movimientosSinExpediente() {
         for (var i = 0; i < data.logs.length; i++) {
             var option = $('<option>').val(data.logs[i].id_log_movimiento)
                                       .text(data.logs[i].nombre + ' - ' +data.logs[i].descripcion + ' - '+ data.logs[i].fecha)
-                                      .attr('data-casino',data.logs[i].id_casino);
+                                      .attr('data-plataforma',data.logs[i].id_plataforma);
             select.append(option);
         }
 
@@ -168,7 +160,6 @@ function habilitarNotasNuevas() {
 
 function obtenerTiposMovimientos() {
     var id_expediente = $('#modalExpediente #id_expediente').val();
-    //id_casinos_seleccionados.push(parseInt(casinos_seleccionados[i].id));
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
       console.log('get',data);
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
@@ -299,30 +290,18 @@ $(document).on('click','.borrarMovimiento',function(){
   $(this).parent().parent().remove();
 });
 
-// $(document).on('change','#selectCasinos',function(){
-//   var cas = $(this).val();
-//   generarListaAsocMovimientos(cas);
-//
-//   console.log(cas);
-// });
-
 function generarListaMovimientos(expediente){
-
   $.get("expedientes/tiposMovimientos/" + expediente, function(data){
-      console.log(data);
-        selectMov.children().remove();
-        for(i=0 ; i<data.length ; i++){
-          selectMov.append($('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion));
-        }
+    selectMov.children().remove();
+    for(i=0 ; i<data.length ; i++){
+      selectMov.append($('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion));
+    }
   });
-
 }
 
-function generarListaAsocMovimientos(casino){
-
+function generarListaAsocMovimientos(plataforma){
   var espacio = ' | ';
-
-  $.get("movimientos/movimientosSinExpediente/" + casino, function(data){
+  $.get("movimientos/movimientosSinExpediente/" + plataforma, function(data){
     console.log(data);
       asocMov.children().remove();
       console.log(data.length);
@@ -424,7 +403,7 @@ $('#btn-notaMov').click(function(e){
         });
 
         var fecha = convertirDate(data.movimiento.fecha);
-        var descripcion = fecha + " - " + data.tipo.descripcion + " - " + data.casino.nombre;
+        var descripcion = fecha + " - " + data.tipo.descripcion + " - " + data.plataforma.nombre;
         clonNota.find('.descripcionTipoMovimiento').val(descripcion).attr('id', id_movimiento);
         clonNota.find('.borrarNotaMov').attr('id', id_movimiento);
         $('#moldeNotaMov').before(clonNota);                                    //Agregar la nota con el movimiento existente para editarla
@@ -473,7 +452,7 @@ $('#btn-nuevo').click(function(e){
     $('#navConfig').click(); //Empezar por la sección de configuración
     $('.formularioNotas').hide(); //Ocultar los formularios de notas
     $('.notasCreadas').hide(); //Ocultar las notas creadas (es del modal modificar expediente)
-    $('.casinosExp').prop('checked',false); //Deseleccionar todos los casinos
+    $('.plataformasExp').prop('checked',false);
     $('.mensajeExito').show();
     $('.mensajeNotas').show();
 
@@ -528,7 +507,7 @@ $(document).on('click','.detalle',function(){
       $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
           console.log('aqui',data);
           generarListaMovimientos(id_expediente);
-          mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
+          mostrarExpedienteModif(data.expediente,data.plataformas,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
           habilitarControles(false);
 
           //Deshabilitar sección de 'notas & movimientos'
@@ -539,7 +518,6 @@ $(document).on('click','.detalle',function(){
       });
 });
 
-//Mostrar modal con los datos del Casino cargados
 $(document).on('click','.modificar',function(){
     $('#mensajeExito').hide();
     $('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
@@ -547,7 +525,7 @@ $(document).on('click','.modificar',function(){
     $('#modalExpediente').find('.modal-body').children().show();
     $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
 
-    $('.casinosExp').prop('checked',false).prop('disabled',false);
+    $('.plataformasExp').prop('checked',false).prop('disabled',false);
     limpiarModal();
     habilitarDTP();
     habilitarControles(true);
@@ -574,8 +552,7 @@ $(document).on('click','.modificar',function(){
     $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
 
         generarListaMovimientos(id_expediente);
-        // mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.log_movimientos,data.tipos_movimientos,true);
-        mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
+        mostrarExpedienteModif(data.expediente,data.plataformas,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
         habilitarControles(true);
         $('#btn-guardar').val("modificar");
         $('#modalExpediente').modal('show');
@@ -584,8 +561,6 @@ $(document).on('click','.modificar',function(){
 
 });
 
-
-//Borrar Casino y remover de la tabla
 $(document).on('click','.eliminar',function(){
     //Cambiar colores modal
     $('.modal-title').text('ADVERTENCIA');
@@ -726,7 +701,7 @@ $('#btn-guardar').click(function (e) {
       nro_exp_org: $('#nro_exp_org').val(),
       nro_exp_interno: $('#nro_exp_interno').val(),
       nro_exp_control: $('#nro_exp_control').val(),
-      casinos: id_casinos_seleccionados ,
+      plataformas: id_plataformas_seleccionadas ,
       fecha_pase: fecha_pase,
       fecha_iniciacion: fecha_iniciacion,
       remitente: $('#remitente').val(),
@@ -752,9 +727,6 @@ $('#btn-guardar').click(function (e) {
         url: url,
         data: formData,
         dataType: 'json',
-        // processData: false,
-        // contentType:false,
-        // cache:false,
         beforeSend: function(data){
           console.log('Empezó');
           $('#modalExpediente').find('.modal-footer').children().hide();
@@ -762,10 +734,7 @@ $('#btn-guardar').click(function (e) {
           $('#modalExpediente').find('.modal-body').children('#iconoCarga').show();
         },
         success: function (data) {
-
             $('#btn-buscar').trigger('click');
-
-            // var expediente = generarFilaTabla(data.expediente,data.casino.nombre);
 
             if (state == "nuevo"){ //Si está agregando agrega una fila con el nuevo expediente
               $('#mensajeExito h3').text('Creación Exitosa');
@@ -791,30 +760,20 @@ $('#btn-guardar').click(function (e) {
 
             var response = JSON.parse(data.responseText);
 
-            // limpiarAlertas(); ESTE TIENE QUE CAMBIARSE
-
             //Si hay algun campo vacio en nro_exp
             var nro_exp_org_vacio = typeof response.nro_exp_org != "undefined";
             var nro_exp_interno_vacio = typeof response.nro_exp_interno != "undefined";
             var nro_exp_control_vacio = typeof response.nro_exp_control != "undefined";
-
-            //Modelo
-            // if(typeof response.nro_admin !== 'undefined'){
-            //   mostrarErrorValidacion($('#nro_admin'),response.nro_admin[0],true);
-            //   $('#error_nav_maquina').show();
-            // }
 
             //Ocultar errores
             $('#error_nav_config').hide();
             $('#error_nav_notas').hide();
             $('#error_nav_mov').hide();
 
-
             //////////////////////////  ALERTAS DE CONFIGURACIÓN /////////////////////////
 
-            if(typeof response.casinos !== 'undefined'){
-              mostrarErrorValidacion($('#contenedorCasinos'),"Debe seleccionar al menos un casino",true);
-              // $('#error_nav_maquina').show();
+            if(typeof response.plataformas !== 'undefined'){
+              mostrarErrorValidacion($('#contenedorPlataformas'),"Debe seleccionar al menos una plataforma",true);
             }
 
             if (nro_exp_org_vacio || nro_exp_interno_vacio || nro_exp_control_vacio) {
@@ -998,7 +957,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     nro_exp_org: $('#B_nro_exp_org').val(),
     nro_exp_interno: $('#B_nro_exp_interno').val(),
     nro_exp_control: $('#B_nro_exp_control').val(),
-    id_casino: $('#B_casino').val(),
+    id_plataforma: $('#B_plataforma').val(),
     fecha_inicio: $('#fecha_inicio1').val(),
     ubicacion_fisica: $('#B_ubicacion').val(),
     remitente: $('#B_remitente').val(),
@@ -1122,7 +1081,7 @@ function habilitarControles(valor){
   $('#nro_exp_org').prop('readonly',!valor);
   $('#nro_exp_interno').prop('readonly',!valor);
   $('#nro_exp_control').prop('readonly',!valor);
-  $('.casinosExp').prop('disabled',!valor);
+  $('.plataformasExp').prop('disabled',!valor);
   $('#dtpFechaPase input').prop('readonly',!valor);
   $('#dtpFechaInicio input').prop('readonly',!valor);
   $('#destino').prop('readonly',!valor);
@@ -1184,13 +1143,10 @@ function limpiarModal(){
 }
 
 function limpiarAlertas(){
-
   ocultarErrorValidacion($('#nro_exp_org'));
   ocultarErrorValidacion($('#nro_exp_interno'));
   ocultarErrorValidacion($('#nro_exp_control'));
-
-  ocultarErrorValidacion($('#contenedorCasinos'));
-
+  ocultarErrorValidacion($('#contenedorPlataformas'));
   ocultarErrorValidacion($('#dtpFechaPase input'));
   ocultarErrorValidacion($('#dtpFechaInicio input'));
   ocultarErrorValidacion($('#destino'));
@@ -1204,34 +1160,6 @@ function limpiarAlertas(){
   ocultarErrorValidacion($('#anexo'));
   ocultarErrorValidacion($('#nro_resolucion'));
   ocultarErrorValidacion($('#nro_resolucion_anio'));
-
-  // $('#fecha_pase').removeClass('alerta');
-  // $('#alerta-fechaPase').text('').hide();
-  // $('#fecha_inicio').removeClass('alerta');
-  // $('#alerta-fechaInicio').text('').hide();
-  // $('#destino').removeClass('alerta');
-  // $('#alerta-destino').text('').hide();
-  // $('#ubicacion').removeClass('alerta');
-  // $('#alerta-ubicacion').text('').hide();
-  // $('#iniciador').removeClass('alerta');
-  // $('#alerta-iniciador').text('').hide();
-  // $('#remitente').removeClass('alerta');
-  // $('#alerta-remitente').text('').hide();
-
-  // $('#concepto').removeClass('alerta');
-  // $('#alerta-concepto').text('').hide();
-  // $('#tema').removeClass('alerta');
-  // $('#alerta-tema').text('').hide();
-  // $('#nro_cuerpos').removeClass('alerta');
-  // $('#alerta-nroCuerpos').text('').hide();
-  // $('#nro_folios').removeClass('alerta');
-  // $('#alerta-nroFolios').text('').hide();
-  // $('#anexo').removeClass('alerta');
-  // $('#alerta-anexo').text('').hide();
-  // $('#nro_resolucion').removeClass('alerta');
-  // $('#nro_resolucion_anio').removeClass('alerta');
-  // $('#alerta-resolucion').text('').hide();
-
   $('#columna .Disposicion').each(function(){
     $(this).find('#nro_disposicion').removeClass('alerta');
     $(this).find('#nro_disposicion_anio').removeClass('alerta');
@@ -1239,19 +1167,16 @@ function limpiarAlertas(){
   $('.alertaTabla').remove();
 }
 
-function mostrarExpediente(expediente,casinos,resolucion,disposiciones,movimientos,editable){
+function mostrarExpediente(expediente,plataformas,resolucion,disposiciones,movimientos,editable){
   $('#id_expediente').val(expediente.id_expediente);
   $('#nro_exp_org').val(expediente.nro_exp_org);
   $('#nro_exp_control').val(expediente.nro_exp_control);
   $('#nro_exp_interno').val(expediente.nro_exp_interno);
 
-
-  for (var i = 0; i < casinos.length; i++) {
-    $('#'+casinos[i].id_casino).prop("checked",true).prop('disabled',true);
+  for (var i = 0; i < plataformas.length; i++) {
+    $('#'+plataformas[i].id_plataforma).prop("checked",true).prop('disabled',true);
   }
 
-
-  //$('#selectCasinos').val(casino.id_casino);
   if(expediente.fecha_pase != null){
     var fecha_pase = expediente.fecha_pase.split('-');
     $('#fecha_pase').val(fecha_pase[2] + " / " + fecha_pase[1] + " / " + fecha_pase[0]);
@@ -1286,16 +1211,16 @@ function mostrarExpediente(expediente,casinos,resolucion,disposiciones,movimient
 
 }
 
-function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,notas,notasConMovimientos,editable){
+function mostrarExpedienteModif(expediente,plataformas,resolucion,disposiciones,notas,notasConMovimientos,editable){
   $('#nro_exp_org').val(expediente.nro_exp_org);
   $('#nro_exp_control').val(expediente.nro_exp_control);
   $('#nro_exp_interno').val(expediente.nro_exp_interno);
 
-  for (var i = 0; i < casinos.length; i++) {
-    $('#'+ casinos[i].id_casino).prop('checked',true).prop('disabled',true);
+  for (var i = 0; i < plataformas.length; i++) {
+    $('#'+ plataformas[i].id_plataforma).prop('checked',true).prop('disabled',true);
   }
 
-  if (casinos.length > 0) $('.casinosExp').change();
+  if (plataformas.length > 0) $('.plataformasExp').change();
 
   if(expediente.fecha_pase != null){
     // var fecha_pase = expediente.fecha_pase.split('-');

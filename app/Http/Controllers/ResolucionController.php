@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Expediente;
 use App\Resolucion;
 use App\Disposicion;
-use App\Casino;
+use App\Plataforma;
 
 class ResolucionController extends Controller
 {
@@ -24,14 +24,13 @@ class ResolucionController extends Controller
   public function buscarTodoResoluciones(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
     $resoluciones=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $auxiliar=DB::table('resolucion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'resolucion.id_expediente')->join('casino', 'casino.id_casino', '=' , 'expediente.id_casino')->where('casino.id_casino' , '=' ,$casino->id_casino)->get()->toArray();
+    foreach($usuario['usuario']->plataformas as $p){
+      $auxiliar=DB::table('resolucion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'resolucion.id_expediente')->join('plataforma', 'plataforma.id_plataforma', '=' , 'expediente.id_plataforma')->where('plataforma.id_plataforma' , '=' ,$p->id_plataforma)->get()->toArray();
         $resoluciones=array_merge($resoluciones,$auxiliar);
     }
-    $casinos=Casino::all();
+    $plataformas=Plataforma::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Resoluciones' , 'resoluciones');
-
-    return view('seccionResoluciones' , ['resoluciones' => $resoluciones , 'casinos' => $casinos]);
+    return view('seccionResoluciones' , ['resoluciones' => $resoluciones , 'plataformas' => $plataformas]);
   }
 
   public function buscarResolucion(Request $request){
@@ -45,8 +44,8 @@ class ResolucionController extends Controller
     if(!empty($request->nro_exp_control)){
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
-    if($request->casino!= 0){
-      $reglas[]=['expediente.id_casino', '=' , $request->casino ];
+    if($request->plataforma!= 0){
+      $reglas[]=['expediente.id_plataforma', '=' , $request->plataforma ];
     }
     if(!empty($request->nro_resolucion)){
       $reglas[]=['resolucion.nro_resolucion', 'like' ,'%' . $request->nro_resolucion . '%'];
@@ -57,7 +56,7 @@ class ResolucionController extends Controller
 
       $resultados=DB::table('expediente')
       ->join('resolucion', 'resolucion.id_expediente' , '=' , 'expediente.id_expediente')
-      ->join('casino', 'casino.id_casino' , '=' , 'expediente.id_casino')
+      ->join('plataforma', 'plataforma.id_plataforma' , '=' , 'expediente.id_plataforma')
       ->where($reglas)
       ->get();
         return ['resultados' => $resultados , 'dato' => $request->nro_exp_org];
@@ -72,7 +71,6 @@ class ResolucionController extends Controller
   }
 
   public function updateResolucion($res,$id_expediente){
-    
     if(count($res)>0){
       $id_res_actuales=array();
       $res_crear=array();
@@ -80,10 +78,8 @@ class ResolucionController extends Controller
         if($r['id_resolucion']!="-1"){
           array_push($id_res_actuales,$r['id_resolucion']);
         }else{
-
           array_push($res_crear,$r);
         }
-
       }
 
       if($id_res_actuales){
@@ -95,8 +91,7 @@ class ResolucionController extends Controller
           Resolucion::destroy($r->id_resolucion);
         }      
       }else{
-        Resolucion::where("id_expediente",$id_expediente)
-                  ->delete();
+        Resolucion::where("id_expediente",$id_expediente)->delete();
       }
       
       if ($res_crear){
@@ -105,19 +100,12 @@ class ResolucionController extends Controller
         }
       }
     }else{
-      Resolucion::where("id_expediente",$id_expediente)
-                  ->delete();
+      Resolucion::where("id_expediente",$id_expediente)->delete();
     }
-     
-    
-
-
   }
-
 
   public function eliminarResolucion($id){
     $resolucion = Resolucion::destroy($id);
     return ['resolucion' => $resolucion];
   }
-
 }

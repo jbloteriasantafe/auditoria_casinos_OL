@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Expediente;
-use App\Casino;
+use App\Plataforma;
 use App\LogMovimiento;
 use App\TipoMovimiento;
 use App\Nota;
 use Illuminate\Support\Facades\DB;
 use Validator;
-use App\Http\Controllers\ExpedienteController;
 
 class ExpedienteController extends Controller
 {
@@ -30,7 +29,7 @@ class ExpedienteController extends Controller
     'tema' => 'Tema',
     'anexo' => 'Anexo',
     'nro_cuerpos' => 'Nro Cuerpo',
-    'id_casino' => 'Casino',
+    'id_plataforma' => 'Plataforma',
     'resolucion' => 'Resolución',
     'resolucion.nro_resolucion' => 'Nro Resolución',
     'resolucion.nro_resolucion_anio' => 'Nro Resolución Año',
@@ -52,16 +51,17 @@ class ExpedienteController extends Controller
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
     $expedientes = DB::table('expediente')
-                        ->select('expediente.*','casino.*')
-                        ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-                        ->join('casino','expediente_tiene_casino.id_casino','=','casino.id_casino')
-                        ->join('usuario_tiene_casino','usuario_tiene_casino.id_casino','=','casino.id_casino')
+                        ->select('expediente.*','plataforma.*')
+                        ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+                        ->join('plataforma','expediente_tiene_plataforma.id_plataforma','=','plataforma.id_plataforma')
+                        ->join('plataforma_tiene_casino','plataforma_tiene_casino.id_casino','=','plataforma.id_plataforma') //@TODO: eliminar la entidad "CASINO"?
+                        ->join('usuario_tiene_casino','usuario_tiene_casino.id_casino','=','plataforma_tiene_casino.id_casino')
                         ->where('usuario_tiene_casino.id_usuario','=',session('id_usuario'))
                         ->get();
-    $casinos = Casino::all();
+    $plataformas = Plataforma::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Expedientes' , 'expedientes');
-    return view('seccionExpedientes' , ['expedientes' => $expedientes , 'casinos' => $casinos]);
+    return view('seccionExpedientes' , ['expedientes' => $expedientes , 'plataformas' => $plataformas]);
   }
 
   public function obtenerExpediente($id){
@@ -95,7 +95,7 @@ class ExpedienteController extends Controller
 
 
     return ['expediente' => $expediente,
-            'casinos' => $expediente->casinos,
+            'plataformas' => $expediente->plataformas,
             'resolucion' => $expediente->resoluciones,
             'disposiciones' => $disposiciones,
             'notas' => $notas,
@@ -120,7 +120,7 @@ class ExpedienteController extends Controller
         'tema' => 'nullable|max:250',
         'anexo' => 'nullable|max:250',
         'nro_cuerpos' => 'required|integer',
-        'casinos' => 'required',
+        'plataformas' => 'required',
         'resolucion' => 'nullable',
         'resolucion.*.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
         'resolucion.*.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
@@ -140,16 +140,8 @@ class ExpedienteController extends Controller
         'notas_asociadas.*.identificacion'=>'required',
         'notas_asociadas.*.detalle'=>'required',
         'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento'
-        //'notas.*.file' => 'sometimes|mimes:pdf',
-        // 'notas.*.disposiciones' => 'nullable',
-        // 'notas.*.disposiciones.*.nro_disposicion'=> ['required','regex:/^\d\d\d$/'],
-        // 'notas.*.disposiciones.*.nro_disposicion_anio'=> ['required','regex:/^\d\d$/']
-        // 'id_tipo_movimiento' => 'integer|exists:tipo_movimiento,id_tipo_movimiento| nullable', /////////////////////////////////////////////agrego tipo movimiento
     ], array(), self::$atributos)->after(function ($validator){
-
-
       //validar que sea unico en conjunto con el nro_cuerpo
-
       $expedientes=Expediente::where([ ['nro_cuerpos' , '=' , $validator->getData()['nro_cuerpos']], ['nro_exp_interno', '=' , $validator->getData()['nro_exp_interno']]])->get();
       if($expedientes->count() > 0){
         $validator->errors()->add('nro_cuerpos', 'Ya existe un expediente con el número de expediente interno y cuerpo indicado.');
@@ -176,8 +168,8 @@ class ExpedienteController extends Controller
       $expediente->nro_cuerpos = $request->nro_cuerpos;
       $expediente->save();
   
-      foreach ($request['casinos'] as $id_casino) {
-        $expediente->casinos()->attach(intval($id_casino));
+      foreach ($request['plataformas'] as $id_plataforma) {
+        $expediente->plataformas()->attach(intval($id_plataforma));
       }
       $expediente->save();
     
@@ -195,17 +187,17 @@ class ExpedienteController extends Controller
   
       if(!empty($request->notas)){
         foreach ($request->notas as $nota){
-          NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+          NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente,  $expediente->plataformas->first()->id_plataforma);
         }
       }
       if(!empty($request->notas_asociadas)){
         foreach ($request->notas_asociadas as $nota){
-          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->plataformas->first()->id_plataforma);
         }
       }
     });
 
-    return ['expediente' => $expediente , 'casinos' => $expediente->casinos];
+    return ['expediente' => $expediente , 'plataformas' => $expediente->plataformas];
   }
   //table,column,except,idColumn
   //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
@@ -227,7 +219,7 @@ class ExpedienteController extends Controller
         'tema' => 'nullable|max:250',
         'anexo' => 'nullable|max:250',
         'nro_cuerpos' => 'required|integer',
-        'casinos' => 'required',
+        'plataformas' => 'required',
         'resolucion' => 'nullable',
         'resolucion.*.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
         'resolucion.*.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
@@ -286,9 +278,9 @@ class ExpedienteController extends Controller
       $expediente->tema = $request->tema;
       $expediente->anexo = $request->anexo;
       $expediente->nro_cuerpos = $request->nro_cuerpos;
-      $expediente->casinos()->detach();
+      $expediente->plataformas()->detach();
   
-      $expediente->casinos()->sync($request['casinos']);
+      $expediente->plataformas()->sync($request['plataformas']);
       $expediente->save();
   
       //tablaNotas contiene todas las notas que existian - o sea con // ID
@@ -314,7 +306,7 @@ class ExpedienteController extends Controller
       if(!empty($request->notas)){
         foreach ($request->notas as $nota){
           if(!$this->existeNota($nota, $expediente->notas)){
-            NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente, $expediente->casinos->first()->id_casino);
+            NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente, $expediente->plataformas->first()->id_plataforma);
           }
         }
       }
@@ -322,7 +314,7 @@ class ExpedienteController extends Controller
       //notas para asociar
       if(!empty($request->notas_asociadas)){
         foreach ($request->notas_asociadas as $nota){
-          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->plataformas->first()->id_plataforma);
         }
       }
   
@@ -349,7 +341,7 @@ class ExpedienteController extends Controller
 
     $expediente = Expediente::find($request->id_expediente);
 
-    return ['expediente' => $expediente , 'casinos' => $expediente->casinos];
+    return ['expediente' => $expediente , 'plataformas' => $expediente->plataformas];
   }
 
 
@@ -445,7 +437,7 @@ class ExpedienteController extends Controller
 
 
     $expediente->maquinas()->detach();
-    $expediente->casinos()->detach();
+    $expediente->plataformas()->detach();
     $expediente = Expediente::destroy($id);
     return ['expediente' => $expediente];
   }
@@ -458,7 +450,6 @@ class ExpedienteController extends Controller
       $reglas[]=['nro_exp_interno', 'like', '%'.$request->nro_exp_interno.'%'];
     if(isset($request->nro_exp_control))
       $reglas[]=['nro_exp_control', '=' , $request->nro_exp_control];
-
     if(isset($request->ubicacion))
       $reglas[]=['ubicacion', 'like', '%'.$request->ubicacion.'%'];
     if(isset($request->remitente))
@@ -472,58 +463,42 @@ class ExpedienteController extends Controller
     if(isset($request->nota))
       $reglas[]=['nota.identificacion', 'like', '%'.$request->nota.'%'];
 
-      if($request->id_casino==0){
-        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-        $casinos = array();
-        foreach($usuario->casinos as $casino){
-          $casinos[] = $casino->id_casino;
-        }
-      }else {
-        $casinos[]=$request->id_casino;
+    if($request->id_plataforma==0){
+      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $plataformas = array();
+      foreach($usuario->plataformas as $p){
+        $plataformas[] = $p->id_plataforma;
       }
-
-
-      $sort_by = $request->sort_by;
-      if($sort_by['columna'] == "expediente.nro_expediente"){
-          $string_busqueda = "expediente.nro_exp_org " . $sort_by['orden'] . ",expediente.nro_exp_interno " . $sort_by['orden'];
-      }else{
-          $string_busqueda =  $sort_by['columna'] ." " . $sort_by['orden'];
-      }
-
-
-      if(!isset($request->fecha_inicio)){
-          $resultados=DB::table('expediente')
-          ->select('expediente.*','casino.*')
-          ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-          ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
-          ->leftJoin('nota','nota.id_expediente','=','expediente.id_expediente')
-          ->whereIn('casino.id_casino',$casinos)
-          ->where($reglas)
-          ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
-          ->distinct('expediente.id_expediente')
-          ->when($sort_by,function($query) use ($string_busqueda){
-                          return $query->orderByRaw($string_busqueda);
-                      })
-          ->paginate($request->page_size);
-      }else{
-          $fecha=explode("-", $request['fecha_inicio']);
-          $resultados=DB::table('expediente')
-          ->select('expediente.*','casino.*')
-          ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-          ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
-          ->leftJoin('nota','nota.id_expediente','=','expediente.id_expediente')
-          ->where($reglas)
-          ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
-          ->whereIn('casino.id_casino',$casinos)
-          ->whereYear('fecha_iniciacion' , '=' ,$fecha[0])
-          ->distinct('expediente.id_expediente')
-          ->whereMonth('fecha_iniciacion','=', $fecha[1])
-          ->when($sort_by,function($query) use ($sort_by){
-                          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                      })
-
-          ->paginate($request->page_size);
+    }else {
+      $plataformas[]=$request->id_plataforma;
     }
+
+
+    $sort_by = $request->sort_by;
+    if($sort_by['columna'] == "expediente.nro_expediente"){
+      $string_busqueda = "expediente.nro_exp_org " . $sort_by['orden'] . ",expediente.nro_exp_interno " . $sort_by['orden'];
+    }else{
+      $string_busqueda =  $sort_by['columna'] ." " . $sort_by['orden'];
+    }
+
+    $resultados = DB::table('expediente')->select('expediente.*','plataforma.*')
+    ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+    ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
+    ->leftJoin('nota','nota.id_expediente','=','expediente.id_expediente')
+    ->whereIn('plataforma.id_plataforma',$plataformas)
+    ->where($reglas)
+    ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos');
+
+    if(isset($request->fecha_inicio)){
+      $fecha=explode("-", $request['fecha_inicio']);
+      $resultados=$resultados->whereYear('fecha_iniciacion' , '=' ,$fecha[0])->whereMonth('fecha_iniciacion','=', $fecha[1]);
+    }
+
+    $resultados = $resultados->distinct('expediente.id_expediente')
+    ->when($sort_by,function($query) use ($string_busqueda){
+      return $query->orderByRaw($string_busqueda);
+    })
+    ->paginate($request->page_size);
 
     return ['expedientes' => $resultados];
   }
@@ -550,17 +525,17 @@ class ExpedienteController extends Controller
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 
     $expedientes=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $casinos [] = $casino->id_casino;
+    foreach($usuario['usuario']->plataformas as $p){
+      $plataformas [] = $p->id_plataforma;
     }
 
     $expedientes= DB::table('expediente')
                       ->select('expediente.*')
-                      ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-                      ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+                      ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+                      ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
                       ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
                       ->where($reglas)
-                      ->whereIn('casino.id_casino' , $casinos)->get();
+                      ->whereIn('plataforma.id_plataforma' , $plataformas)->get();
 
     $resultado = array();
 
@@ -574,9 +549,9 @@ class ExpedienteController extends Controller
     return ['resultados' => $resultado];
   }
 
-  public function buscarExpedientePorCasinoYNumero($id_casino,$busqueda){
+  public function buscarExpedientePorPlataformaYNumero($id_plataforma,$busqueda){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $acceso = $usuario->casinos()->where('usuario_tiene_casino.id_casino',$id_casino)->count();
+    $acceso = $usuario->plataformas()->where('plataforma.id_plataforma',$id_plataforma)->count();
     if($acceso == 0) return ['resultados' => []];
 
     $arreglo=explode("-", $busqueda);
@@ -591,7 +566,7 @@ class ExpedienteController extends Controller
       $reglas[]=['expediente.nro_exp_control', 'like' , '%' . $arreglo[2] . '%'];
     }
 
-    $expedientes=Casino::find($id_casino)->expedientes()->where($reglas)->get();
+    $expedientes=Plataforma::find($id_plataforma)->expedientes()->where($reglas)->get();
     $resultado = [];
     foreach ($expedientes as $expediente) {
       $auxiliar =  new \stdClass();

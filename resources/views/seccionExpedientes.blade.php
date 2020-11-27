@@ -44,11 +44,11 @@ $id_usuario = session('id_usuario');
                                 </div>
                               </div>
                               <div class="col-lg-3">
-                                <h5>Casino</h5>
-                                <select class="form-control" id="B_casino">
-                                  <option value="0">Todos los casinos</option>
-                                  @foreach ($casinos as $casino)
-                                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                <h5>Plataforma</h5>
+                                <select class="form-control" id="B_plataforma">
+                                  <option value="0">Todas las plataformas</option>
+                                  @foreach ($plataformas as $p)
+                                  <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
                                   @endforeach
                                 </select>
                               </div>
@@ -128,7 +128,7 @@ $id_usuario = session('id_usuario');
                               <th class="col-xs-3" value="expediente.nro_expediente" estado="">NRO EXPEDIENTE  <i class="fas fa-sort"></i></th>
                               <th class="col-xs-3 activa" value="expediente.fecha_iniciacion" estado="desc">FECHA DE INICIO  <i class="fas fa-sort-down"></i></th>
                               <!-- <th class="col-xs-2">UBICACIÓN  <i class="fa fa-sort"></i></th> -->
-                              <th class="col-xs-3" value="casino.nombre" estado="">CASINO  <i class="fas fa-sort"></i></th>
+                              <th class="col-xs-3" value="plataforma.nombre" estado="">PLATAFORMA  <i class="fas fa-sort"></i></th>
                               <th class="col-xs-3">ACCIONES</th>
                             </tr>
                           </thead>
@@ -290,17 +290,17 @@ $id_usuario = session('id_usuario');
                                 </div>
 
                                 <style media="screen">
-                                    div#contenedorCasinos.alerta {
+                                    div#contenedorPlataformas.alerta {
                                         border:3px solid #EF5350; padding:5px; border-radius:4px;
                                     }
                                 </style>
 
                                 <div class="col-md-8 col-lg-8" style="text-align:center;">
-                                  <h5 style="padding-left:0px;">Casinos</h5>
-                                  <div id="contenedorCasinos">
-                                      @foreach ($casinos as $casino)
-                                      <input type="checkbox" id="{{$casino->id_casino}}" value="" class="casinosExp" style="margin:3px">
-                                      <span style="font-family:Roboto-Light; font-size:18px; margin-left:2px; margin-right:40px">{{$casino->nombre}}</span>
+                                  <h5 style="padding-left:0px;">Plataformas</h5>
+                                  <div id="contenedorPlataformas">
+                                      @foreach ($plataformas as $p)
+                                      <input type="checkbox" id="{{$p->id_plataforma}}" value="" class="plataformasExp" style="margin:3px">
+                                      <span style="font-family:Roboto-Light; font-size:18px; margin-left:2px; margin-right:40px">{{$p->nombre}}</span>
                                       @endforeach
                                   </div>
 
@@ -572,7 +572,7 @@ $id_usuario = session('id_usuario');
                           <div class="row mensajeNotas" style="padding-top:20px;">
                                 <div class="col-md-12">
                                     <i class="fa fa-exclamation" style="margin-left:10px; color:#44f;"></i>
-                                    <span style="font-family:Roboto-Regular;font-size:18px; margin-left:10px;">Para crear notas nuevas primero debe seleccionar al menos un CASINO para el EXPEDIENTE.</span>
+                                    <span style="font-family:Roboto-Regular;font-size:18px; margin-left:10px;">Para crear notas nuevas primero debe seleccionar al menos una PLATAFORMA para el EXPEDIENTE.</span>
                                 </div>
                           </div>
 
@@ -646,7 +646,7 @@ $id_usuario = session('id_usuario');
                         <div class="row mensajeNotas" style="padding-top:20px;">
                               <div class="col-md-12">
                                   <i class="fa fa-exclamation" style="margin-left:10px; color:#44f;"></i>
-                                  <span style="font-family:Roboto-Regular;font-size:18px; margin-left:10px;">Para habilitar esta sección debe seleccionar SOLO UN CASINO para el expediente.</span>
+                                  <span style="font-family:Roboto-Regular;font-size:18px; margin-left:10px;">Para habilitar esta sección debe seleccionar SOLO UNA PLATAFORMA para el expediente.</span>
                               </div>
                         </div>
 
@@ -754,7 +754,7 @@ $id_usuario = session('id_usuario');
                 </div>
 
                 <div class="modal-body" style="color:#fff; background-color:#EF5350;">
-                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
+                  <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
                           <div class="col-xs-12">
                             <strong>¿Está seguro de eliminar el Expediente?</strong>
