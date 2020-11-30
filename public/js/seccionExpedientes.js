@@ -772,6 +772,7 @@ function habilitarControles(valor){
   $('#anexo').prop('readonly',!valor);
   $('#nro_resolucion').prop('readonly',!valor);
   $('#nro_resolucion_anio').prop('readonly',!valor);
+  $('.borrarNotaCargada').prop('disabled',!valor);
 
   $('#columnaDisposicion .Disposicion').each(function(){
     $(this).find('#nro_disposicion').prop('readonly',!valor);
