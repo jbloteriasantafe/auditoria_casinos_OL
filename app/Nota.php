@@ -30,14 +30,6 @@ class Nota extends Model
     return $this->belongsTo('App\EstadoJuego','id_estado_juego','id_estado_juego');
   }
 
-  public function archivo(){
-      return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
-  }
-
-  public function maquinas(){
-    return $this->belongsToMany('App\Maquina','maquina_tiene_nota','id_nota','id_maquina');
-  }
-
   public static function boot(){
         parent::boot();
         Nota::observe(new NotaObserver());
@@ -50,5 +42,4 @@ class Nota extends Model
   public function getId(){
     return $this->id_nota;
   }
-
 }

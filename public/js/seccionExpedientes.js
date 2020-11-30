@@ -257,9 +257,6 @@ $('#btn-nuevo').click(function(e){
     $('#btn-guardar').val("nuevo");
     $('#btn-cancelar').text('CANCELAR');
     $('#asociar').show();
-
-    $('#tiposMovimientosDisp option').remove();
-
     $('#modalExpediente').modal('show');
 });
 
@@ -376,7 +373,7 @@ function obtenerNotasNuevas() {
         fecha: $(this).find('.fecha_notaNueva').val(),
         identificacion: $(this).find('.identificacion').val(),
         detalle: $(this).find('.detalleNota').val(),
-        id_tipo_movimiento: mov,
+        id_estado_juego: mov,
       }
 
       notas_nuevas.push(nota);
@@ -407,7 +404,7 @@ $('#btn-guardar').click(function (e) {
           nro_disposicion: $(this).find('.nro_disposicion').val(),
           nro_disposicion_anio: $(this).find('.nro_disposicion_anio').val(),
           descripcion: $(this).find('#descripcion_disposicion').val(),
-          id_tipo_movimiento: $(this).find('#tiposMovimientosDisp').val(),
+          id_estado_juego: $(this).find('#tiposMovimientosDisp').val(),
         }
         disposiciones.push(disposicion);
     });
@@ -430,12 +427,13 @@ $('#btn-guardar').click(function (e) {
     var state = $('#btn-guardar').val();
     var type = "POST";
     var url = ((state == "modificar") ? 'expedientes/modificarExpediente':'expedientes/guardarExpediente');
+    const plats_ids = $('.plataformasExp:checked').map(function(idx,obj){return obj.id;}).toArray();
     var formData = {
       id_expediente: $('#id_expediente').val(),
       nro_exp_org: $('#nro_exp_org').val(),
       nro_exp_interno: $('#nro_exp_interno').val(),
       nro_exp_control: $('#nro_exp_control').val(),
-      plataformas: $('.plataformasExp:checked').map(function(idx,obj){return obj.id;}),
+      plataformas: plats_ids,
       fecha_pase: fecha_pase,
       fecha_iniciacion: fecha_iniciacion,
       remitente: $('#remitente').val(),
@@ -460,7 +458,6 @@ $('#btn-guardar').click(function (e) {
         data: formData,
         dataType: 'json',
         beforeSend: function(data){
-          console.log('Empezó');
           $('#modalExpediente').find('.modal-footer').children().hide();
           $('#modalExpediente').find('.modal-body').children().hide();
           $('#modalExpediente').find('.modal-body').children('#iconoCarga').show();
@@ -933,12 +930,12 @@ function agregarDisposicion(disposicion, editable){
     else {
       moldeDisposicion.find('.desc_dCreada').text("Sin Descripción");
     }
-    if(disposicion.descripcion_movimiento != null){
-      moldeDisposicion.find('.mov_dCreada').text(disposicion.nombre_estado);
+    let texto_disp = ' -- '
+    if(disposicion.id_estado_juego != null){
+      const opcion = $(`#tiposMovimientosDisp option[value="${disposicion.id_estado_juego}"]`);
+      if(opcion.length > 0) texto_disp = opcion.text();
     }
-    else{
-      moldeDisposicion.find('.mov_dCreada').text(" -- ");
-    }
+    moldeDisposicion.find('.mov_dCreada').text(texto_disp);
     moldeDisposicion.find('.borrarDispoCargada').val(disposicion.id_disposicion);
     moldeDisposicion.show();
     $('#tablaDispoCreadas tbody').append(moldeDisposicion);

@@ -899,57 +899,6 @@ class LogMovimientoController extends Controller
     return response()->json($log);
   }
 
-  public function asociarExpediente($id_log_movimiento, $id_expediente){
-    //Si estas perdido de porque se guarda dos veces el nro_exp uno en el log y otro en el expediente mismo
-    //Es porque para diferenciar entre movimientos de ingreso inicial/egreso definitivo e intervenciones se decidio (yo no, legacy)
-    //que en los primeros el log_movimimiento tenia un id_expediente asociado (aunque fuera uno "por defecto" todo en 0) y en los otros fuera nulo
-    //Sin embargo salio el requerimiento que las intervenciones tambien tenian expedientes pero solo se le cargaba el numero para documentar
-    //Entonces se le creo un campo a parte en el mismo log_movimiento
-    //Para mas explicaciones ver arriba de todo - Octavio 28 sep 2020
-    $expediente = Expediente::find($id_expediente);
-    $logMovimiento = LogMovimiento::find($id_log_movimiento);
-    $logMovimiento->nro_exp_org = $expediente->nro_exp_org;
-    $logMovimiento->nro_exp_interno = $expediente->nro_exp_interno;
-    $logMovimiento->nro_exp_control = $expediente->nro_exp_control;
-    if(!is_null($logMovimiento->id_expediente)){
-      $logMovimiento->expediente()->associate($id_expediente);
-    }
-    $logMovimiento->tiene_expediente = 1;//@Legacy: Este atributo es superfluo, no lo puse yo
-    $logMovimiento->save();
-    //Debe asociarselo a las maquinas del movimiento tambien:
-    if(isset($logMovimiento->relevamientos_movimientos))
-    {
-      foreach($logMovimiento->relevamientos_movimientos as $relev){
-        $mtm = $relev->maquina;
-        if(!is_null($mtm)) MTMController::getInstancia()->asociarExpediente($mtm->id_maquina, $id_expediente);
-      }
-    }
-
-    return $logMovimiento;
-  }
-
-  public function disasociarExpediente($id_log_movimiento,$id_expediente){
-    $logMovimiento = LogMovimiento::find($id_log_movimiento);
-    $logMovimiento->nro_exp_org = '';
-    $logMovimiento->nro_exp_interno = '';
-    $logMovimiento->nro_exp_control = '';
-    if(!is_null($logMovimiento->id_expediente)){
-      $defecto_casino = Expediente::where([
-          ['concepto', '=', 'expediente_auxiliar_para_movimientos'],
-          ['id_casino', '=', $logMovimiento->id_casino]
-      ])->get()->first();
-      $logMovimiento->expediente()->associate($defecto_casino);
-    }
-    $logMovimiento->tiene_expediente = 0;
-    $logMovimiento->save();
-    if(isset($logMovimiento->relevamientos_movimientos))
-    {
-      foreach($logMovimiento->relevamientos_movimientos as $relev){
-        $mtm = $relev->maquina;
-        if(!is_null($mtm)) MTMController::getInstancia()->disasociarExpediente($mtm->id_maquina, $id_expediente);
-      }
-    }
-  }
 
   public function eliminarMov($id_log_movimiento,
     $eliminarConFiscalizaciones = false,$eliminarConRelevamientos = false,$eliminarConExpediente = false)
@@ -1048,10 +997,6 @@ class LogMovimientoController extends Controller
       $ret = $this->eliminarMov($log->id_log_movimiento,true,true,false);
     });
     return $ret;
-  }
-
-  public function eliminarMovimientoExpediente($id_log_movimiento){
-    return $this->eliminarMov($id_log_movimiento,false,false,true);
   }
 
   public function obtenerRelevamientoToma($id_relevamiento,$nro_toma = 1){

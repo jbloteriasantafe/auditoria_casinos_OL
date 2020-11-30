@@ -61,25 +61,17 @@ class ExpedienteController extends Controller
     $plataformas = Plataforma::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Expedientes' , 'expedientes');
-    return view('seccionExpedientes' , ['expedientes' => $expedientes , 'plataformas' => $plataformas, 'tiposMov' => EstadoJuego::all()]);
+    return view('seccionExpedientes' , ['expedientes' => $expedientes , 'plataformas' => $plataformas, 'estadoJuego' => EstadoJuego::all()]);
   }
 
   public function obtenerExpediente($id){
     $expediente = Expediente::find($id);
 
-    $notas = DB::table('expediente')
-                ->select('nota.*', 'expediente.tema')
-                ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-                ->where('expediente.id_expediente','=',$id)
-                ->whereNull('nota.id_estado_juego')
-                ->where('nota.es_disposicion','=',0)
-                ->orderBy('nota.fecha','DESC')
-                ->get();
+    $notas = $expediente->notas()->where('nota.es_disposicion','=','0')->orderBy('nota.fecha','DESC')->get();
 
     $disposiciones = DB::table('disposicion')
-                ->select('disposicion.*','estado_juego.id_estado_juego','estado_juego.nombre as nombre_estado')
+                ->select('disposicion.*','nota.id_estado_juego')
                 ->leftJoin('nota','nota.id_nota','=','disposicion.id_nota')
-                ->leftJoin('estado_juego','estado_juego.id_estado_juego','=','nota.id_estado_juego')
                 ->where('disposicion.id_expediente','=',$id)
                 ->get();
 
@@ -93,7 +85,6 @@ class ExpedienteController extends Controller
   }
 
   public function guardarExpediente(Request $request){
-
     Validator::make($request->all(), [
         'nro_exp_org' => ['required','regex:/^\d\d\d\d\d$/'],
         'nro_exp_interno' => ['required','regex:/^\d\d\d\d\d\d\d$/','unique:expediente,nro_exp_interno'],
@@ -116,19 +107,12 @@ class ExpedienteController extends Controller
         'disposiciones' => 'nullable',
         'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
         'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
+        'disposiciones.*.id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
         'notas'  => 'nullable',
         'notas.*.fecha'=>'required|date',
         'notas.*.identificacion'=>'required',
         'notas.*.detalle'=>'required',
-        'notas.*.id_tipo_movimiento' => 'nullable|integer',
-        'notas.*.nro_disposicion'=> 'nullable|integer',
-        'notas.*.nro_disposicion_anio'=> 'nullable|integer',
-        'notas.*.descripcion_disposicion'=> 'nullable',
-        'notas_asociadas'  => 'nullable',
-        'notas_asociadas.*.fecha'=>'required|date',
-        'notas_asociadas.*.identificacion'=>'required',
-        'notas_asociadas.*.detalle'=>'required',
-        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento'
+        'notas.*.id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
     ], array(), self::$atributos)->after(function ($validator){
       //validar que sea unico en conjunto con el nro_cuerpo
       $expedientes=Expediente::where([ ['nro_cuerpos' , '=' , $validator->getData()['nro_cuerpos']], ['nro_exp_interno', '=' , $validator->getData()['nro_exp_interno']]])->get();
@@ -179,11 +163,6 @@ class ExpedienteController extends Controller
           NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente,  $expediente->plataformas->first()->id_plataforma);
         }
       }
-      if(!empty($request->notas_asociadas)){
-        foreach ($request->notas_asociadas as $nota){
-          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->plataformas->first()->id_plataforma);
-        }
-      }
     });
 
     return ['expediente' => $expediente , 'plataformas' => $expediente->plataformas];
@@ -215,39 +194,23 @@ class ExpedienteController extends Controller
         'disposiciones' => 'nullable',
         'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
         'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
+        'disposiciones.*.id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
         'notas'  => 'nullable',
         'notas.*.fecha'=>'required|date',
         'notas.*.identificacion'=>'required',
         'notas.*.detalle'=>'required',
-        'notas.*.id_tipo_movimiento' => 'nullable|exists:tipo_movimiento,id_tipo_movimiento',
-        'notas_asociadas'  => 'nullable',
-        'notas_asociadas.*.fecha'=>'required|date',
-        'notas_asociadas.*.identificacion'=>'required',
-        'notas_asociadas.*.detalle'=>'required',
-        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento',
+        'notas.*.id_estado_juego' => 'required|exists:estado_juego,id_estado_juego',
         'tablaNotas' => 'nullable|array',
         'tablaNotas.*' => 'required|integer|exists:nota,id_nota'
     ], array(), self::$atributos)->after(function ($validator){
-
-      $expediente=Expediente::find($validator->getData()['id_expediente']);
+      $expediente = Expediente::find($validator->getData()['id_expediente']);
       if($expediente->nro_exp_interno != $validator->getData()['nro_exp_interno']){ // si cambió checkeo que sea unico
             $exp = Expediente::where('nro_exp_interno','=',$validator->getData()['nro_exp_interno'])->get();
             if($exp->count() > 0){
                 $validator->errors()->add('nro_exp_interno', 'Ya existe un expediente con el número de expediente interno indicado.');
             }
       }
-
     })->validate();
-
-    if(isset($validator))
-    {
-      if ($validator->fails())
-      {
-        return [
-              'errors' => $v->getMessageBag()->toArray()
-          ];
-      }
-    }
 
     DB::transaction(function() use ($request){
       $expediente = Expediente::find($request->id_expediente);
@@ -299,14 +262,7 @@ class ExpedienteController extends Controller
           }
         }
       }
-  
-      //notas para asociar
-      if(!empty($request->notas_asociadas)){
-        foreach ($request->notas_asociadas as $nota){
-          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->plataformas->first()->id_plataforma);
-        }
-      }
-  
+    
       $disposiciones = $expediente->disposiciones;
       if(!empty($disposiciones)){ //si no estan vacias las disposiciones del expediente actual
         foreach($disposiciones as $disposicion){ //por cada dispósicion del Expediente actual
@@ -333,19 +289,6 @@ class ExpedienteController extends Controller
     return ['expediente' => $expediente , 'plataformas' => $expediente->plataformas];
   }
 
-
-  public function existeLogMovimiento($log,$movimientos_existentes)
-  {
-    $result=false;
-    for($i = 0;$i<count($movimientos_existentes);$i++){
-      if($movimientos_existentes[$i]['id_log_movimiento'] == $log->id_log_movimiento){
-         $result = true;
-        break;
-      }
-    }
-    return $result;
-  }
-
   public function existeNota($nota, $notas){
     $result=false;
     foreach ($notas as $note) {
@@ -365,7 +308,6 @@ class ExpedienteController extends Controller
     $result = false;
     for($i = 0;$i<count($disposiciones);$i++){
       if($disp->id_disposicion == $disposiciones[$i]){
-
         $result = true;
         break;
       }
@@ -379,7 +321,6 @@ class ExpedienteController extends Controller
       if($disp['nro_disposicion'] == $disposiciones[$i]['nro_disposicion']
       && $disp['nro_disposicion_anio'] == $disposiciones[$i]['nro_disposicion_anio']
       && $disp['descripcion'] == $disposiciones[$i]['descripcion']){
-
         $result = true;
         break;
       }
@@ -389,18 +330,6 @@ class ExpedienteController extends Controller
 
   public function eliminarExpediente($id){
     $expediente = Expediente::find($id);
-    //primero chequeo que se pueda eliminar los los LogMovimientos que tenga
-    //sino no se puede eliminar el expediente
-    $logs=$expediente->log_movimientos;
-    if(isset($logs[0])){
-      foreach ($expediente->log_movimientos as $log)
-      {
-        $bool = LogMovimientoController::getInstancia()->eliminarMovimientoExpediente($log->id_log_movimiento);
-        if(!$bool){//no se eliminó
-          return 0;
-        }
-      }
-    }
 
     $resoluciones = $expediente->resoluciones;
     if(!empty($resoluciones)){
@@ -422,10 +351,7 @@ class ExpedienteController extends Controller
         NotaController::getInstancia()->eliminarNota($nota->id_nota);
       }
     }
-
-
-
-    $expediente->maquinas()->detach();
+    
     $expediente->plataformas()->detach();
     $expediente = Expediente::destroy($id);
     return ['expediente' => $expediente];
@@ -475,8 +401,7 @@ class ExpedienteController extends Controller
     ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
     ->leftJoin('nota','nota.id_expediente','=','expediente.id_expediente')
     ->whereIn('plataforma.id_plataforma',$plataformas)
-    ->where($reglas)
-    ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos');
+    ->where($reglas);
 
     if(isset($request->fecha_inicio)){
       $fecha=explode("-", $request['fecha_inicio']);
@@ -490,11 +415,6 @@ class ExpedienteController extends Controller
     ->paginate($request->page_size);
 
     return ['expedientes' => $resultados];
-  }
-
-  public function getAll(){
-    $todos=Expediente::all();
-    return $todos;
   }
 
   public function buscarExpedientePorNumero($busqueda){
@@ -522,7 +442,6 @@ class ExpedienteController extends Controller
                       ->select('expediente.*')
                       ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
                       ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
-                      ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
                       ->where($reglas)
                       ->whereIn('plataforma.id_plataforma' , $plataformas)->get();
 
@@ -537,44 +456,4 @@ class ExpedienteController extends Controller
 
     return ['resultados' => $resultado];
   }
-
-  public function buscarExpedientePorPlataformaYNumero($id_plataforma,$busqueda){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $acceso = $usuario->plataformas()->where('plataforma.id_plataforma',$id_plataforma)->count();
-    if($acceso == 0) return ['resultados' => []];
-
-    $arreglo=explode("-", $busqueda);
-    $reglas=array();
-    if(isset($arreglo[0])){
-      $reglas[]=['expediente.nro_exp_org', 'like' , '%' . $arreglo[0] . '%'];
-    }
-    if(isset($arreglo[1])){
-      $reglas[]=['expediente.nro_exp_interno', 'like' , '%' . $arreglo[1] . '%'];
-    }
-    if(isset($arreglo[2])){
-      $reglas[]=['expediente.nro_exp_control', 'like' , '%' . $arreglo[2] . '%'];
-    }
-
-    $expedientes=Plataforma::find($id_plataforma)->expedientes()->where($reglas)->get();
-    $resultado = [];
-    foreach ($expedientes as $expediente) {
-      $auxiliar =  new \stdClass();
-      $auxiliar->id_expediente = $expediente->id_expediente;
-      $auxiliar->concatenacion = $expediente->concatenacion;
-      $resultado[] = $auxiliar;
-    }
-    return ['resultados' => $resultado];
-  }
-
-  public function obtenerMovimientosExpediente($id_expediente)
-  {
-    $movimientos = DB::table('log_movimiento')
-                      ->select('log_movimiento.id_log_movimiento','tipo_movimiento.descripcion','log_movimiento.fecha')
-                      ->join('expediente','expediente.id_expediente','=','log_movimiento.id_expediente')
-                      ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                      ->where('expediente.id_expediente','=', $id_expediente)
-                      ->get();
-    return $movimientos;
-  }
-
 }

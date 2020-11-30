@@ -127,7 +127,6 @@ Notas
 ***********/
 Route::get('notas','NotaController@buscarTodoNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
 Route::post('notas/buscar','NotaController@buscarNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
-Route::get('notas/consulta-nota/{id}','NotaController@consultaMovimientosNota');
 Route::delete('notas/eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
  /***********
     GLI soft

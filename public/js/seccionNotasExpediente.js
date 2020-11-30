@@ -136,16 +136,9 @@ $(document).on('click','.eliminar',function(){
 
     var id_expediente = $(this).val();
     $('#btn-eliminarModal').val(id_expediente);
-
-    $.get('notas/consulta-nota/' + id_expediente, function(data) {
-      if(data.eliminable == 1){
-        $('#alerta_de_eliminacion').show();
-        $('#btn-eliminarModal').show();
-      }else{
-        $('#alerta_de_movimiento').show();
-      }
-      $('#identificacion_nota_eliminar').val(data.nota.identificacion).attr('disabled','disabled');
-    });
+    $('#alerta_de_eliminacion').show();
+    $('#btn-eliminarModal').show();
+    $('#identificacion_nota_eliminar').val(data.nota.identificacion).attr('disabled','disabled');
     $('#modalEliminar').modal('show');
 });
 

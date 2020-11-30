@@ -371,7 +371,7 @@ $id_usuario = session('id_usuario');
                       <th class="col-xs-2" text-align="center">NRO</th>
                       <th class="col-xs-2" text-align="center"><h5>AÑO.</h5></th>
                       <th class="col-xs-4" text-align="center"><h5>DESCRIPCIÓN</h5></th>
-                      <th class="col-xs-3" text-align="center"><h5>MOVIMIENTO</h5></th>
+                      <th class="col-xs-3" text-align="center"><h5>ESTADO</h5></th>
                       <th class="col-xs-1" text-align="center"></th>
                     </tr>
                   </thead>
@@ -409,7 +409,7 @@ $id_usuario = session('id_usuario');
                       <div class="col-md-3">
                         <select class="form-control" id="tiposMovimientosDisp" disabled>
                           <option val="0">- Tipo -</option>
-                          @foreach($tiposMov as $t)
+                          @foreach($estadoJuego as $t)
                           <option value="{{$t->id_estado_juego}}">{{$t->nombre}}</option>
                           @endforeach
                         </select>
@@ -446,7 +446,7 @@ $id_usuario = session('id_usuario');
                         <th class="col-xs-1"></th>
                         <th class="col-xs-1"><h5>IDENT.</h5></th>
                         <th class="col-xs-3"><h5>FECHA</h5></th>
-                        <th class="col-xs-3"><h5>MOVIMIENTO</h5></th>
+                        <th class="col-xs-3"><h5>ESTADO</h5></th>
                         <th class="col-xs-4"><h5>DETALLE</h5></th>
                       </tr>
                     </thead>
@@ -456,7 +456,7 @@ $id_usuario = session('id_usuario');
                           <i class="fas fa-fw fa-trash-alt"></i> </td>
                         <td class="col-xs-1 identificacion">9</td>
                         <td class="col-xs-3 fecha">11 AGO 2018</td>
-                        <td class="col-xs-3 movimiento">EGRESO</td>
+                        <td class="col-xs-3 movimiento">ACTIVO</td>
                         <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class=""></div> </td>
                       </tr>
                     </tbody>
@@ -483,7 +483,7 @@ $id_usuario = session('id_usuario');
               <div class="notasNuevas formularioNotas">
                 <div class="row" style="padding-top:0px; padding-bottom:10px;">
                   <div class="col-md-12">
-                    <h6>Notas y movimientos nuevos</h6>
+                    <h6>Notas nuevas</h6>
                   </div>
                 </div>
 
@@ -506,10 +506,10 @@ $id_usuario = session('id_usuario');
                       <input class="form-control identificacion" type="text" name="" value="">
                     </div>
                     <div class="col-md-4">
-                      <h5>TIPO MOVIMIENTO</h5>
+                      <h5>ESTADO JUEGO</h5>
                       <select class="form-control tiposMovimientos" name="">
                         <option val="0">- Tipo -</option>
-                        @foreach($tiposMov as $t)
+                        @foreach($estadoJuego as $t)
                         <option value="{{$t->id_estado_juego}}">{{$t->nombre}}</option>
                         @endforeach
                       </select>
@@ -531,7 +531,7 @@ $id_usuario = session('id_usuario');
                   <a id="btn-notaNueva" href="#">
                     <div class="col-md-12">
                       <span style="margin-right:20px;font-family:Roboto-Regular; font-size:40px;color:#aaa;">+</span>
-                      <span style="font-family:Roboto-BoldCondensed;font-size:16px;position:relative;top:-6px;color:#aaa;">AGREGAR NOTA Y MOVIMIENTO NUEVO</span>
+                      <span style="font-family:Roboto-BoldCondensed;font-size:16px;position:relative;top:-6px;color:#aaa;">AGREGAR NOTA</span>
                     </div>
                   </a>
                 </div>
@@ -596,7 +596,7 @@ $id_usuario = session('id_usuario');
       <p>
         Informe detallado que muestra las últimas tareas o acciones realizadas por los usuarios dentro del sistema.
         Estan clasificadas de acuerdo a la actividad, fecha y tabla en la que fue producida.
-        También, están asociadas a notas y movimientos generadas dentro de expedientes que así lo deseen.
+        También, están asociadas a notas generadas dentro de expedientes que así lo deseen.
       </p>
     </div>
     @endsection

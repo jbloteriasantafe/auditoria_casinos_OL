@@ -46,9 +46,10 @@ class DisposicionController extends Controller
     $disposicion->save();
     $disposicion->expediente()->associate($id_expediente);
     $disposicion->save();
-    $e = Expediente::find($id_expediente);
-    if(!empty($disp['id_tipo_movimiento']) || $disp['id_tipo_movimiento']!= 0){
-      $id_nota = NotaController::getInstancia()->guardarNotaParaDisposicionConMov($id_expediente, $e->plataformas->first()->id_plataforma,$disposicion->nro_disposicion,$disp['id_tipo_movimiento']);
+    if(!empty($disp['id_estado_juego']) || $disp['id_estado_juego']!= 0){
+      $e = $disposicion->expediente;
+      $id_plat = $e->plataformas->first()->id_plataforma;
+      $id_nota = NotaController::getInstancia()->guardarNotaParaDisposicion($id_expediente,$id_plat,$disposicion->nro_disposicion,$disp['id_estado_juego']);
       $disposicion->nota()->associate($id_nota);
       $disposicion->save();
     }

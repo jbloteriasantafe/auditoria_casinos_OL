@@ -15,7 +15,7 @@ class NotaController extends Controller
 {
   private static $atributos = [
     'id_expediente' => 'Expediente',
-    'id_tipo_movimiento' => 'Tipo de Movimiento',
+    'id_estado_juego' => 'Estado del juego',
     'id_plataforma' => 'Plataforma',
     'fecha' => 'Fecha de creación de nota',
     'disposiciones' => 'Disposiciones',
@@ -32,7 +32,6 @@ class NotaController extends Controller
   }
 
   public function buscarTodoNotas(){
-
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       $plataformas = array();
       foreach($usuario->plataformas as $p){
@@ -42,7 +41,7 @@ class NotaController extends Controller
                       ->join('expediente' , 'expediente.id_expediente' ,'=' , 'nota.id_expediente')
                       ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
                       ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
-                      ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+                      ->leftJoin('estado_juego','estado_juego.id_estado_juego','=','nota.id_estado_juego')
                       ->whereIn('plataforma.id_plataforma' ,$plataformas)
                       ->where('es_disposicion','=',0)
                       ->orderBy('nota.identificacion','asc')
@@ -64,81 +63,25 @@ class NotaController extends Controller
     $nota->identificacion = $request['identificacion'];
     $nota->save();
 
-    if(!empty($request['id_tipo_movimiento']) || $request['id_tipo_movimiento']!= 0 ){
-      if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
-          $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-          $nota->save();
-      }else{//es REINGRESO
-          $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-          $nota->save();
-      }
+    if(!empty($request['id_estado_juego']) || $request['id_estado_juego']!= 0 ){
+      $nota->estado_juego()->associate($request['id_estado_juego']);
+      $nota->save();
     }
     $nota->save();
   }
 
-  ///asociar nota con movimiento existente! no crearlos
-  public function guardarNotaConMovimiento($request, $id_expediente, $id_plataforma)// se usa desde expedienteController
-  {
-    $log_id = intval($request['id_log_movimiento']);
-    $nota = new Nota;
-
-    $nota->fecha = $request['fecha'];
-    $nota->detalle = $request['detalle'];
-    $nota->identificacion = $request['identificacion'];
-    $nota->es_disposicion = 0;
-    $nota->save();
-    $nota->log_movimiento()->associate($log_id);
-    $nota->expediente()->associate($id_expediente);
-    $nota->plataforma()->associate($id_plataforma); //asumiendo que los expedientes anuales son uno por plataforma copio el id_plataforma del expediente
-
-    $logMov =LogMovimientoController::getInstancia()->asociarExpediente($log_id, $id_expediente);
-    $nota->tipo_movimiento()->associate($logMov->id_tipo_movimiento);
-    $nota->save();
-  }
-
-  //para no impactar en los movimientos-> se crea la disposicion pero en realidad
-  //el movimiento esta asociado a una nota
-  public function guardarNotaParaDisposicionConMov($id_expediente, $id_plataforma,$nro_disposicion,$id_tipo_movimiento)// se usa desde expedienteController
+  public function guardarNotaParaDisposicion($id_expediente, $id_plataforma,$nro_disposicion,$id_estado_juego)// se usa desde expedienteController
   {
     $nota = new Nota;
     $nota->expediente()->associate($id_expediente);
     $nota->plataforma()->associate($id_plataforma); //asumiendo que los expedientes anuales son uno por plataforma copio el id_plataforma del expediente
-    $nota->tipo_movimiento()->associate($id_tipo_movimiento);
+    $nota->estado_juego()->associate($id_estado_juego);
     $nota->fecha = date('Y-m-d');
     $nota->detalle = $nro_disposicion;
     $nota->identificacion = 'Disposición Nro '.$nro_disposicion;
     $nota->es_disposicion = 1;
     $nota->save();
     return $nota->id_nota;
-  }
-
-  //nunca se usa ja
-  public function guardarNotaNueva($request)
-  {
-    Validator::make($request->all(), [
-        'id_expediente' => 'required|exists:expediente,id_expediente',
-        'id_plataforma' => 'required|exists:plataforma,id_plataforma',
-        'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
-        'fecha' => 'required|date',
-        'disposiciones' => 'nullable',
-        'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
-        'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/']
-    ], array(), self::$atributos)->after(function($validator){
-      //ver que mensaje largar
-      //$validator->errors()->add('detalles.['.$index.'].producido_calculado_relevado','El Producido Calculado Relevado debe estar presente si el estado es 3.');
-    })->validate();
-
-    $nota = new Nota;
-    $nota->expediente()->associate($request['id_expediente']);
-    $nota->plataforma()->associate($request['id_plataforma']); //asumiendo que los expedientes anuales son uno por plataforma copio el id_plataforma del expediente
-    $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-    $nota->fecha = $request['fecha'];
-    $nota->save();
-    if(!empty($request['disposiciones'])){
-      foreach ($request['disposiciones'] as $disp){
-        DisposicionController::getInstancia()->guardarDisposicionNota($disp,$nota->id_nota);
-      }
-    }
   }
 
   public function eliminarNota($id)
@@ -150,24 +93,9 @@ class NotaController extends Controller
         DisposicionController::getInstancia()->eliminarDisposicion($disposicion->id_disposicion);
       }
     }
-    if(!is_null($nota->log_movimiento) && !is_null($nota->expediente)){
-      LogMovimientoController::getInstancia()->disasociarExpediente($nota->log_movimiento->id_log_movimiento,$nota->expediente->id_expediente);
-    }
-
     $nota->expediente()->dissociate();
-    $nota->maquinas()->detach();
     $nota = Nota::destroy($id);
     return ['nota' => $nota];
-  }
-
-  public function consultaMovimientosNota($id_nota){
-    $nota = Nota::findOrFail($id_nota);
-    if($nota->id_tipo_movimiento != null){
-      if(count($nota->log_movimiento->relevamientos_movimientos) > 0){
-        return ['eliminable' => 0, 'nota' => $nota];
-      }
-    }
-    return ['eliminable' => 1, 'nota' => $nota];
   }
 
   public function buscarNotas(Request $request){
@@ -213,7 +141,6 @@ class NotaController extends Controller
         ->where($reglas)
         ->whereYear('fecha_iniciacion' , '=' ,$fecha[0])
         ->whereMonth('fecha_iniciacion','=', $fecha[1])
-
         ->take(50)
         ->get();
       }
@@ -221,16 +148,10 @@ class NotaController extends Controller
   }
 
   public function eliminarNotaCompleta($id_nota){
-    $logMovsController = new LogMovimientoController();
     $nota = Nota::find($id_nota);
-    if($nota->id_tipo_movimiento != null){
-      $nota->tipo_movimiento()->dissociate();
-      $log = $nota->log_movimiento();
-      $nota->log_movimiento()->dissociate();
-      $logMovsController->eliminarMovimientoExpediente($log->id_log_movimiento);
-    }
+    $nota->estado_juego()->dissociate();
     $nota->expediente()->dissociate();
+    $nota->delete();
     return 1;
   }
-
 }
