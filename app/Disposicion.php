@@ -32,5 +32,4 @@ class Disposicion extends Model
   public function getId(){
     return $this->id_disposicion;
   }
-
 }

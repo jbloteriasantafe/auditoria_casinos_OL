@@ -11,7 +11,7 @@ class Nota extends Model
   protected $table = 'nota';
   protected $primaryKey = 'id_nota';
   protected $visible = array('id_nota','fecha','detalle','identificacion',
-                          'id_tipo_movimiento','id_expediente','es_disposicion','id_log_movimiento');
+                          'id_estado_juego','id_expediente','es_disposicion');
   public $timestamps = false;
 
   public function expediente(){
@@ -26,12 +26,10 @@ class Nota extends Model
     return $this->belongsTo('App\Plataforma','id_plataforma','id_plataforma');
   }
 
-  public function log_movimiento(){
-    return $this->belongsTo('App\LogMovimiento','id_log_movimiento','id_log_movimiento');
+  public function estado_juego(){
+    return $this->belongsTo('App\EstadoJuego','id_estado_juego','id_estado_juego');
   }
-  public function tipo_movimiento(){
-    return $this->belongsTo('App\TipoMovimiento','id_tipo_movimiento','id_tipo_movimiento');
-  }
+
   public function archivo(){
       return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
   }

@@ -101,14 +101,15 @@ $(document).on('click','.borrarJuego',function(){
 /* TODOS LOS EVENTOS DE BUSCAR EXPEDIENTES */
 $('#btn-agregarExpediente').click(function(e){
     const id_expediente = $('#inputExpediente').obtenerElementoSeleccionado();
-    if (id_expediente != 0) {
-      $.get('/expedientes/obtenerExpediente/' + id_expediente , function(data){
-        //Agregar la fila a la tabla
-        agregarFilaExpediente(data.expediente);
-        //Limpiar el input para seguir buscando expedientes
-        $('#inputExpediente').setearElementoSeleccionado(0, '');
-      });
-    }
+    const nro_expediente = $('#inputExpediente').val().split('-');
+    if(nro_expediente.length != 3 || id_expediente == 0) return;
+    agregarFilaExpediente({
+      id_expediente: id_expediente,
+      nro_exp_org: nro_expediente[0],
+      nro_exp_interno: nro_expediente[1],
+      nro_exp_control: nro_expediente[2],
+    });
+    $('#inputExpediente').setearElementoSeleccionado(0, '');
 });
 
 function agregarFilaExpediente(expediente) {
@@ -699,7 +700,7 @@ function limpiarModalGli(){
 
   //Preparar los datalist
   $('#inputExpediente').borrarDataList();
-  $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
+  $('#inputExpediente').generarDataList("http://" + window.location.host + "/certificadoSoft/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
   $('#inputExpediente').setearElementoSeleccionado(0,"");
   $('#inputLab').borrarDataList();
   $('#inputLab').generarDataList("http://" + window.location.host + "/certificadoSoft/buscarLabs" ,'laboratorios','id_laboratorio','codigo', 1, false);

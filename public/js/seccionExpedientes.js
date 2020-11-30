@@ -1,6 +1,3 @@
-var id_plataformas_seleccionadas = [];
-var lista_tipos_movimientos = [];
-
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
   $('#barraExpedientes').attr('aria-expanded','true');
@@ -35,7 +32,6 @@ $(document).ready(function() {
   });
 });
 
-
 /* PESTAÑAS */
 
 // Motrar la pestaña activa (se agrega el subrayado).
@@ -61,16 +57,8 @@ $('#navNotas').click(function(){
 
 $(document).on('change','.plataformasExp', function() {
     var plataformas_seleccionadas = $('.plataformasExp:checked');
-    id_plataformas_seleccionadas = [];
-
-    limpiarNotasMovimientos();                                                  //Limpiar la sección de notas con movimientos existentes
-
-    for (var i = 0; i < plataformas_seleccionadas.length; i++) {
-      id_plataformas_seleccionadas.push(parseInt(plataformas_seleccionadas[i].id));
-    }
-
     // Si hay 0 plataformas seleccionados: limpiar las secciones de notas y mostrar mensajes.
-    if (plataformas_seleccionadas.length <= 1) {
+    if (plataformas_seleccionadas.length <= 0) {
         limpiarSeccionNotas();
         $('.mensajeNotas').show();
         $('.formularioNotas').hide();
@@ -81,37 +69,12 @@ $(document).on('change','.plataformasExp', function() {
 });
 
 function limpiarSeccionNotas() {
-  lista_tipos_movimientos= [];
-  $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas
-}
-
-function limpiarNotasMovimientos() {
-    $('.notaMov').not('#moldeNotaMov').remove();                              //Eliminar todas las notas de fila (menos el molde)
-    $('#cantidad_movimientos').val(0);                                          //Resetear la cantidad de movimientos disponibles
-    $('#btn-notaMov').parent().show();                                          //Mostrar el botón de agregar notas
 }
 
 function habilitarNotasNuevas() {
   $('#secNotas .mensajeNotas').hide();
   $('#secNotas .formularioNotas').show();
-}
-
-function obtenerTiposMovimientos() {
-    var id_expediente = $('#modalExpediente #id_expediente').val();
-    $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
-      console.log('get',data);
-          var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
-          $('#moldeNotaNueva .tiposMovimientos').append(optionDefecto);
-          $('#moldeDisposicion #tiposMovimientosDisp').append(optionDefecto);
-          lista_tipos_movimientos.push([0,"- Tipo de movimiento -"]);
-          for (var i = 0; i < data.length; i++) {
-            var option = $('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion);
-            $('#moldeNotaNueva .tiposMovimientos').append(option);
-            $('#moldeDisposicion #tiposMovimientosDisp').append(option);
-            lista_tipos_movimientos.push([data[i].id_tipo_movimiento,data[i].descripcion]);
-          }
-    });
 }
 
 function mostrarMovimientosDisponibles(cantidadMovimientos) {
@@ -210,34 +173,12 @@ $(document).on('click','.borrarResolucion',function(){
 });
 
 
-//Agregar nuevo movimiento en el modal
-$('#btn-agregarMovimientos').click(function(){
-  agregarMovimientos(null,true);
-});
-
 $(document).on('click','.borrarDisposicion',function(){
   $(this).parent().parent().remove();
 });
 
-$(document).on('click','.borrarMovimiento',function(){
-  $(this).parent().parent().remove();
-});
-
-function generarListaMovimientos(expediente){
-  $.get("expedientes/tiposMovimientos/" + expediente, function(data){
-    selectMov.children().remove();
-    for(i=0 ; i<data.length ; i++){
-      selectMov.append($('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion));
-    }
-  });
-}
-//variable global para selectMovimientos
-var asocMov = $('#columnaAsociar').append($('<div>'));
-var selectMov = $('<select>').addClass('form-control').attr('id','selectMovimientos');
-
 //Contador global que sirve para generar el id de cada DTP de notas nuevas
 var nro_nota = 0;
-
 $('#btn-notaNueva').click(function(e){
     nro_nota = nro_nota + 1;                                                    //Se incrementa en 1, para que cada DTP tenga un ID diferente
 
@@ -260,11 +201,6 @@ $('#btn-notaNueva').click(function(e){
       minView: 2,
     });
 
-    for (var i = 0; i < lista_tipos_movimientos.length; i++) {
-      var option = $('<option>').val(lista_tipos_movimientos[i][0]).text(lista_tipos_movimientos[i][1]);
-      clonNota.find('.tiposMovimientos').append(option);
-    }
-
     $('#moldeNotaNueva').before(clonNota);
 });
 
@@ -274,61 +210,7 @@ $('#modalExpediente').on('click','.borrarNota', function(){
 
 $('#modalExpediente').on('click','.borrarNotaMov', function(){
     var id_movimiento = $(this).attr('id');
-
-    var cantidadMovimientos = $('#cantidad_movimientos').val();                 //Cantidad de movimientos disponibles
-    $(this).parent().parent().remove();                                         //Se borra la fila
-    cantidad_movimientos = parseInt(cantidadMovimientos) + 1;                   //Se aumenta la cantidad de movimientos disponibles
-
-    $('#cantidad_movimientos').val(cantidad_movimientos);                       //Se setea la nueva cantidad de movimientos
     $('#movimientosDisponibles option[value="'+ id_movimiento +'"]').show();    //Mostrar el movimiento borrado nuevamente en el selector
-});
-
-
-$('#btn-notaMov').click(function(e){
-  e.preventDefault();
-
-  var cantidadMovimientos = $('#cantidad_movimientos').val();                   //Cantidad de movimientos disponibles para crear notas
-  var id_movimiento = $('#movimientosDisponibles').val();                       //Se obtiene el id del movimiento
-
-  if (cantidadMovimientos > 0 && id_movimiento != 0) {                          //Si se seleccionó algún movimiento...
-    $('#movimientosDisponibles option[value="' + id_movimiento + '"]').hide();  //Ocultar la opción del movimiento que se va a agregar
-    $('#movimientosDisponibles').val(0);                                        //Cambiar el selector a la opción por defecto
-
-    var clonNota = $('#moldeNotaMov').clone();
-
-    $.get('expedientes/obtenerMovimiento/' + id_movimiento, function(data) {    //Se trae toda la información del movimiento seleccionado
-        clonNota.removeAttr('id');
-        clonNota.show();
-
-        //Generar un ID (id_movimiento_fecha) para linkear el DTP con el input oculto que guarda el 'date' elegido
-        clonNota.find('.dtpFechaMov').attr('data-link-field', id_movimiento + '_fecha');
-        clonNota.find('.fecha_notaMov').attr('id',id_movimiento + '_fecha');
-        //Aplicar la librería a cada datetimepicker
-        clonNota.find('.dtpFechaMov').datetimepicker({
-          language:  'es',
-          todayBtn:  1,
-          autoclose: 1,
-          todayHighlight: 1,
-          format: 'dd MM yyyy',
-          pickerPosition: "bottom-left",
-          startView: 4,
-          minView: 2,
-        });
-
-        var fecha = convertirDate(data.movimiento.fecha);
-        var descripcion = fecha + " - " + data.tipo.descripcion + " - " + data.plataforma.nombre;
-        clonNota.find('.descripcionTipoMovimiento').val(descripcion).attr('id', id_movimiento);
-        clonNota.find('.borrarNotaMov').attr('id', id_movimiento);
-        $('#moldeNotaMov').before(clonNota);                                    //Agregar la nota con el movimiento existente para editarla
-
-        cantidadMovimientos = cantidadMovimientos - 1;
-        $('#cantidad_movimientos').val(cantidadMovimientos);                    //Disminuir en 1 el contador de cantidad de movimientos
-
-        if (cantidadMovimientos == 0) {                                         //Si no quedan más movimientos ocultar el botón de agregar
-          $('#btn-notaMov').parent().hide();
-        }
-    });
-  }
 });
 
 $('#btn-ayuda').click(function(e){
@@ -349,7 +231,6 @@ $('#btn-nuevo').click(function(e){
     //Ocultar errores
     $('#error_nav_config').hide();
     $('#error_nav_notas').hide();
-    $('#error_nav_mov').hide();
 
     habilitarDTP();
 
@@ -378,7 +259,6 @@ $('#btn-nuevo').click(function(e){
     $('#asociar').show();
 
     $('#tiposMovimientosDisp option').remove();
-    obtenerTiposMovimientos();
 
     $('#modalExpediente').modal('show');
 });
@@ -389,36 +269,27 @@ $(document).on('click','.detalle',function(){
   $('#modalExpediente').find('.modal-footer').children().show();
   $('#modalExpediente').find('.modal-body').children().show();
   $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-    //$('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
 
-      limpiarModal();
-      //Ocultar errores
-      $('#error_nav_config').hide();
-      $('#error_nav_notas').hide();
-      $('#error_nav_mov').hide();
+  limpiarModal();
+  //Ocultar errores
+  $('#error_nav_config').hide();
+  $('#error_nav_notas').hide();
 
+  $('.modal-title').text('| VER EXPEDIENTE');
+  $('.modal-header').attr('style','background: #4FC3F7');
+  $('#btn-cancelar').text('SALIR');
+  $('#navConfig').click(); //Empezar por la sección de configuración
+  var id_expediente = $(this).val();
 
-      $('.modal-title').text('| VER EXPEDIENTE');
-      $('.modal-header').attr('style','background: #4FC3F7');
-      $('#btn-cancelar').text('SALIR');
+  $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
+    mostrarExpediente(data.expediente,data.plataformas,data.resolucion,data.disposiciones,data.notas,false);
+    habilitarControles(false);
 
-      $('#navConfig').click(); //Empezar por la sección de configuración
-
-      var id_expediente = $(this).val();
-
-      obtenerTiposMovimientos();
-
-      $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-          generarListaMovimientos(id_expediente);
-          mostrarExpedienteModif(data.expediente,data.plataformas,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
-          habilitarControles(false);
-
-          //Deshabilitar sección de 'notas & movimientos'
-          $('#navMov').parent().hide();
-          $('.notasNuevas').hide();
-
-          $('#modalExpediente').modal('show');
-      });
+    //Deshabilitar sección de 'notas & movimientos'
+    $('#navMov').parent().hide();
+    $('.notasNuevas').hide();
+    $('#modalExpediente').modal('show');
+  });
 });
 
 $(document).on('click','.modificar',function(){
@@ -431,7 +302,6 @@ $(document).on('click','.modificar',function(){
     $('.plataformasExp').prop('checked',false).prop('disabled',false);
     limpiarModal();
     habilitarDTP();
-    habilitarControles(true);
     $('.modal-title').text('| MODIFICAR EXPEDIENTE');
     $('.modal-header').attr('style','background: #FFB74D');
     $('#btn-guardar').removeClass();
@@ -445,17 +315,12 @@ $(document).on('click','.modificar',function(){
     //Ocultar errores
     $('#error_nav_config').hide();
     $('#error_nav_notas').hide();
-    $('#error_nav_mov').hide();
 
     var id_expediente = $(this).val();
     $('#modalExpediente #id_expediente').val(id_expediente);
 
-    obtenerTiposMovimientos();
-
     $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-
-        generarListaMovimientos(id_expediente);
-        mostrarExpedienteModif(data.expediente,data.plataformas,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
+        mostrarExpediente(data.expediente,data.plataformas,data.resolucion,data.disposiciones,data.notas,true);
         habilitarControles(true);
         $('#btn-guardar').val("modificar");
         $('#modalExpediente').modal('show');
@@ -520,23 +385,6 @@ function obtenerNotasNuevas() {
   return notas_nuevas;
 }
 
-function obtenerNotasMov() {
-  var notas_mov = [];
-
-  $.each($('.notaMov').not('#moldeNotaMov'), function (index, value) {
-      var nota = {
-        fecha: $(this).find('.fecha_notaMov').val(),
-        identificacion: $(this).find('.identificacion').val(),
-        detalle: $(this).find('.detalleNota').val(),
-        id_log_movimiento: $(this).find('.descripcionTipoMovimiento').attr('id'),
-      }
-
-      notas_mov.push(nota);
-  });
-
-  return notas_mov;
-}
-
 //Cuando aprieta guardar en el modal de Nuevo/Modificar expediente
 $('#btn-guardar').click(function (e) {
     $('#mensajeExito').hide();
@@ -572,7 +420,6 @@ $('#btn-guardar').click(function (e) {
     });
 
     var notas = obtenerNotasNuevas();
-    var notas_asociadas = obtenerNotasMov();
     var tablaNotas=[];
     var tabla= $('#tablaNotasCreadas tbody > tr').not('#moldeFilaNota');
 
@@ -588,7 +435,7 @@ $('#btn-guardar').click(function (e) {
       nro_exp_org: $('#nro_exp_org').val(),
       nro_exp_interno: $('#nro_exp_interno').val(),
       nro_exp_control: $('#nro_exp_control').val(),
-      plataformas: id_plataformas_seleccionadas ,
+      plataformas: $('.plataformasExp:checked').map(function(idx,obj){return obj.id;}),
       fecha_pase: fecha_pase,
       fecha_iniciacion: fecha_iniciacion,
       remitente: $('#remitente').val(),
@@ -603,11 +450,9 @@ $('#btn-guardar').click(function (e) {
       resolucion: resolucion,
       disposiciones: disposiciones,
       notas: notas,
-      notas_asociadas: notas_asociadas,
       tablaNotas: tablaNotas,
       dispo_cargadas: dispo_cargadas
     }
-    console.log(formData);
 
     $.ajax({
         type: type,
@@ -654,7 +499,6 @@ $('#btn-guardar').click(function (e) {
             //Ocultar errores
             $('#error_nav_config').hide();
             $('#error_nav_notas').hide();
-            $('#error_nav_mov').hide();
 
             //////////////////////////  ALERTAS DE CONFIGURACIÓN /////////////////////////
 
@@ -766,23 +610,6 @@ $('#btn-guardar').click(function (e) {
                   $('#error_nav_notas').show();
                 }
                 i++;
-            });
-
-            var j = 0;
-            $('.notaMov').not('#moldeNotaMov').each(function(){
-                if(typeof response['notas_asociadas.'+ j +'.fecha'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.dtpFechaMov input'),response['notas_asociadas.'+ j +'.fecha'][0],false);
-                  $('#error_nav_mov').show();
-                }
-                if(typeof response['notas_asociadas.'+ j +'.identificacion'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.identificacion'),response['notas_asociadas.'+ j +'.identificacion'][0],false);
-                  $('#error_nav_mov').show();
-                }
-                if(typeof response['notas_asociadas.'+ j +'.detalle'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.detalleNota'),response['notas_asociadas.'+ j +'.detalle'][0],false);
-                  $('#error_nav_mov').show();
-                }
-                j++;
             });
         }
     });
@@ -954,20 +781,13 @@ function habilitarControles(valor){
     $(this).find('#nro_disposicion_anio').prop('readonly',!valor);
   });
 
-  $('#columnaMovimientos .Movimiento').each(function(){
-    $(this).find('#selectMovimientos').prop('readonly',!valor);
-  });
-
   if(valor){// nuevo y modificar
     $('#btn-agregarDisposicion').show();
-    $('#btn-agregarMovimientos').show();
     $('#btn-guardar').prop('disabled',false).show();
     $('#btn-guardar').css('display','inline-block');
-
   }
   else{// ver detalle
     $('#btn-agregarDisposicion').hide();
-    $('#btn-agregarMovimientos').hide();
     $('#btn-guardar').prop('disabled',true).hide();
     $('#btn-guardar').css('display','none');
   }
@@ -980,8 +800,6 @@ function limpiarModal(){
   $('#id_expediente').val(0);
   $('#columnaDisposicion .disposicion').not('#moldeDisposicion').remove();
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
-  $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
-  $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
   //limipar tabla de resoluciones
@@ -1014,51 +832,7 @@ function limpiarAlertas(){
   $('.alertaTabla').remove();
 }
 
-function mostrarExpediente(expediente,plataformas,resolucion,disposiciones,movimientos,editable){
-  $('#id_expediente').val(expediente.id_expediente);
-  $('#nro_exp_org').val(expediente.nro_exp_org);
-  $('#nro_exp_control').val(expediente.nro_exp_control);
-  $('#nro_exp_interno').val(expediente.nro_exp_interno);
-
-  for (var i = 0; i < plataformas.length; i++) {
-    $('#'+plataformas[i].id_plataforma).prop("checked",true).prop('disabled',true);
-  }
-
-  if(expediente.fecha_pase != null){
-    var fecha_pase = expediente.fecha_pase.split('-');
-    $('#fecha_pase').val(fecha_pase[2] + " / " + fecha_pase[1] + " / " + fecha_pase[0]);
-  }
-  if(expediente.fecha_iniciacion != null){
-    var fecha_inicio = expediente.fecha_iniciacion.split('-');
-    $('#fecha_inicio').val(fecha_inicio[2] + " / " + fecha_inicio[1] + " / " + fecha_inicio[0]);
-  }
-  $('#destino').val(expediente.destino);
-  $('#ubicacion').val(expediente.ubicacion_fisica);
-  $('#iniciador').val(expediente.iniciador);
-  $('#remitente').val(expediente.remitente);
-  $('#concepto').val(expediente.concepto);
-  $('#tema').val(expediente.tema);
-  $('#nro_cuerpos').val(expediente.nro_cuerpos);
-  $('#nro_folios').val(expediente.nro_folios);
-  $('#anexo').val(expediente.anexo);
-  if(resolucion != null){
-    $('#nro_resolucion').val(resolucion.nro_resolucion);
-    $('#nro_resolucion_anio').val(resolucion.nro_resolucion_anio);
-  }
-  if(movimientos != null){
-    for(var index=0; index<movimientos.length; index++){
-      agregarMovimientos(movimientos[index],editable);
-    }
-  }
-  if(disposiciones != null){
-    for(var index=0; index<disposiciones.length; index++){
-      agregarDisposicion(disposiciones[index],editable);
-    }
-  }
-
-}
-
-function mostrarExpedienteModif(expediente,plataformas,resolucion,disposiciones,notas,notasConMovimientos,editable){
+function mostrarExpediente(expediente,plataformas,resolucion,disposiciones,notas,editable){
   $('#nro_exp_org').val(expediente.nro_exp_org);
   $('#nro_exp_control').val(expediente.nro_exp_control);
   $('#nro_exp_interno').val(expediente.nro_exp_interno);
@@ -1104,178 +878,75 @@ function mostrarExpedienteModif(expediente,plataformas,resolucion,disposiciones,
 
   });
 
-
   if(disposiciones.length != 0){
     for(var index=0; index<disposiciones.length; index++){
       agregarDisposicion(disposiciones[index],editable);
     }
   }
-  //MOSTRAR NOTAS!!!!
 
   var i = 0;
-  var j = 0;
-
   for (i; i < notas.length; i++) {
     agregarNota(notas[i],false);
   }
-  for (j; j < notasConMovimientos.length; j++) {
-    agregarNota(notasConMovimientos[j],true);
-  }
-
   //Si hay notas mostrarlas
-  if (i || j) {
-    $('.notasCreadas').show();
-  }else {
-    $('.notasCreadas').hide();
-  }
+  $('.notasCreadas').toggle(i > 0);
 }
 
-function agregarNota(nota,conMovimiento) {
+function agregarNota(nota) {
   var fila = $('#moldeFilaNota').clone();
-
   fila.show();
   fila.removeAttr('moldeFilaNota');
-
   fila.attr('id',nota.id_nota);
   fila.find('.borrarNotaCargada').attr('id',nota.id_nota);
-
   fila.find('.identificacion').text(nota.identificacion);
   fila.find('.fecha').text(convertirDate(nota.fecha));
-  fila.find('.movimiento').text(conMovimiento? nota.movimiento: '-');
   fila.find('.detalle').text(nota.detalle);
-
   $('#tablaNotasCreadas tbody').append(fila);
 }
 
 function agregarDisposicion(disposicion, editable){
-    var moldeDisposicion = $('#moldeDisposicion').clone();
-
+  $('#dispoCarg').toggle(editable);
+  if(!editable){
+    const moldeDisposicion = $('#moldeDisposicion').clone();
     moldeDisposicion.removeAttr('id');
     moldeDisposicion.attr('id',disposicion.id_disposicion);
-
-    //Para el modificar
-
-    if(editable==false){
-      $('#dispoCarg').hide()
-      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
-      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
-      moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
-      moldeDisposicion.find('.borrarDisposicion').hide();
-      moldeDisposicion.show();
-      if(disposicion.id_nota != null){
-        moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
-      }else {
-        moldeDisposicion.find('#tiposMovimientosDisp').hide();
-      }
-
-      $('#columnaDisposicion').append(moldeDisposicion);
+    moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
+    moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
+    moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
+    moldeDisposicion.find('.borrarDisposicion').hide();
+    moldeDisposicion.show();
+    if(disposicion.id_nota != null){
+      moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_estado_juego);
+    }else {
+      moldeDisposicion.find('#tiposMovimientosDisp').hide();
     }
-
-    if(editable==true) {
-      $('#dispoCarg').show();
-      $('#moldeDisposicion').hide();
-      $('#tablaDispoCreadas').show();
-
-      var fila=$('#moldeDispoCargada').clone();
-      fila.removeAttr('id');
-      fila.attr('id', disposicion.id_disposicion);
-      fila.find('.nro_dCreada').text(disposicion.nro_disposicion);
-      fila.find('.anio_dCreada').text(disposicion.nro_disposicion_anio);
-      if(disposicion.descripcion != null){
-        fila.find('.desc_dCreada').text(disposicion.descripcion);}
-      else {
-         fila.find('.desc_dCreada').text("Sin Descripción");
-     }
-     if(disposicion.descripcion_movimiento != null){
-     fila.find('.mov_dCreada').text(disposicion.descripcion_movimiento);}
-     else{
-      fila.find('.mov_dCreada').text(" -- ");}
-      fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
-      fila.show();
-      $('#tablaDispoCreadas tbody').append(fila);
+    $('#columnaDisposicion').append(moldeDisposicion);
+  }
+  else{
+    const moldeDisposicion = $('#moldeDispoCargada').clone();
+    moldeDisposicion.removeAttr('id');
+    moldeDisposicion.attr('id', disposicion.id_disposicion);
+    moldeDisposicion.find('.nro_dCreada').text(disposicion.nro_disposicion);
+    moldeDisposicion.find('.anio_dCreada').text(disposicion.nro_disposicion_anio);
+    if(disposicion.descripcion != null){
+      moldeDisposicion.find('.desc_dCreada').text(disposicion.descripcion);}
+    else {
+      moldeDisposicion.find('.desc_dCreada').text("Sin Descripción");
     }
-    if(editable=='vacia') {
-      $('#columnaDisposicion').append(moldeDisposicion); 
+    if(disposicion.descripcion_movimiento != null){
+      moldeDisposicion.find('.mov_dCreada').text(disposicion.nombre_estado);
     }
+    else{
+      moldeDisposicion.find('.mov_dCreada').text(" -- ");
+    }
+    moldeDisposicion.find('.borrarDispoCargada').val(disposicion.id_disposicion);
+    moldeDisposicion.show();
+    $('#tablaDispoCreadas tbody').append(moldeDisposicion);
+  }
 }
 $(document).on('click','.borrarDispoCargada', function(){
-
   $(this).parent().parent().remove();
 })
-
-function agregarMovimientos(movimiento, editable){
-
-  $('#columnaMovimientos')
-      .append($('<div>')
-          .addClass('row')
-          .append($('<div>')
-          .addClass('col-xs-10')
-          .addClass('Movimiento')
-          .css('padding-right','0px')
-          .css('margin-top','6px')
-          .append(selectMov.clone())
-      )
-    )
-
-      if(editable){
-        $('#columnaMovimientos .row:last')
-              .append($('<div>')
-              .addClass('col-xs-2')
-              .append($('<button>')
-                  .addClass('borrarMovimiento')
-                  .addClass('btn')
-                  .addClass('borrarInput')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .css('margin-bottom','3px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-fw')
-                      .addClass('fa-trash-alt')
-                  )
-              )
-            )
-      }
-}
-
-function agregarLogModif(log, editable){
-
-  var salida = log.descripcion + " | " + log.fecha;
-
-  $('#columnaMovimientos')
-      .append($('<div>')
-          .addClass('row')
-          .append($('<div>')
-          .addClass('col-xs-10')
-          .addClass('Movimiento_modif')
-          .attr('id',log.id_log_movimiento)
-          .css('padding-right','0px')
-          .css('margin-top','12px')
-          .append(salida)
-      )
-    )
-
-      if(editable){
-        $('#columnaMovimientos .row:last')
-              .append($('<div>')
-              .addClass('col-xs-2')
-              .append($('<button>')
-                  .addClass('borrarMovimiento')
-                  .addClass('btn')
-                  .addClass('borrarInput')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-fw')
-                      .addClass('fa-trash-alt')
-                  )
-              )
-            )
-      }
-}
 
 function obtenerResoluciones(){
   var resoluciones=[];

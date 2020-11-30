@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 use App\Expediente;
 use App\Plataforma;
 use App\LogMovimiento;
-use App\TipoMovimiento;
+use App\EstadoJuego;
 use App\Nota;
 use Illuminate\Support\Facades\DB;
 use Validator;
@@ -61,37 +61,27 @@ class ExpedienteController extends Controller
     $plataformas = Plataforma::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Expedientes' , 'expedientes');
-    return view('seccionExpedientes' , ['expedientes' => $expedientes , 'plataformas' => $plataformas]);
+    return view('seccionExpedientes' , ['expedientes' => $expedientes , 'plataformas' => $plataformas, 'tiposMov' => EstadoJuego::all()]);
   }
 
   public function obtenerExpediente($id){
     $expediente = Expediente::find($id);
-    $notasMovimiento = DB::table('expediente')
-                ->select('nota.*','tipo_movimiento.descripcion as movimiento')
-                ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-                ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-                ->where('expediente.id_expediente','=',$id)
-                ->where('nota.es_disposicion',0)
-                ->orderBy('nota.fecha','DESC')
-
-                ->get();
 
     $notas = DB::table('expediente')
                 ->select('nota.*', 'expediente.tema')
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
                 ->where('expediente.id_expediente','=',$id)
-                ->whereNull('nota.id_log_movimiento')
-                ->whereNull('nota.id_tipo_movimiento')
+                ->whereNull('nota.id_estado_juego')
                 ->where('nota.es_disposicion','=',0)
                 ->orderBy('nota.fecha','DESC')
                 ->get();
 
     $disposiciones = DB::table('disposicion')
-                          ->select('disposicion.*','tipo_movimiento.id_tipo_movimiento as id_tipo_movimiento','tipo_movimiento.descripcion as descripcion_movimiento')
-                          ->leftJoin('nota','nota.id_nota','=','disposicion.id_nota')
-                          ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-                          ->where('disposicion.id_expediente','=',$id)
-                          ->get();
+                ->select('disposicion.*','estado_juego.id_estado_juego','estado_juego.nombre as nombre_estado')
+                ->leftJoin('nota','nota.id_nota','=','disposicion.id_nota')
+                ->leftJoin('estado_juego','estado_juego.id_estado_juego','=','nota.id_estado_juego')
+                ->where('disposicion.id_expediente','=',$id)
+                ->get();
 
 
     return ['expediente' => $expediente,
@@ -99,7 +89,6 @@ class ExpedienteController extends Controller
             'resolucion' => $expediente->resoluciones,
             'disposiciones' => $disposiciones,
             'notas' => $notas,
-            'notasConMovimientos' =>$notasMovimiento
           ];
   }
 
@@ -575,20 +564,6 @@ class ExpedienteController extends Controller
       $resultado[] = $auxiliar;
     }
     return ['resultados' => $resultado];
-  }
-
-  public function tiposMovimientos($id_expediente){
-    if($id_expediente==0){
-      return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
-    }else{
-      $logs= LogMovimiento::where([['id_expediente','=',$id_expediente],['id_tipo_movimiento','=',2]])->get(); //chequeo que exista un egreso
-
-      if(count($logs) == 0){
-        return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
-      }else{
-        return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,3,4,5,6,7])->get();//agrega reingreso
-      }
-    }
   }
 
   public function obtenerMovimientosExpediente($id_expediente)

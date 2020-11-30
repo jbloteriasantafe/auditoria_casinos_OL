@@ -57,17 +57,15 @@ Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_c
 /***********
 Expedientes
 ***********/
-Route::get('expedientes','ExpedienteController@buscarTodo')->middleware('tiene_permiso:ver_seccion_expedientes');
-Route::get('expedientes/obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
-Route::post('expedientes/guardarExpediente','ExpedienteController@guardarExpediente');
-Route::post('expedientes/modificarExpediente','ExpedienteController@modificarExpediente');
-Route::delete('expedientes/eliminarExpediente/{id}','ExpedienteController@eliminarExpediente');
-Route::post('expedientes/buscarExpedientes','ExpedienteController@buscarExpedientes');
-Route::get('expedientes/buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
-Route::get('expedientes/buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
-Route::get('expedientes/tiposMovimientos/{id_expediente}','ExpedienteController@tiposMovimientos');
-Route::get( 'expedientes/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
-Route::post('expedientes/movimientosSinExpediente','LogMovimientoController@movimientosSinExpediente');
+Route::group(['prefix' => 'expedientes','middleware' => 'tiene_permiso:ver_seccion_expedientes'], function () {
+  Route::get('/','ExpedienteController@buscarTodo');
+  Route::get('/obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
+  Route::post('/guardarExpediente','ExpedienteController@guardarExpediente');
+  Route::post('/modificarExpediente','ExpedienteController@modificarExpediente');
+  Route::delete('/eliminarExpediente/{id}','ExpedienteController@eliminarExpediente');
+  Route::post('/buscarExpedientes','ExpedienteController@buscarExpedientes');
+});
+
 /***********
 Usuarios
 ***********/
@@ -145,6 +143,7 @@ Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_se
   Route::post('/modificarGliSoft','GliSoftController@modificarGliSoft');
   Route::get('/buscarLabs/{codigo?}','GliSoftController@buscarLabs');
   Route::get('/obtenerLab/{id_laboratorio}','GliSoftController@obtenerLab');
+  Route::get('/buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
 });
 
 //Lo necesitan los auditores

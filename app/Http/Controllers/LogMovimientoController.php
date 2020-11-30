@@ -193,11 +193,6 @@ class LogMovimientoController extends Controller
     return ['movimiento' => $log, 'expediente' => $exp];
   }
 
-  public function obtenerMovimiento($id){
-    $movimiento = LogMovimiento::find($id);
-    return ["movimiento" => $movimiento, "tipo" => $movimiento->tipo_movimiento, "casino" => $movimiento->casino];
-  }
-
   public function movimientos(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
     $unidad_medida = UnidadMedida::all();//credito o pesos
@@ -1058,27 +1053,6 @@ class LogMovimientoController extends Controller
   public function eliminarMovimientoExpediente($id_log_movimiento){
     return $this->eliminarMov($id_log_movimiento,false,false,true);
   }
-
-  /////////////////////////////////EXPEDIENTES//////////////////////////////////
-
-  public function movimientosSinExpediente(Request $req){
-    $logs= DB::table('log_movimiento')
-             ->select('log_movimiento.id_log_movimiento','log_movimiento.fecha',
-              'tipo_movimiento.descripcion','log_movimiento.sentido','casino.nombre','casino.id_casino')
-              ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=',
-              'log_movimiento.id_tipo_movimiento')
-              ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-              ->where('log_movimiento.tiene_expediente','=',0)
-              ->whereIn('casino.id_casino',$req['id_casino'])
-              ->groupBy('tipo_movimiento.descripcion','log_movimiento.id_log_movimiento','log_movimiento.fecha',
-               'casino.nombre','casino.id_casino')
-              ->orderBy('log_movimiento.fecha','desc')
-              ->get();
-
-    return ['logs' => $logs];
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
 
   public function obtenerRelevamientoToma($id_relevamiento,$nro_toma = 1){
     $rel = RelevamientoMovimiento::find($id_relevamiento);
