@@ -311,7 +311,6 @@ use App\Http\Controllers\permisoController;
        </div>
        <br><br>
      </div><br><br><br><br><br><br>
-     <!-- style="background: #5cb85c;" -->
      <legend></legend>
    </div>
  </div>
@@ -343,13 +342,11 @@ use App\Http\Controllers\permisoController;
                      </div>
 
                      <div class="row">
-                         <div id="conteinerPermisos" class="col-md-6">
+                         <div id="conteinerPermisos" class="col-md-12">
                              <h4>Permisos</h4>
                              @foreach($permisos as $permiso)
-                              <div class="checkbox"> <label><input id="rol{{$permiso->id_permiso}}" type="checkbox" value="{{$permiso->id_permiso}}">{{$permiso->descripcion}}</label></div>
+                              <div class="checkbox col-md-12"> <label><input id="rol{{$permiso->id_permiso}}" type="checkbox" value="{{$permiso->id_permiso}}">{{$permiso->descripcion}}</label></div>
                              @endforeach
-
-
                          </div>
                      </div>
 
@@ -400,10 +397,10 @@ use App\Http\Controllers\permisoController;
                      </div>
 
                      <div class="row">
-                         <div id="conteinerRoles" class="col-md-6">
+                         <div id="conteinerRoles" class="col-md-12">
                              <h4>Roles Asociados</h4>
                              @foreach($roles as $rol)
-                             <div class="checkbox"> <label><input id="permiso{{$rol->id_rol}}" type="checkbox" value="{{$rol->id_rol}}">{{$rol->descripcion}}</label></div>
+                             <div class="checkbox col-md-12"> <label><input id="permiso{{$rol->id_rol}}" type="checkbox" value="{{$rol->id_rol}}">{{$rol->descripcion}}</label></div>
                              @endforeach
                          </div>
                      </div>
@@ -487,7 +484,6 @@ use App\Http\Controllers\permisoController;
  <script src="js/bootstrap.min.js"></script>
 
  <!-- JavaScript personalizado -->
- <!-- <script src="js/seccionCasinos.js"></script> -->
 
 <script src="js/ajaxRoles-Permisos.js"></script>
 

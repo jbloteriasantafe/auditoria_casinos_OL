@@ -256,11 +256,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_roles_permisos'))
                               <li>
                                 <div id="opcRolesPermisos" class="opcionesHover" 
-                                @if(false)
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/roles'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
                                 >
                                   <span>Roles y permisos</span>
                                 </div>

@@ -196,10 +196,10 @@ use App\Http\Controllers\permisoController;
                        </div>
                    </div><br>
                    <div class="row">
-                       <div id="conteinerPermisos" class="col-md-6">
+                       <div id="conteinerPermisos" class="col-md-12" style="height: 600px;overflow: scroll;">
                            <h5>Permisos</h5>
                            @foreach($permisos as $permiso)
-                            <div class="checkbox"> <label><input id="rol{{$permiso->id_permiso}}" type="checkbox" value="{{$permiso->id_permiso}}">{{$permiso->descripcion}}</label></div>
+                            <div class="checkbox col-md-12"> <label><input id="rol{{$permiso->id_permiso}}" type="checkbox" value="{{$permiso->id_permiso}}">{{$permiso->descripcion}}</label></div>
                            @endforeach
                        </div>
                    </div>
@@ -240,10 +240,10 @@ use App\Http\Controllers\permisoController;
                     </div>
                  </div>
                      <div class="row">
-                         <div id="conteinerRoles" class="col-md-6">
+                         <div id="conteinerRoles" class="col-md-12" style="height: 600px;overflow: scroll;">
                              <br><h5>Roles Asociados</h5>
                              @foreach($roles as $rol)
-                             <div class="checkbox"> <label><input id="permiso{{$rol->id_rol}}" type="checkbox" value="{{$rol->id_rol}}">{{$rol->descripcion}}</label></div>
+                             <div class="checkbox col-md-12"> <label><input id="permiso{{$rol->id_rol}}" type="checkbox" value="{{$rol->id_rol}}">{{$rol->descripcion}}</label></div>
                              @endforeach
                          </div>
                      </div>

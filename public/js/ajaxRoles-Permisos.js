@@ -222,13 +222,12 @@ $('#btn-eliminar').click( function(e) {
 
 $(document).on('click','.detalleRol',function(){
   var id_rol = $(this).val();
+  $('#frmRol').trigger("reset");
   $('#myModalRol input').each(function(e){
     $(this).prop('readonly', true);
-
   })
 
   $.get('/rol/' + id_rol, function (data) {
-
     console.log(data);
     $('#comment').val(data.rol.descripcion);
     $('#id_rol').val(data.rol.id_rol);
@@ -255,15 +254,13 @@ $(document).on('click','.detalleRol',function(){
 /* Muestra ver más */
 $(document).on('click','.detallePermiso',function(){
   var id_permiso = $(this).val();
-
+  $('#frmPermiso').trigger("reset");
   $('#myModalPermisos input').each(function(e){
     $(this).prop('readonly', true);
 
   })
 
   $.get('/permiso/' + id_permiso, function (data) {
-
-
     $('#commentPermiso').val(data.permiso.descripcion);
     $('#id_permiso').val(data.permiso.id_permiso);
 
@@ -294,13 +291,15 @@ get rol para modificar
 $(document).on('click','.modificarRol',function(){
   var id_rol = $(this).val();
 
-  $('#myModalRol input').each(function(e){
-    $(this).prop('readonly' , false);
-  })
   $('#conteinerPermisos input:checkbox').prop('checked',false);
   $.get('/rol/' + id_rol, function (data) {
-
     console.log(data);
+    $('#frmRol').trigger("reset");
+    $('#myModalRol input').each(function(e){
+      $(this).prop('checked', false);
+      $(this).prop('disabled', false);
+      $(this).prop('readonly' , false);
+    });
     $('#comment').val(data.rol.descripcion);
     $('#id_rol').val(data.rol.id_rol);
     for (var i = 0; i < data.permisos.length; i++) {
@@ -330,17 +329,15 @@ $(document).on('click','.modificarRol',function(){
 get permiso para modificar
 */
 $(document).on('click','.modificarPermiso',function(){
-
   var id_permiso = $(this).val();
 
-
   $.get('/permiso/' + id_permiso, function (data) {
-
+    $('#frmPermiso').trigger("reset");
     $('#myModalPermisos input').each(function(e){
       $(this).prop('checked', false);
       $(this).prop('disabled', false);
       $(this).prop('readonly' , false);
-    })
+    });
 
     $('#conteinerRoles input:checkbox').prop('checked',false);
     console.log(data);
