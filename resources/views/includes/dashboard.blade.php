@@ -243,11 +243,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_usuarios'))
                               <li>
                                 <div id="opcGestionarUsuarios" class="opcionesHover" 
-                                @if(false)
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/usuarios'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
                                 >
                                   <span>Gestionar usuarios</span>
                                 </div>
@@ -265,11 +261,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_logs_actividades'))
                               <li>
                                 <div id="opcLogActividades" class="opcionesHover" 
-                                @if(false)
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/logActividades'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
                                 >
                                   <span>Log de actividades</span>
                                 </div>
