@@ -1,4 +1,7 @@
 @extends('includes.dashboard')
+@section('estilos')
+<link rel="stylesheet" href="/css/paginacion.css">
+@endsection
 @section('headerLogo')
 <span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
 @endsection
@@ -31,12 +34,12 @@ $id_usuario = session('id_usuario');
                                       </div>
                                     </div>
                                     <div class="col-md-3">
-                                      <h5>Casino</h5>
+                                      <h5>Plataforma</h5>
                                       <div class="form-group">
                                         <select class="form-control" id="sel1">
-                                          <option value="0">Todos los casinos</option>
-                                          @foreach($casinos as $casino)
-                                          <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                          <option value="0">Todos las plataformas</option>
+                                          @foreach($plataformas as $p)
+                                          <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
                                           @endforeach
                                         </select>
                                       </div>
@@ -59,7 +62,7 @@ $id_usuario = session('id_usuario');
                         </div>
 
                         <div class="row"> <!-- Fila de TABLA -->
-                          <div class="col-md-12"> <!-- columna TABLA CASINOS -->
+                          <div class="col-md-12">
                             <div class="panel panel-default">
                               <div class="panel-heading">
                                   <h4 id="tituloNotas">Notas</h4>
@@ -70,33 +73,15 @@ $id_usuario = session('id_usuario');
                                     <tr>
                                       <th class="col-xs-2">IDENTIFICACIÓN  <i class="fa fa-sort"></i> </th>
                                       <th class="col-xs-2">EXPEDIENTE  <i class="fa fa-sort"></i></th>
-                                      <th class="col-xs-2">TIPO MOVIMIENTO<i class="fa fa-sort"></i></th>
-                                      <th class="col-xs-2">CASINO  <i class="fa fa-sort"></i></th>
+                                      <th class="col-xs-2">ESTADO JUEGO<i class="fa fa-sort"></i></th>
+                                      <th class="col-xs-2">PLATAFORMA  <i class="fa fa-sort"></i></th>
                                       <th class="col-xs-2">ACCIONES  <i class="fa fa-sort"></i></th>
                                     </tr>
                                   </thead>
                                   <tbody style="height: 400px;">
-                                    @foreach($notas as $nota)
-                                    <tr id="{{$nota->id_nota}}">
-                                      <td class="col-xs-2">{{$nota->identificacion}}</td>
-                                      <td class="col-xs-2">{{$nota->nro_exp_org}}-{{$nota->nro_exp_interno}}-{{$nota->nro_exp_control}}</td>
-                                      <td class="col-xs-2">{{$nota->descripcion}}</td>
-                                      <td class="col-xs-2">{{$nota->nombre}}</td>
-                                      <td class="col-xs-2">
-                                        <!--
-                                        <button type="button" class="btn btn-warning modificar" value="{{$nota->id_nota}}">
-                                          <i class="fas fa-fw fa-pencil-alt"></i>
-                                        </button>
-                                       -->
-
-                                        <button type="button" class="btn btn-danger eliminar" value="{{$nota->id_nota}}">
-                                          <i class="fa fa-fw fa-trash"></i>
-                                        </button>
-                                      </td>
-                                    </tr>
-                                    @endforeach
                                   </tbody>
                                 </table>
+                                <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                               </div>
                             </div>
                           </div> <!--/columna TABLA -->
@@ -107,13 +92,6 @@ $id_usuario = session('id_usuario');
                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
                       <div class="row">
                         <div class="col-xl-12 col-md-6">
-                          <!-- <a href="expedientes" style="text-decoration:none;">
-                              <div class="tarjetaSeccionMenor" align="center">
-                                <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
-                                <h2 class="tituloSeccionMenor">GESTIÓN EXPEDIENTES</h2>
-                                <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/expedientes_white.png" alt="">
-                              </div>
-                          </a> -->
                           <a href="expedientes" style="text-decoration:none;">
                               <div class="tarjetaSeccionMenor" align="center">
                                 <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
@@ -122,19 +100,9 @@ $id_usuario = session('id_usuario');
                               </div>
                           </a>
                         </div>
-
-
                       @endif
                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_disposiciones'))
-
                           <div class="col-xl-12 col-md-6">
-                            <!-- <a href="disposiciones" style="text-decoration:none;">
-                                <div class="tarjetaSeccionMenor" align="center">
-                                  <h2 class="tituloFondoMenor">DISPOSICIONES</h2>
-                                  <h2 class="tituloSeccionMenor">DISPOSICIONES</h2>
-                                  <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/disposiciones_white.png" alt="">
-                                </div>
-                            </a> -->
                             <a href="disposiciones" style="text-decoration:none;">
                                 <div class="tarjetaSeccionMenor" align="center">
                                   <h2 class="tituloFondoMenor">DISPOSICIONES</h2>
@@ -144,7 +112,7 @@ $id_usuario = session('id_usuario');
                             </a>
                           </div>
                         </div>
-                        @endif
+                      @endif
                     </div>
                 </div>
 
@@ -184,17 +152,17 @@ $id_usuario = session('id_usuario');
               </div>
 
               <style media="screen">
-                  div#contenedorCasinos.alerta {
+                  div#contenedorPlataformas.alerta {
                       border:3px solid #EF5350; padding:5px; border-radius:4px;
                   }
               </style>
 
               <div class="col-md-8 col-lg-8" style="text-align:center;">
-                <h5 style="padding-left:0px;">Casinos</h5>
-                <div id="contenedorCasinos">
-                    @foreach ($casinos as $casino)
-                    <input type="checkbox" id="{{$casino->id_casino}}" value="" class="casinosExp" style="margin:3px">
-                    <span style="font-family:Roboto-Light; font-size:18px; margin-left:2px; margin-right:40px">{{$casino->nombre}}</span>
+                <h5 style="padding-left:0px;">Plataformas</h5>
+                <div id="contenedorPlataformas">
+                    @foreach ($plataformas as $p)
+                    <input type="checkbox" id="{{$p->id_plataforma}}" value="" class="plataformasExp" style="margin:3px">
+                    <span style="font-family:Roboto-Light; font-size:18px; margin-left:2px; margin-right:40px">{{$p->nombre}}</span>
                     @endforeach
                 </div>
 
@@ -219,10 +187,9 @@ $id_usuario = session('id_usuario');
         <div class="modal-content">
           <div class="modal-header" style="background: #c9302c;">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" style="color: #fff;">Eliminar</h4>
+            <h3 class="modal-title" style="color: #fff;">Eliminar</h3>
           </div>
           <div class="modal-body">
-            <br>
             <p>ATENCIÓN</p>
             <div id="alerta_de_movimiento" hidden>
               <p>La nota que desea eliminar posee un movimiento en ejecución.</p>
@@ -269,6 +236,6 @@ $id_usuario = session('id_usuario');
 
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
-
+    <script src="/js/paginacion.js" charset="utf-8"></script>
     <script src="js/seccionNotasExpediente.js"></script>
 @endsection

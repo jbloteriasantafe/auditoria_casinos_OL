@@ -24,12 +24,9 @@ $(document).ready(function() {
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-
   $('.modal-title').text('| RESOLUCIONES');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
 	$('#modalAyuda').modal('show');
-
 });
 
 $('#buscarResolucion').click(function(e,pagina,page_size,columna,orden){
@@ -47,9 +44,9 @@ $('#buscarResolucion').click(function(e,pagina,page_size,columna,orden){
   }
   var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
+  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResoluciones .activa').attr('value'),orden: $('#tablaResoluciones .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
-    $('#tablaResultados th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    $('#tablaResoluciones th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
   var formData={
@@ -90,7 +87,6 @@ $('#buscarResolucion').click(function(e,pagina,page_size,columna,orden){
               )
           )
        }
-
        $('#herramientasPaginacion').generarIndices(page_number,page_size,data.resultados.total,clickIndice);
      },
      error: function (data) {

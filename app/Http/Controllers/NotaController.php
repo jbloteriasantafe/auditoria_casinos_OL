@@ -37,19 +37,9 @@ class NotaController extends Controller
       foreach($usuario->plataformas as $p){
         $plataformas[] = $p->id_plataforma;
       }
-      $notas=DB::table('nota')
-                      ->join('expediente' , 'expediente.id_expediente' ,'=' , 'nota.id_expediente')
-                      ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
-                      ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
-                      ->leftJoin('estado_juego','estado_juego.id_estado_juego','=','nota.id_estado_juego')
-                      ->whereIn('plataforma.id_plataforma' ,$plataformas)
-                      ->where('es_disposicion','=',0)
-                      ->orderBy('nota.identificacion','asc')
-                      ->take(30)
-                      ->get();
 
       $plataformas = Plataforma::all();
-      return view('seccionNotasExpediente' , ['notas' => $notas , 'plataformas' => $plataformas]);
+      return view('seccionNotasExpediente' , ['plataformas' => $plataformas]);
   }
 
   public function guardarNota($request, $id_expediente, $id_plataforma)// se usa desde expedienteController
@@ -99,6 +89,10 @@ class NotaController extends Controller
   }
 
   public function buscarNotas(Request $request){
+    $usuario =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $plats = [];
+    foreach($usuario->plataformas as $p) $plats[] = $p->id_plataforma;
+
     $reglas = array();
     if(!empty($request->nro_exp_org)){
       $reglas[]=['expediente.nro_exp_org' , 'like' ,'%' . $request->nro_exp_org . '%'];
@@ -117,34 +111,25 @@ class NotaController extends Controller
       $reglas[]=['nota.identificacion', 'like' ,  '%' . $request->identificacion.'%'];
     }
 
+    $resultados = DB::table('expediente')->select('nota.*','plataforma.*','estado_juego.nombre as estado','expediente.*')
+    ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
+    ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+    ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
+    ->leftJoin('estado_juego','estado_juego.id_estado_juego','=','nota.id_estado_juego')
+    ->where('es_disposicion','=',0)
+    ->whereIn('plataforma.id_plataforma',$plats)
+    ->orderBy('nota.identificacion','asc')
+    ->where($reglas);
+    if(!empty($request->fecha)){
+        $resultados = $resultados->whereYear('fecha_iniciacion' , '=' ,$fecha[0])->whereMonth('fecha_iniciacion','=', $fecha[1]);
+    }
 
-    if(empty($request->fecha)){
-        $resultados=DB::table('expediente')
-        ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-        ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
-        ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
-        ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-        ->where('es_disposicion','=',0)
-        ->orderBy('nota.identificacion','asc')
-        ->where($reglas)
-        ->take(50)
-        ->get();
-    }else{
-        $fecha=explode("-", $request->fecha);
-        $resultados=DB::table('expediente')
-        ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-        ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
-        ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
-        ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-        ->where('es_disposicion','=',0)
-        ->orderBy('nota.identificacion','asc')
-        ->where($reglas)
-        ->whereYear('fecha_iniciacion' , '=' ,$fecha[0])
-        ->whereMonth('fecha_iniciacion','=', $fecha[1])
-        ->take(50)
-        ->get();
-      }
-        return ['resultados' => $resultados];
+    $sort_by = $request->sort_by;
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })->paginate($request->page_size);
+
+    return ['resultados' => $resultados];
   }
 
   public function eliminarNotaCompleta($id_nota){
