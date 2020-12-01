@@ -1,4 +1,7 @@
 @extends('includes.dashboard')
+@section('estilos')
+<link rel="stylesheet" href="/css/paginacion.css">
+@endsection
 @section('headerLogo')
 <span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
 @endsection
@@ -31,12 +34,12 @@ $id_usuario = session('id_usuario');
                                       </div>
                                     </div>
                                     <div class="col-md-3">
-                                      <h5>Casino</h5>
+                                      <h5>Plataforma</h5>
                                       <div class="form-group">
                                         <select class="form-control" id="sel1">
-                                          <option value="0">Todos los casinos</option>
-                                          @foreach($casinos as $casino)
-                                          <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                          <option value="0">Todas las plataformas</option>
+                                          @foreach($plataformas as $p)
+                                          <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
                                           @endforeach
                                         </select>
                                       </div>
@@ -62,7 +65,7 @@ $id_usuario = session('id_usuario');
                         </div>
 
                         <div class="row"> <!-- Fila de TABLA -->
-                          <div class="col-md-12"> <!-- columna TABLA CASINOS -->
+                          <div class="col-md-12">
                             <div class="panel panel-default">
                               <div class="panel-heading">
                                   <h4 id="tituloResoluciones">Resoluciones</h4>
@@ -72,20 +75,14 @@ $id_usuario = session('id_usuario');
                                   <thead>
                                     <tr>
                                       <th class="col-xs-4">NÚMERO DE EXPEDIENTE  <i class="fa fa-sort"></i> </th>
-                                      <th class="col-xs-4">CASINO  <i class="fa fa-sort"></i></th>
+                                      <th class="col-xs-4">PLATAFORMA  <i class="fa fa-sort"></i></th>
                                       <th class="col-xs-4">NÚMERO DE RESOLUCIÓN  <i class="fa fa-sort"></i></th>
                                     </tr>
                                   </thead>
                                   <tbody style="height: 400px;">
-                                    @foreach($resoluciones as $resolucion)
-                                    <tr id="{{$resolucion->id_resolucion}}">
-                                      <td class="col-xs-4">{{$resolucion->nro_exp_org}}-{{$resolucion->nro_exp_interno}}-{{$resolucion->nro_exp_control}}</td>
-                                      <td class="col-xs-4">{{$resolucion->nombre}}</td>
-                                      <td class="col-xs-4">{{$resolucion->nro_resolucion}}-{{$resolucion->nro_resolucion_anio}}</td>
-                                    </tr>
-                                    @endforeach
                                   </tbody>
                                 </table>
+                                <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                               </div>
                             </div>
                           </div> <!--/columna TABLA -->
@@ -96,13 +93,6 @@ $id_usuario = session('id_usuario');
                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
                       <div class="row">
                         <div class="col-xl-12 col-md-6">
-                          <!-- <a href="expedientes" style="text-decoration:none;">
-                              <div class="tarjetaSeccionMenor" align="center">
-                                <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
-                                <h2 class="tituloSeccionMenor">GESTIÓN EXPEDIENTES</h2>
-                                <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/expedientes_white.png" alt="">
-                              </div>
-                          </a> -->
                           <a href="expedientes" style="text-decoration:none;">
                               <div class="tarjetaSeccionMenor" align="center">
                                 <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
@@ -117,13 +107,6 @@ $id_usuario = session('id_usuario');
                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_disposiciones'))
 
                           <div class="col-xl-12 col-md-6">
-                            <!-- <a href="disposiciones" style="text-decoration:none;">
-                                <div class="tarjetaSeccionMenor" align="center">
-                                  <h2 class="tituloFondoMenor">DISPOSICIONES</h2>
-                                  <h2 class="tituloSeccionMenor">DISPOSICIONES</h2>
-                                  <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/disposiciones_white.png" alt="">
-                                </div>
-                            </a> -->
                             <a href="disposiciones" style="text-decoration:none;">
                                 <div class="tarjetaSeccionMenor" align="center">
                                   <h2 class="tituloFondoMenor">DISPOSICIONES</h2>
@@ -152,7 +135,7 @@ $id_usuario = session('id_usuario');
             <br>
             <p>Número de Expediente</p>
             XXX-XXXXX-X<br><br>
-            <p>Casino</p>
+            <p>Plataforma</p>
             Santa Fé<br><br>
             <p>Número de Resolución</p>
             <input type="text" name="" value=""><br><br><br>
@@ -212,6 +195,6 @@ $id_usuario = session('id_usuario');
 
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
-
+    <script src="/js/paginacion.js" charset="utf-8"></script>
     <script src="js/seccionResoluciones.js"></script>
 @endsection
