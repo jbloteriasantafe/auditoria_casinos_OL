@@ -1,4 +1,7 @@
 @extends('includes.dashboard')
+@section('estilos')
+<link rel="stylesheet" href="/css/paginacion.css">
+@endsection
 @section('headerLogo')
 <span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
 @endsection
@@ -30,12 +33,12 @@ $id_usuario = session('id_usuario');
                                       </div>
                                     </div>
                                     <div class="col-md-3">
-                                      <h5>Casino</h5>
+                                      <h5>Plataformas</h5>
                                       <div class="form-group">
                                         <select class="form-control" id="sel1">
-                                          <option value="0">-Casino-</option>
-                                          @foreach($casinos as $casino)
-                                          <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                          <option value="0">-Plataforma-</option>
+                                          @foreach($plataformas as $p)
+                                          <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
                                           @endforeach
                                         </select>
                                       </div>
@@ -73,24 +76,14 @@ $id_usuario = session('id_usuario');
                                     <thead>
                                       <tr>
                                         <th class="col-xs-4">NÚMERO DE EXPEDIENTE  <i class="fa fa-sort"></i></th>
-                                        <th class="col-xs-4">CASINO  <i class="fa fa-sort"></i></th>
+                                        <th class="col-xs-4">PLATAFORMA  <i class="fa fa-sort"></i></th>
                                         <th class="col-xs-4">NÚMERO DE DISPOSICIÓN  <i class="fa fa-sort"></i></th>
                                       </tr>
                                     </thead>
                                     <tbody style="height: 400px;">
-                                      @foreach($disposiciones as $disposicion)
-                                      <tr id="{{$disposicion->id_disposicion}}">
-                                        <td class="col-xs-4">{{$disposicion->nro_exp_org . '-' . $disposicion->nro_exp_interno . '-' . $disposicion->nro_exp_control }}</td>
-                                        <td class="col-xs-4">{{$disposicion->nombre}}</td>
-                                        <td class="col-xs-4">{{$disposicion->nro_disposicion . '-' . $disposicion->nro_disposicion_anio}}</td>
-                                        <!-- <td>
-                                            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#modalModificar"><i class="fa fa-edit"></i> Modificar</button>
-                                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalEliminar"><i class="fa fa-trash"></i> Eliminar</button>
-                                        </td> -->
-                                      </tr>
-                                        @endforeach
                                     </tbody>
                                   </table>
+                                  <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                                 </div>
                               </div>
                             </div> <!--/columna TABLA -->
@@ -101,13 +94,6 @@ $id_usuario = session('id_usuario');
                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
                       <div class="row">
                         <div class="col-xl-12 col-md-6">
-                          <!-- <a href="expedientes" style="text-decoration:none;">
-                              <div class="tarjetaSeccionMenor" align="center">
-                                <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
-                                <h2 class="tituloSeccionMenor">GESTIÓN EXPEDIENTES</h2>
-                                <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/expedientes_white.png" alt="">
-                              </div>
-                          </a> -->
                           <a href="expedientes" style="text-decoration:none;">
                               <div class="tarjetaSeccionMenor" align="center">
                                 <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
@@ -118,15 +104,7 @@ $id_usuario = session('id_usuario');
                         </div>
                       @endif
                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_resoluciones'))
-
                         <div class="col-xl-12 col-md-6">
-                          <!-- <a href="resoluciones" style="text-decoration:none;">
-                              <div class="tarjetaSeccionMenor" align="center">
-                                <h2 class="tituloFondoMenor">RESOLUCIONES</h2>
-                                <h2 class="tituloSeccionMenor">RESOLUCIONES</h2>
-                                <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/resoluciones_white.png" alt="">
-                              </div>
-                          </a> -->
                           <a href="resoluciones" style="text-decoration:none;">
                               <div class="tarjetaSeccionMenor" align="center">
                                 <h2 class="tituloFondoMenor">RESOLUCIONES</h2>
@@ -139,61 +117,6 @@ $id_usuario = session('id_usuario');
                       @endif
                     </div>
                 </div>
-
-
-
-
-
-
-
-    <div id="modalEliminar" class="modal fade" role="dialog">
-      <div class="modal-dialog">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header" style="background: #c9302c;">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" style="color: #fff;">Eliminar</h4>
-          </div>
-          <div class="modal-body">
-            <br>
-            <p>Mensaje de Eliminar Disposición / Resolución </p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal">Eliminar</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-          </div>
-        </div>
-      </div>
-    </div><!-- FIN CUERPO MODAL -->
-
-    <div id="modalModificar" class="modal fade" role="dialog">
-      <div class="modal-dialog">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header" style="background: #ff9d2d;">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" style="color: #fff;">Modificar campos</h4>
-          </div>
-          <div class="modal-body">
-            <br>
-            <p>Número de Expediente</p>
-            XXX-XXXXX-X<br><br>
-            <p>Casino</p>
-            Santa Fé<br><br>
-            <p>Número de Disposición</p>
-            <input type="text" name="" value=""><br><br><br>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-warning" data-dismiss="modal">Modificar</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-          </div>
-        </div>
-      </div>
-    </div><!-- FIN CUERPO MODAL -->
-
-  <!-- Modal -->
 @endsection
 
 <!-- Comienza modal de ayuda -->
@@ -214,5 +137,6 @@ $id_usuario = session('id_usuario');
 @section('scripts')
 
     <!-- JavaScript personalizado -->
+    <script src="/js/paginacion.js" charset="utf-8"></script>
     <script src="js/seccionDisposiciones.js"></script>
 @endsection

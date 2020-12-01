@@ -52,7 +52,7 @@ $('#buscarNota').click(function(e,pagina,page_size,columna,orden){
     nro_exp_org:$('#nro_exp_org').val(),
     nro_exp_interno:$('#nro_exp_interno').val(),
     nro_exp_control:$('#nro_exp_control').val(),
-    casino:$('#sel1').val(),
+    plataforma:$('#sel1').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,
@@ -76,7 +76,7 @@ $('#buscarNota').click(function(e,pagina,page_size,columna,orden){
          tr.append($('<td>').addClass('col-xs-2').addClass('identificacion').text(d[i].identificacion));
          tr.append($('<td>').addClass('col-xs-2').addClass('nro_exp').text(d[i].nro_exp_org + '-' + d[i].nro_exp_interno + '-' + d[i].nro_exp_control));
          tr.append($('<td>').addClass('col-xs-2').addClass('estado').text(tipo__mov_nota));
-         tr.append($('<td>').addClass('col-xs-2').addClass('plataforma').text(d[i].nombre));
+         tr.append($('<td>').addClass('col-xs-4').addClass('plataforma').text(d[i].nombre));
          tr.append($('<td>').addClass('col-xs-2').addClass('accion')
          .append($('<button>')
              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt'))
@@ -106,7 +106,7 @@ $(document).on('click','.eliminar',function(){
   $('#alerta_de_eliminacion').hide();
   $('#alerta_de_movimiento').hide();
   $('#btn-eliminarModal').hide();
-  
+
   var id_expediente = $(this).val();
   $('#btn-eliminarModal').val(id_expediente);
   $('#alerta_de_eliminacion').show();

@@ -68,13 +68,13 @@ $id_usuario = session('id_usuario');
                                   <h4 id="tituloNotas">Notas</h4>
                               </div>
                               <div class="panel-body">
-                                <table id="tablaNotas" class="table ">
+                                <table id="tablaNotas" class="table table-fixed tablesorter">
                                   <thead>
                                     <tr>
                                       <th class="col-xs-2">IDENTIFICACIÓN  <i class="fa fa-sort"></i> </th>
                                       <th class="col-xs-2">EXPEDIENTE  <i class="fa fa-sort"></i></th>
                                       <th class="col-xs-2">ESTADO JUEGO<i class="fa fa-sort"></i></th>
-                                      <th class="col-xs-2">PLATAFORMA  <i class="fa fa-sort"></i></th>
+                                      <th class="col-xs-4">PLATAFORMA  <i class="fa fa-sort"></i></th>
                                       <th class="col-xs-2">ACCIONES  <i class="fa fa-sort"></i></th>
                                     </tr>
                                   </thead>
@@ -117,68 +117,6 @@ $id_usuario = session('id_usuario');
                 </div>
 
 
-    <!-- Modal modificar-->
-    <div id="modalModificar" class="modal fade" role="dialog">
-      <div class="modal-dialog">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header" style="background: #ff9d2d;">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" style="color: #fff;">Modificar campos</h4>
-          </div>
-          <div class="modal-body">
-            <div class="row" style="border-bottom: 1px solid #eee;">
-              <div class="col-md-4 col-lg-4">
-                <h5>Identificación Nota</h5>
-                <div class="input-group triple-input">
-                  <input id="identif_nota" type="text" class="form-control" maxlength="45" placeholder="Identificación">
-                </div>
-                <br>
-                <span id="alerta-nroExpediente" class="alertaSpan"></span>
-              </div>
-
-            </div>
-            <div class="row" style="border-bottom: 1px solid #eee;">
-              <div class="col-md-4 col-lg-4">
-                <h5>Número de expediente</h5>
-                <div class="input-group triple-input">
-                    <input id="nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
-                    <input id="nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />
-                    <input id="nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
-                </div>
-                <br>
-                <span id="alerta-nroExpediente" class="alertaSpan"></span>
-              </div>
-
-              <style media="screen">
-                  div#contenedorPlataformas.alerta {
-                      border:3px solid #EF5350; padding:5px; border-radius:4px;
-                  }
-              </style>
-
-              <div class="col-md-8 col-lg-8" style="text-align:center;">
-                <h5 style="padding-left:0px;">Plataformas</h5>
-                <div id="contenedorPlataformas">
-                    @foreach ($plataformas as $p)
-                    <input type="checkbox" id="{{$p->id_plataforma}}" value="" class="plataformasExp" style="margin:3px">
-                    <span style="font-family:Roboto-Light; font-size:18px; margin-left:2px; margin-right:40px">{{$p->nombre}}</span>
-                    @endforeach
-                </div>
-
-              </div>
-
-            </div>
-
-          </div> <!-- fin body -->
-          <div class="modal-footer">
-            <button type="button" class="btn btn-warning" data-dismiss="modal">Modificar</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-          </div>
-        </div>
-      </div>
-    </div><!-- FIN CUERPO MODAL -->
-
     <!-- Modal -->
     <div id="modalEliminar" class="modal fade" role="dialog">
       <div class="modal-dialog">
@@ -209,10 +147,6 @@ $id_usuario = session('id_usuario');
         </div>
       </div>
     </div><!-- FIN CUERPO MODAL -->
-
-
-
-
 
 @endsection
 

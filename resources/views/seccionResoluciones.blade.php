@@ -120,60 +120,6 @@ $id_usuario = session('id_usuario');
                     </div>
                 </div>
 
-
-    <!-- Modal modificar-->
-    <div id="modalModificar" class="modal fade" role="dialog">
-      <div class="modal-dialog">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header" style="background: #ff9d2d;">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" style="color: #fff;">Modificar campos</h4>
-          </div>
-          <div class="modal-body">
-            <br>
-            <p>Número de Expediente</p>
-            XXX-XXXXX-X<br><br>
-            <p>Plataforma</p>
-            Santa Fé<br><br>
-            <p>Número de Resolución</p>
-            <input type="text" name="" value=""><br><br><br>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-warning" data-dismiss="modal">Modificar</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-          </div>
-        </div>
-      </div>
-    </div><!-- FIN CUERPO MODAL -->
-
-    <!-- Modal -->
-    <div id="modalEliminar" class="modal fade" role="dialog">
-      <div class="modal-dialog">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header" style="background: #c9302c;">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" style="color: #fff;">Eliminar</h4>
-          </div>
-          <div class="modal-body">
-            <br>
-            <p>Mensaje de Eliminar Disposición / Resolución </p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal">Eliminar</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-          </div>
-        </div>
-      </div>
-    </div><!-- FIN CUERPO MODAL -->
-
-
-
-
-
 @endsection
 
 <!-- Comienza modal de ayuda -->

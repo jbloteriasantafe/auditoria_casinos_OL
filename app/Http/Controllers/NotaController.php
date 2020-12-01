@@ -103,10 +103,9 @@ class NotaController extends Controller
     if(!empty($request->nro_exp_control)){
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
-    if($request->plataforma!= 0){
-      $reglas[]=['expediente.id_plataforma', '=' ,  $request->plataforma ];
+    if($request->plataforma != 0){
+      $reglas[]=['plataforma.id_plataforma', '=' ,  $request->plataforma ];
     }
-
     if(!empty($request->identificacion)){
       $reglas[]=['nota.identificacion', 'like' ,  '%' . $request->identificacion.'%'];
     }

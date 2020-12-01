@@ -23,19 +23,8 @@ class DisposicionController extends Controller
 
   public function buscarTodoDisposiciones(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-    $disposiciones=array();
-    foreach($usuario['usuario']->plataformas as $p){
-      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('plataforma', 'plataforma.plataforma', '=' , 'expediente.id_plataforma')->where('plataforma.id_plataforma' , '=' ,$p->id_plataforma)->get()->toArray();
-      $disposiciones=array_merge($disposiciones,$auxiliar);
-      //añade las disposiciones de notas
-      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('plataforma', 'plataforma.id_plataforma', '=' , 'expediente.id_plataforma')->join('nota', 'nota.id_nota','=','expediente.id_expediente')->where('plataforma.id_plataforma' , '=' ,$p->id_plataforma)->get()->toArray();
-      $disposiciones=array_merge($disposiciones,$auxiliar);
-    }
-    $plataformas=Plataforma::all();
-
     UsuarioController::getInstancia()->agregarSeccionReciente('Disposiciones' , 'disposiciones');
-
-    return view('seccionDisposiciones' , ['disposiciones' => $disposiciones , 'plataformas' => $plataformas]);
+    return view('seccionDisposiciones' , ['plataformas' => $usuario['usuario']->plataformas]);
   }
 
   public function guardarDisposicion($disp, $id_expediente){
@@ -78,6 +67,10 @@ class DisposicionController extends Controller
 
 
   public function buscarDispocisiones(Request $request){
+    $usuario =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $plats = [];
+    foreach($usuario->plataformas as $p) $plats[] = $p->id_plataforma;
+    
     $reglas = array();
     if(!empty($request->nro_exp_org)){
       $reglas[]=['expediente.nro_exp_org' , 'like' ,'%' . $request->nro_exp_org . '%'];
@@ -89,7 +82,7 @@ class DisposicionController extends Controller
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
     if($request->plataforma!= 0){
-      $reglas[]=['expediente.id_plataforma', '=' ,  $request->plataforma ];
+      $reglas[]=['plataforma.id_plataforma', '=' ,  $request->plataforma ];
     }
     if(!empty($request->nro_disposicion)){
       $reglas[]=['disposicion.nro_disposicion', 'like' ,'%' . $request->nro_disposicion . '%'];
@@ -98,15 +91,19 @@ class DisposicionController extends Controller
       $reglas[]=['disposicion.nro_disposicion_anio', 'like' , '%' . $request->nro_disposicion_anio . '%'];
     }
 
-      $resultados=DB::table('expediente')
-      ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
-      ->join('plataforma', 'plataforma.id_plataforma' , '=' , 'expediente.id_plataforma')
-      ->leftJoin('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-      ->where($reglas)
-      ->get();
+    $resultados=DB::table('expediente')
+    ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
+    ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
+    ->join('plataforma', 'plataforma.id_plataforma' , '=' , 'expediente_tiene_plataforma.id_plataforma')
+    ->leftJoin('nota', 'nota.id_nota', '=', 'disposicion.id_nota')
+    ->whereIn('plataforma.id_plataforma',$plats)
+    ->where($reglas);
 
-      return ['resultados' => $resultados];
+    $sort_by = $request->sort_by;
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })->paginate($request->page_size);
 
-
+    return ['resultados' => $resultados];
   }
 }
