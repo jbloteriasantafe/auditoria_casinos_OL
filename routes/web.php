@@ -108,6 +108,7 @@ Juegos
 Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_juegos'], function () {
   Route::get('/','JuegoController@buscarTodo');
   Route::get('/{id}','JuegoController@buscarTodo');
+  Route::get('/obtenerLogs/{id}','JuegoController@obtenerLogs');
   Route::get('/obtenerJuego/{id?}','JuegoController@obtenerJuego');
   Route::post('/guardarJuego','JuegoController@guardarJuego');
   Route::post('/modificarJuego','JuegoController@modificarJuego');

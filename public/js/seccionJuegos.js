@@ -244,6 +244,76 @@ $('#btn-eliminarModal').click(function (e) {
     });
 });
 
+$(document).on('click','.historia',function(){
+  const id_juego = $(this).val();
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  $.ajax({
+    type: "GET",
+    url: "/juegos/obtenerLogs/" + id_juego,
+    success: function (data) {
+      $('#modalLogs .columna tr').not('.ejemplo').remove();
+      $('#modalLogs .cuerpo tr').not('.ejemplo').remove();
+      data.forEach((val,idx) => {
+        const col = $('#modalLogs .columna .ejemplo').clone().removeClass('ejemplo').show();
+        const cuerpo = $('#modalLogs .cuerpo .ejemplo').clone().removeClass('ejemplo').show();
+        col.find('.fecha').text(val['fecha']);
+        col.attr('data-idx',idx);
+        cuerpo.find('.json').empty().append(estilizarJSON(val['json']));
+        cuerpo.attr('data-idx',idx);
+        $('#modalLogs .columna tbody').append(col);
+        $('#modalLogs .cuerpo tbody').append(cuerpo);
+      });
+      $('tr[data-idx="0"]').find('.verLog').click();
+      $('#modalLogs').modal('show');
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
+});
+
+function estilizarJSON(j){
+  const bigdiv = $('<div>').addClass('row');
+  const blacklist = ['id_juego'];
+  for(const key in j){
+    if(blacklist.includes(key)) continue;
+    const val = j[key];
+    const row = $('<div>').addClass('row');
+    row.append(estilizarFila(key,val));
+    bigdiv.append(row);
+    bigdiv.append($('<hr>').css('margin','0px').css('padding','0px'));
+  }
+  return bigdiv;
+}
+function estilizarFila(key,val){
+  const div = $('<div>').addClass('col-md-12');
+  /*const selectsTexto = {
+    ''
+  }*/
+  if(key.substring(0,3) == 'id_'){
+    const newKey = (key[3].toUpperCase()+key.substring(4)).replace('_',' ');
+    div.append($('<h4>').addClass('col-md-4').text(newKey));
+    div.append($('<h4>').addClass('col-md-8').css('word-break','break-all').text(val));
+  }
+  else{
+    const newKey = (key[0].toUpperCase()+key.substring(1)).replace('_',' ');
+    div.append($('<h4>').addClass('col-md-4').text(newKey));
+    div.append($('<h4>').addClass('col-md-8').css('word-break','break-all').text(val));
+  }
+  return div;
+}
+
+
+$(document).on('click','.verLog',function(){
+  const idx = $(this).parent().parent().attr('data-idx');
+  $(`#modalLogs .cuerpo tr[data-idx!="${idx}"]`).hide();
+  $(`#modalLogs .cuerpo tr[data-idx="${idx}"]`).show();
+});
+
 function parseError(response){
   errors = {
       'validation.unique'       :'El valor tiene que ser único y ya existe el mismo.',
@@ -419,27 +489,35 @@ function crearFilaJuego(juego){
           .append($('<i>')
               .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
           )
-          .append($('<span>').text(' VER MÁS'))
+          .append($('<span>').text('VER MÁS')).attr('title','VER MÁS')
           .addClass('btn').addClass('btn-info').addClass('detalle')
           .val(juego.id_juego)
       )
-      .append($('<span>').text(' '))
       .append($('<button>')
           .append($('<i>')
               .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
           )
-          .append($('<span>').text(' MODIFICAR'))
+          .append($('<span>').text('MODIFICAR')).attr('title','MODIFICAR')
           .addClass('btn').addClass('btn-warning').addClass('modificar')
           .val(juego.id_juego)
       )
-      .append($('<span>').text(' '))
+      .append($('<button>')
+      .append($('<i>')
+          .addClass('fa')
+          .addClass('fa-fw')
+          .addClass('fa-clock')
+      )
+      .append($('<span>').text('HISTORIA')).attr('title','HISTORIA')
+      .addClass('btn').addClass('btn-danger').addClass('historia')
+      .val(juego.id_juego)
+      )
       .append($('<button>')
           .append($('<i>')
               .addClass('fa')
               .addClass('fa-fw')
               .addClass('fa-trash-alt')
           )
-          .append($('<span>').text(' ELIMINAR'))
+          .append($('<span>').text('ELIMINAR')).attr('title','ELIMINAR')
           .addClass('btn').addClass('btn-danger').addClass('eliminar')
           .val(juego.id_juego)
       )

@@ -66,6 +66,10 @@ class JuegoController extends Controller
             'plataformas' => $juego->plataformas];
   }
 
+  public function obtenerLogs($id){
+    return LogJuego::where('id_juego','=',$id)->orderBy('fecha','desc')->get();
+  }
+
   public function encontrarOCrear($juego){
         $resultado=$this->buscarJuegoPorNombre($juego);
         if(count($resultado)==0){

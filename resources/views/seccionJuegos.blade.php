@@ -368,6 +368,53 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
           </div>
     </div>
 
+
+
+    <div class="modal fade" id="modalLogs" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg" style="width: 70%;">
+             <div class="modal-content">
+                <div class="modal-header" style="background: lightgray;">
+                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <h3>| HISTORIAL</h2>
+                </div>
+
+               <div  id="colapsado" class="collapse in">
+                <div class="modal-body">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="col-md-3 columna" style="height: 800px;overflow: scroll;">
+                          <table class="table">
+                            <tbody>
+                              <tr class="ejemplo" hidden>
+                                <td class="fecha col-md-9">9999-99-99 99:99:99</td>
+                                <td class="col-md-3">
+                                  <button class="btn btn-info verLog"><i class="fa fa-fw fa-search-plus"></i></button>
+                                </td>
+                              <tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <div class="col-md-9 cuerpo" style="height: 800px;overflow: scroll;">
+                          <table class="table">
+                            <tbody>
+                              <tr class="ejemplo" hidden>
+                                <td class="json">JSON</td>
+                              <tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
     
 
     <!-- token -->
