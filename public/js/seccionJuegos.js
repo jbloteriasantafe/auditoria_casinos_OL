@@ -279,8 +279,15 @@ $(document).on('click','.historia',function(){
 function estilizarJSON(j){
   const bigdiv = $('<div>').addClass('row');
   const blacklist = ['id_juego'];
-  for(const key in j){
+  //Lo ordeno de manera similar al mostrarJuego
+  const order = ['nombre_juego','id_categoria_juego','id_estado_juego',
+  'cod_juego','escritorio','movil','plataformas','codigo_operador','codigo_proveedor',
+  'certificados','denominacion_juego','porcentaje_devolucion','id_tipo_moneda'];
+  const keys = order.concat(Object.keys(j).filter(k => !order.includes(k))); //Si alguna no esta en la lista de arriba se agrega abajo de todo
+  for(const idx in keys){
+    const key = keys[idx];
     if(blacklist.includes(key)) continue;
+    if(!(key in j)) continue;
     const val = j[key];
     const row = $('<div>').addClass('row');
     row.append(estilizarFila(key,val));
@@ -290,23 +297,45 @@ function estilizarJSON(j){
   return bigdiv;
 }
 function estilizarFila(key,val){
-  const div = $('<div>').addClass('col-md-12');
-  /*const selectsTexto = {
-    ''
-  }*/
+  const mayusculas = function(s){//Reemplaza _ por espacio y empieza cada palabra en mayuscula
+    return (s[0].toUpperCase()+s.substring(1)).replaceAll(/_[a-z]/g,x => ' '+x[1].toUpperCase())
+  };
+  const clearNull = s => s === null? '' : s;
+  let newKey = key;
+  let newVal = val;
   if(key.substring(0,3) == 'id_'){
-    const newKey = (key[3].toUpperCase()+key.substring(4)).replace('_',' ');
-    div.append($('<h4>').addClass('col-md-4').text(newKey));
-    div.append($('<h4>').addClass('col-md-8').css('word-break','break-all').text(val));
+    newKey = mayusculas(key.substring(3));
+    newVal = obtenerValor(key,val); //@SPEED: en vez de obtener el valor de a una se podria hacer mas rapido pidiendo todas juntas
+  }
+  else if(Array.isArray(val)){
+    newKey = mayusculas(key);
+    newVal = val.map(v => obtenerValor(key,v)).join(', '); //@SPEED
   }
   else{
-    const newKey = (key[0].toUpperCase()+key.substring(1)).replace('_',' ');
-    div.append($('<h4>').addClass('col-md-4').text(newKey));
-    div.append($('<h4>').addClass('col-md-8').css('word-break','break-all').text(val));
+    newKey = mayusculas(key);
   }
+  const div = $('<div>').addClass('col-md-12');
+  div.append($('<h4>').addClass('col-md-4').text(newKey));
+  div.append($('<h4>').addClass('col-md-8').css('word-break','break-all').text(clearNull(newVal)));
   return div;
 }
 
+function obtenerValor(tipo,id){
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  let ret = "ERROR";
+  $.ajax({
+    type: "GET",
+    url: "/juegos/obtenerValor/"+tipo+"/"+id,
+    async: false,
+    success: data => ret = data,
+    error: data => console.log(data)
+  });
+  return ret;
+}
 
 $(document).on('click','.verLog',function(){
   const idx = $(this).parent().parent().attr('data-idx');

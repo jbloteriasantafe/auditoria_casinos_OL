@@ -114,6 +114,7 @@ Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_ju
   Route::post('/modificarJuego','JuegoController@modificarJuego');
   Route::delete('/eliminarJuego/{id}','JuegoController@eliminarJuego');
   Route::post('/buscar','JuegoController@buscarJuegos');
+  Route::get('/obtenerValor/{tipo}/{id}','JuegoController@obtenerValor');
 });
 
 /***********

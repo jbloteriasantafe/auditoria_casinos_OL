@@ -388,6 +388,32 @@ class JuegoController extends Controller
     return ['certificadosSoft' => null];
   }
 
+  public function obtenerValor($tipo,$id){
+    //Iba a hacer un mapa con funciones anonimas y atributos pero asi es mas simple (tal vez en un futuro) - Octavio 3/12/2020
+    $val = null;
+    if($tipo == 'plataformas'){
+      $val = Plataforma::find($id);
+      $val = $val ? $val->codigo : null;
+    }
+    else if($tipo == 'certificados'){
+      $val = GliSoft::find($id);
+      $val = $val ? $val->nro_archivo : null;
+    }
+    else if($tipo == 'id_estado_juego'){
+      $val = EstadoJuego::find($id);
+      $val = $val ? $val->nombre : null;
+    }
+    else if($tipo == 'id_categoria_juego'){
+      $val = CategoriaJuego::find($id);
+      $val = $val ? $val->nombre : null;
+    }
+    else if($tipo == 'id_tipo_moneda'){
+      $val = TipoMoneda::find($id);
+      $val = $val ? $val->descripcion : null;
+    }
+    return $val;
+  }
+
   private function errorOut($map){
     return response()->json($map,422);
   }
