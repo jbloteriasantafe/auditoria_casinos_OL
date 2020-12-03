@@ -301,11 +301,11 @@ function estilizarFila(key,val){
   let newVal = val;
   if(key.substring(0,3) == 'id_'){
     newKey = mayusculas(key.substring(3));
-    newVal = obtenerValor(key,val); //@SPEED: en vez de obtener el valor de a una se podria hacer mas rapido pidiendo todas juntas
+    newVal = obtenerValor(key,val);
   }
   else if(Array.isArray(val)){
     newKey = mayusculas(key);
-    newVal = val.map(v => obtenerValor(key,v)).join(', '); //@SPEED
+    newVal = val.map(v => obtenerValor(key,v)).join(', ');
   }
   else{
     newKey = mayusculas(key);
@@ -316,7 +316,10 @@ function estilizarFila(key,val){
   return div;
 }
 
+var cacheObtenerValor = {};
 function obtenerValor(tipo,id){
+  //undefined es falsy, si no esta shortcircuitea la primer condicion (no puede tirar excepcion la segunda)
+  if(cacheObtenerValor[tipo] && cacheObtenerValor[tipo][id]) return cacheObtenerValor[tipo][id];
   $.ajaxSetup({
     headers: {
         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -327,7 +330,14 @@ function obtenerValor(tipo,id){
     type: "GET",
     url: "/juegos/obtenerValor/"+tipo+"/"+id,
     async: false,
-    success: data => ret = data,
+    success: data => {
+      ret = data;
+      if(cacheObtenerValor[tipo]) cacheObtenerValor[tipo][id] = data;
+      else{
+        cacheObtenerValor[tipo] = {};
+        cacheObtenerValor[tipo][id] = data;
+      }
+    },
     error: data => console.log(data)
   });
   return ret;
