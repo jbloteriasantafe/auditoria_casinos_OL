@@ -202,10 +202,6 @@ $(document).on('click','.borrarTablaDeJuego',function(){
 
 //Borrar Juego y remover de la tabla
 $(document).on('click','.eliminar',function(){
-    $('.modal-title').removeAttr('style');
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-
     var id_juego = $(this).val();
     $('#btn-eliminarModal').val(id_juego);
     $('#modalEliminar').modal('show');
