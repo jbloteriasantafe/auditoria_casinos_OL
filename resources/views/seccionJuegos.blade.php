@@ -383,7 +383,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                 <div class="modal-body">
                     <div class="row">
                       <div class="col-md-12">
-                        <div class="col-md-3 columna" style="height: 800px;overflow: scroll;">
+                        <div class="col-md-3 columna" style="height: 700px;overflow: scroll;">
                           <table class="table">
                             <tbody>
                               <tr class="ejemplo" hidden>
@@ -395,7 +395,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                             </tbody>
                           </table>
                         </div>
-                        <div class="col-md-9 cuerpo" style="height: 800px;overflow: scroll;">
+                        <div class="col-md-9 cuerpo" style="height: 700px;overflow: scroll;">
                           <table class="table">
                             <tbody>
                               <tr class="ejemplo" hidden>
