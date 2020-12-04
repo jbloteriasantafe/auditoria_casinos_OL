@@ -481,136 +481,80 @@ $('#btn-guardar').click(function (e) {
         },
         error: function (data) {
             console.log('Error:', data);
-
             $('#modalExpediente').find('.modal-footer').children().show();
             $('#modalExpediente').find('.modal-body').children().show();
             $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-
             var response = JSON.parse(data.responseText);
-
-            //Si hay algun campo vacio en nro_exp
-            var nro_exp_org_vacio = typeof response.nro_exp_org != "undefined";
-            var nro_exp_interno_vacio = typeof response.nro_exp_interno != "undefined";
-            var nro_exp_control_vacio = typeof response.nro_exp_control != "undefined";
-
             //Ocultar errores
             $('#error_nav_config').hide();
             $('#error_nav_notas').hide();
 
-            //////////////////////////  ALERTAS DE CONFIGURACIÓN /////////////////////////
-
-            if(typeof response.plataformas !== 'undefined'){
-              mostrarErrorValidacion($('#contenedorPlataformas'),"Debe seleccionar al menos una plataforma",true);
+            const showError = function(query,err,nav){
+              if(err){ mostrarErrorValidacion(query,parseError(err),true); $(nav).show(); }
             }
 
-            if (nro_exp_org_vacio || nro_exp_interno_vacio || nro_exp_control_vacio) {
-                if(nro_exp_org_vacio) mostrarErrorValidacion($('#nro_exp_org'),response.nro_exp_org[0],false);
-                if(nro_exp_interno_vacio) mostrarErrorValidacion($('#nro_exp_interno'),response.nro_exp_interno[0],false);
-                if(nro_exp_control_vacio) mostrarErrorValidacion($('#nro_exp_control'),response.nro_exp_control[0],false);
-                $('#error_nav_config').show();
-            }
+            showError($('#contenedorPlataformas'),response.plataformas,'#error_nav_config');
+            showError($('#nro_exp_org'),response.nro_exp_org,'#error_nav_config');
+            showError($('#nro_exp_interno'),response.nro_exp_interno,'#error_nav_config');
+            showError($('#nro_exp_control'),response.nro_exp_control,'#error_nav_config');
+            showError($('#nro_cuerpos'),response.nro_cuerpos,'#error_nav_config');
+            showError($('#dtpFechaInicio input'),response.fecha_iniciacion,'#error_nav_config');
+            showError($('#dtpFechaPase input'),response.fecha_pase,'#error_nav_config');
+            showError($('#destino'),response.destino,'#error_nav_config');
+            showError($('#ubicacion'),response.ubicacion_fisica,'#error_nav_config');
+            showError($('#iniciador'),response.iniciador,'#error_nav_config');
+            showError($('#remitente'),response.remitente,'#error_nav_config');
+            showError($('#concepto'),response.concepto,'#error_nav_config');
+            showError($('#tema'),response.tema,'#error_nav_config');
+            showError($('#nro_cuerpos'),response.nro_cuerpos,'#error_nav_config');
+            showError($('#nro_folios'),response.nro_folios,'#error_nav_config');
+            showError($('#anexo'),response.anexo,'#error_nav_config');
+          
+            $('#tablaResolucion tbody tr').each(function(i,val){
+              showError($(this).find('td').eq(0),response[`resolucion.${i}.nro_resolucion`],'#error_nav_config');
+              showError($(this).find('td').eq(1),response[`resolucion.${i}.nro_resolucion_anio`],'#error_nav_config');
+            });
 
-            if (typeof response.nro_cuerpos != "undefined") {
-              mostrarErrorValidacion($('#nro_cuerpos'),response.nro_cuerpos[0],false);
-              $('#error_nav_config').show();
-            }
-
-            if (typeof response.fecha_iniciacion != "undefined") {
-              mostrarErrorValidacion($('#dtpFechaInicio input'),response.fecha_iniciacion[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.fecha_pase != "undefined") {
-              mostrarErrorValidacion($('#dtpFechaPase input'),response.fecha_pase[0],false);
-              $('#error_nav_config').show();
-            }
-
-            if (typeof response.destino != "undefined") {
-              mostrarErrorValidacion($('#destino'),response.destino[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.ubicacion_fisica != "undefined") {
-              mostrarErrorValidacion($('#ubicacion'),response.ubicacion_fisica[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.iniciador != "undefined") {
-              mostrarErrorValidacion($('#iniciador'),response.iniciador[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.remitente != "undefined") {
-              mostrarErrorValidacion($('#remitente'),response.remitente[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.concepto != "undefined") {
-              mostrarErrorValidacion($('#concepto'),response.concepto[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.tema != "undefined") {
-              mostrarErrorValidacion($('#tema'),response.tema[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.nro_cuerpos != "undefined") {
-              mostrarErrorValidacion($('#nro_cuerpos'),response.nro_cuerpos[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.nro_folios != "undefined") {
-              mostrarErrorValidacion($('#nro_folios'),response.nro_folios[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.anexo != "undefined") {
-              mostrarErrorValidacion($('#anexo'),response.anexo[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response["resolucion.nro_resolucion"] != "undefined") {
-              mostrarErrorValidacion($('#nro_resolucion'),response['resolucion.nro_resolucion'][0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response["resolucion.nro_resolucion_anio"] != "undefined") {
-              mostrarErrorValidacion($('#nro_resolucion_anio'),response['resolucion.nro_resolucion_anio'][0],false);
-              $('#error_nav_config').show();
-            }
-
-            var i=0;
-            $('#columnaDisposicion .disposicion').not('#moldeDisposicion').each(function(){
-              if(typeof response['disposiciones.'+ i +'.nro_disposicion'] !== 'undefined'){
-                mostrarErrorValidacion($(this).find('.nro_disposicion'),response['disposiciones.'+ i +'.nro_disposicion'][0],false);
-                $('#error_nav_config').show();
-              }
-              if(typeof response['disposiciones.'+ i +'.nro_disposicion_anio'] !== 'undefined'){
-                mostrarErrorValidacion($(this).find('.nro_disposicion_anio'),response['disposiciones.'+ i +'.nro_disposicion_anio'][0],false);
-                $('#error_nav_config').show();
-              }
-              if(typeof response['disposiciones.'+ i +'.descripcion'] !== 'undefined'){
-                mostrarErrorValidacion($(this).find('#descripcion_disposicion'),response['disposiciones.'+ i +'.descripcion'][0],false);
-                $('#error_nav_config').show();
-              }
-
-              i++;
+            $('#columnaDisposicion .disposicion').not('#moldeDisposicion').each(function(i,val){
+              showError($(this).find('.nro_disposicion'),response[`disposiciones.${i}.nro_disposicion`],'#error_nav_config');
+              showError($(this).find('.nro_disposicion_anio'),response[`disposiciones.${i}.nro_disposicion_anio`],'#error_nav_config');
+              showError($(this).find('#descripcion_disposicion'),response[`disposiciones.${i}.descripcion`],'#error_nav_config');
             })
 
-            //////////////////////////  ALERTAS DE NOTAS /////////////////////////
-            var i = 0;
-            $('.notaNueva').not('#moldeNotaNueva').each(function(){
-                if(typeof response['notas.'+ i +'.fecha'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.dtpFechaNota input'),response['notas.'+ i +'.fecha'][0],false);
-                  $('#error_nav_notas').show();
-                }
-                if(typeof response['notas.'+ i +'.identificacion'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.identificacion'),response['notas.'+ i +'.identificacion'][0],false);
-                  $('#error_nav_notas').show();
-                }
-                if(typeof response['notas.'+ i +'.detalle'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.detalleNota'),response['notas.'+ i +'.detalle'][0],false);
-                  $('#error_nav_notas').show();
-                }
-                if(typeof response['notas.'+ i +'.id_tipo_movimiento'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.tiposMovimientos'),response['notas.'+ i +'.id_tipo_movimiento'][0],false);
-                  $('#error_nav_notas').show();
-                }
-                i++;
+            $('.notaNueva').not('#moldeNotaNueva').each(function(i,val){
+              showError($(this).find('.dtpFechaNota input'),response[`notas.${i}.fecha`],'#error_nav_notas');
+              showError($(this).find('.identificacion'),response[`notas.${i}.identificacion`],'#error_nav_notas');
+              showError($(this).find('.detalleNota'),response[`notas.${i}.detalle`],'#error_nav_notas');
+              showError($(this).find('.tiposMovimientos'),response[`notas.${i}.id_estado_juego`],'#error_nav_notas');
             });
         }
     });
 });
+
+function parseError(response){
+  if(response == 'validation.unique'){
+    return 'El valor tiene que ser único y ya existe el mismo.';
+  }
+  else if(response == 'validation.required'){
+    return 'El campo es obligatorio.'
+  }
+  else if(response == 'validation.regex'){
+    return 'El formato es invalido.'
+  }
+  else if(response == 'validation.max.string'){
+    return 'El valor es muy largo.'
+  }
+  else if(response == 'validation.date'){
+    return 'El valor tiene que ser una fecha.'
+  }
+  else if(response == 'validation.integer'){
+    return 'El valor tiene que ser un número.'
+  }
+  else if(response == 'validation.exists'){
+    return 'El valor es invalido.'
+  }
+  return response;
+}
 
 //Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){

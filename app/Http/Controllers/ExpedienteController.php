@@ -112,7 +112,7 @@ class ExpedienteController extends Controller
         'notas.*.fecha'=>'required|date',
         'notas.*.identificacion'=>'required',
         'notas.*.detalle'=>'required',
-        'notas.*.id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
+        'notas.*.id_estado_juego' => 'required|exists:estado_juego,id_estado_juego',
     ], array(), self::$atributos)->after(function ($validator){
       //validar que sea unico en conjunto con el nro_cuerpo
       $expedientes=Expediente::where([ ['nro_cuerpos' , '=' , $validator->getData()['nro_cuerpos']], ['nro_exp_interno', '=' , $validator->getData()['nro_exp_interno']]])->get();
@@ -167,14 +167,12 @@ class ExpedienteController extends Controller
 
     return ['expediente' => $expediente , 'plataformas' => $expediente->plataformas];
   }
-  //table,column,except,idColumn
-  //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
-  // 'nro_exp_interno' => ['required','regex:/^\d\d\d\d\d\d\d$/','unique:expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'],
+  
   public function modificarExpediente(Request $request){
     Validator::make($request->all(), [
         'id_expediente' => 'required|exists:expediente,id_expediente',
         'nro_exp_org' => ['required','regex:/^\d\d\d\d\d$/'],
-        'nro_exp_interno' => ['required','regex:/^\d\d\d\d\d\d\d$/'],
+        'nro_exp_interno' => ['required','regex:/^\d\d\d\d\d\d\d$/'],/*@TODO: BUG, verificar que sea unico *salvo* el mismo con el mismo ID expediente*/
         'nro_exp_control' => ['required','regex:/^\d$/'],
         'fecha_iniciacion' => 'nullable|date',
         'fecha_pase' => 'nullable|date',
