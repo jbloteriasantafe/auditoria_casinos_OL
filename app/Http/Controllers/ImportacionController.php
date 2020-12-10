@@ -14,7 +14,7 @@ use App\Relevamiento;
 use App\DetalleRelevamiento;
 use Illuminate\Support\Facades\DB;
 use Validator;
-use App\Casino;
+use App\Plataforma;
 
 use App\Services\LengthPager;
 
@@ -32,15 +32,13 @@ class ImportacionController extends Controller
   }
 
   public function buscarTodo(){
-
-    $tipoMoneda = TipoMoneda::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Importaciones' , 'importaciones');
-    return view('seccionImportaciones', ['tipoMoneda' => $tipoMoneda, 'casinos' => Casino::all()]);
+    return view('seccionImportaciones', ['tipoMoneda' => TipoMoneda::all(), 'plataformas' => UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas]);
   }
 
   public function eliminarBeneficios(Request $request){
-    //el request contiene mes anio id_tipo_moneda id_casino
-    $beneficios = Beneficio::where([['id_tipo_moneda','=',$request['id_tipo_moneda']],['id_casino','=',$request['id_casino']]])
+    //el request contiene mes anio id_tipo_moneda id_plataforma
+    $beneficios = Beneficio::where([['id_tipo_moneda','=',$request['id_tipo_moneda']],['id_plataforma','=',$request['id_plataforma']]])
                             ->whereYear('fecha','=',$request['anio'])
                             ->whereMonth('fecha','=',$request['mes'])
                             ->get();
@@ -53,16 +51,16 @@ class ImportacionController extends Controller
   }
 
   public function previewBeneficios(Request $request){
-    //el request contiene mes anio id_tipo_moneda id_casino
-    $casino = Casino::find($request->id_casino);
+    //el request contiene mes anio id_tipo_moneda id_plataforma
+    $plataforma = Plataforma::find($request->id_plataforma);
     $tipo_moneda = TipoMoneda::find($request->id_tipo_moneda);
 
-    $beneficios = Beneficio::where([['id_tipo_moneda','=',$request['id_tipo_moneda']],['id_casino','=',$request['id_casino']]])
+    $beneficios = Beneficio::where([['id_tipo_moneda','=',$request['id_tipo_moneda']],['id_plataforma','=',$request['id_plataforma']]])
                             ->whereYear('fecha','=',$request['anio'])
                             ->whereMonth('fecha','=',$request['mes'])
                             ->get();
 
-    return ['beneficios'=>$beneficios, 'casino' => $casino, 'tipo_moneda' => $tipo_moneda];
+    return ['beneficios'=>$beneficios, 'plataforma' => $plataforma, 'tipo_moneda' => $tipo_moneda];
   }
 
   public function obtenerVistaPrevia($tipo_importacion,$id){
@@ -85,7 +83,7 @@ class ImportacionController extends Controller
                           ->get();
 
         $tipo_moneda = $contador->tipo_moneda;
-        $casino = $contador->casino;
+        $plataforma = $contador->plataforma;
         break;
       case 2: //producidos
         $producido = Producido::find($id);
@@ -99,7 +97,7 @@ class ImportacionController extends Controller
                           ->get();
 
         $tipo_moneda = $producido->tipo_moneda;
-        $casino = $producido->casino;
+        $plataforma = $producido->plataforma;
         break;
       default:
         //nothing :)
@@ -107,19 +105,19 @@ class ImportacionController extends Controller
     }
 
     return ['contador' => $contador , 'producido' => $producido,
-            'tipo_moneda'  => $tipo_moneda, 'casino' => $casino,
+            'tipo_moneda'  => $tipo_moneda, 'plataforma' => $plataforma,
             'detalles_contador' => $detalles_contador,'detalles_producido'=> $detalles_producido];
   }
 
   public function buscar(Request $request){
     $reglas = array();
-    $casinos = array();
-    if($request->casinos !=0){
-      $casinos[] = $request->casinos;
+    $plataformas = array();
+    if($request->plataformas !=0){
+      $plataformas[] = $request->plataformas;
     }else {
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      foreach ($usuario->casinos as $casino) {
-        $casinos[] = $casino->id_casino;
+      foreach ($usuario->plataformas as $plataforma) {
+        $plataformas[] = $plataforma->id_plataforma;
       }
     }
 
@@ -137,11 +135,11 @@ class ImportacionController extends Controller
       case 1://contadores
         if(!isset($request->fecha)){
           $contadores = DB::table('contador_horario')->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
-                                                              ,'casino.nombre as casino' , 'casino.id_casino as id_casino','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
-                                                     ->join('casino','contador_horario.id_casino','=','casino.id_casino')
+                                                              ,'plataforma.nombre as plataforma' , 'plataforma.id_plataforma as id_plataforma','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
+                                                     ->join('plataforma','contador_horario.id_plataforma','=','plataforma.id_plataforma')
                                                      ->join('tipo_moneda','contador_horario.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
                                                      ->where($reglas)
-                                                     ->whereIn('casino.id_casino' , $casinos)
+                                                     ->whereIn('plataforma.id_plataforma' , $plataformas)
                                                      ->when($sort_by,function($query) use ($sort_by){
                                                                      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                                                  })
@@ -151,11 +149,11 @@ class ImportacionController extends Controller
             $fecha=explode("-", $request->fecha);
             $contadores = DB::table('contador_horario')
                              ->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
-                                      ,'casino.nombre as casino' , 'casino.id_casino as id_casino','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
-                             ->join('casino','contador_horario.id_casino','=','casino.id_casino')
+                                      ,'plataforma.nombre as plataforma' , 'plataforma.id_plataforma as id_plataforma','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
+                             ->join('plataforma','contador_horario.id_plataforma','=','plataforma.id_plataforma')
                              ->join('tipo_moneda','contador_horario.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
                              ->where($reglas)
-                             ->whereIn('casino.id_casino' , $casinos)
+                             ->whereIn('plataforma.id_plataforma' , $plataformas)
                              ->whereYear('contador_horario.fecha' , '=' ,$fecha[0])
                              ->whereMonth('contador_horario.fecha','=', $fecha[1])
                              ->when($sort_by,function($query) use ($sort_by){
@@ -168,11 +166,11 @@ class ImportacionController extends Controller
       case 2://producidos
         if(empty($request->fecha)){
           $producidos = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
-                                                      ,'casino.nombre as casino','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
-                                              ->join('casino','producido.id_casino','=','casino.id_casino')
+                                                      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
+                                              ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
                                               ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
                                               ->where($reglas)
-                                              ->whereIn('casino.id_casino' , $casinos)
+                                              ->whereIn('plataforma.id_plataforma' , $plataformas)
                                               ->when($sort_by,function($query) use ($sort_by){
                                                               return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                                           })
@@ -182,11 +180,11 @@ class ImportacionController extends Controller
         }else{
           $fecha=explode("-", $request->fecha);
           $producidos = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
-                                                      ,'casino.nombre as casino','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
-                                              ->join('casino','producido.id_casino','=','casino.id_casino')
+                                                      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
+                                              ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
                                               ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
                                               ->where($reglas)
-                                              ->whereIn('casino.id_casino' , $casinos)
+                                              ->whereIn('plataforma.id_plataforma' , $plataformas)
                                               ->whereYear('producido.fecha' , '=' ,$fecha[0])
                                               ->whereMonth('producido.fecha','=', $fecha[1])
                                               ->when($sort_by,function($query) use ($sort_by){
@@ -212,9 +210,9 @@ class ImportacionController extends Controller
                                                             AS (
                                                                 SELECT MONTH(beneficio.fecha) as mes,
                                                                        YEAR(beneficio.fecha) as anio,
-                                                                       casino.*,
+                                                                       plataforma.*,
                                                                        tipo_moneda.*
-                                                                FROM beneficio inner join casino on beneficio.id_casino = casino.id_casino
+                                                                FROM beneficio inner join plataforma on beneficio.id_plataforma = plataforma.id_plataforma
                                                                      inner join tipo_moneda on beneficio.id_tipo_moneda = tipo_moneda.id_tipo_moneda
                                                                 );
                                              "
@@ -223,10 +221,10 @@ class ImportacionController extends Controller
 
         if(empty($request->fecha)){// si fecha esta vacio
         if($createTempTables){
-           $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as casino','id_casino','id_tipo_moneda','descripcion as tipo_moneda')
+           $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as plataforma','id_plataforma','id_tipo_moneda','descripcion as tipo_moneda')
                              ->where($reglas2)
-                             ->whereIn('id_casino' , $casinos)
-                             ->groupBy('mes','anio','nombre','descripcion','id_casino','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
+                             ->whereIn('id_plataforma' , $plataformas)
+                             ->groupBy('mes','anio','nombre','descripcion','id_plataforma','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
                                               return $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
                                          })
                             ->paginate($request->page_size);
@@ -242,11 +240,11 @@ class ImportacionController extends Controller
           $fecha=explode("-", $request->fecha);
 
           if($createTempTables){
-            $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as casino','descripcion as tipo_moneda','id_casino','id_tipo_moneda')
+            $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as plataforma','descripcion as tipo_moneda','id_plataforma','id_tipo_moneda')
                               ->where($reglas2)
                               ->where('anio' , '=' ,$fecha[0])
                               ->where('mes','=', $fecha[1])
-                              ->groupBy('mes','anio','nombre','descripcion','id_casino','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
+                              ->groupBy('mes','anio','nombre','descripcion','id_plataforma','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
                                                return $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
                                           })
                              ->paginate($request->page_size);
@@ -267,7 +265,7 @@ class ImportacionController extends Controller
     }
 
     foreach ($contadores as $index => $contador){
-      if($contador->id_casino == 1 || $contador->id_casino == 2){
+      if($contador->id_plataforma == 1 || $contador->id_plataforma == 2){
         $contadores[$index]->fecha_archivo = date('Y-m-d' , strtotime($contador->fecha . ' - 1 days'));
       }else {//rosario
         $contadores[$index]->fecha_archivo = $contador->fecha;
@@ -279,13 +277,13 @@ class ImportacionController extends Controller
 
 
 
-  public function estadoImportacionesDeCasino($id_casino,$fecha_busqueda = null,$orden = 'desc'){
+  public function estadoImportacionesDePlataforma($id_plataforma,$fecha_busqueda = null,$orden = 'desc'){
     //modficar para que tome ultimos dias con datos, no solo los ultimos dias
     Validator::make([
-         'id_casino' => $id_casino,
+         'id_plataforma' => $id_plataforma,
        ],
        [
-         'id_casino' => 'required|exists:casino,id_casino' ,
+         'id_plataforma' => 'required|exists:plataforma,id_plataforma' ,
        ] , array(), self::$atributos)->after(function ($validator){
 
     })->validate();
@@ -299,19 +297,15 @@ class ImportacionController extends Controller
     $arreglo = array();
 
     while(date('m',strtotime($fecha)) == $mes){
-      if($id_casino == 3){//si es rosario tengo $ y DOL
-        $contador['pesos'] = ContadorHorario::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true :false;
-        $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
-        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
-        $contador['dolares'] = ContadorHorario::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
-        $producido['dolares'] = Producido::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
-        $beneficio['dolares'] = Beneficio::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
+      if($id_plataforma == 3){//si es rosario tengo $ y DOL
+        $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
+        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
+        $producido['dolares'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
+        $beneficio['dolares'] = Beneficio::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
       }else{
-        $contador['pesos'] = ContadorHorario::where([['fecha',$fecha],['id_casino', $id_casino]])->count() >= 1 ? true : false;
-        $producido['pesos'] = Producido::where([['fecha',$fecha],['id_casino',$id_casino]])->count() >= 1 ? true : false;
-        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_casino',$id_casino]])->count() >= 1 ? true : false;
+        $producido['pesos'] = Producido::where([['fecha',$fecha],['id_plataforma',$id_plataforma]])->count() >= 1 ? true : false;
+        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_plataforma',$id_plataforma]])->count() >= 1 ? true : false;
       }
-      $dia['contador'] = $contador;
       $dia['producido'] = $producido;
       $dia['beneficio'] = $beneficio;
       $dia['fecha'] = $fecha;
@@ -326,34 +320,34 @@ class ImportacionController extends Controller
 
   public function importarContador(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required|integer|exists:casino,id_casino',
+        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
         'fecha' => 'required|date',
         'archivo' => 'required|mimes:csv,txt',
         'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda'
     ], array(), self::$atributos)->after(function($validator){
         $data = $validator->getData();
         $fecha = $data['fecha'];
-        $id_casino = $data['id_casino'];
+        $id_plataforma = $data['id_plataforma'];
         $id_tipo_moneda = $data['id_tipo_moneda'];
         //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
         if(!AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'importar_contador_visado')){
           $reglas = Array();
           $reglas[]=['fecha','=',$fecha];
-          $reglas[]=['id_casino','=',$id_casino];
+          $reglas[]=['id_plataforma','=',$id_plataforma];
           $reglas[]=['cerrado','=',1];
           $reglas[]=['id_tipo_moneda','=',$id_tipo_moneda];
           if(ContadorHorario::where($reglas)->count() > 0){
             $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
         }
-        //@HACK: crear una entidad casino_tiene_moneda y agregarlo al panel de administracion
-        if($id_casino != 3 && $data['id_tipo_moneda'] != 1){
+        //@HACK: crear una entidad plataforma_tiene_moneda y agregarlo al panel de administracion
+        if($id_plataforma != 3 && $data['id_tipo_moneda'] != 1){
           $validator->errors()->add('id_tipo_moneda','Solo Rosario puede usar otra moneda');
         }
     })->validate();
 
     //solo el super usuario podrá reimportar contadores visados, de no estar cerrrado los contadores
-    if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_casino'])){
+    if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_plataforma'])){
       $id_usuario=session('id_usuario');
       if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
         return ['resultado' => 'existeRel'];
@@ -362,7 +356,7 @@ class ImportacionController extends Controller
 
 
     $ret = null;
-    switch($request->id_casino){
+    switch($request->id_plataforma){
       case 1:
         $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,1);
         break;
@@ -382,10 +376,10 @@ class ImportacionController extends Controller
     $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->get();
   
     foreach($relevamientos as $rel){
-      if($rel->sector->casino->id_casino == $request->id_casino){
+      if($rel->sector->plataforma->id_plataforma == $request->id_plataforma){
         foreach($rel->detalles as $det){
           $det->producido_importado =
-          RelevamientoController::getInstancia()->calcularProducido($fecha,$request->id_casino,$det->id_maquina);
+          RelevamientoController::getInstancia()->calcularProducido($fecha,$request->id_plataforma,$det->id_maquina);
           if($det->producido_calculado_relevado != null){
             $det->diferencia = $det->producido_calculado_relevado - $det->producido_importado;
           }
@@ -400,7 +394,7 @@ class ImportacionController extends Controller
 
   public function importarProducido(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required|integer|exists:casino,id_casino',
+        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
         'fecha' => 'nullable|date',
         'archivo' => 'required|mimes:csv,txt',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
@@ -408,7 +402,7 @@ class ImportacionController extends Controller
         if($validator->getData()['fecha'] != null){
           $reglas = Array();
           $reglas[]=['fecha','=',$validator->getData()['fecha']];
-          $reglas[]=['id_casino','=',$validator->getData()['id_casino']];
+          $reglas[]=['id_plataforma','=',$validator->getData()['id_plataforma']];
           $reglas[]=['validado','=',1];
           if($validator->getData()['id_tipo_moneda'] != null){
             $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
@@ -419,7 +413,7 @@ class ImportacionController extends Controller
         }
     })->validate();
 
-    switch($request->id_casino){
+    switch($request->id_plataforma){
       case 1:
         return LectorCSVController::getInstancia()->importarProducidoSantaFeMelincue($request->archivo,1);
         break;
@@ -436,12 +430,12 @@ class ImportacionController extends Controller
 
   public function importarBeneficio(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required|integer|exists:casino,id_casino',
+        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
         'archivo' => 'required|mimes:csv,txt',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
-    switch($request->id_casino){
+    switch($request->id_plataforma){
       case 1:
         return LectorCSVController::getInstancia()->importarBeneficioSantaFeMelincue($request->archivo,1);
         break;

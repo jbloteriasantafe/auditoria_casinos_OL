@@ -454,11 +454,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_importaciones'))
                                          <li>
                                            <div id="opcImportaciones" class="opcionesHover" 
-                                           @if(false)
                                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/importaciones'" href="#" style="cursor: pointer;"
-                                           @else
-                                           style="color: grey;"
-                                           @endif
                                            >
                                              <span>Importaciones</span>
                                            </div>

@@ -173,13 +173,16 @@ Contadores
 ***********/
 Route::delete('producidos/eliminarProducido/{id}','ProducidoController@eliminarProducido');
 Route::delete('beneficios/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
-Route::get('importaciones','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
-Route::post('importaciones/buscar','ImportacionController@buscar');
-Route::get('importaciones/{id_casino}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDeCasino');
-Route::post('importaciones/importarProducido','ImportacionController@importarProducido');
-Route::post('importaciones/importarBeneficio','ImportacionController@importarBeneficio');
-Route::get('importaciones/obtenerVistaPrevia/{tipo_importacion}/{id}','ImportacionController@obtenerVistaPrevia');
-Route::post('importaciones/previewBeneficios','ImportacionController@previewBeneficios');
+Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_seccion_importaciones'],function(){
+  Route::get('/','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
+  Route::post('/buscar','ImportacionController@buscar');
+  Route::get('/{id_plataforma}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDePlataforma');
+  Route::post('/importarProducido','ImportacionController@importarProducido');
+  Route::post('/importarBeneficio','ImportacionController@importarBeneficio');
+  Route::get('/obtenerVistaPrevia/{tipo_importacion}/{id}','ImportacionController@obtenerVistaPrevia');
+  Route::post('/previewBeneficios','ImportacionController@previewBeneficios');
+});
+
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
 
