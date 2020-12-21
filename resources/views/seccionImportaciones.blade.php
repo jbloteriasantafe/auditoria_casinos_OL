@@ -71,7 +71,6 @@ $id_usuario = session('id_usuario');
                       <div class="col-md-12">
                           <div class="panel panel-default" style="height:644px;">
                               <div class="panel-heading">
-                                  <!-- <h4 style="font-size:18px;font-family:Roboto-Condensed;color:black;">IMPORTACIONES POR DÍA</h4> -->
                                   <h4>IMPORTACIONES POR DÍA</h4>
                               </div>
                               <div class="panel-body">
@@ -99,9 +98,6 @@ $id_usuario = session('id_usuario');
                                         </select>
                                       </div>
                                   </div>
-
-
-
 
                                   <br>
 
@@ -356,8 +352,7 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalImportacionProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarProducidos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoProducidos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| IMPORTAR PRODUCIDO</h3>
@@ -377,19 +372,36 @@ $id_usuario = session('id_usuario');
                           </div>
                   </div>
 
-                  <!-- <div id="rowFecha" hidden class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                          <div class="col-xs-6">
-                              <h5>FECHA</h5>
-
-                              <div class='input-group date' id='fecha' data-link-field="fecha_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                  <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                              </div>
-                              <input type="hidden" id="fecha_hidden" value=""/>
-                          </div>
-                  </div> -->
-
+                  <div id="datosProducido" class="row">
+                    <div class="col-xs-5">
+                      <h5>FECHA</h5>
+                      <div class="input-group date" id="fechaProducido" data-link-field="fechaProducido_hidden" data-link-format="yyyy-mm-dd">
+                        <input type="text" class="form-control" placeholder="Fecha del producido">
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                      </div>
+                      <input type="hidden" id="fechaProducido_hidden" value="">
+                    </div>
+                    <div class="col-xs-4">
+                      <h5>PLATAFORMA</h5>
+                      <select id="plataformaProducido" class="form-control">
+                        <option value="">Seleccione</option>
+                        @foreach ($plataformas as $plataforma)
+                        <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                    <div class="col-xs-3">
+                      <h5>MONEDA</h5>
+                      <select id="monedaProducido" class="form-control">
+                        <option value="">Seleccione</option>
+                        @foreach($tipoMoneda as $tipo)
+                        <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </div>
+                  
                   <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                           <div class="col-md-12">
                               <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
@@ -442,8 +454,7 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalImportacionBeneficios" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarBeneficios" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoBeneficios" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| IMPORTAR BENEFICIO</h3>
@@ -469,8 +480,9 @@ $id_usuario = session('id_usuario');
                               <h5>MONEDA</h5>
                               <select class="form-control" name="">
                                   <option value="0">Elegir moneda</option>
-                                  <option value="1">ARS</option>
-                                  <option value="2">USD</option>
+                                  @foreach($tipoMoneda as $tipo)
+                                  <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+                                  @endforeach
                               </select>
                           </div>
                       </div>

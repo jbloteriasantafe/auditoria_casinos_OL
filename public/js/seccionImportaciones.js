@@ -1,13 +1,3 @@
-//Cuando se sube el archivo se identifican los datos posibles
-var id_plataforma;
-var id_tipo_moneda;
-var fecha_date;
-
-//Tamaños de los diferentes archivos CSV
-var COL_PROD_ROS = 2;
-var COL_PROD_SFE = 32;
-var COL_BEN_ROS = 8;
-
 //Opacidad del modal al minimizar
 $('#btn-minimizarProducidos').click(function(){
     if($(this).data("minimizar")==true){
@@ -31,7 +21,6 @@ $('#btn-minimizarBeneficios').click(function(){
 });
 
 $(document).ready(function(){
-
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -43,7 +32,6 @@ $(document).ready(function(){
   $('#opcImportaciones').addClass('opcionesSeleccionado');
 
   //Habilitar o no la fecha según el plataforma
-  // habilitarFechayMoneda();
   $('#mensajeInformacion').hide();
 
   $('#fecha_busqueda').datetimepicker({
@@ -67,6 +55,18 @@ $(document).ready(function(){
     pickerPosition: "bottom-left",
     startView: 3,
     minView: 3,
+    ignoreReadonly: true,
+  });
+
+  $('#fechaProducido').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'dd/mm/yyyy',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
     ignoreReadonly: true,
   });
 
@@ -273,7 +273,6 @@ $(document).on('click','.planilla', function(){
             $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
             $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
 
-            // head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('MTM')));
             head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('FECHA')));
             head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COININ')));
             head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COINOUT')));
@@ -378,29 +377,24 @@ $('#btn-eliminarModal').click(function (e) {
 /*********************** PRODUCIDOS *********************************/
 function agregarFilaDetalleProducido(producido) {
   var fila = $('<tr>');
-
   fila.append($('<td>').addClass('col-xs-5').text(producido.nro_admin));
   fila.append($('<td>').addClass('col-xs-7').text(producido.valor));
-  // fila.append($('<td>').addClass('col-xs-3').text(producido.coinout));
-  // fila.append($('<td>').addClass('col-xs-2').text(producido.jackpot));
-  // fila.append($('<td>').addClass('col-xs-2').text(producido.progresivo));
-
   $('#tablaVistaPrevia tbody').append(fila);
 }
 
 $('#btn-importarProducidos').click(function(e){
   e.preventDefault();
-  $('.modal-title').text('| IMPORTAR PRODUCIDOS');
-  $('#modalImportacionProducidos .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-
   //Mostrar: rowArchivo
   $('#modalImportacionProducidos #rowArchivo').show();
+  $('#fechaProducido').data('datetimepicker').reset();
+  $('#plataformaProducido').val("");
+  $('#monedaProducido').val("");
+  $('#datosProducido').hide();
 
-  //Ocultar: rowFecha, mensajes, iconoCarga
-  // $('#modalImportacionProducidos #rowMoneda').hide();
+  //Ocultar: mensajes, iconoCarga
   $('#modalImportacionProducidos #mensajeError').hide();
   $('#modalImportacionProducidos #mensajeInvalido').hide();
-  $('#modalImportacionProducidos #mensajeInformacion').hide();
+  $('#modalImportacionProducidos #datosProducido').hide();
   $('#modalImportacionProducidos #iconoCarga').hide();
 
   habilitarInputProducido();
@@ -426,17 +420,19 @@ $('#btn-guardarProducido').on('click',function(e){
 
   var formData = new FormData();
 
+  const id_plataforma = $('#plataformaProducido').val();
+  const fecha = $('#fechaProducido_hidden').val();
+  const id_tipo_moneda = $('#monedaProducido').val();
   formData.append('id_plataforma', id_plataforma);
-  formData.append('fecha', fecha_date);
-  formData.append('id_tipo_moneda',id_tipo_moneda);
-
+  formData.append('fecha', fecha);
+  formData.append('id_tipo_moneda', id_tipo_moneda);
 
   $('#plataformaInfoImportacion').val(id_plataforma);
   $('#monedaInfoImportacion').val(id_tipo_moneda);
-  $('#mesInfoImportacion').data('datetimepicker').setDate(new Date(fecha_date));
+  const date =$('#fechaProducido').data('datetimepicker').getDate();
+  $('#mesInfoImportacion').data('datetimepicker').setDate(date);
   $('#plataformaInfoImportacion').change();
   
-
   //Si subió archivo lo guarda
   if($('#modalImportacionProducidos #archivo').attr('data-borrado') == 'false' && $('#modalImportacionProducidos #archivo')[0].files[0] != null){
     formData.append('archivo' , $('#modalImportacionProducidos #archivo')[0].files[0]);
@@ -491,11 +487,9 @@ $('#btn-guardarProducido').on('click',function(e){
           $('#modalImportacionProducidos #mensajeError').show();
           //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
           $('#modalImportacionProducidos #rowArchivo').hide();
-          // $('#modalImportacionProducidos #rowFecha').hide();
           $('#modalImportacionProducidos #mensajeInvalido').hide();
-          $('#modalImportacionProducidos #mensajeInformacion').hide();
+          $('#modalImportacionProducidos #datosProducido').hide();
           $('#modalImportacionProducidos #iconoCarga').hide();
-
 
           console.log('ERROR!');
           console.log(data);
@@ -506,13 +500,9 @@ $('#btn-guardarProducido').on('click',function(e){
 function habilitarInputProducido(){
   //Inicializa el fileinput para cargar los CSV
   $('#modalImportacionProducidos #archivo')[0].files[0] = null;
-  // console.log($('#modalImportacionProducidos #archivo'));
   $('#modalImportacionProducidos #archivo').attr('data-borrado','false');
   $("#modalImportacionProducidos #archivo").fileinput('destroy').fileinput({
       language: 'es',
-    //       showPreview: false,
-          // allowedFileExtensions: ["csv", "txt"],
-    //       elErrorContainer: "#alertaArchivo"
       language: 'es',
       showRemove: false,
       showUpload: false,
@@ -532,146 +522,70 @@ function habilitarInputProducido(){
   });
 }
 
+function toIso(f){
+  //input fecha tipo 1/11/2020 06:00:00
+  aux = f.split(' ');
+  f = aux[0].split('/');
+  return f[2]+'-'+f[1]+'-'+(f[0].length==1? '0'+f[0] : f[0])+'T'+aux[1];
+}
+
 function procesarDatosProducidos(e) {
-    var csv = e.target.result;
-
-    var allTextLines = csv.split('\n');
-
-    if (allTextLines.length > 2 ) {
-        var data = allTextLines[2].split(';');
-
-        var tarr = [];
-
-        for (var j=0; j<data.length; j++) {
-              tarr.push(data[j]);
+    const csv = e.target.result;
+    //Limpio retorno de carro y saco las lineas sin nada.
+    const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
+    if(allTextLines.length > 0){
+      const columnas = allTextLines[0].split(',');
+      if (columnas.length == 10) {
+        //Si tiene filas, extraigo la fecha
+        if (allTextLines.length > 1) {
+          //Se obtiene la fecha del CSV para mostrarlo
+          const date = allTextLines[1].split(',')[0];
+          $('#fechaProducido').data('datetimepicker').setDate(new Date(toIso(date)));
+          $('#fechaProducido input').attr('disabled',true);
+          $('#fechaProducido span').hide()
         }
-
-        console.log('allTextLines: ', allTextLines.length);
-        console.log('tarr:', tarr);
-
-        //Mirar si la cantidad de columnas pertenece a un archivo de producido
-        if (tarr.length == COL_PROD_ROS || tarr.length == COL_PROD_SFE) {
-          console.log('Está bien');
-          //Mostrar el select de moneda (único dato que no se puede obtener desde el archivo)
-
-          //Si es de Santa Fe o Melincué, PLATAFORMA: 1ra columna del CSV; MONEDA: Pesos; FECHA: 3ra columna del CSV;
-          //Si es de Rosario, MONEDA: según cantidad de filas del archivo; FECHA: en 1ra columna del CSV;
-          switch (tarr.length) {
-            case COL_PROD_SFE:
-              //Verificar el PLATAFORMA: 1.Melincué; 2.Santa Fe;
-              if (tarr[0] == 1) {
-                id_plataforma = 1;
-                $('#modalImportacionProducidos #informacionPlataforma').text('PLATAFORMA MELINCUÉ');
-              }else {
-                id_plataforma = 2;
-                $('#modalImportacionProducidos #informacionPlataforma').text('PLATAFORMA SANTA FE');
-              }
-
-              //Se saca la fecha del CSV en formato string
-              var fecha = tarr[2];
-              //Se arma un date con esos datos
-              var dia = fecha.substring(6,8);
-              var mes = fecha.substring(4,6);
-              var anio = fecha.substring(0,4);
-
-              //Se arma así (dd/MM/AAAA) para mostrarlo
-              fecha_date = dia+'/'+mes+'/'+anio;
-              $('#modalImportacionProducidos #informacionFecha').text(obtenerFechaString(fecha_date, true));
-              //Se arma así para mandarlo a la BD
-              fecha_date = anio+'/'+mes+'/'+dia;
-
-              $('#modalImportacionProducidos #informacionMoneda').text('ARS');
-
-              id_tipo_moneda = 1;
-
-              break;
-            case COL_PROD_ROS:
-              id_plataforma = 3;
-              //Setear el nombre
-              $('#modalImportacionProducidos #informacionPlataforma').text('PLATAFORMA ROSARIO');
-              //Se obtiene la fecha del CSV para mostrarlo
-              fecha_date = tarr[0].substring(0,10);
-              //Setear la fecha en el modal
-              $('#modalImportacionProducidos #informacionFecha').text(obtenerFechaString(fecha_date, true));
-              //Se modifica el date para guardalo en la BD
-              fecha_date = tarr[0].substring(0,10).split('/');
-              fecha_date = fecha_date[2] + '/' + fecha_date[1] + '/' + fecha_date[0];
-
-
-              //Si hay más de 1000 lineas entonces tiene que ser en PESOS
-              if (allTextLines.length > 1000) {
-                id_tipo_moneda = 1;
-                $('#modalImportacionProducidos #informacionMoneda').text('ARS');
-              }else {
-                id_tipo_moneda = 2;
-                $('#modalImportacionProducidos #informacionMoneda').text('USD');
-              }
-
-              break;
-          }
-
-
-
-          $('#modalImportacionProducidos #mensajeInvalido').hide();
-          $('#modalImportacionProducidos #mensajeInformacion').show();
-          //Mostrar botón SUBIR
-          $('#btn-guardarProducido').show();
+        else{
+          $('#fechaProducido input').attr('disabled',false);
+          $('#fechaProducido span').show()
         }
-        //No pertenece a un archivo de producido
-        else {
-          $('#modalImportacionProducidos #mensajeInformacion').hide();
-
-          $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
-          $('#modalImportacionProducidos #mensajeInvalido').show();
-
-          $('#modalImportacionProducidos #iconoCarga').hide();
-          //Ocultar botón de subida
-          $('#btn-guardarProducido').hide();
-        }
+        $('#monedaProducido').val(1).attr('disabled',true);
+        $('#modalImportacionProducidos #mensajeInvalido').hide();
+        //Mostrar botón SUBIR
+        $('#btn-guardarProducido').show();
+        $('#datosProducido').show();
+        return;
+      }
     }
-    else {
-      $('#modalImportacionProducidos #mensajeInformacion').hide();
-
-      $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
-      $('#modalImportacionProducidos #mensajeInvalido').show();
-
-      $('#modalImportacionProducidos #iconoCarga').hide();
-      //Ocultar botón de subida
-      $('#btn-guardarProducido').hide();
-    }
-
-
-
+    //Si no retorno arriba quiere decir que no era valido
+    $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
+    $('#modalImportacionProducidos #mensajeInvalido').show();
+    $('#modalImportacionProducidos #iconoCarga').hide();
+    //Ocultar botón de subida
+    $('#btn-guardarProducido').hide();
 }
 
 //Eventos de la librería del input
 $('#modalImportacionProducidos #archivo').on('fileerror', function(event, data, msg) {
-   // $('#modalImportacionProducidos #rowMoneda').hide();
-   $('#modalImportacionProducidos #mensajeInformacion').hide();
+   $('#modalImportacionProducidos #datosProducido').hide();
    $('#modalImportacionProducidos #mensajeInvalido').show();
    $('#modalImportacionProducidos #mensajeInvalido p').text(msg);
    //Ocultar botón SUBIR
    $('#btn-guardarProducido').hide();
-
 });
 
 $('#modalImportacionProducidos #archivo').on('fileclear', function(event) {
     id_tipo_moneda = 0;
     $('#modalImportacionProducidos #archivo').attr('data-borrado','true');
     $('#modalImportacionProducidos #archivo')[0].files[0] = null;
-    $('#modalImportacionProducidos #mensajeInformacion').hide();
     $('#modalImportacionProducidos #mensajeInvalido').hide();
-    // $('#modalImportacionProducidos #rowMoneda').hide();
     //Ocultar botón SUBIR
     $('#btn-guardarProducido').hide();
 });
 
 $('#modalImportacionProducidos #archivo').on('fileselect', function(event) {
     $('#modalImportacionProducidos #archivo').attr('data-borrado','false');
-
     // Se lee el archivo guardado en el input de tipo 'file'.
-    // Luego se lo maneja para saber a qué plataforma pertenece
-    // y así, tener una forma para validar la importación.
+    // se valida la importación.
     var reader = new FileReader();
     reader.readAsText($('#modalImportacionProducidos #archivo')[0].files[0]);
     reader.onload = procesarDatosProducidos;
@@ -683,9 +597,8 @@ $('#btn-reintentarProducido').click(function(e) {
   //Ocultar: rowFecha, mensajes, iconoCarga
   $('#modalImportacionProducidos #mensajeError').hide();
   $('#modalImportacionProducidos #mensajeInvalido').hide();
-  $('#modalImportacionProducidos #mensajeInformacion').hide();
+  $('#modalImportacionProducidos #datosProducido').hide();
   $('#modalImportacionProducidos #iconoCarga').hide();
-
   habilitarInputProducido();
   $('#modalImportacionProducidos').find('.modal-footer').children().show();
 });
@@ -706,19 +619,13 @@ function agregarFilaDetalleBeneficio(beneficio){
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-
-  $('.modal-title').text('| IMPORTACIONES');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
+  $('#modalAyuda .modal-title').text('| IMPORTACIONES');
+  $('#modalAyuda .modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 	$('#modalAyuda').modal('show');
-
 });
 
 $('#btn-importarBeneficios').click(function(e){
   e.preventDefault();
-  $('.modal-title').text('| IMPORTAR BENEFICIOS');
-  $('#modalImportacionBeneficios .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-
   //Mostrar: rowArchivo
   $('#modalImportacionBeneficios #rowArchivo').show();
   //Ocultar: rowFecha, mensajes, iconoCarga

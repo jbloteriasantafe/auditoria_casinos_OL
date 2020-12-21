@@ -318,80 +318,6 @@ class ImportacionController extends Controller
     return ['arreglo' => $arreglo];
   }
 
-  public function importarContador(Request $request){
-    Validator::make($request->all(),[
-        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
-        'fecha' => 'required|date',
-        'archivo' => 'required|mimes:csv,txt',
-        'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda'
-    ], array(), self::$atributos)->after(function($validator){
-        $data = $validator->getData();
-        $fecha = $data['fecha'];
-        $id_plataforma = $data['id_plataforma'];
-        $id_tipo_moneda = $data['id_tipo_moneda'];
-        //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
-        if(!AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'importar_contador_visado')){
-          $reglas = Array();
-          $reglas[]=['fecha','=',$fecha];
-          $reglas[]=['id_plataforma','=',$id_plataforma];
-          $reglas[]=['cerrado','=',1];
-          $reglas[]=['id_tipo_moneda','=',$id_tipo_moneda];
-          if(ContadorHorario::where($reglas)->count() > 0){
-            $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
-          }
-        }
-        //@HACK: crear una entidad plataforma_tiene_moneda y agregarlo al panel de administracion
-        if($id_plataforma != 3 && $data['id_tipo_moneda'] != 1){
-          $validator->errors()->add('id_tipo_moneda','Solo Rosario puede usar otra moneda');
-        }
-    })->validate();
-
-    //solo el super usuario podrá reimportar contadores visados, de no estar cerrrado los contadores
-    if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_plataforma'])){
-      $id_usuario=session('id_usuario');
-      if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
-        return ['resultado' => 'existeRel'];
-      }
-    }
-
-
-    $ret = null;
-    switch($request->id_plataforma){
-      case 1:
-        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,1);
-        break;
-      case 2:
-        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,2);
-        break;
-      case 3:
-        $ret = LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha,$request->id_tipo_moneda);
-        break;
-      default:
-        break;
-    }
-
-
-    $fecha = $ret['fecha'];
-    //Actualizo los producidos de los relevamientos que ya estan en el sistema.
-    $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->get();
-  
-    foreach($relevamientos as $rel){
-      if($rel->sector->plataforma->id_plataforma == $request->id_plataforma){
-        foreach($rel->detalles as $det){
-          $det->producido_importado =
-          RelevamientoController::getInstancia()->calcularProducido($fecha,$request->id_plataforma,$det->id_maquina);
-          if($det->producido_calculado_relevado != null){
-            $det->diferencia = $det->producido_calculado_relevado - $det->producido_importado;
-          }
-          $det->save();
-        }
-        $rel->save();
-      }
-    }
-
-    return $ret;
-  }
-
   public function importarProducido(Request $request){
     Validator::make($request->all(),[
         'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
@@ -403,7 +329,6 @@ class ImportacionController extends Controller
           $reglas = Array();
           $reglas[]=['fecha','=',$validator->getData()['fecha']];
           $reglas[]=['id_plataforma','=',$validator->getData()['id_plataforma']];
-          $reglas[]=['validado','=',1];
           if($validator->getData()['id_tipo_moneda'] != null){
             $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
           }
@@ -413,19 +338,9 @@ class ImportacionController extends Controller
         }
     })->validate();
 
-    switch($request->id_plataforma){
-      case 1:
-        return LectorCSVController::getInstancia()->importarProducidoSantaFeMelincue($request->archivo,1);
-        break;
-      case 2:
-        return LectorCSVController::getInstancia()->importarProducidoSantaFeMelincue($request->archivo,2);
-        break;
-      case 3:
-        return LectorCSVController::getInstancia()->importarProducidoRosario($request->archivo,$request->fecha,$request->id_tipo_moneda);
-        break;
-      default:
-        break;
-    }
+    DB::transaction(function() use ($request){
+      LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_tipo_moneda);
+    });
   }
 
   public function importarBeneficio(Request $request){
