@@ -71,6 +71,8 @@ class LectorCSVController extends Controller
 
     $path = $archivoCSV->getRealPath();
 
+
+    //A totalwager y gross revenue le saco el $, le saco el punto de los miles y le cambio la coma decimal por un punto
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE producido_temporal
                       FIELDS TERMINATED BY ','
@@ -86,28 +88,49 @@ class LectorCSVController extends Controller
                        Players = @Players,
                        TotalWagerCash = REPLACE(@TotalWagerCash,',','.'),
                        TotalWagerBonus = REPLACE(@TotalWagerBonus,',','.'),
-                       TotalWager = REPLACE(@TotalWager,',','.'),
+                       TotalWager = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
                        GrossRevenueCash = REPLACE(@GrossRevenueCash,',','.'),
                        GrossRevenueBonus = REPLACE(@GrossRevenueBonus,',','.'),
-                       GrossRevenue = REPLACE(@GrossRevenue,',','.')
+                       GrossRevenue = REPLACE(REPLACE(REPLACE(REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.')
                       ",$path,$producido->id_producido);
 
     $pdo->exec($query);
-
-    $query = sprintf(" INSERT INTO detalle_producido (valor,cod_juego,id_producido)
-    SELECT ((TotalWagerCash + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as valor,GameId as cod_juego,id_producido
+    $query = sprintf(" INSERT INTO detalle_producido 
+    (id_producido,
+    cod_juego,
+    categoria,
+    jugadores,
+    TotalWagerCash,
+    TotalWagerBonus,
+    TotalWager,
+    GrossRevenueCash,
+    GrossRevenueBonus,
+    GrossRevenue,
+    valor)
+    SELECT 
+    id_producido,
+    GameId as cod_juego,
+    GameCategory as categoria,
+    Players as jugadores,
+    TotalWagerCash,
+    TotalWagerBonus,
+    TotalWager,
+    GrossRevenueCash,
+    GrossRevenueBonus,
+    GrossRevenue,
+    ((TotalWagerCash + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as valor
     FROM producido_temporal
     WHERE producido_temporal.id_producido = '%d'
     ",$producido->id_producido);
 
     $pdo->exec($query);
-/*
+
     $query = sprintf(" DELETE FROM producido_temporal
                        WHERE id_producido = '%d'
                        ",$producido->id_producido);
 
     $pdo->exec($query);
-*/
+
     DB::connection()->enableQueryLog();
 
     /*
