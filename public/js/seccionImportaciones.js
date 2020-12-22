@@ -224,7 +224,7 @@ $('#btn-minimizar').click(function(){
 });
 
 $(document).on('click','.planilla', function(){
-  var tipo_importacion = $('#tablaImportaciones').attr('data-tipo');
+  var tipo_importacion = $('#tipo_archivo').val();
 
   //Mostrar el título correspondiente
   switch (tipo_importacion) {
@@ -237,7 +237,6 @@ $(document).on('click','.planilla', function(){
   }
 
   var head = $('#tablaVistaPrevia thead tr');
-
   //Limpiar el modal
   $('#modalPlanilla #fecha').val('');
   $('#modalPlanilla #plataforma').val('');
@@ -246,7 +245,7 @@ $(document).on('click','.planilla', function(){
   $('#tablaVistaPrevia tbody tr').remove();
 
   //Comprobar el tipo de importacion. BENEFICIO tiene una ruta diferente a PRODUCIDO
-  if (tipo_importacion == 3) {
+  if (tipo_importacion == 3) {/*//@TODO IMPLEMENTAR CUANDO SE HAGA BENMEFICIOS
       //el request contiene mes anio id_tipo_moneda id_plataforma
       $.ajaxSetup({
           headers: {
@@ -287,18 +286,26 @@ $(document).on('click','.planilla', function(){
           error: function (data) {
             console.log(data);
           }
-      });
+      });*/
   }else if (tipo_importacion == 2) {
-      var id_importacion = $(this).val();
-      $.get('importaciones/obtenerVistaPrevia/' + tipo_importacion + '/' + id_importacion, function(data){
-        $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
-        $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
-        $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-        head.append($('<th>').addClass('col-xs-5').append($('<h5>').text('MTM')));
-        head.append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
-        for (var i = 0; i < data.detalles_producido.length; i++) {
-          agregarFilaDetalleProducido(data.detalles_producido[i]);
-        }
+        $.ajax({
+          type: 'POST',
+          url: 'importaciones/previewProducidos',
+          data: {id_producido: $(this).val(),page: 0,size: 30},
+          dataType: 'json',
+          success: function (data) {//@TODO: AGREGAR PAGINADO
+            $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
+            $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
+            $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
+            head.append($('<th>').addClass('col-xs-5').append($('<h5>').text('JUEGO')));
+            head.append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
+            for (var i = 0; i < data.detalles_producido.length; i++) {
+              agregarFilaDetalleProducido(data.detalles_producido[i]);
+            }
+          },
+          error: function (data) {
+            console.log(data);
+          }
       });
   }
 
@@ -377,7 +384,7 @@ $('#btn-eliminarModal').click(function (e) {
 /*********************** PRODUCIDOS *********************************/
 function agregarFilaDetalleProducido(producido) {
   var fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-5').text(producido.nro_admin));
+  fila.append($('<td>').addClass('col-xs-5').text(producido.cod_juego));
   fila.append($('<td>').addClass('col-xs-7').text(producido.valor));
   $('#tablaVistaPrevia tbody').append(fila);
 }
@@ -468,10 +475,8 @@ $('#btn-guardarProducido').on('click',function(e){
 
           $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN PRODUCIDO');
 
-          text=data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados'
-          if(data.cant_mtm_forzadas){
-            text=text+ '<br>' + data.cant_mtm_forzadas +' Máquinas no reportaron'
-          }
+          text = data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados'
+          if(data.juegos_multiples_reportes > 0) text += '<br>' + data.juegos_multiples_reportes + ' juego(s) reportaron multiples veces';
 
           $('#mensajeExito p').html(text);
 
@@ -920,8 +925,6 @@ function agregarFilasImportaciones(data, id) {
 //Detectar el cambio de TIPO DE ARCHIVO
 $('#tipo_archivo').on('change',function(){
     setearValueFecha();
-
-    // $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
 });
 
 function clickIndice(e,pageNumber,tam){
@@ -937,20 +940,19 @@ function clickIndice(e,pageNumber,tam){
 $(document).on('click','#tablaImportaciones thead tr th[value]',function(e){
   $('#tablaImportaciones th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+    $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
   }
   else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
+      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
     }
     else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
     }
   }
-  $('#tablaImportaciones th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  $('#tablaImportaciones th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
-
 $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
   $.ajaxSetup({
     headers: {
@@ -965,11 +967,11 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
     var size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+  var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaImportaciones .activa').attr('value'),orden: $('#tablaImportaciones .activa').attr('estado')} ;
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaImportaciones th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
+  if(sort_by == null){ //limpio las columnas
+    $('#tablaImportaciones th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
   var formData = {
@@ -990,27 +992,12 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
     dataType: 'json',
     success: function (resultados) {
       $('#tablaImportaciones tbody tr').remove();
-
-      //Mostrar BENEFICIOS
-      if (typeof resultados.beneficios.total != 'undefined') {
-        $('#tablaImportaciones').attr('data-tipo', 3);
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.beneficios.total,clickIndice);
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.beneficios.total,clickIndice);
-        $('#tituloTabla').text('Todos los Beneficios');
-        for (var i = 0; i < resultados.beneficios.data.length; i++) {
-          agregarFilasImportaciones(resultados.beneficios.data[i], null);
-        }
+      $('#tablaImportaciones').attr('data-tipo', formData.seleccion);
+      $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
+      for (var i = 0; i < resultados.data.length; i++) {
+        agregarFilasImportaciones(resultados.data[i],resultados.data[i].id_producido);
       }
-      //Mostrar PRODUCIDOS
-      else if (typeof resultados.producidos.total != 'undefined') {
-        $('#tablaImportaciones').attr('data-tipo', 2);
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.producidos.total,clickIndice);
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.producidos.total,clickIndice);
-        $('#tituloTabla').text('Todos los PRODUCIDOS');
-        for (var i = 0; i < resultados.producidos.data.length; i++) {
-          agregarFilasImportaciones(resultados.producidos.data[i],resultados.producidos.data[i].id_producido);
-        }
-      }
+      $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
     },
     error: function (data) {
       console.log('Error:', data);

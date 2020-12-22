@@ -40,10 +40,11 @@ class LectorCSVController extends Controller
   // y va generando los detalles producidos
   // es posbile que en el archivo no envien juegos (diversos motivos) en ese caso se fuerza a que tenga
   // producido 0 y se genera un log en el archivo de producido
-  public function importarProducido($archivoCSV,$fecha,$plataforma){
+  public function importarProducido($archivoCSV,$fecha,$plataforma,$moneda){
     $producido = new Producido;
     $producido->id_plataforma = $plataforma;
     $producido->fecha = $fecha;
+    $producido->id_tipo_moneda = $moneda;
     $producido->save();
 
     $producidos_viejos = DB::table('producido')->where([
@@ -133,49 +134,22 @@ class LectorCSVController extends Controller
 
     DB::connection()->enableQueryLog();
 
-    /*
+    $duplicados = DB::table('detalle_producido')->select('cod_juego',DB::raw('COUNT(distinct id_detalle_producido) as veces'))
+    ->where('id_producido','=',$producido->id_producido)
+    ->groupBy('cod_juego')
+    ->havingRaw('COUNT(distinct id_detalle_producido) > 1')->get()->count();
 
-
-
-    $query = sprintf(" DELETE FROM producido_temporal
-                       WHERE id_producido = '%d'
-                       ",$producido->id_producido);
-
-    $pdo->exec($query);
-
-    $cantidad_maquinas = Maquina::where('id_casino','=',$casino)->whereHas('estado_maquina',function($q){
-                                  $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
-
-   
-    $cantidad_registros = DetalleProducido::where('id_producido','=',$producido->id_producido)->count();
-    // implementacion para contemplar los casos donde ciertas maquinas no reportan producido
-    $mtms= Maquina::select("id_maquina","nro_admin")
-                    ->where("id_casino","=",$casino)
-                    ->whereNull("deleted_at")
-                    ->whereIn("id_estado_maquina",[1,2,4,5,7])
-                    ->get();
-    $cant_mtm_forzadas=0;
-    $id_mtm_forzadas=array();
-    foreach($mtms as $m){
-      $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
-                            ->where("id_producido","=", $producido->id_producido)
-                            ->count();
-
-      if(!$cant){
-        $daux= new DetalleProducido;
-        $daux->valor=0;
-        $daux->id_maquina=$m->id_maquina;
-        $daux->id_producido=$producido->id_producido;
-        $daux->save();
-        $cant_mtm_forzadas=$cant_mtm_forzadas+1;
-        array_push($id_mtm_forzadas,$m->id_maquina);
-      }
-    }
-    $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
-    $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
-    $producido->save();
-  //fin de implementacion
-    return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];*/
+    /*$inhabilitados_reportando = 999;//@TODO Agregar estado a plataforma_tiene_juego
+    $habilitados_sin_reportar = 999;
+    $juego_faltante_en_bd = 999;
+    $juego_en_bd_sin_asignar_plataforma = 999;
+    $mal_categoria = 999;*/
+    return ['id_producido' => $producido->id_producido,
+    'fecha' => $producido->fecha,
+    'plataforma' => $producido->plataforma->nombre,
+    'tipo_moneda' => $producido->tipo_moneda->descripcion,
+    'cantidad_registros' => $producido->detalles()->count(),
+    'juegos_multiples_reportes' => $duplicados];
   }
   // importarBeneficioSantaFeMelincue se crea temporal insertando todos los valores del csv
   // solo se toma la linea de beneficio para insertar en la tabla real

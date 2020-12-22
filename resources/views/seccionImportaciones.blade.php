@@ -256,10 +256,6 @@ $id_usuario = session('id_usuario');
                                 <tbody style="height: 300px;">
                                 </tbody>
                             </table>
-
-                            <br>
-
-                            <legend></legend>
                             <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                           </div> <!-- .panel-body -->
                         </div> <!-- .panel -->
@@ -308,12 +304,11 @@ $id_usuario = session('id_usuario');
 
                             </tbody>
                           </table>
-                          <br>
-                          <p style="color:#aaa;font-family:Roboto-Regular;font-size:16px;margin-left:10px;">Se muestran los primeros 30 registros.</p>
                       </div>
+                    <button id="prevProducidos" type="button" class="btn btn-link col-md-1"><i class="fas fa-arrow-left"></i></button>
+                    <button id="nextProducidos" type="button" class="btn btn-link col-md-offset-10 col-md-1"><i class="fas fa-arrow-right"></i></button>
                   </div>
                 </div>
-
                 <div class="modal-footer">
                   <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
                 </div>

@@ -179,8 +179,8 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::get('/{id_plataforma}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDePlataforma');
   Route::post('/importarProducido','ImportacionController@importarProducido');
   Route::post('/importarBeneficio','ImportacionController@importarBeneficio');
-  Route::get('/obtenerVistaPrevia/{tipo_importacion}/{id}','ImportacionController@obtenerVistaPrevia');
   Route::post('/previewBeneficios','ImportacionController@previewBeneficios');
+  Route::post('/previewProducidos','ImportacionController@previewProducidos');
 });
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');

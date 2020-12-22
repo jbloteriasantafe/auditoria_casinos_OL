@@ -63,143 +63,55 @@ class ImportacionController extends Controller
     return ['beneficios'=>$beneficios, 'plataforma' => $plataforma, 'tipo_moneda' => $tipo_moneda];
   }
 
-  public function obtenerVistaPrevia($tipo_importacion,$id){
-    $detalles_contador=null;
-    $detalles_producido=null;
-    $contador=null;
-    $producido=null;
-
-    switch ($tipo_importacion) {
-      case 1: //contador
-        $contador = ContadorHorario::find($id);
-
-        //$contadores = (ContadorHorario::find($id))->detalles;
-        $detalles_contador = DB::table('contador_horario')
-                          ->select('detalle_contador_horario.*','maquina.nro_admin')
-                          ->join('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
-                          ->join('maquina','maquina.id_maquina','=','detalle_contador_horario.id_maquina')
-                          ->where('contador_horario.id_contador_horario','=',$id)
-                          ->take(30)
-                          ->get();
-
-        $tipo_moneda = $contador->tipo_moneda;
-        $plataforma = $contador->plataforma;
-        break;
-      case 2: //producidos
-        $producido = Producido::find($id);
-        //$producidos = (Producido::find($id))->detalles;
-        $detalles_producido = DB::table('producido')
-                          ->select('detalle_producido.*','maquina.nro_admin')
-                          ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
-                          ->join('maquina','maquina.id_maquina','=','detalle_producido.id_maquina')
-                          ->where('producido.id_producido','=',$id)
-                          ->take(30)
-                          ->get();
-
-        $tipo_moneda = $producido->tipo_moneda;
-        $plataforma = $producido->plataforma;
-        break;
-      default:
-        //nothing :)
-        break;
-    }
-
-    return ['contador' => $contador , 'producido' => $producido,
-            'tipo_moneda'  => $tipo_moneda, 'plataforma' => $plataforma,
-            'detalles_contador' => $detalles_contador,'detalles_producido'=> $detalles_producido];
+  public function previewProducidos(Request $request){
+    $producido = Producido::find($request->id_producido);
+    if(is_null($producido)) return response()->json("No existe el producido",422);
+    return ['producido' => $producido,
+    'detalles_producido'=> $producido->detalles()->select('cod_juego','valor')->skip($request->page*$request->size)->take($request->size)->get(), 
+    'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda];
   }
 
   public function buscar(Request $request){
-    $reglas = array();
-    $plataformas = array();
-    if($request->plataformas !=0){
-      $plataformas[] = $request->plataformas;
-    }else {
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      foreach ($usuario->plataformas as $plataforma) {
-        $plataformas[] = $plataforma->id_plataforma;
-      }
+    $plataformas = [];
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    foreach ($usuario->plataformas as $plataforma) {
+      $plataformas[] = $plataforma->id_plataforma;
     }
 
-    if(isset($request->tipo_moneda) && $request->tipo_moneda !=0)
+    $reglas = [];
+    if(isset($request->tipo_moneda) && $request->tipo_moneda !=0){
       $reglas[]=['tipo_moneda.id_tipo_moneda','=', $request->tipo_moneda];
-
-
-    $contadores =array();
-    $producidos =array();
-    $beneficios =array();
+    }
+    if(isset($request->plataformas) && $request->plataformas !=0){
+      $reglas[]=['id_plataforma','=',$request->id_plataforma];
+    }
 
     $sort_by = $request->sort_by;
-
-    switch ($request->seleccion) {
-      case 1://contadores
-        if(!isset($request->fecha)){
-          $contadores = DB::table('contador_horario')->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
-                                                              ,'plataforma.nombre as plataforma' , 'plataforma.id_plataforma as id_plataforma','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
-                                                     ->join('plataforma','contador_horario.id_plataforma','=','plataforma.id_plataforma')
-                                                     ->join('tipo_moneda','contador_horario.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                                                     ->where($reglas)
-                                                     ->whereIn('plataforma.id_plataforma' , $plataformas)
-                                                     ->when($sort_by,function($query) use ($sort_by){
-                                                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                                                 })
-                                                     ->paginate($request->page_size);
-
-          }else{
-            $fecha=explode("-", $request->fecha);
-            $contadores = DB::table('contador_horario')
-                             ->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
-                                      ,'plataforma.nombre as plataforma' , 'plataforma.id_plataforma as id_plataforma','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
-                             ->join('plataforma','contador_horario.id_plataforma','=','plataforma.id_plataforma')
-                             ->join('tipo_moneda','contador_horario.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                             ->where($reglas)
-                             ->whereIn('plataforma.id_plataforma' , $plataformas)
-                             ->whereYear('contador_horario.fecha' , '=' ,$fecha[0])
-                             ->whereMonth('contador_horario.fecha','=', $fecha[1])
-                             ->when($sort_by,function($query) use ($sort_by){
-                                             return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                         })
-
-                             ->paginate($request->page_size);
-          }
-          break;
-      case 2://producidos
-        if(empty($request->fecha)){
-          $producidos = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
-                                                      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
-                                              ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
-                                              ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                                              ->where($reglas)
-                                              ->whereIn('plataforma.id_plataforma' , $plataformas)
-                                              ->when($sort_by,function($query) use ($sort_by){
-                                                              return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                                          })
-
-                                              ->paginate($request->page_size);
-
-        }else{
-          $fecha=explode("-", $request->fecha);
-          $producidos = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
-                                                      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
-                                              ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
-                                              ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                                              ->where($reglas)
-                                              ->whereIn('plataforma.id_plataforma' , $plataformas)
-                                              ->whereYear('producido.fecha' , '=' ,$fecha[0])
-                                              ->whereMonth('producido.fecha','=', $fecha[1])
-                                              ->when($sort_by,function($query) use ($sort_by){
-                                                              return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                                          })
-
-                                              ->paginate($request->page_size);
-        }
-        break;
-      case 3://beneficios
-      $reglas2 = array();
+    $resultados = ["data" => [],"total" => 0];
+    if($request->seleccion == 2){//producidos
+      $resultados = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
+      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda')
+      ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
+      ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
+      ->where($reglas)
+      ->whereIn('plataforma.id_plataforma' , $plataformas);
+      if(!empty($request->fecha)){
+        $resultados = $resultados->whereIn('plataforma.id_plataforma' , $plataformas)
+        ->whereYear('producido.fecha' , '=' ,$fecha[0])
+        ->whereMonth('producido.fecha','=', $fecha[1]);
+      }
+      $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                })
+      ->paginate($request->page_size);
+    }
+    else if($request->seleccion == 3){
+      //@TODO: Implementar cuando se implemente la carga de beneficios
+      //beneficios
+/*     $reglas2 = array();
 
       if($request->sort_by['columna'] == "beneficio.fecha"){
         $sort_by['columna'] = 'anio,mes';
-
       }
 
 
@@ -255,24 +167,10 @@ class ImportacionController extends Controller
                  $error = "ERROR MESSAGE";
                  dd($error);
          }
-
-
         }
-        break;
-    default:
-      //nada
-        break;
+        */
     }
-
-    foreach ($contadores as $index => $contador){
-      if($contador->id_plataforma == 1 || $contador->id_plataforma == 2){
-        $contadores[$index]->fecha_archivo = date('Y-m-d' , strtotime($contador->fecha . ' - 1 days'));
-      }else {//rosario
-        $contadores[$index]->fecha_archivo = $contador->fecha;
-      }
-    }
-
-      return  ['contadores' => $contadores, 'producidos' => $producidos, 'beneficios' => $beneficios];
+    return  $resultados;
   }
 
 
@@ -338,9 +236,11 @@ class ImportacionController extends Controller
         }
     })->validate();
 
-    DB::transaction(function() use ($request){
-      LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_tipo_moneda);
+    $ret = null;
+    DB::transaction(function() use ($request,&$ret){
+      $ret = LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
     });
+    return $ret;
   }
 
   public function importarBeneficio(Request $request){
