@@ -70,18 +70,6 @@ class JuegoController extends Controller
     return LogJuego::where('id_juego','=',$id)->orderBy('fecha','desc')->get();
   }
 
-  public function encontrarOCrear($juego){
-        $resultado=$this->buscarJuegoPorNombre($juego);
-        if(count($resultado)==0){
-            $juegoNuevo=new Juego;
-            $juegoNuevo->nombre_juego=trim($juego);
-            $juegoNuevo->save();
-        }else{
-            $juegoNuevo=$resultado[0];
-        }
-        return $juegoNuevo;
-  }
-
   public function guardarJuego(Request $request){
     Validator::make($request->all(), [
       'nombre_juego' => 'required|max:100',
@@ -281,13 +269,6 @@ class JuegoController extends Controller
     return $todos;
   }
 
-
-  //busca UN juego que coincida con el nombre  @param $nombre_juego
-  public function buscarJuegoPorNombre($nombre_juego){
-    $resultado=Juego::where('nombre_juego' , '=' , trim($nombre_juego))->get();
-    return $resultado;
-  }
-
   public function buscarJuegos(Request $request){
     $reglas=array();
     $casinos = Usuario::find(session('id_usuario'))->casinos;
@@ -354,6 +335,16 @@ class JuegoController extends Controller
     $resultados = $resultados->groupBy('juego.id_juego');
     $resultados = $resultados->orderBy('juego.id_juego','desc');
     $resultados = $resultados->paginate($request->page_size);
+    $resultados = $resultados->toArray();
+    $resultados['data'] = array_map(function($v){
+      $juego = Juego::find($v->id_juego);
+      $plats = [];
+      foreach($juego->plataformas as $p){
+        $plats[] = $p->codigo . ": " . EstadoJuego::find($p->pivot->id_estado_juego)->codigo;
+      }
+      $v->estado = implode(", ",$plats);
+      return $v;
+    },$resultados['data']);
     return $resultados;
   }
 
@@ -403,6 +394,10 @@ class JuegoController extends Controller
     //Iba a hacer un mapa con funciones anonimas y atributos pero asi es mas simple (tal vez en un futuro) - Octavio 3/12/2020
     $val = null;
     if($tipo == 'plataformas'){
+      $val = Plataforma::find($id);
+      $val = $val ? $val->codigo : null;
+    }
+    if($tipo == 'id_plataforma'){
       $val = Plataforma::find($id);
       $val = $val ? $val->codigo : null;
     }

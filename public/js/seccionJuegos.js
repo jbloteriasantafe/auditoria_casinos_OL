@@ -291,6 +291,9 @@ function estilizarJSON(j){
   }
   return bigdiv;
 }
+function isObject(obj){
+  return typeof obj === 'object' && obj !== null;
+}
 function estilizarFila(key,val){
   const mayusculas = function(s){//Reemplaza _ por espacio y empieza cada palabra en mayuscula
     return (s[0].toUpperCase()+s.substring(1)).replaceAll(/_[a-z]/g,x => ' '+x[1].toUpperCase())
@@ -301,6 +304,18 @@ function estilizarFila(key,val){
   if(key.substring(0,3) == 'id_'){
     newKey = mayusculas(key.substring(3));
     newVal = obtenerValor(key,val);
+  }
+  else if(key == "plataformas" && isObject(val[0])){//Lo hardcodeo porque generalizarlo lo haria demasiado confuso al codigo
+    newKey = mayusculas(key);
+    aux = [];
+    for(const idx in val){
+      const v = val[idx];
+      if(v['id_estado_juego'] === null) continue;
+      aux2 = obtenerValor('id_plataforma',v['id_plataforma']);
+      aux2+= ": " + obtenerValor('id_estado_juego',v['id_estado_juego']);
+      aux.push(aux2);
+    }
+    newVal = aux.join(', ');
   }
   else if(Array.isArray(val)){
     newKey = mayusculas(key);
@@ -488,7 +503,7 @@ function crearFilaJuego(juego){
   juego.certificados == null ?  codigo = '-' :   codigo= juego.certificados;
   juego.cod_juego == null ?  codigojuego = '-' :   codigojuego= juego.cod_juego;
   const categoria = $(`#buscadorCategoria option[value="${juego.id_categoria_juego}"]`);
-  const estado = "XXXXXX";
+  const estado = juego.estado.length > 0? juego.estado : "-";
 
   fila.attr('id',juego.id_juego)
   .append($('<td>')
@@ -504,7 +519,7 @@ function crearFilaJuego(juego){
   .append($('<td>')
       .addClass('col-xs-1')
       .addClass('estado')
-      .text(estado.length > 0? estado : "-")
+      .text(estado).attr("title",estado)
   )
   .append($('<td>')
       .addClass('col-xs-2')
