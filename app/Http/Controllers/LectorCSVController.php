@@ -54,24 +54,15 @@ class LectorCSVController extends Controller
 
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
-
+    
+    $prodCont = ProducidoController::getInstancia();
     if($producidos_viejos != null){
       foreach($producidos_viejos as $prod){
-        $query = sprintf(" DELETE FROM detalle_producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
+        $prodCont->eliminarProducido($prod->id_producido);
       }
     }
 
-
     $path = $archivoCSV->getRealPath();
-
 
     //A totalwager y gross revenue le saco el $, le saco el punto de los miles y le cambio la coma decimal por un punto
     $query = sprintf("LOAD DATA local INFILE '%s'

@@ -171,8 +171,6 @@ CALENDARIO
 /**********
 Contadores
 ***********/
-Route::delete('producidos/eliminarProducido/{id}','ProducidoController@eliminarProducido');
-Route::delete('beneficios/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
 Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_seccion_importaciones'],function(){
   Route::get('/','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
   Route::post('/buscar','ImportacionController@buscar');
@@ -181,6 +179,8 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::post('/importarBeneficio','ImportacionController@importarBeneficio');
   Route::post('/previewBeneficios','ImportacionController@previewBeneficios');
   Route::post('/previewProducidos','ImportacionController@previewProducidos');
+  Route::delete('/eliminarProducido/{id}','ProducidoController@eliminarProducido');
+  Route::delete('/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
 });
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');

@@ -391,15 +391,16 @@ $('#btn-eliminarModal').click(function (e) {
       }
   })
 
-  var url;
-
+  let = url = 'importaciones';
   switch(tipo_archivo){
     case '2':
-      url = "producidos/eliminarProducido/" + id_importacion;
+      url += "/eliminarProducido/" + id_importacion;
       break;
     case '3':
-      url = "beneficios/eliminarBeneficio/" + id_importacion;
+      url += "/eliminarBeneficio/" + id_importacion;
       break;
+    default:
+      return;
   }
 
   $.ajax({
@@ -677,6 +678,8 @@ $('#btn-ayuda').click(function(e){
 });
 
 $('#btn-importarBeneficios').click(function(e){
+  //@TODO: IMPLEMENTAR IMPORTAR BENEFICIOS
+  return;
   e.preventDefault();
   //Mostrar: rowArchivo
   $('#modalImportacionBeneficios #rowArchivo').show();
