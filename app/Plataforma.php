@@ -16,7 +16,7 @@ class Plataforma extends Model
     return $this->belongsToMany('App\Casino','plataforma_tiene_casino','id_plataforma','id_casino');
   }
   public function juegos(){
-    return $this->belongsToMany('App\Juego','plataforma_tiene_juego','id_plataforma','id_juego');
+    return $this->belongsToMany('App\Juego','plataforma_tiene_juego','id_plataforma','id_juego')->withPivot('id_estado_juego');
   }
   public function expedientes(){
     return $this->belongsToMany('App\Expediente','expediente_tiene_plataforma','id_plataforma','id_expediente');

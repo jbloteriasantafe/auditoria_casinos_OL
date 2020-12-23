@@ -63,7 +63,7 @@ class JuegoController extends Controller
 
     return ['juego' => $juego ,
             'certificadoSoft' => $this->obtenerCertificadosSoft($id),
-            'plataformas' => $juego->plataformas];
+            'plataformas' => DB::table('plataforma_tiene_juego')->where('id_juego',$id)->get()];
   }
 
   public function obtenerLogs($id){
@@ -87,7 +87,6 @@ class JuegoController extends Controller
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
-      'id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
       'denominacion_juego' => 'required|numeric|between:0,100',
@@ -99,7 +98,8 @@ class JuegoController extends Controller
       'codigo_operador' => 'nullable|string|max:100',
       'codigo_proveedor' => 'nullable|string|max:100',
       'plataformas' => 'required|array',
-      'plataformas.*' => 'required|integer|exists:plataforma,id_plataforma' 
+      'plataformas.*.id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
+      'plataformas.*.id_estado_juego' => 'nullable|integer|exists:estado_juego,id_estado_juego',
     ], array(), self::$atributos)->after(function ($validator) {
       $data = $validator->getData();
       if($data['movil'] == 0 && $data['escritorio'] == 0){
@@ -107,24 +107,27 @@ class JuegoController extends Controller
       }
       if($validator->errors()->any()) return;
 
-      $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos;
+      $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas;
       $plataformas_usuario = [];
-      foreach($casinos as $c){
-        foreach($c->plataformas as $p){
-          $plataformas_usuario[] = $p->id_plataforma;
-        }
+      foreach($plataformas as $p){
+        $plataformas_usuario[] = $p->id_plataforma;
       }
+
       foreach($data['plataformas'] as $p){
-        if(!in_array($p,$plataformas_usuario)){
+        if(!in_array($p['id_plataforma'],$plataformas_usuario)){
           $validator->errors()->add('id_juego', 'El usuario no puede acceder a este juego');
           break;
         }
       }
 
+      $id_plats = [];
+      foreach($data['plataformas'] as $p){
+        $id_plats[] = $p['id_plataforma'];
+      }
       //El nombre del juego es unico por plataforma
       $juegos_mismo_nombre = DB::table('juego as j')
       ->join('plataforma_tiene_juego as p','p.id_juego','=','j.id_juego')
-      ->whereIn('p.id_plataforma',$data['plataformas'])
+      ->whereIn('p.id_plataforma',$id_plats)
       ->where('j.nombre_juego',$data['nombre_juego']);
       if($juegos_mismo_nombre->count() > 0){
         $validator->errors()->add('nombre_juego', 'validation.unique');
@@ -143,10 +146,13 @@ class JuegoController extends Controller
       $juego->codigo_proveedor = $request->codigo_proveedor;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
-      $juego->id_estado_juego = $request->id_estado_juego;
       $juego->save();
       
-      $juego->plataformas()->sync($request->plataformas);
+      $syncarr = [];
+      foreach($request->plataformas as $p){
+        if(!is_null($p['id_estado_juego'])) $syncarr[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
+      }
+      $juego->plataformas()->sync($syncarr);
   
       foreach($juego->gliSoft as $gli){
         $juego->gliSoft()->detach($gli->id_gli_soft);
@@ -172,7 +178,6 @@ class JuegoController extends Controller
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
-      'id_estado_juego' => 'required|integer|exists:estado_juego,id_estado_juego',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
       'denominacion_juego' => 'required|numeric|between:0,100',
@@ -184,7 +189,8 @@ class JuegoController extends Controller
       'codigo_operador' => 'nullable|string|max:100',
       'codigo_proveedor' => 'nullable|string|max:100',
       'plataformas' => 'required|array',
-      'plataformas.*' => 'required|integer|exists:plataforma,id_plataforma' 
+      'plataformas.*.id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
+      'plataformas.*.id_estado_juego' => 'nullable|integer|exists:estado_juego,id_estado_juego',
     ], array(), self::$atributos)->after(function ($validator){
       $data = $validator->getData();
       if($data['movil'] == 0 && $data['escritorio'] == 0){
@@ -193,25 +199,27 @@ class JuegoController extends Controller
       if($validator->errors()->any()) return;
 
 
-      $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos;
+      $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas;
       $plataformas_usuario = [];
-      foreach($casinos as $c){
-        foreach($c->plataformas as $p){
-          $plataformas_usuario[] = $p->id_plataforma;
-        }
+      foreach($plataformas as $p){
+        $plataformas_usuario[] = $p->id_plataforma;
       }
 
       foreach($data['plataformas'] as $p){
-        if(!in_array($p,$plataformas_usuario)){
+        if(!in_array($p['id_plataforma'],$plataformas_usuario)){
           $validator->errors()->add('id_juego', 'El usuario no puede acceder a este juego');
           break;
         }
       }
 
+      $id_plats = [];
+      foreach($data['plataformas'] as $p){
+        $id_plats[] = $p['id_plataforma'];
+      }
       //El nombre del juego es unico por plataforma
       $juegos_mismo_nombre = DB::table('juego as j')
       ->join('plataforma_tiene_juego as p','p.id_juego','=','j.id_juego')
-      ->whereIn('p.id_plataforma',$data['plataformas'])
+      ->whereIn('p.id_plataforma',$id_plats)
       ->where('j.nombre_juego',$data['nombre_juego'])
       ->where('j.id_juego','<>',$data['id_juego']);
       if($juegos_mismo_nombre->count() > 0){
@@ -236,10 +244,13 @@ class JuegoController extends Controller
       $juego->codigo_proveedor = $request->codigo_proveedor;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
-      $juego->id_estado_juego = $request->id_estado_juego;
       $juego->save();
 
-      $juego->plataformas()->sync($request->plataformas);
+      $syncarr = [];
+      foreach($request->plataformas as $p){
+        if(!is_null($p['id_estado_juego'])) $syncarr[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
+      }
+      $juego->plataformas()->sync($syncarr);
 
       foreach($juego->gliSoft as $gli){
         $juego->gliSoft()->detach($gli->id_gli_soft);
@@ -297,7 +308,7 @@ class JuegoController extends Controller
       $reglas[] = ['juego.id_categoria_juego','=',$request->id_categoria_juego];
     }
     if(!empty($request->id_estado_juego)){
-      $reglas[] = ['juego.id_estado_juego','=',$request->id_estado_juego];
+      $reglas[] = ['plataforma_tiene_juego.id_estado_juego','=',$request->id_estado_juego];
     }
 
     foreach($casinos as $casino){

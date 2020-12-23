@@ -158,7 +158,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   formData={
     id_plataforma: $('#buscadorPlataforma').val(),
-    id_casino: $('#buscadorCasino').val(),
     id_categoria_juego: $('#buscadorCategoria').val(),
     id_estado_juego: $('#buscadorEstado').val(),
     nombreJuego: $('#buscadorNombre').val(),
@@ -276,7 +275,7 @@ function estilizarJSON(j){
   const bigdiv = $('<div>').addClass('row');
   const blacklist = ['id_juego'];
   //Lo ordeno de manera similar al mostrarJuego
-  const order = ['nombre_juego','id_categoria_juego','id_estado_juego',
+  const order = ['nombre_juego','id_categoria_juego',
   'cod_juego','escritorio','movil','plataformas','codigo_operador','codigo_proveedor',
   'certificados','denominacion_juego','porcentaje_devolucion','id_tipo_moneda'];
   const keys = order.concat(Object.keys(j).filter(k => !order.includes(k))); //Si alguna no esta en la lista de arriba se agrega abajo de todo
@@ -390,12 +389,11 @@ $('#btn-guardar').click(function (e) {
     var type = "POST";
     var url = '/juegos/guardarJuego';
 
+    
     var formData = {
       nombre_juego: $('#inputJuego').val(),
-      cod_identificacion: $('#inputCodigo').val(),
       cod_juego:$('#inputCodigoJuego').val(),
       id_categoria_juego: $('#selectCategoria').val(),
-      id_estado_juego: $('#selectEstado').val(),
       certificados: certificados,
       denominacion_juego: $('#denominacion_juego').val(),
       porcentaje_devolucion:  $('#porcentaje_devolucion').val(),
@@ -405,8 +403,15 @@ $('#btn-guardar').click(function (e) {
       movil: $('#movil').prop('checked') * 1,
       codigo_operador: $('#inputCodigoOperador').val(),
       codigo_proveedor: $('#inputCodigoProveedor').val(),
-      plataformas: $.map($('.plataforma:checked'), p => $(p).attr('data-id')),
-    }
+      plataformas: $.map($('.plataforma'), 
+        function(p){
+          return {
+            id_plataforma: $(p).attr('data-id'), 
+            id_estado_juego: $(p).val()
+          };
+        }
+      )
+    };
 
     if (state == "modificar") {
       url = '/juegos/modificarJuego';
@@ -431,9 +436,6 @@ $('#btn-guardar').click(function (e) {
             if(typeof response.nombre_juego !== 'undefined'){
               mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
             }
-            if(typeof response.cod_identificacion !== 'undefined'){
-              mostrarErrorValidacion($('#inputCodigo'),parseError(response.cod_identificacion),true);
-            }
             if(typeof response.denominacion_juego !== 'undefined'){
               mostrarErrorValidacion($('#denominacion_juego'),parseError(response.denominacion_juego),true);
             }
@@ -449,9 +451,6 @@ $('#btn-guardar').click(function (e) {
             }
             if(typeof response.id_categoria_juego !== 'undefined'){
               mostrarErrorValidacion($('#selectCategoria'),parseError(response.id_categoria_juego),true);
-            }
-            if(typeof response.id_estado_juego !== 'undefined'){
-              mostrarErrorValidacion($('#selectEstado'),parseError(response.id_estado_juego),true);
             }
             if(typeof response.tipos !== 'undefined'){
               mostrarErrorValidacion($('#tipos'),parseError(response.tipos),true);
@@ -489,7 +488,7 @@ function crearFilaJuego(juego){
   juego.certificados == null ?  codigo = '-' :   codigo= juego.certificados;
   juego.cod_juego == null ?  codigojuego = '-' :   codigojuego= juego.cod_juego;
   const categoria = $(`#buscadorCategoria option[value="${juego.id_categoria_juego}"]`);
-  const estado = $(`#buscadorEstado option[value="${juego.id_estado_juego}"]`);
+  const estado = "XXXXXX";
 
   fila.attr('id',juego.id_juego)
   .append($('<td>')
@@ -505,7 +504,7 @@ function crearFilaJuego(juego){
   .append($('<td>')
       .addClass('col-xs-1')
       .addClass('estado')
-      .text(estado.length > 0? estado.text() : "-")
+      .text(estado.length > 0? estado : "-")
   )
   .append($('<td>')
       .addClass('col-xs-2')
@@ -588,7 +587,6 @@ function mostrarJuego(juego, certificados,plataformas){
   $('#inputJuego').val(juego.nombre_juego);
   $('#inputCodigoJuego').val(juego.cod_juego);
   $('#selectCategoria').val(juego.id_categoria_juego);
-  $('#selectEstado').val(juego.id_estado_juego);
   $('#inputCodigoOperador').val(juego.codigo_operador);
   $('#inputCodigoProveedor').val(juego.codigo_proveedor);
   $('#motivo').val("");
@@ -602,10 +600,9 @@ function mostrarJuego(juego, certificados,plataformas){
     .attr('data-id',cert.id_gli_soft);
   }
 
-  $('#selectCasinosJuego').empty();
-  $('.plataforma').prop('checked',false);
+  $('.plataforma').val('');
   plataformas.forEach( p => {
-    $(`.plataforma[data-id="${p.id_plataforma}"`).prop('checked',true).change();
+    $(`.plataforma[data-id="${p.id_plataforma}"`).val(p.id_estado_juego);
   });
 
   $('#denominacion_juego').val(juego.denominacion_juego);
@@ -638,15 +635,3 @@ function mensajeError(errores) {
       $('#mensajeError').show();
   }, 250);
 }
-
-$('.plataforma').change(function(){
-  const casinos = $(this).attr('data-casinos').split(',');
-  const agregar = $(this).prop('checked');
-  for(let i = 0;i < casinos.length; i++){
-    const c = casinos[i];
-    const existente = $(`#selectCasinosJuego option[value="${c}"]`);
-    const nombre = $(`#buscadorCasino option[value="${c}"]`).text();
-    if(agregar && existente.length == 0) $('#selectCasinosJuego').append($('<option disabled>').val(c).text(nombre));
-    else if(!agregar) existente.remove();
-  }
-});

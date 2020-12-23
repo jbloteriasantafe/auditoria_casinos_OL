@@ -14,19 +14,13 @@ class Juego extends Model
   protected $table = 'juego';
   protected $primaryKey = 'id_juego';
   protected $visible = array(
-    'id_juego','nombre_juego','cod_identificacion','cod_juego','codigo_operador','codigo_proveedor',
+    'id_juego','nombre_juego','cod_juego','codigo_operador','codigo_proveedor',
     'denominacion_contable','denominacion_juego','porcentaje_devolucion', 'escritorio','movil',
-    'id_unidad_medida','id_tipo_moneda','id_categoria_juego','id_estado_juego','deleted_at'
+    'id_unidad_medida','id_tipo_moneda','id_categoria_juego','deleted_at'
   );
   public $timestamps = true;
   protected $dates = ['deleted_at'];
-  protected $appends = array('cod_identificacion','casinos');
-
-  public function getCodIdentificacionAttribute(){
-    if($this->id_gli_soft != null){
-      return GliSoft::find($this->id_gli_soft)->nro_archivo;}
-      return null;
-  }
+  protected $appends = array('casinos');
 
   public function gliSoft(){
     return $this->belongsToMany('App\GliSoft','juego_glisoft','id_juego','id_gli_soft');
@@ -70,7 +64,7 @@ class Juego extends Model
   }
 
   public function plataformas(){
-    return $this->belongsToMany('App\Plataforma','plataforma_tiene_juego','id_juego','id_plataforma');
+    return $this->belongsToMany('App\Plataforma','plataforma_tiene_juego','id_juego','id_plataforma')->withPivot('id_estado_juego');
   }
 
   public function maquinas(){//En realidad obtiene las maquinas que lo tienen como activo.

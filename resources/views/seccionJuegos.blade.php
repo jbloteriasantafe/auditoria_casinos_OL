@@ -34,16 +34,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     <select id="buscadorPlataforma" class="form-control">
                                       <option value="">- Todas -</option>
                                       @foreach($plataformas as $p)
-                                      <option value="{{$p->id_plataforma}}" data-casinos="{{implode(',',array_map(function($c){return $c['id_casino'];},$p->casinos->toArray()))}}">{{$p->nombre}}</option>
-                                      @endforeach
-                                    </select>
-                                  </div>
-                                  <div class="col-md-3">
-                                    <h5>Casino</h5>
-                                    <select id="buscadorCasino" class="form-control">
-                                      <option value="">- Todos los casinos -</option>
-                                      @foreach($casinos as $casino)
-                                      <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                      <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
                                       @endforeach
                                     </select>
                                   </div>
@@ -207,11 +198,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                 <div class="row">
                   <div class="row">
                     <div class="col-md-12">
-                      <div class="col-md-4">
+                      <div class="col-md-6">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-6">
                         <h5>Categoría</h5>
                         <select id="selectCategoria" class="form-control">
                           <option value="">- Seleccionar -</option>
@@ -220,20 +211,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           @endforeach
                         </select>
                       </div>
-                      <div class="col-md-4">
-                        <h5>Estado</h5>
-                        <select id="selectEstado" class="form-control">
-                          <option value="">- Seleccionar -</option>
-                          @foreach($estado_juego as $e)
-                          <option value="{{$e->id_estado_juego}}">{{$e->nombre}}</option>
-                          @endforeach
-                        </select>
-                      </div>
-                      <div class="col-md-3">
-                        <h5>Código Juego</h5>
-                        <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
-                      </div>
-                      <div class="col-md-3" id="tipos">
+                      <div class="col-md-4" id="tipos">
                         <h5>EN</h5>
                         <div class="form-check">
                           <input class="form-check-input" type="checkbox" value="" id="escritorio">
@@ -244,26 +222,29 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           <label class="form-check-label" for="movil">Móvil</label>
                         </div>
                       </div>
-                      <div class="col-md-3" id="plataformas">
+                      <div class="col-md-4" id="plataformas">
                         <h5>Plataformas</h5>
                         @foreach($plataformas as $idx => $p)
-                        <div class="form-check">
-                          <input class="form-check-input plataforma" type="checkbox" id="plataforma{{$idx}}" data-id="{{$p->id_plataforma}}" 
-                          data-casinos="{{implode(',',array_map(function($c){return $c['id_casino'];},$p->casinos->toArray()))}}">
-                          <label class="form-check-label" for="plataforma{{$idx}}">{{$p->nombre}}</label>
+                        <div class="row">
+                          <span>{{$p->nombre}}</span>
+                          <select class="form-control plataforma" data-id="{{$p->id_plataforma}}">
+                            <option value="">No disponible</option>
+                            @foreach($estado_juego as $e)
+                            <option value="{{$e->id_estado_juego}}">{{$e->nombre}}</option>
+                            @endforeach
+                          </select>
                         </div>
                         @endforeach
                       </div>
-                      <div class="col-md-3">
-                        <h5>Casinos</h5>
-                        <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="3" style="height: 100%;" readonly>
-                        </select>
+                      <div class="col-md-4">
+                        <h5>Código Juego</h5>
+                        <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                       </div>
-                      <div class="col-md-6">
+                      <div class="col-md-4">
                         <h5>Codigo de operador</h5>
                         <input id="inputCodigoOperador" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
                       </div>
-                      <div class="col-md-6">
+                      <div class="col-md-4">
                         <h5>Codigo de proveedor</h5>
                         <input id="inputCodigoProveedor" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
                       </div>
