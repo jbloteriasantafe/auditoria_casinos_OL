@@ -224,28 +224,51 @@ $('#btn-minimizar').click(function(){
 });
 
 $(document).on('click','.planilla', function(){
-  var tipo_importacion = $('#tipo_archivo').val();
-
+  const tipo_importacion = $('#tipo_archivo').val();
+  const titulo = {2:'VISTA PREVIA PRODUCIDO',3:'VISTA PREVIA BENEFICIO'}[tipo_importacion];
   //Mostrar el título correspondiente
-  switch (tipo_importacion) {
-    case '2':
-      $('#modalPlanilla h3.modal-title').text('VISTA PREVIA PRODUCIDO');
-      break;
-    case '3':
-      $('#modalPlanilla h3.modal-title').text('VISTA PREVIA BENEFICIO');
-      break;
-  }
+  $('#modalPlanilla h3.modal-title').text(titulo);
 
-  var head = $('#tablaVistaPrevia thead tr');
   //Limpiar el modal
   $('#modalPlanilla #fecha').val('');
   $('#modalPlanilla #plataforma').val('');
   $('#modalPlanilla #tipo_moneda').val('');
+  $('#modalPlanilla').attr('data-id',$(this).val());
+  $('#modalPlanilla').attr('data-page','0');
+  $('#modalPlanilla').attr('data-size',30);
+  $('#modalPlanilla').attr('data-tipo',tipo_importacion);
+  const head = $('#tablaVistaPrevia thead tr');
   head.children().remove();
+  if(tipo_importacion == 2){
+    head.append($('<th>').addClass('col-xs-2').append('JUEGO'));
+    head.append($('<th>').addClass('col-xs-1').append('CATEGORIA'));
+    head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
+    head.append($('<th>').addClass('col-xs-1').append('TotalWagerCash'));
+    head.append($('<th>').addClass('col-xs-1').append('TotalWagerBonus'));
+    head.append($('<th>').addClass('col-xs-1').append('TotalWager'));
+    head.append($('<th>').addClass('col-xs-1').append('GrossRevenueCash'));
+    head.append($('<th>').addClass('col-xs-1').append('GrossRevenueBonus'));
+    head.append($('<th>').addClass('col-xs-1').append('GrossRevenue'));
+    head.append($('<th>').addClass('col-xs-2').append('VALOR'));
+  }
+  else if(tipo_importacion == 3){
+    //@TODO: Implementar
+  }
   $('#tablaVistaPrevia tbody tr').remove();
 
   //Comprobar el tipo de importacion. BENEFICIO tiene una ruta diferente a PRODUCIDO
-  if (tipo_importacion == 3) {/*//@TODO IMPLEMENTAR CUANDO SE HAGA BENMEFICIOS
+  if (tipo_importacion == 3) {
+    actualizarPreviewBeneficios($(this).val(),0,30)
+  }else if (tipo_importacion == 2) {
+    actualizarPreviewProducidos($(this).val(),0,30);
+  }
+
+  //Mostrar el modal de la vista previa
+  $('#modalPlanilla').modal('show');
+});
+
+function actualizarPreviewBeneficios(id_beneficio,page,size){
+  /*//@TODO IMPLEMENTAR CUANDO SE HAGA BENMEFICIOS
       //el request contiene mes anio id_tipo_moneda id_plataforma
       $.ajaxSetup({
           headers: {
@@ -287,52 +310,68 @@ $(document).on('click','.planilla', function(){
             console.log(data);
           }
       });*/
-  }else if (tipo_importacion == 2) {
-        $.ajax({
-          type: 'POST',
-          url: 'importaciones/previewProducidos',
-          data: {id_producido: $(this).val(),page: 0,size: 30},
-          dataType: 'json',
-          success: function (data) {//@TODO: AGREGAR PAGINADO
-            $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
-            $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
-            $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-            head.append($('<th>').addClass('col-xs-5').append($('<h5>').text('JUEGO')));
-            head.append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
-            for (var i = 0; i < data.detalles_producido.length; i++) {
-              agregarFilaDetalleProducido(data.detalles_producido[i]);
-            }
-          },
-          error: function (data) {
-            console.log(data);
-          }
-      });
-  }
+  return;
+}
 
-  //Mostrar el modal de la vista previa
-  $('#modalPlanilla').modal('show');
+function actualizarPreviewProducidos(id_producido,page,size){
+  $('#prevPreview').attr('disabled',page == 0);
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  $.ajax({
+    type: 'POST',
+    url: 'importaciones/previewProducidos',
+    data: {id_producido: id_producido,page: page,size: size},
+    dataType: 'json',
+    success: function (data) {//@TODO: AGREGAR PAGINADO
+      $('#previewPage').text(page);
+      const totales = Math.ceil(data.cant_detalles/size);
+      $('#previewTotal').text(totales);
+      $('#nextPreview').attr('disabled',page >= totales);
+      $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
+      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
+      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
+      $('#tablaVistaPrevia tbody tr').remove();
+      for (var i = 0; i < data.detalles_producido.length; i++) {
+        agregarFilaDetalleProducido(data.detalles_producido[i]);
+      }
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
+}
+
+$('#prevPreview').click(function(){
+  const id = parseInt($('#modalPlanilla').attr('data-id'));
+  let page = parseInt($('#modalPlanilla').attr('data-page'));
+  page = Math.max(page-1,0)
+  $('#modalPlanilla').attr('data-page',page);
+  const size = parseInt($('#modalPlanilla').attr('data-size'));
+  const tipo = parseInt($('#modalPlanilla').attr('data-tipo'));
+  if(tipo == 2) actualizarPreviewProducidos(id,page,size)
+  else if(tipo == 3) actualizarPreviewBeneficios(id,page,size);
+});
+
+$('#nextPreview').click(function(){
+  const id = parseInt($('#modalPlanilla').attr('data-id'));
+  let page = parseInt($('#modalPlanilla').attr('data-page'));
+  page++;
+  $('#modalPlanilla').attr('data-page',page);
+  const size = parseInt($('#modalPlanilla').attr('data-size'));
+  const tipo = parseInt($('#modalPlanilla').attr('data-tipo'));
+  console.log('Pagina',page);
+  if(tipo == 2) actualizarPreviewProducidos(id,page,size)
+  else if(tipo == 3) actualizarPreviewBeneficios(id,page,size);
 });
 
 $(document).on('click','.borrar',function(){
-
-  $('.modal-title').removeAttr('style');
-  $('.modal-title').text('ADVERTENCIA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-
-
-  var id_importacion = $(this).val();
+  const id_importacion = $(this).val();
   //Mirar en la tabla los tipos de archivos listados (2:producidos;3:beneficios).
-  var tipo_archivo = $('#tablaImportaciones').attr('data-tipo');
-  var nombre_tipo_archivo;
-
-  switch (tipo_archivo) {
-    case '2':
-      nombre_tipo_archivo = 'PRODUCIDO';
-      break;
-    case '3':
-      nombre_tipo_archivo = 'BENEFICIO';
-      break;
-  }
+  const tipo_archivo = $('#tipo_archivo').val();
+  const nombre_tipo_archivo = {2: 'PRODUCIDO',3: 'BENEFICIO'}[tipo_archivo];
 
   //Se muestra el modal de confirmación de eliminación
   //Se le pasa el tipo de archivo y el id del archivo
@@ -384,8 +423,16 @@ $('#btn-eliminarModal').click(function (e) {
 /*********************** PRODUCIDOS *********************************/
 function agregarFilaDetalleProducido(producido) {
   var fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-5').text(producido.cod_juego));
-  fila.append($('<td>').addClass('col-xs-7').text(producido.valor));
+  fila.append($('<td>').addClass('col-xs-2').text(producido.cod_juego));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.categoria));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.jugadores));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.TotalWagerCash));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.TotalWagerBonus));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.TotalWager));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.GrossRevenueCash));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.GrossRevenueBonus));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.GrossRevenue));
+  fila.append($('<td>').addClass('col-xs-2').append(producido.valor));
   $('#tablaVistaPrevia tbody').append(fila);
 }
 

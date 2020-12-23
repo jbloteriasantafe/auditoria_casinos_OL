@@ -66,9 +66,11 @@ class ImportacionController extends Controller
   public function previewProducidos(Request $request){
     $producido = Producido::find($request->id_producido);
     if(is_null($producido)) return response()->json("No existe el producido",422);
-    return ['producido' => $producido,
-    'detalles_producido'=> $producido->detalles()->select('cod_juego','valor')->skip($request->page*$request->size)->take($request->size)->get(), 
-    'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda];
+    return ['producido' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+    'cant_detalles' => $producido->detalles()->count(),
+    'detalles_producido'=> $producido->detalles()
+    ->select('cod_juego','categoria','jugadores','TotalWagerCash','TotalWagerBonus','TotalWager','GrossRevenueCash','GrossRevenueBonus','GrossRevenue','valor')
+    ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
   public function buscar(Request $request){

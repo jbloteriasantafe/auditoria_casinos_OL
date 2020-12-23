@@ -269,7 +269,7 @@ $id_usuario = session('id_usuario');
 
     <!-- Modal planilla -->
     <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
+          <div class="modal-dialog modal-lg" style="width:95%;">
              <div class="modal-content">
                 <div class="modal-header" style="background: #4FC3F7">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
@@ -297,16 +297,15 @@ $id_usuario = session('id_usuario');
                           <table id="tablaVistaPrevia" class="table table-fixed">
                             <thead>
                                 <tr>
-
                                 </tr>
                             </thead>
                             <tbody style="max-height:400px;">
-
                             </tbody>
                           </table>
                       </div>
-                    <button id="prevProducidos" type="button" class="btn btn-link col-md-1"><i class="fas fa-arrow-left"></i></button>
-                    <button id="nextProducidos" type="button" class="btn btn-link col-md-offset-10 col-md-1"><i class="fas fa-arrow-right"></i></button>
+                    <button id="prevPreview" type="button" class="btn btn-link col-md-1"><i class="fas fa-arrow-left"></i></button>
+                    <div class="col-md-offset-5 col-md-1">P <span id="previewPage">9</span>/<span id="previewTotal">999</span></div>
+                    <button id="nextPreview" type="button" class="btn btn-link col-md-offset-4 col-md-1"><i class="fas fa-arrow-right"></i></button>
                   </div>
                 </div>
                 <div class="modal-footer">
@@ -320,7 +319,7 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                   <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
                 </div>
