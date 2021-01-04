@@ -451,6 +451,9 @@ $('#btn-guardar').click(function (e) {
             if(typeof response.nombre_juego !== 'undefined'){
               mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
             }
+            if(typeof response.cod_juego !== 'undefined'){
+              mostrarErrorValidacion($('#inputCodigoJuego'),parseError(response.cod_juego),true);
+            }
             if(typeof response.denominacion_juego !== 'undefined'){
               mostrarErrorValidacion($('#denominacion_juego'),parseError(response.denominacion_juego),true);
             }

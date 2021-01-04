@@ -108,17 +108,13 @@ class JuegoController extends Controller
         }
       }
 
-      $id_plats = [];
-      foreach($data['plataformas'] as $p){
-        $id_plats[] = $p['id_plataforma'];
-      }
-      //El nombre del juego es unico por plataforma
-      $juegos_mismo_nombre = DB::table('juego as j')
-      ->join('plataforma_tiene_juego as p','p.id_juego','=','j.id_juego')
-      ->whereIn('p.id_plataforma',$id_plats)
-      ->where('j.nombre_juego',$data['nombre_juego']);
-      if($juegos_mismo_nombre->count() > 0){
-        $validator->errors()->add('nombre_juego', 'validation.unique');
+      if(!is_null($data['cod_juego'])){
+        //El codigo del juego es unico
+        $juegos_mismo_codigo = DB::table('juego as j')
+        ->where('j.cod_juego',$data['cod_juego']);
+        if($juegos_mismo_codigo->count() > 0){
+          $validator->errors()->add('cod_juego', 'validation.unique');
+        }
       }
     })->validate();
 
@@ -200,18 +196,14 @@ class JuegoController extends Controller
         }
       }
 
-      $id_plats = [];
-      foreach($data['plataformas'] as $p){
-        $id_plats[] = $p['id_plataforma'];
-      }
-      //El nombre del juego es unico por plataforma
-      $juegos_mismo_nombre = DB::table('juego as j')
-      ->join('plataforma_tiene_juego as p','p.id_juego','=','j.id_juego')
-      ->whereIn('p.id_plataforma',$id_plats)
-      ->where('j.nombre_juego',$data['nombre_juego'])
-      ->where('j.id_juego','<>',$data['id_juego']);
-      if($juegos_mismo_nombre->count() > 0){
-        $validator->errors()->add('nombre_juego', 'validation.unique');
+      if(!is_null($data['cod_juego'])){
+        //El codigo del juego es unico
+        $juegos_mismo_codigo = DB::table('juego as j')
+        ->where('j.cod_juego',$data['cod_juego'])
+        ->where('j.id_juego','<>',$data['id_juego']);
+        if($juegos_mismo_codigo->count() > 0){
+          $validator->errors()->add('cod_juego', 'validation.unique');
+        }
       }
     })->validate();
 
@@ -220,10 +212,7 @@ class JuegoController extends Controller
 
     DB::transaction(function() use($request,$juego){
       $juego->nombre_juego= $request->nombre_juego;
-      if($request->cod_juego!=null){
-        $juego->cod_juego= $request->cod_juego;
-      }
-
+      $juego->cod_juego= $request->cod_juego;
       $juego->denominacion_juego = $request->denominacion_juego;
       $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
       $juego->escritorio = $request->escritorio;
