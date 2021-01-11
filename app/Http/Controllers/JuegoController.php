@@ -139,7 +139,9 @@ class JuegoController extends Controller
       $log = new LogJuego;
       $log->id_juego = $juego->id_juego;
       $log->fecha = date('Y-m-d h:i:s');
-      $log->json = $request->all();
+      $rqst = $request->all();
+      $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      $log->json = $rqst;
       $log->save();
     });
 
@@ -250,7 +252,9 @@ class JuegoController extends Controller
       $log = new LogJuego;
       $log->id_juego = $juego->id_juego;
       $log->fecha = date('Y-m-d h:i:s');
-      $log->json = $request->all();
+      $rqst = $request->all();
+      $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      $log->json = $rqst;
       $log->save();
     });
 
@@ -411,6 +415,10 @@ class JuegoController extends Controller
     else if($tipo == 'id_tipo_moneda'){
       $val = TipoMoneda::find($id);
       $val = $val ? $val->descripcion : null;
+    }
+    else if($tipo == 'id_usuario'){
+      $val = Usuario::withTrashed()->find($id);
+      $val = $val ? $val->nombre : null;
     }
     return $val;
   }
