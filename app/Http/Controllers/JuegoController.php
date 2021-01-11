@@ -51,16 +51,6 @@ class JuegoController extends Controller
       return $this->errorOut(['acceso'=>['']]);
     }
 
-    $platsUser = Usuario::find(session('id_usuario'))->plataformas;
-    $idsplats = array();
-    foreach($platsUser as $p){
-      $idsplats [] = $p->id_plataforma;
-    }
-    $acceso = $juego->plataformas()->whereIn('plataforma.id_plataforma',$idsplats)->count();
-    if($acceso == 0 && $juego->plataformas()->count() != 0){
-      return $this->errorOut(['acceso'=>['']]);
-    }
-
     return ['juego' => $juego ,
             'certificadoSoft' => $this->obtenerCertificadosSoft($id),
             'plataformas' => DB::table('plataforma_tiene_juego')->where('id_juego',$id)->get()];
@@ -157,6 +147,7 @@ class JuegoController extends Controller
   }
 
   public function modificarJuego(Request $request){
+    $plataformas_usuario = [];
     Validator::make($request->all(), [
       'id_juego' => 'required|integer|exists:juego,id_juego',
       'nombre_juego' => 'required|max:100',
@@ -175,7 +166,7 @@ class JuegoController extends Controller
       'plataformas' => 'required|array',
       'plataformas.*.id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
       'plataformas.*.id_estado_juego' => 'nullable|integer|exists:estado_juego,id_estado_juego',
-    ], array(), self::$atributos)->after(function ($validator){
+    ], array(), self::$atributos)->after(function ($validator) use(&$plataformas_usuario){
       $data = $validator->getData();
       if($data['movil'] == 0 && $data['escritorio'] == 0){
         $validator->errors()->add('tipos','validation.required');
@@ -184,7 +175,6 @@ class JuegoController extends Controller
 
 
       $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas;
-      $plataformas_usuario = [];
       foreach($plataformas as $p){
         $plataformas_usuario[] = $p->id_plataforma;
       }
@@ -210,7 +200,7 @@ class JuegoController extends Controller
 
     $juego = Juego::find($request->id_juego);
 
-    DB::transaction(function() use($request,$juego){
+    DB::transaction(function() use($request,$juego,$plataformas_usuario){
       $juego->nombre_juego= $request->nombre_juego;
       $juego->cod_juego= $request->cod_juego;
       $juego->denominacion_juego = $request->denominacion_juego;
@@ -223,9 +213,30 @@ class JuegoController extends Controller
       $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->save();
 
-      $syncarr = [];
+      $plataformas_enviadas = [];
       foreach($request->plataformas as $p){
-        if(!is_null($p['id_estado_juego'])) $syncarr[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
+        if(!is_null($p['id_estado_juego'])) $plataformas_enviadas[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
+      }
+      $syncarr = [];
+      foreach(Plataforma::all() as $p){
+        $id = $p->id_plataforma;
+        $le_pertenece = in_array($id,$plataformas_usuario);
+        $lo_envio = array_key_exists($id,$plataformas_enviadas);
+        if($le_pertenece && $lo_envio){
+          //Lo seteamos
+          $syncarr[$id] = $plataformas_enviadas[$id];
+        }
+        else if($le_pertenece && !$lo_envio){
+          //Se ignora, eliminandolo de las plataformas al syncear
+        }
+        else if(!$le_pertenece && $lo_envio){
+          //No deberia pasar porque se chequea en la validacion, retornaria error antes
+        }
+        else if(!$le_pertenece && !$lo_envio){
+          //Lo mantenemos
+          $relacion = DB::table('plataforma_tiene_juego')->where('id_juego',$juego->id_juego)->where('id_plataforma',$id)->first();
+          if(!is_null($relacion)) $syncarr[$id] = ['id_estado_juego' =>  $relacion->id_estado_juego];
+        }
       }
       $juego->plataformas()->sync($syncarr);
 
@@ -260,8 +271,6 @@ class JuegoController extends Controller
 
   public function buscarJuegos(Request $request){
     $reglas=array();
-    $casinos = Usuario::find(session('id_usuario'))->casinos;
-    $reglaCasinos=array();
     if(!empty($request->nombreJuego) ){
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
@@ -271,18 +280,11 @@ class JuegoController extends Controller
     if(!empty($request->id_plataforma)){
       $reglas[] = ['plataforma_tiene_juego.id_plataforma','=',$request->id_plataforma];
     }
-    if(!empty($request->id_casino)){
-      $reglas[] = ['plataforma_tiene_casino.id_casino','=',$request->id_casino];
-    }
     if(!empty($request->id_categoria_juego)){
       $reglas[] = ['juego.id_categoria_juego','=',$request->id_categoria_juego];
     }
     if(!empty($request->id_estado_juego)){
       $reglas[] = ['plataforma_tiene_juego.id_estado_juego','=',$request->id_estado_juego];
-    }
-
-    foreach($casinos as $casino){
-      $reglaCasinos [] = $casino->id_casino;
     }
     
     $sort_by = $request->sort_by;
@@ -297,9 +299,6 @@ class JuegoController extends Controller
                   ->when($sort_by,function($query) use ($sort_by){
                                   return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                               })
-                  ->where(function($query) use ($reglaCasinos){
-                    return $query->wherein('plataforma_tiene_casino.id_casino',$reglaCasinos)->orWhereNull('plataforma_tiene_casino.id_casino');
-                  })
                   ->whereNull('juego.deleted_at')
                   ->where($reglas);
     
@@ -325,11 +324,18 @@ class JuegoController extends Controller
     $resultados = $resultados->orderBy('juego.id_juego','desc');
     $resultados = $resultados->paginate($request->page_size);
     $resultados = $resultados->toArray();
-    $resultados['data'] = array_map(function($v){
+
+    $plataformas_usuario = [];
+    foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas as $p){
+      $plataformas_usuario[] = $p->id_plataforma;
+    }
+
+    $resultados['data'] = array_map(function($v) use ($plataformas_usuario){
       $juego = Juego::find($v->id_juego);
       $plats = [];
       foreach($juego->plataformas as $p){
-        $plats[] = $p->codigo . ": " . EstadoJuego::find($p->pivot->id_estado_juego)->codigo;
+        if(in_array($p->id_plataforma,$plataformas_usuario))
+          $plats[] = $p->codigo . ": " . EstadoJuego::find($p->pivot->id_estado_juego)->codigo;
       }
       $v->estado = implode(", ",$plats);
       return $v;
