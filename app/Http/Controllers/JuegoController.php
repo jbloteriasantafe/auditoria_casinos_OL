@@ -287,10 +287,7 @@ class JuegoController extends Controller
     if(!empty($request->id_categoria_juego)){
       $reglas[] = ['juego.id_categoria_juego','=',$request->id_categoria_juego];
     }
-    if(!empty($request->id_estado_juego)){
-      $reglas[] = ['plataforma_tiene_juego.id_estado_juego','=',$request->id_estado_juego];
-    }
-    
+
     $sort_by = $request->sort_by;
 
     $resultados=DB::table('juego')
@@ -306,6 +303,16 @@ class JuegoController extends Controller
                   ->whereNull('juego.deleted_at')
                   ->where($reglas);
     
+    $plataformas_usuario = [];
+    foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas as $p){
+      $plataformas_usuario[] = $p->id_plataforma;
+    }
+              
+    if(!empty($request->id_estado_juego)){
+      $resultados = $resultados->where('plataforma_tiene_juego.id_estado_juego','=',$request->id_estado_juego);
+      $resultados = $resultados->whereIn('plataforma_tiene_juego.id_plataforma',$plataformas_usuario);
+    }
+
     if(!empty($request->codigoId)){
       if(trim($request->codigoId) == '-'){//Si me envia un gion, significa sin certificado
         $resultados = $resultados->whereNull('gli_soft.id_gli_soft');
@@ -328,11 +335,6 @@ class JuegoController extends Controller
     $resultados = $resultados->orderBy('juego.id_juego','desc');
     $resultados = $resultados->paginate($request->page_size);
     $resultados = $resultados->toArray();
-
-    $plataformas_usuario = [];
-    foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas as $p){
-      $plataformas_usuario[] = $p->id_plataforma;
-    }
 
     $resultados['data'] = array_map(function($v) use ($plataformas_usuario){
       $juego = Juego::find($v->id_juego);
