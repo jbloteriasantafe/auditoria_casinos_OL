@@ -584,32 +584,28 @@ class GliSoftController extends Controller
     return ['gli' => $GLI,'se_borro' => $se_borro];
   }
 
-  public function gliSoftsPorCasinos($casinos,$ids = false){
-    if(is_null($casinos)) return [];
-    $casinos_ids = [];
-    if($ids){
-      $casinos_ids = $casinos;
-    } 
-    else{
-      foreach($casinos as $c) $casinos_ids[] = $c->id_casino;
-    } 
+  public function gliSoftsPorPlataformas($plataformas){
+    if(is_null($plataformas)) return [];
+    $plats_ids = [];
+    foreach($plataformas as $p) $plats_ids[] = $p->id_plataforma;
+
     $gli_softs = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
     ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
     ->join('plataforma_tiene_juego as pj','pj.id_juego','=','jgl.id_juego')
-    ->join('plataforma_tiene_casino as pc','pc.id_plataforma','=','pj.id_plataforma')
-    ->whereIn('pc.id_casino',$casinos_ids)
+    ->whereIn('pj.id_plataforma',$plats_ids)
     ->groupBy('gl.id_gli_soft')
     ->get();
     $ret = [];
     foreach($gli_softs as $gl){
       $ret[]=GliSoft::find($gl->id_gli_soft);
     }
-    $gli_softs_sin_cas = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
+    $gli_softs_sin_plat = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
     ->leftjoin('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
-    ->whereNull('jgl.id_juego')
+    ->leftjoin('plataforma_tiene_juego as pj','pj.id_juego','=','jgl.id_juego')
+    ->whereNull('pj.id_plataforma')
     ->groupBy('gl.id_gli_soft')
     ->get();
-    foreach($gli_softs_sin_cas as $gl){
+    foreach($gli_softs_sin_plat as $gl){
       $ret[]=GliSoft::find($gl->id_gli_soft);
     }
     return $ret;

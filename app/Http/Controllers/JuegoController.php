@@ -33,26 +33,23 @@ class JuegoController extends Controller
     $uc = UsuarioController::getInstancia();
     $uc->agregarSeccionReciente('Juegos','juegos');
     $usuario = $uc->quienSoy()['usuario'];
-    $casinos = $usuario->casinos;
-
+    $plataformas = $usuario->plataformas;
     return view('seccionJuegos' , 
-    ['casinos' => $casinos,
-     'certificados' => GliSoftController::getInstancia()->gliSoftsPorCasinos($casinos),
+    ['certificados' => GliSoftController::getInstancia()->gliSoftsPorPlataformas($plataformas),
      'monedas' => TipoMoneda::all(),
      'categoria_juego' => CategoriaJuego::all(),
      'estado_juego' => EstadoJuego::all(),
-     'plataformas' => $usuario->plataformas
+     'plataformas' => $plataformas
     ]);
   }
 
   public function obtenerJuego($id){
     $juego = Juego::find($id);
     if(is_null($juego)){
-      return $this->errorOut(['acceso'=>['']]);
+      return response()->json(['acceso'=>['']],422);
     }
 
-    return ['juego' => $juego ,
-            'certificadoSoft' => $this->obtenerCertificadosSoft($id),
+    return ['juego' => $juego , 'certificados' => $juego->gliSoft ,
             'plataformas' => DB::table('plataforma_tiene_juego')->where('id_juego',$id)->get()];
   }
 
@@ -349,12 +346,6 @@ class JuegoController extends Controller
     return $resultados;
   }
 
-  public function desasociarGLI($id_gli_soft){
-    $GLI = GliSoft::find($id_gli_soft);
-    if($GLI===null) return;
-    $GLI->setearJuegos([]);
-  }
-
   public function asociarGLI($listaJuegos, $id_gli_soft, $mantener_los_de_plataformas = []){
     $lista_limpia = [];
     foreach ($listaJuegos as $id_juego) {
@@ -376,19 +367,6 @@ class JuegoController extends Controller
       $GLI->setearJuegos($asociar,true);
       $GLI->save();
     }
-  }
-  public function obtenerCertificadosSoft($id){
-    $juego=Juego::find($id);
-    if($juego != null){
-      $certificados = $juego->gliSoft;
-      $ret = [];
-      foreach($certificados as $c){
-        $nombre_archivo = is_null($c->archivo)? null : $c->archivo->nombre_archivo;
-        $ret[] = ['certificado' => $c, 'archivo' => $nombre_archivo];
-      } 
-      return $ret;
-    }
-    return ['certificadosSoft' => null];
   }
 
   public function obtenerValor($tipo,$id){
@@ -423,9 +401,5 @@ class JuegoController extends Controller
       $val = $val ? $val->nombre : null;
     }
     return $val;
-  }
-
-  private function errorOut($map){
-    return response()->json($map,422);
   }
 }

@@ -76,7 +76,7 @@ $(document).on('click','.detalle', function(){
 
   $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego,data.certificadoSoft,data.plataformas);
+      mostrarJuego(data.juego,data.certificados,data.plataformas);
       $('#id_juego').val(data.juego.id_juego);
       habilitarControles(false);
       $('#modalJuego').modal('show');
@@ -100,7 +100,7 @@ $(document).on('click','.modificar',function(){
     habilitarControles(true);
     $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego,data.certificadoSoft,data.plataformas);
+      mostrarJuego(data.juego,data.certificados,data.plataformas);
       $('#modalJuego').modal('show');
     });
 
@@ -613,7 +613,7 @@ function mostrarJuego(juego, certificados,plataformas){
 
   for (var i = 0; i < certificados.length; i++){
     let fila = agregarRenglonCertificado();
-    const cert = certificados[i].certificado;
+    const cert = certificados[i];
     fila.find('.codigo').val(cert.nro_archivo)
     .attr('data-id',cert.id_gli_soft);
   }
