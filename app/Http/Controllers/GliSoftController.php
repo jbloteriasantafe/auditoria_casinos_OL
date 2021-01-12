@@ -50,20 +50,23 @@ class GliSoftController extends Controller
       ->get();
       //Hay juegos con el mismo nombre, los agrupo
       $juegosarr = [];
+      //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
       foreach($query as $q){
         $j = Juego::find($q->id_juego);
-        $plataformas = $this->obtenerListaCodigosPlataformas($j);
-        $nombre = $j->nombre_juego . ' ‣ ' . $plataformas;
+        $lista = "";
+        $plataformas_juego = $j->plataformas()->orderBy('codigo')->get();
+        foreach($plataformas_juego as $idx => $p){
+          if($idx!=0) $lista = $lista . ', ';
+          $lista = $lista . $p->codigo;
+        }
+        $nombre = $j->nombre_juego . ' ‣ ' . $lista;
         if(!isset($juegosarr[$nombre])){
           $juegosarr[$nombre] = [];
         }
         $juegosarr[$nombre][] = $j;
       }
-      //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
       return view('seccionGLISoft' , 
-      ['superusuario' => $user->es_superusuario,
-      'casinos' => $user->casinos,
-      'plataformas' => $user->plataformas,
+      ['plataformas' => $user->plataformas,
       'juegos' => $juegosarr]);
   }
 
@@ -100,8 +103,9 @@ class GliSoftController extends Controller
     }
     $juegos = array();
     foreach ($glisoft->juegos as $juego) {
-      $visible = $juego->plataformas()->whereIn('plataforma.id_plataforma',$plats)->count();
-      if($visible>0){
+      $visible = $juego->plataformas()->whereIn('plataforma.id_plataforma',$plats)->count() > 0;
+      $sin_plats = $juego->plataformas()->count() == 0;
+      if($sin_plats || $visible){
         $juegos[]= ['juego'=> $juego, 
         'plataformas' => $juego->plataformas];
       }
@@ -110,7 +114,6 @@ class GliSoftController extends Controller
     ->select('plataforma.id_plataforma','plataforma.nombre')
     ->join('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
     ->join('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
-    ->join('plataforma_tiene_casino','plataforma_tiene_casino.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('juego','juego.id_juego','=','juego_glisoft.id_juego')
     ->whereNull('juego.deleted_at')
@@ -125,40 +128,25 @@ class GliSoftController extends Controller
             'laboratorio' => $glisoft->laboratorio];
   }
 
-  public function obtenerListaCodigosPlataformas($juego,$sep=', '){
-    $lista = '';
-    $plataformas_juego = $juego->plataformas()->orderBy('codigo')->get();
-    foreach($plataformas_juego as $idx => $p){
-      if($idx!=0) $lista = $lista . $sep;
-      $lista = $lista . $p->codigo;
-    }
-    return $lista;
-  }
-
   public function leerArchivoGliSoft(Request $request,$id){
-    Validator::make($request->all(),
-    [],[],self::$atributos)->after(function ($validator) use ($id){
-      if(is_null($id)){
-        $validator->errors()->add('certificado', 'No existe el certificado.');
-        return;
-      }
-      $GLI = GliSoft::find($id); 
-      if(is_null($GLI)){
-        $validator->errors()->add('certificado', 'No existe el certificado.');
-        return;
-      }
-      if(is_null($GLI->archivo)){
+    $rqst = $request->all();
+    $rqst['id_gli_soft'] = $id;
+    $archivo = null;
+    $fail = Validator::make($rqst,
+    [
+      'id_gli_soft' => 'required|integer|exists:gli_soft,id_gli_soft'
+    ],[],self::$atributos)->after(function ($validator) use (&$archivo){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $archivo = GliSoft::find($data['id_gli_soft'])->archivo; 
+      if(is_null($archivo)){
         $validator->errors()->add('archivo', 'No existe el archivo.');
         return;
       }
-    });
-    $data = DB::table('gli_soft')->select('archivo.archivo','archivo.nombre_archivo')
-                                ->join('archivo','archivo.id_archivo','=','gli_soft.id_archivo')
-                                ->where('gli_soft.id_gli_soft','=',$id)->first();
-
-
-    return Response::make(base64_decode($data->archivo), 200, [ 'Content-Type' => 'application/pdf',
-                                                      'Content-Disposition' => 'inline; filename="'. $data->nombre_archivo  . '"']);
+    })->fails();
+    if($fail) return "Certificado o archivo inexistente";
+    return Response::make(base64_decode($archivo->archivo), 200, [ 'Content-Type' => 'application/pdf',
+    'Content-Disposition' => 'inline; filename="'. $archivo->nombre_archivo  . '"']);
   }
 
   //METODO QUE RESPONDEN A GUARDAR
@@ -301,15 +289,10 @@ class GliSoftController extends Controller
   }
 
   public function buscarGliSofts(Request $request){
-    Validator::make($request->all(), ['id_casino' => 'required|integer'], 
-    array(), self::$atributos)->after(function ($validator){
-        $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-        $data = $validator->getData();
-        $id_casino = $data['id_casino'];
-        if($id_casino != 0 && $id_casino != -1 && !$user->usuarioTieneCasino($id_casino)){
-          $validator->errors()->add('id_casino', 'El usuario no puede acceder a ese casino.');
-        } 
-    })->validate();
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $plats_ids = [];
+    foreach($user->plataformas as $p) $plats_ids[] = $p->id_plataforma;
+
     $reglas = array();
     if(!empty($request->certificado)){
       $reglas[]=['gli_soft.nro_archivo' , 'like' , '%' .  $request->certificado . '%'];
@@ -320,20 +303,26 @@ class GliSoftController extends Controller
     if(isset($request->id_juego)){
       $reglas[]=['juego_glisoft.id_juego' , '=' , $request->id_juego];
     }
+    
     $sort_by = $request->sort_by;
     $resultados=DB::table('gli_soft')
     ->select('gli_soft.*', 'archivo.nombre_archivo')
     ->leftJoin('archivo' , 'archivo.id_archivo' , '=' , 'gli_soft.id_archivo')
     ->leftJoin('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
     ->leftJoin('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
-    ->leftJoin('plataforma_tiene_casino','plataforma_tiene_casino.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->where($reglas);
-    if($request->id_casino == -1){
-      $resultados=$resultados->whereNull('juego_glisoft.id_juego');
+    if($request->id_plataforma == 0){
+      $resultados = $resultados->where(function ($q) use($plats_ids){
+        $q->whereIn('plataforma_tiene_juego.id_plataforma',$plats_ids)->orWhereNull('plataforma_tiene_juego.id_plataforma');
+      });
     }
-    else if($request->id_casino != 0){
-      $resultados=$resultados->where('plataforma_tiene_casino.id_casino','=',$request->id_casino);
+    else if($request->id_plataforma == -1){
+      $resultados = $resultados->whereNull('plataforma_tiene_juego.id_plataforma');
     }
+    else if($request->id_plataforma > 0){
+      $resultados = $resultados->whereIn('plataforma_tiene_juego.id_plataforma',$plats_ids)->where('plataforma_tiene_juego.id_plataforma','=',$request->id_plataforma);
+    }
+
     $resultados=$resultados->when($sort_by,function($query) use ($sort_by){
       return $query->orderBy($sort_by['columna'],$sort_by['orden']);
     });
@@ -511,18 +500,6 @@ class GliSoftController extends Controller
       return ['gli_soft' => $GLI , 'nombre_archivo' => $nombre_archivo ];
   }
 
-  public function getGli($id){
-    return GliSoft::find($id);
-  }
-
-  public function buscarGliSoftsPorNroArchivo($nro_archivo){
-    $reglas = Array();
-    if(!empty($nro_archivo))
-      $reglas[]=['nro_archivo', 'like', '%'.$nro_archivo.'%'];
-    $resultado = GliSoft::where($reglas)->get();
-    return ['gli_softs' => $resultado];
-  }
-
   private function noEstaEnLista($expediente ,$expedientes ){//expediente posta ,expedientes del request
     for($i=0; $i<count($expedientes); $i++){
       if($expedientes[$i] == $expediente->id_expediente){
@@ -531,6 +508,7 @@ class GliSoftController extends Controller
     }
     return true;
   }
+  
   private function noEstabaEnLista($expediente ,$expedientes ){//expediente del request ,expedientes del gli
     if(isset($expedientes)){
       foreach ($expedientes as $exp) {

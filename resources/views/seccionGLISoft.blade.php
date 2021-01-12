@@ -62,14 +62,14 @@ $id_usuario = session('id_usuario');
                                 </div>
                               </div>
                               <div class="col-md-4">
-                                <h5>Casino del juego</h5>
+                                <h5>Plataforma del juego</h5>
                                 <div class="form-group">
                                   <select class="form-control" id="sel1">
-                                    <option value="0">Todos los casinos</option>
-                                    @foreach($casinos as $casino)
-                                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                    <option value="0">Todos las plataformas</option>
+                                    @foreach($plataformas as $p)
+                                    <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
                                     @endforeach
-                                    <option value="-1">Sin juego asociado</option>
+                                    <option value="-1">Sin plataforma</option>
                                   </select>
                                 </div>
                               </div>

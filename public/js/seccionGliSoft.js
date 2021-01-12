@@ -573,7 +573,7 @@ $('#buscarCertificado').click(function(e,
     nro_exp_org:$('#nro_exp_org').val(),
     nro_exp_interno:$('#nro_exp_interno').val(),
     nro_exp_control:$('#nro_exp_control').val(),
-    id_casino:$('#sel1').val(),
+    id_plataforma:$('#sel1').val(),
     certificado: $('#nro_certificado').val(),
     nombre_archivo: $('#nombre_archivo').val(),
     //Si es undefined es pq escribio cualquier fruta
