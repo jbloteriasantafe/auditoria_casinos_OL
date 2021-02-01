@@ -17,7 +17,7 @@ use App\DetalleProducido;
 use App\TipoMoneda;
 use App\Http\Controllers\ContadorController;
 use App\Http\Controllers\ProducidoController;
-use App\Http\Controllers\BeneficioController;
+use App\Http\Controllers\BeneficioMensualController;
 
 use Exception;
 use Illuminate\Auth\AuthenticationException;
@@ -34,12 +34,6 @@ class LectorCSVController extends Controller
     return self::$instance;
   }
 
-  // importarProducido crea nuevo producido
-  // inserta en una tabla temporal , formateando a valores validos
-  // luego toma esta tabla , hace un join con maquinas para tomar solo las mtm del maestro validas
-  // y va generando los detalles producidos
-  // es posbile que en el archivo no envien juegos (diversos motivos) en ese caso se fuerza a que tenga
-  // producido 0 y se genera un log en el archivo de producido
   public function importarProducido($archivoCSV,$fecha,$plataforma,$moneda){
     $producido = new Producido;
     $producido->id_plataforma = $plataforma;
@@ -142,60 +136,103 @@ class LectorCSVController extends Controller
     'cantidad_registros' => $producido->detalles()->count(),
     'juegos_multiples_reportes' => $duplicados];
   }
-  // importarBeneficioSantaFeMelincue se crea temporal insertando todos los valores del csv
-  // solo se toma la linea de beneficio para insertar en la tabla real
-  // luego se elimina los temporales
-  public function importarBeneficioSantaFeMelincue($archivoCSV,$casino){
+
+  public function importarBeneficio($archivoCSV,$fecha,$plataforma,$moneda){
+    //Hay un aralelismo Producido <-> BeneficioMensual, DetalleProducido <-> Beneficio
+    $benMensual = new BeneficioMensual;
+    $benMensual->id_plataforma = $plataforma;
+    $benMensual->id_tipo_moneda = $moneda;
+    $benMensual->anio_mes = $fecha;//@TODO: Poner en formato 01/mm/yyyy
+    $benMensual->save();
+    
+    //Verifico si ya existen con las mismas caracteristicas, differente ID y los borro
+    $ben_viejos = DB::table('beneficio_mensual')->where([
+      ['id_beneficio_mensual','<>',$benMensual->id_beneficio_mensual],['id_plataforma','=',$benMensual->id_plataforma],
+      ['id_tipo_moneda','=',$benMensual->id_tipo_moneda],['anio_mes','=',$benMensual->anio_mes]
+    ])->get();
 
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
-    $path = $archivoCSV->getRealPath();
-
-    $cantidad_maquinas = Maquina::where('id_casino','=',$casino)->whereHas('estado_maquina',function($q){
-                                   $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
-
-    $query = sprintf("LOAD DATA local INFILE '%s'
-                      INTO TABLE beneficio
-                      FIELDS TERMINATED BY ';'
-                      OPTIONALLY ENCLOSED BY '\"'
-                      ESCAPED BY '\"'
-                      LINES STARTING BY 'CTR' TERMINATED BY '\\n'
-                      (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)
-                      SET id_casino = '%d',
-                              fecha = STR_TO_DATE(SUBSTRING(@1,5,8),'%s'),
-                             coinin = CAST(REPLACE(@4,',','.') as DECIMAL(15,2)),
-                            coinout = CAST(REPLACE(@5,',','.') as DECIMAL(15,2)),
-                            jackpot = CAST(REPLACE(@6,',','.') as DECIMAL(15,2)),
-                              valor = CAST(REPLACE(@9,',','.') as DECIMAL(15,2)),
-              porcentaje_devolucion = 100*(CAST(REPLACE(@5,',','.') as DECIMAL(15,2)) + CAST(REPLACE(@6,',','.') as DECIMAL(15,2)))/(CAST(REPLACE(@4,',','.') as DECIMAL(15,2))),
-                  cantidad_maquinas = '%d',
-               promedio_por_maquina = CAST(REPLACE(@9,',','.') as DECIMAL(15,2))/'%d'
-                      ",$path,$casino,"%Y%m%d",$cantidad_maquinas,$cantidad_maquinas);
-
-    $pdo->exec($query);
-    //usar query en vez de exec
-
-    $ben = Beneficio::find(DB::table('beneficio')->max('id_beneficio'));
-    if($ben != null){
-      $fecha=explode("-", $ben->fecha);
-      $beneficios = Beneficio::where([['id_beneficio','<>',$ben->id_beneficio],['id_casino','=',$casino]])
-                              ->whereYear('fecha','=',$fecha[0])
-                              ->whereMonth('fecha','=', $fecha[1])
-                              ->get();
-      //['fecha','=',$ben->fecha]])->get();
-      if($beneficios != null){
-        foreach($beneficios as $beneficio){
-          $query = sprintf(" DELETE FROM beneficio
-                             WHERE id_beneficio = '%d'
-                             ",$beneficio->id_beneficio);
-          $pdo->exec($query);
-        }
+    
+    $benCont = BeneficioMensualController::getInstancia();
+    if($ben_viejos != null){
+      foreach($ben_viejos as $b){
+        $benCont->eliminarBeneficioMensual($b->id_beneficio);
       }
     }
 
-    $pdo=null;
+    $path = $archivoCSV->getRealPath();
 
+    $query = sprintf("LOAD DATA local INFILE '%s'
+                      INTO TABLE beneficio_temporal
+                      FIELDS TERMINATED BY ','
+                      OPTIONALLY ENCLOSED BY '\"'
+                      ESCAPED BY '\"'
+                      LINES TERMINATED BY '\\r\\n'
+                      IGNORE 1 LINES
+                      (@Total,@DateReport,@Currency,@TotalRegistrations,@Verified,@TotalVerified,@Players,@TotalDeposits,@TotalWithdrawals,@TotalBonus,@TotalManualAdjustments,@TotalVPoints,@TotalWager,@TotalOut,@GrossRevenue,@lastupdated)
+                       SET id_beneficio_mensual = '%d',
+                       Total = @Total,
+                       DateReport = @DateReport,
+                       Currency = @Currency,
+                       TotalRegistrations = @TotalRegistrations,
+                       Verified = @Verified,
+                       TotalVerified = @TotalVerified,
+                       Players = @Players,
+                       TotalDeposits = REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),
+                       TotalWithdrawals = REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),
+                       TotalBonus = REPLACE(@TotalBonus,',','.'),
+                       TotalManualAdjustments = REPLACE(@TotalManualAdjustments,',','.'),
+                       TotalVPoints = REPLACE(@TotalVPoints,',','.'),
+                       TotalWager = REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
+                       TotalOut = REPLACE(@TotalOut,',','.'),
+                       GrossRevenue = REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.'),
+                       lastupdated = @lastupdated
+                      ",$path,$benMensual->id_beneficio_mensual);
 
-    return ['id_beneficio' => $ben->id_beneficio,'fecha' => $ben->fecha,'casino' => $ben->casino->nombre,'tipo_moneda' => $ben->tipo_moneda->descripcion];
+    $pdo->exec($query);
+
+    $query = sprintf(" INSERT INTO beneficio 
+    (
+      id_beneficio_mensual,
+      fecha,
+      players,
+      totalwager,
+      totalout,
+      grossrevenue
+    )
+    SELECT
+    id_beneficio_mensual, 
+    DateReport as fecha,
+    Players as players,
+    TotalWager as totalwager,
+    TotalOut as totalout,
+    GrossRevenue as grossrevenue
+    FROM beneficio_temporal
+    WHERE beneficio_temporal.id_beneficio_mensual = '%d'
+    ",$benMensual->id_beneficio_mensual);
+
+    $pdo->exec($query);
+
+    $query = sprintf("DELETE FROM beneficio_temporal
+    WHERE id_beneficio_mensual = '%d'
+    ",$benMensual->id_beneficio_mensual);
+
+    $pdo->exec($query);
+
+    $bruto = 0;
+    $cantidad = 0;
+    foreach($benMensual->beneficios as $b){
+      $bruto+=($b->totalwager-$b->totalout);//@TODO: Revisar si esto esta bien calculado.
+      $cantidad++;
+    }
+    $benMensual->bruto = $bruto;
+    $benMensual->save();
+
+    DB::connection()->enableQueryLog();
+
+    $pdo = null;
+
+    return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->anio_mes, 'bruto' => $bruto, 'dias' => $cantidad]; 
   }
 }

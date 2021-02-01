@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\ContadorHorario;
 use App\Producido;
 use App\Beneficio;
+use App\BeneficioMensual;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\RelevamientoController;
@@ -189,28 +190,25 @@ class ImportacionController extends Controller
     })->validate();
 
     $fecha = is_null($fecha_busqueda)? date('Y-m-d') : $fecha_busqueda;
-    $aux = new \DateTime($fecha);
-    $aux->modify('last day of this month');
-    $fecha = $aux->format('Y-m-d');
-    $mes = date('m',strtotime($fecha));
 
     $arreglo = array();
-
+    $fecha = new \DateTime($fecha);
+    $fecha->modify('first day of this month');
+    $fecha = $fecha->format('Y-m-d');
+    $beneficioMensualPesos   =  BeneficioMensual::where([['anio_mes',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',1]])->first();
+    $beneficioMensualDolares =  BeneficioMensual::where([['anio_mes',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',2]])->first();
+    //@TODO: Generalizar moneda
+    $mes = date('m',strtotime($fecha));
     while(date('m',strtotime($fecha)) == $mes){
-      if($id_plataforma == 3){//si es rosario tengo $ y DOL
-        $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
-        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
-        $producido['dolares'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
-        $beneficio['dolares'] = Beneficio::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
-      }else{
-        $producido['pesos'] = Producido::where([['fecha',$fecha],['id_plataforma',$id_plataforma]])->count() >= 1 ? true : false;
-        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_plataforma',$id_plataforma]])->count() >= 1 ? true : false;
-      }
+      $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
+      $producido['dolares'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
       $dia['producido'] = $producido;
+      $beneficio['pesos'] = is_null($beneficioMensualPesos)? false : ($beneficioMensualPesos->beneficios()->where('fecha',$fecha)->count() >= 1? true : false);
+      $beneficio['dolares'] = is_null($beneficioMensualDolares)? false : ($beneficioMensualPesos->beneficios()->where('fecha',$fecha)->count() >= 1? true : false);
       $dia['beneficio'] = $beneficio;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
-      $fecha = date('Y-m-d' , strtotime($fecha . ' - 1 days'));
+      $fecha = date('Y-m-d' , strtotime($fecha . ' + 1 days'));
     }
     if($orden == 'asc'){
       $arreglo = array_reverse($arreglo);
@@ -248,22 +246,16 @@ class ImportacionController extends Controller
   public function importarBeneficio(Request $request){
     Validator::make($request->all(),[
         'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
+        'fecha' => 'nullable|date',
         'archivo' => 'required|mimes:csv,txt',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
-    switch($request->id_plataforma){
-      case 1:
-        return LectorCSVController::getInstancia()->importarBeneficioSantaFeMelincue($request->archivo,1);
-        break;
-      case 2:
-        return LectorCSVController::getInstancia()->importarBeneficioSantaFeMelincue($request->archivo,2);
-        break;
-      case 3:
-        return LectorCSVController::getInstancia()->importarBeneficioRosario($request->archivo,$request->id_tipo_moneda);
-        break;
-      default:
-        break;
-    }
+
+    $ret = null;
+    DB::transaction(function() use ($request,&$ret){
+      $ret = LectorCSVController::getInstancia()->importarBeneficio($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+    });
+    return $ret;
   }
 }

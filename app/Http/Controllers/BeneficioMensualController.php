@@ -331,4 +331,13 @@ class BeneficioMensualController extends Controller
               'beneficios_sfe' => $beneficios_sfe,
               'beneficios_ros' => $beneficios_ros];
   }
+
+  public function eliminarBeneficioMensual($id_beneficio_mensual){
+    $benMensual = BeneficioMensual::find($id_beneficio_mensual);
+    if(is_null($benMensual)) return;
+    foreach($benMensual->beneficios as $b){
+      $b->delete();
+    }
+    $benMensual->delete();
+  }
 }

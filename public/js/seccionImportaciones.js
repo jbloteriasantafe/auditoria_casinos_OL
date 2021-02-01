@@ -745,7 +745,7 @@ $('#btn-guardarBeneficio').on('click', function(e){
         limpiarBodysImportaciones();
         $('#plataformaInfoImportacion').change();
         $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN BENEFICIO');
-        $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del BENEFICIO fueron importados');
+        $('#mensajeExito p').text(data.dias + ' registro(s) del BENEFICIO fueron importados');
         $('#mensajeExito').show();
       },
       error: function (data) {
