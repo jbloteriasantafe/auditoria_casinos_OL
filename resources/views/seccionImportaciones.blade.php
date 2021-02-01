@@ -415,17 +415,6 @@ $id_usuario = session('id_usuario');
                             </div>
                   </div>
 
-                  <div id="mensajeInformacion" class="row" style="margin-bottom:20px !important; margin-top: 50px !important;">
-                          <div class="col-xs-12" align="center">
-                              <i class="fa fa-fw fa-star"></i>
-                              <h6 id="informacionPlataforma"> PLATAFORMA ROSARIO</h6>
-                              <i class="fa fa-fw fa-calendar corrido"></i>
-                              <h6 id="informacionFecha">10 OCTUBRE 2017</h6>
-                              <i id="iconoMoneda" class="fa fa-fw fa-usd corrido"></i>
-                              <h6 id="informacionMoneda"> DOLAR</h6>
-                          </div>
-                  </div>
-
                   <div id="iconoCarga" class="sk-folding-cube">
                     <div class="sk-cube1 sk-cube"></div>
                     <div class="sk-cube2 sk-cube"></div>
@@ -469,26 +458,43 @@ $id_usuario = session('id_usuario');
                           </div>
                   </div>
 
-                  <div id="rowMoneda" hidden class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                          <div class="col-xs-6">
-                              <h5>MONEDA</h5>
-                              <select class="form-control" name="">
-                                  <option value="0">Elegir moneda</option>
-                                  @foreach($tipoMoneda as $tipo)
-                                  <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
-                                  @endforeach
-                              </select>
-                          </div>
+                  <div id="datosBeneficio" class="row">
+                    <div class="col-xs-5">
+                      <h5>FECHA</h5>
+                      <div class="input-group date" id="fechaBeneficio" data-link-field="fechaBeneficio_hidden" data-link-format="yyyy-mm-dd">
+                        <input type="text" class="form-control" placeholder="Fecha del beneficio">
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                       </div>
+                      <input type="hidden" id="fechaBeneficio_hidden" value="">
+                    </div>
+                    <div class="col-xs-4">
+                      <h5>PLATAFORMA</h5>
+                      <select id="plataformaBeneficio" class="form-control">
+                        <option value="">Seleccione</option>
+                        @foreach ($plataformas as $plataforma)
+                        <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                    <div class="col-xs-3">
+                      <h5>MONEDA</h5>
+                      <select id="monedaBeneficio" class="form-control">
+                        <option value="">Seleccione</option>
+                        @foreach($tipoMoneda as $tipo)
+                        <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </div>
 
                   <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                           <div class="col-md-12">
                               <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
-                              <button id="btn-reintentarContador" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
+                              <button id="btn-reintentarBeneficio" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
                           </div>
-                      </div>
+                  </div>
                       
-
                   <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                             <div class="col-xs-12" align="center">
                                 <i class="fa fa-fw fa-exclamation-triangle"></i>
@@ -500,19 +506,7 @@ $id_usuario = session('id_usuario');
                                 <p>Solo se aceptan archivos con extensión .csv o .txt</p>
                             </div>
                       </div>
-
-                  <div id="mensajeInformacion" class="row" style="margin-bottom:20px !important; margin-top: 50px !important;">
-                          <div class="col-xs-12" align="center">
-                              <i class="fa fa-fw fa-star"></i>
-                              <h6 id="informacionPlataforma"> PLATAFORMA ROSARIO</h6>
-                              <i class="fa fa-fw fa-calendar corrido"></i>
-                              <h6 id="informacionFecha">10 OCTUBRE 2017</h6>
-                              <i id="iconoMoneda" class="fa fa-fw fa-usd corrido"></i>
-                              <h6 id="informacionMoneda"> DOLAR</h6>
-
-                          </div>
-                      </div>
-
+                      
                   <div id="iconoCarga" class="sk-folding-cube">
                     <div class="sk-cube1 sk-cube"></div>
                     <div class="sk-cube2 sk-cube"></div>
@@ -577,14 +571,14 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionImportaciones.js" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <!-- Custom input Bootstrap -->
-    <script src="js/fileinput.min.js" type="text/javascript"></script>
-    <script src="js/locales/es.js" type="text/javascript"></script>
+    <script src="/js/fileinput.min.js" type="text/javascript"></script>
+    <script src="/js/locales/es.js" type="text/javascript"></script>
     <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
     <!-- DateTimePicker JavaScript -->
