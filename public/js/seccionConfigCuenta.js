@@ -175,15 +175,11 @@ $('#btn-guardarNuevoPass').click(function(e){
     });
 });
 
-//NUEVO
 $('#btn-editarDatos').click(function() {
-    var id_usuario = $(this).val();
-
     ocultarErrorValidacion($('#user_name'));
     ocultarErrorValidacion($('#email'));
-
     //Setear los datos
-    $.get('usuarios/buscar/' + id_usuario, function(data) {
+    $.get('usuarios/quienSoy', function(data) {
         console.log(data);
 
         $('#user_name').val(data.usuario.user_name);

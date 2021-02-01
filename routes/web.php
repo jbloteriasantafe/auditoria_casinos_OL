@@ -14,9 +14,6 @@ Route::get('/',function(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     return view('seccionInicio' ,['ultimas_visitadas' =>$usuario->secciones_recientes]);
 });
-// Route::get('/',function(){
-//     return view('inicioNuevo');
-// });
 Route::get('login',function(){
     return view('index');
 });
@@ -69,19 +66,19 @@ Route::group(['prefix' => 'expedientes','middleware' => 'tiene_permiso:ver_secci
 /***********
 Usuarios
 ***********/
-Route::get('usuarios','UsuarioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_usuarios');
-Route::post('usuarios/buscar','UsuarioController@buscarUsuarios');
-Route::get('usuarios/buscar/{id}','UsuarioController@buscarUsuario');
-Route::get('usuarios/quienSoy' ,'UsuarioController@quienSoy');
-Route::post('usuarios/guardarUsuario','UsuarioController@guardarUsuario');
-Route::post('usuarios/modificarUsuario','UsuarioController@modificarUsuario');
-Route::delete('usuarios/eliminarUsuario','UsuarioController@eliminarUsuario');
+Route::group(['prefix' => 'usuarios','middleware' => 'tiene_permiso:ver_seccion_usuarios'],function(){
+  Route::get('/','UsuarioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_usuarios');
+  Route::post('/buscar','UsuarioController@buscarUsuarios');
+  Route::get('/buscar/{id}','UsuarioController@buscarUsuario');
+  Route::get('/get/{id}','UsuarioController@buscarUsuarioSecUsuarios'); //Este se usa cuando se modifica, ni idea por que por separado de ver.
+  Route::post('/guardarUsuario','UsuarioController@guardarUsuario');
+  Route::post('/modificarUsuario','UsuarioController@modificarUsuario');
+  Route::delete('/eliminarUsuario','UsuarioController@eliminarUsuario');
+  Route::post('/reestablecerContraseña','UsuarioController@reestablecerContraseña');
+});
+Route::get('usuarios/quienSoy','UsuarioController@quienSoy');//Los pongo aca porque no pertenecen a la seccion Usuarios (no necesitan del permiso)
 Route::get('usuarios/imagen','UsuarioController@leerImagenUsuario');
-Route::get('usuarios/buscarUsuariosPorNombre/{nombre}','UsuarioController@buscarUsuariosPorNombre');
-Route::get('usuarios/buscarUsuariosPorNombre/{nombre}/relevamiento/{id_relevamiento}','UsuarioController@buscarUsuariosPorNombreYRelevamiento');
-Route::get('usuarios/buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
-Route::get('usuarios/usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
-Route::post('usuarios/reestablecerContraseña','UsuarioController@reestablecerContraseña');
+
 /***********
 Roles y permisos
 ***********/
@@ -239,7 +236,3 @@ Route::get('informesMTM/generarPlanilla/{year}/{mes}/{id_casino}/{id_tipo_moneda
 Route::get('calendario_eventos',function(){
     return view('calendar');
 });
-
-
-//nuevo buscador de usuarios para la seccion de USUARIOS
-Route::get('usuarios/get/{id}','UsuarioController@buscarUsuarioSecUsuarios');
