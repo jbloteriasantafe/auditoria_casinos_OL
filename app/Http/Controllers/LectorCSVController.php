@@ -144,7 +144,7 @@ class LectorCSVController extends Controller
     $benMensual->id_plataforma = $plataforma;
     $benMensual->id_tipo_moneda = $moneda;
     $fecha_aux = explode("-",$fecha);
-    $benMensual->anio_mes = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
+    $benMensual->fecha = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
     $benMensual->bruto = 0;
     $benMensual->save();
     
@@ -152,7 +152,7 @@ class LectorCSVController extends Controller
     $ben_viejos = DB::table('beneficio_mensual')->where([
       ['id_beneficio_mensual','<>',$benMensual->id_beneficio_mensual],['id_plataforma','=',$benMensual->id_plataforma],
       ['id_tipo_moneda','=',$benMensual->id_tipo_moneda]
-    ])->whereRaw('YEAR(anio_mes) = ? and MONTH(anio_mes) = ?',[$fecha_aux[0],$fecha_aux[1]])->get();
+    ])->whereRaw('YEAR(fecha) = ? and MONTH(fecha) = ?',[$fecha_aux[0],$fecha_aux[1]])->get();
 
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
@@ -245,7 +245,7 @@ class LectorCSVController extends Controller
 
     $pdo = null;
 
-    return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->anio_mes, 
+    return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->fecha, 
     'bruto' => $benMensual->bruto, 'dias' => $benMensual->beneficios()->count()]; 
   }
 }

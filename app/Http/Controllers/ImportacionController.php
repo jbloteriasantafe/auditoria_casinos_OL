@@ -37,31 +37,14 @@ class ImportacionController extends Controller
     return view('seccionImportaciones', ['tipoMoneda' => TipoMoneda::all(), 'plataformas' => UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas]);
   }
 
-  public function eliminarBeneficios(Request $request){
-    //el request contiene mes anio id_tipo_moneda id_plataforma
-    $beneficios = Beneficio::where([['id_tipo_moneda','=',$request['id_tipo_moneda']],['id_plataforma','=',$request['id_plataforma']]])
-                            ->whereYear('fecha','=',$request['anio'])
-                            ->whereMonth('fecha','=',$request['mes'])
-                            ->get();
-    if(isset($beneficios)){
-      foreach ($beneficios as $b){
-        BeneficioController::getInstancia()->eliminarBeneficio($b->id_beneficio);
-      }
-    }
-    return 1;
-  }
-
   public function previewBeneficios(Request $request){
-    //el request contiene mes anio id_tipo_moneda id_plataforma
-    $plataforma = Plataforma::find($request->id_plataforma);
-    $tipo_moneda = TipoMoneda::find($request->id_tipo_moneda);
-
-    $beneficios = Beneficio::where([['id_tipo_moneda','=',$request['id_tipo_moneda']],['id_plataforma','=',$request['id_plataforma']]])
-                            ->whereYear('fecha','=',$request['anio'])
-                            ->whereMonth('fecha','=',$request['mes'])
-                            ->get();
-
-    return ['beneficios'=>$beneficios, 'plataforma' => $plataforma, 'tipo_moneda' => $tipo_moneda];
+    $benMensual = BeneficioMensual::find($request->id_beneficio_mensual);
+    if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
+    return ['beneficio_mensual' => $benMensual, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
+    'cant_detalles' => $benMensual->beneficios()->count(),
+    'beneficios'=> $benMensual->beneficios()
+    ->select('fecha','players','totalwager','totalout','grossrevenue')
+    ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
   public function previewProducidos(Request $request){
@@ -82,101 +65,40 @@ class ImportacionController extends Controller
     }
 
     $reglas = [];
-    if(isset($request->tipo_moneda) && $request->tipo_moneda !=0){
-      $reglas[]=['tipo_moneda.id_tipo_moneda','=', $request->tipo_moneda];
+    if(isset($request->id_tipo_moneda) && $request->id_tipo_moneda !=0){
+      $reglas[]=['tipo_moneda.id_tipo_moneda','=', $request->id_tipo_moneda];
     }
-    if(isset($request->plataformas) && $request->plataformas !=0){
-      $reglas[]=['id_plataforma','=',$request->id_plataforma];
+    if(isset($request->id_plataforma) && $request->id_plataforma !=0){
+      $reglas[]=['plataforma.id_plataforma','=',$request->id_plataforma];
     }
 
     $sort_by = $request->sort_by;
     $resultados = ["data" => [],"total" => 0];
-    if($request->seleccion == 2){//producidos
-      $resultados = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
-      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda')
+    if($request->tipo_archivo == 2){
+      $resultados = DB::table('producido')->select('producido.id_producido as id','producido.fecha as fecha'
+      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
-      ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-      ->where($reglas)
-      ->whereIn('plataforma.id_plataforma' , $plataformas);
-      if(!empty($request->fecha)){
-        $resultados = $resultados->whereIn('plataforma.id_plataforma' , $plataformas)
-        ->whereYear('producido.fecha' , '=' ,$fecha[0])
-        ->whereMonth('producido.fecha','=', $fecha[1]);
-      }
-      $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                })
-      ->paginate($request->page_size);
+      ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
-    else if($request->seleccion == 3){
-      //@TODO: Implementar cuando se implemente la carga de beneficios
-      //beneficios
-/*     $reglas2 = array();
-
-      if($request->sort_by['columna'] == "beneficio.fecha"){
-        $sort_by['columna'] = 'anio,mes';
-      }
-
-
-      if(!empty($request->tipo_moneda) && $request->tipo_moneda !=0)
-        $reglas2[]=['id_tipo_moneda','=', $request->tipo_moneda];
-
-        $createTempTables = DB::unprepared(DB::raw("CREATE TEMPORARY TABLE beneficios_temporal
-                                                            AS (
-                                                                SELECT MONTH(beneficio.fecha) as mes,
-                                                                       YEAR(beneficio.fecha) as anio,
-                                                                       plataforma.*,
-                                                                       tipo_moneda.*
-                                                                FROM beneficio inner join plataforma on beneficio.id_plataforma = plataforma.id_plataforma
-                                                                     inner join tipo_moneda on beneficio.id_tipo_moneda = tipo_moneda.id_tipo_moneda
-                                                                );
-                                             "
-                                             )
-                                       );
-
-        if(empty($request->fecha)){// si fecha esta vacio
-        if($createTempTables){
-           $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as plataforma','id_plataforma','id_tipo_moneda','descripcion as tipo_moneda')
-                             ->where($reglas2)
-                             ->whereIn('id_plataforma' , $plataformas)
-                             ->groupBy('mes','anio','nombre','descripcion','id_plataforma','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
-                                              return $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
-                                         })
-                            ->paginate($request->page_size);
-           $query1 = DB::statement(DB::raw("
-                                              DROP TABLE beneficios_temporal
-                                          "));
-         }else {
-                $error = "ERROR MESSAGE";
-                dd($error);
-        }
-
-        }else{
-          $fecha=explode("-", $request->fecha);
-
-          if($createTempTables){
-            $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as plataforma','descripcion as tipo_moneda','id_plataforma','id_tipo_moneda')
-                              ->where($reglas2)
-                              ->where('anio' , '=' ,$fecha[0])
-                              ->where('mes','=', $fecha[1])
-                              ->groupBy('mes','anio','nombre','descripcion','id_plataforma','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
-                                               return $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
-                                          })
-                             ->paginate($request->page_size);
-            $query1 = DB::statement(DB::raw("
-                                               DROP TABLE beneficios_temporal
-                                           "));
-          }else {
-                 $error = "ERROR MESSAGE";
-                 dd($error);
-         }
-        }
-        */
+    else if($request->tipo_archivo == 3){
+      $resultados = DB::table('beneficio_mensual')->select('beneficio_mensual.id_beneficio_mensual as id','beneficio_mensual.fecha as fecha'
+      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
+      ->join('plataforma','beneficio_mensual.id_plataforma','=','plataforma.id_plataforma')
+      ->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
+    else return $resultados;
+    $resultados = $resultados->where($reglas)
+    ->whereIn('plataforma.id_plataforma' , $plataformas);
+    if(!empty($request->fecha)){
+      $fecha = explode("-",$request->fecha);
+      $resultados = $resultados->whereYear('fecha' , '=' ,$fecha[0])->whereMonth('fecha','=', $fecha[1]);
+    }
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+                  return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
+    ->paginate($request->page_size);
     return  $resultados;
   }
-
-
 
   public function estadoImportacionesDePlataforma($id_plataforma,$fecha_busqueda = null,$orden = 'desc'){
     //modficar para que tome ultimos dias con datos, no solo los ultimos dias
@@ -198,7 +120,7 @@ class ImportacionController extends Controller
     $beneficiosMensuales = [];
     foreach(TipoMoneda::all() as $moneda){
       $beneficiosMensuales[$moneda->id_tipo_moneda] = BeneficioMensual::where([
-        ['anio_mes',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',$moneda->id_tipo_moneda]
+        ['fecha',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',$moneda->id_tipo_moneda]
       ])->first();
     }
 

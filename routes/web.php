@@ -177,7 +177,7 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::post('/previewBeneficios','ImportacionController@previewBeneficios');
   Route::post('/previewProducidos','ImportacionController@previewProducidos');
   Route::delete('/eliminarProducido/{id}','ProducidoController@eliminarProducido');
-  Route::delete('/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
+  Route::delete('/eliminarBeneficioMensual/{id}','BeneficioMensualController@eliminarBeneficioMensual');
 });
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
