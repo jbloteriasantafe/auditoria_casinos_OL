@@ -161,18 +161,12 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
               <div class="contenedorMenu">
                 <div class="contenedorUsuario">
                   <?php
-                    $casinos = $usuario['usuario']->casinos;
-                    if(count($casinos)!=0){
-                      $cas = $casinos[0]->id_casino;
-                      if($cas == 1){
-                        echo '<div class="fondoMEL"></div>';
-                      }
-                      else if($cas == 2){
-                        echo '<div class="fondoSFE"></div>';
-                      }
-                      else if($cas == 3){
-                        echo '<div class="fondoROS"></div>';
-                      }
+                    $plat = rand(0,1);
+                    if($plat == 0){
+                      echo '<div class="fondoOL1"></div>';
+                    }
+                    else if($plat == 1){
+                      echo '<div class="fondoOL2"></div>';
                     }
                   ?>
                     <div class="infoUsuario">

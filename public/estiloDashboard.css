@@ -229,7 +229,7 @@ aside {
   z-index: 300;
 }
 
-.fondoSFE {
+.fondoOL1 {
   display: block;
   position: absolute;
   height: 180px;
@@ -237,14 +237,14 @@ aside {
   bottom: 0;
   left: 0;
   right: 0;
-  background-image: url(/img/tarjetas/banner_santafe.jpg);
+  background-image: url(/img/tarjetas/banner_OL1.jpg);
   background-repeat: no-repeat;
   background-position: left top;
   background-size: cover;
   opacity: .6;
   z-index: 1;
 }
-.fondoMEL {
+.fondoOL2 {
   display: block;
   position: absolute;
   height: 180px;
@@ -252,22 +252,7 @@ aside {
   bottom: 0;
   left: 0;
   right: 0;
-  background-image: url(/img/tarjetas/banner_melincue.jpg);
-  background-repeat: no-repeat;
-  background-position: left top;
-  background-size: cover;
-  opacity: .6;
-  z-index: 1;
-}
-.fondoROS {
-  display: block;
-  position: absolute;
-  height: 180px;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-image: url(/img/tarjetas/banner_rosario.jpg);
+  background-image: url(/img/tarjetas/banner_OL2.jpg);
   background-repeat: no-repeat;
   background-position: left top;
   background-size: cover;
