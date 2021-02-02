@@ -12,6 +12,7 @@ use App\Isla;
 use App\ContadorHorario;
 use App\Producido;
 use App\Beneficio;
+use App\BeneficioMensual;
 use App\DetalleContadorHorario;
 use App\DetalleProducido;
 use App\TipoMoneda;
@@ -138,18 +139,20 @@ class LectorCSVController extends Controller
   }
 
   public function importarBeneficio($archivoCSV,$fecha,$plataforma,$moneda){
-    //Hay un aralelismo Producido <-> BeneficioMensual, DetalleProducido <-> Beneficio
+    //Hay un "analogo conceptual" Producido <-> BeneficioMensual, DetalleProducido <-> Beneficio
     $benMensual = new BeneficioMensual;
     $benMensual->id_plataforma = $plataforma;
     $benMensual->id_tipo_moneda = $moneda;
-    $benMensual->anio_mes = $fecha;//@TODO: Poner en formato 01/mm/yyyy
+    $fecha_aux = explode("-",$fecha);
+    $benMensual->anio_mes = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
+    $benMensual->bruto = 0;
     $benMensual->save();
     
     //Verifico si ya existen con las mismas caracteristicas, differente ID y los borro
     $ben_viejos = DB::table('beneficio_mensual')->where([
       ['id_beneficio_mensual','<>',$benMensual->id_beneficio_mensual],['id_plataforma','=',$benMensual->id_plataforma],
-      ['id_tipo_moneda','=',$benMensual->id_tipo_moneda],['anio_mes','=',$benMensual->anio_mes]
-    ])->get();
+      ['id_tipo_moneda','=',$benMensual->id_tipo_moneda]
+    ])->whereRaw('YEAR(anio_mes) = ? and MONTH(anio_mes) = ?',[$fecha_aux[0],$fecha_aux[1]])->get();
 
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
@@ -157,12 +160,12 @@ class LectorCSVController extends Controller
     $benCont = BeneficioMensualController::getInstancia();
     if($ben_viejos != null){
       foreach($ben_viejos as $b){
-        $benCont->eliminarBeneficioMensual($b->id_beneficio);
+        $benCont->eliminarBeneficioMensual($b->id_beneficio_mensual);
       }
     }
 
     $path = $archivoCSV->getRealPath();
-
+    //DateReport es un quilombo porque no puedo usar REGEXP_REPLACE en el servidor de prueba porque es mysql 5.7
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE beneficio_temporal
                       FIELDS TERMINATED BY ','
@@ -173,20 +176,24 @@ class LectorCSVController extends Controller
                       (@Total,@DateReport,@Currency,@TotalRegistrations,@Verified,@TotalVerified,@Players,@TotalDeposits,@TotalWithdrawals,@TotalBonus,@TotalManualAdjustments,@TotalVPoints,@TotalWager,@TotalOut,@GrossRevenue,@lastupdated)
                        SET id_beneficio_mensual = '%d',
                        Total = @Total,
-                       DateReport = @DateReport,
+                       DateReport = CONCAT(
+                        SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',-1),'-',
+                        LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',2),'/',-1),2,'00'),'-',
+                        LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',1),2,'00')
+                       ),
                        Currency = @Currency,
                        TotalRegistrations = @TotalRegistrations,
                        Verified = @Verified,
                        TotalVerified = @TotalVerified,
                        Players = @Players,
-                       TotalDeposits = REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),
-                       TotalWithdrawals = REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),
-                       TotalBonus = REPLACE(@TotalBonus,',','.'),
+                       TotalDeposits          = REPLACE(REPLACE(REPLACE(REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),
+                       TotalWithdrawals       = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),
+                       TotalBonus             = REPLACE(@TotalBonus,',','.'),
                        TotalManualAdjustments = REPLACE(@TotalManualAdjustments,',','.'),
-                       TotalVPoints = REPLACE(@TotalVPoints,',','.'),
-                       TotalWager = REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
-                       TotalOut = REPLACE(@TotalOut,',','.'),
-                       GrossRevenue = REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.'),
+                       TotalVPoints           = REPLACE(@TotalVPoints,',','.'),
+                       TotalWager             = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
+                       TotalOut               = REPLACE(@TotalOut,',','.'),
+                       GrossRevenue           = REPLACE(REPLACE(REPLACE(REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.'),
                        lastupdated = @lastupdated
                       ",$path,$benMensual->id_beneficio_mensual);
 
@@ -209,8 +216,8 @@ class LectorCSVController extends Controller
     TotalOut as totalout,
     GrossRevenue as grossrevenue
     FROM beneficio_temporal
-    WHERE beneficio_temporal.id_beneficio_mensual = '%d'
-    ",$benMensual->id_beneficio_mensual);
+    WHERE beneficio_temporal.id_beneficio_mensual = '%d' AND beneficio_temporal.Total = ''
+    ",$benMensual->id_beneficio_mensual);//La ultima comparacion en el WHERE es para ignorar la linea final con el total
 
     $pdo->exec($query);
 
@@ -220,19 +227,25 @@ class LectorCSVController extends Controller
 
     $pdo->exec($query);
 
-    $bruto = 0;
-    $cantidad = 0;
-    foreach($benMensual->beneficios as $b){
-      $bruto+=($b->totalwager-$b->totalout);//@TODO: Revisar si esto esta bien calculado.
-      $cantidad++;
-    }
-    $benMensual->bruto = $bruto;
-    $benMensual->save();
+    //Lo updateo por SQL porque son DECIMAL y no se si hay error de casteo si lo hago en PHP (pasa a float?)
+    //@TODO: Revisar si esta bien calculado el bruto
+    $query = sprintf("UPDATE beneficio_mensual bm
+    SET bm.bruto = IFNULL((
+      SELECT SUM(b.totalwager - b.totalout)
+      FROM beneficio b
+      WHERE b.id_beneficio_mensual = '%d'
+      GROUP BY b.id_beneficio_mensual
+    ),0)
+    WHERE bm.id_beneficio_mensual = '%d'",$benMensual->id_beneficio_mensual,$benMensual->id_beneficio_mensual);
+    $pdo->exec($query);
+    //Actualizo la entidad
+    $benMensual = BeneficioMensual::find($benMensual->id_beneficio_mensual);
 
     DB::connection()->enableQueryLog();
 
     $pdo = null;
 
-    return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->anio_mes, 'bruto' => $bruto, 'dias' => $cantidad]; 
+    return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->anio_mes, 
+    'bruto' => $benMensual->bruto, 'dias' => $benMensual->beneficios()->count()]; 
   }
 }

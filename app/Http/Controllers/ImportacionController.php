@@ -191,20 +191,27 @@ class ImportacionController extends Controller
 
     $fecha = is_null($fecha_busqueda)? date('Y-m-d') : $fecha_busqueda;
 
-    $arreglo = array();
     $fecha = new \DateTime($fecha);
     $fecha->modify('first day of this month');
     $fecha = $fecha->format('Y-m-d');
-    $beneficioMensualPesos   =  BeneficioMensual::where([['anio_mes',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',1]])->first();
-    $beneficioMensualDolares =  BeneficioMensual::where([['anio_mes',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',2]])->first();
-    //@TODO: Generalizar moneda
+
+    $beneficiosMensuales = [];
+    foreach(TipoMoneda::all() as $moneda){
+      $beneficiosMensuales[$moneda->id_tipo_moneda] = BeneficioMensual::where([
+        ['anio_mes',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',$moneda->id_tipo_moneda]
+      ])->first();
+    }
+
     $mes = date('m',strtotime($fecha));
+    $arreglo = [];
     while(date('m',strtotime($fecha)) == $mes){
-      $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
-      $producido['dolares'] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
+      $producido = [];
+      $beneficio = [];
+      foreach($beneficiosMensuales as $idmon => $bMensual){
+        $producido[$idmon] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
+        $beneficio[$idmon] = !is_null($bMensual) && ($bMensual->beneficios()->where('fecha',$fecha)->count() >= 1);
+      }
       $dia['producido'] = $producido;
-      $beneficio['pesos'] = is_null($beneficioMensualPesos)? false : ($beneficioMensualPesos->beneficios()->where('fecha',$fecha)->count() >= 1? true : false);
-      $beneficio['dolares'] = is_null($beneficioMensualDolares)? false : ($beneficioMensualPesos->beneficios()->where('fecha',$fecha)->count() >= 1? true : false);
       $dia['beneficio'] = $beneficio;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;

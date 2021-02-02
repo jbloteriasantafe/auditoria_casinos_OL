@@ -95,93 +95,41 @@ $(document).ready(function(){
 
 
 $('#plataformaInfoImportacion').change(function() {
-    var id_plataforma = $(this).val();
-    var id_moneda = $('#monedaInfoImportacion').val();
-    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
-    //Si el plataforma elegido no es Rosario, entonces ocultar el select de monedas
-      //Para Santa Fe y Melincué mandar moneda PESOS por defecto
-      //Para Rosario mirar que moneda está seleccionada
-    if (id_plataforma != '3') {
-        $('#monedaInfoImportacion').hide();
-
-        cargarTablasImportaciones(id_plataforma, '1',fecha_sort); //El 1 es PESOS
-    }else {
-        $('#monedaInfoImportacion').show();
-        console.log("Plataforma: ", id_plataforma);
-        console.log("Moneda: ", id_moneda);
-        $('#monedaInfoImportacion').change();
-    }
-});
-
-$('#monedaInfoImportacion').change(function() {
-    var id_moneda = $(this).val();
-    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
-
-    if (id_moneda == 1) $('.tablaBody').removeClass('dolares').addClass('pesos');
-    else $('.tablaBody').removeClass('pesos').addClass('dolares');
-
-    //Esto pasa siempre en Rosario, el único plataforma que tiene dolar
-    cargarTablasImportaciones('3', id_moneda, fecha_sort);
+    $('#monedaInfoImportacion').change();
 });
 
 $('#mesInfoImportacion').on("change.datetimepicker",function(){
-  var id_plataforma = $('#plataformaInfoImportacion').val();
-  var id_moneda = $('#monedaInfoImportacion').val();
-  const fecha_sort = $('#infoImportaciones .activa').attr('estado');
+  $('#monedaInfoImportacion').change();
+});
 
-  if(id_plataforma != '3'){
-    cargarTablasImportaciones(id_plataforma, '1', fecha_sort); //El 1 es PESOS
-  }
-  else{
-    cargarTablasImportaciones(id_plataforma,id_moneda, fecha_sort);
-  }
-})
+$('#monedaInfoImportacion').change(function() {
+    const id_plataforma = $('#plataformaInfoImportacion').val();
+    const id_moneda = $(this).val();
+    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
+    cargarTablasImportaciones(id_plataforma, id_moneda, fecha_sort);
+});
 
 function limpiarBodysImportaciones() {
-    $('.tablaBody tr').not('#moldeFilaImportacion').remove();
-    $('.tablaBody').hide();
+    $('#infoImportaciones tbody tr').not('#moldeFilaImportacion').remove();
+    $('#infoImportaciones tbody').hide();
 }
 
 function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
     const fecha = $('#mes_info_hidden').val();
     const url = fecha.size == 0? '/' : ('/' + fecha);
     $.get('importaciones/' + plataforma + url + '/' + (fecha_sort? fecha_sort : ''), function(data) {
-        var tablaBody;
+        const tablaBody = $('#infoImportaciones tbody');
 
         console.log("Plataforma: ", plataforma);
 
         limpiarBodysImportaciones();
 
-        switch (plataforma) {
-          case '1':
-            tablaBody = $('#bodyMelincue');
-            break;
-          case '2':
-            tablaBody = $('#bodySantaFe');
-            break;
-          case '3':
-            tablaBody = $('#bodyRosario');
-            break;
-        }
-
-        for (var i = 0; i < data.arreglo.length; i++) {
-
-          var moldeFilaImportacion = $('#moldeFilaImportacion').clone();
+        for (let i = 0; i < data.arreglo.length; i++) {
+          const moldeFilaImportacion = $('#moldeFilaImportacion').clone();
           moldeFilaImportacion.removeAttr('id');
           moldeFilaImportacion.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
-          var filaProducido = moldeFilaImportacion.find('.producido');
-          var filaBeneficio = moldeFilaImportacion.find('.beneficio');
-          if (moneda == '1') {
-            console.log('PESOS');
-            data.arreglo[i].producido.pesos == true ? filaProducido.addClass('true') : filaProducido.addClass('false');
-            data.arreglo[i].beneficio.pesos == true ? filaBeneficio.addClass('true') : filaBeneficio.addClass('false');
-          }
-          else {
-            console.log('DOLAR');
-            data.arreglo[i].producido.dolares == true ? filaProducido.addClass('true') : filaProducido.addClass('false');
-            data.arreglo[i].beneficio.dolares == true ? filaBeneficio.addClass('true') : filaBeneficio.addClass('false');
-          }
-
+          moldeFilaImportacion.find('.producido').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
+          moldeFilaImportacion.find('.beneficio').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
           tablaBody.append(moldeFilaImportacion);
           moldeFilaImportacion.show();
         }
@@ -770,15 +718,15 @@ function procesarDatosBeneficios(e) {
   if(allTextLines.length > 0){
     const columnas = allTextLines[0].split(',');
     if (columnas.length == 16) {
-      //Si tiene filas, extraigo la fecha
-      if (allTextLines.length > 1) {
-        //Se obtiene la fecha del CSV para mostrarlo
+      //Si tiene filas, extraigo la fecha y moneda
+      if (allTextLines.length > 2) {//2 porque tiene la cabezera y el total si o si (supongo)
         const date = allTextLines[1].split(',')[1];
         $('#fechaBeneficio').data('datetimepicker').setDate(new Date(toIso(date)));
         $('#fechaBeneficio input').attr('disabled',true);
         $('#fechaBeneficio span').hide();
         const moneda = allTextLines[1].split(',')[2];
-        $('#monedaBeneficio').val(1).attr('disabled',true);//@TODO: FIX FIX
+        $(`#monedaBeneficio option:contains(${moneda})`).prop('selected',true)
+        $('#monedaBeneficio').attr('disabled',true);
       }
       else{
         $('#fechaBeneficio input').attr('disabled',false);

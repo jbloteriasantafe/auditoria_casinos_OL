@@ -127,44 +127,22 @@ $id_usuario = session('id_usuario');
                                       #infoImportaciones td.false .fa-check {
                                         display: none;
                                       }
-
-                                      /* Bordes para identificar el plataforma en cada tabla */
-
-                                      #bodySantaFe {
-                                        border-top: 3px solid #EF9A9A !important;
-                                      }
-                                      #bodyMelincue {
-                                        border-top: 3px solid #A5D6A7 !important;
-                                      }
-                                      #bodyRosario.pesos {
-                                        border-top: 3px solid #FFE0B2 !important;
-                                      }
-                                      #bodyRosario.dolares {
-                                        border-top: 3px solid #FFE082 !important;
-                                      }
                                   </style>
 
                                   <table id="infoImportaciones" class="table table-fixed tablesorter">
-                                      <thead id="headSantaFe">
+                                      <thead>
                                         <tr>
                                           <th class="col-xs-4" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
                                           <th class="col-xs-4" style="text-align:center;">PRODUCIDOS</th>
                                           <th class="col-xs-4" style="text-align:center;">BENEFICIOS</th>
                                         </tr>
                                       </thead>
-                                      <!-- Se usa como molde para generar todas las filas -->
-                                      <tbody id="bodySantaFe" class="tablaBody" style="text-align:center; max-height:440px;">
+                                      <tbody style="text-align:center; max-height:440px;">
                                         <tr id="moldeFilaImportacion">
                                           <td class="col-xs-4 fecha" style="text-align:left;">12 AGO 2018</td>
                                           <td class="col-xs-4 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
                                           <td class="col-xs-4 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
                                         </tr>
-                                      </tbody>
-                                      <tbody id="bodyMelincue" class="tablaBody" style="text-align:center; max-height:440px;">
-
-                                      </tbody>
-                                      <tbody id="bodyRosario" class="tablaBody" style="text-align:center; max-height:440px;">
-
                                       </tbody>
                                   </table>
                               </div>
