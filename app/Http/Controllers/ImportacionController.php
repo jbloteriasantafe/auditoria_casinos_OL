@@ -43,7 +43,7 @@ class ImportacionController extends Controller
     return ['beneficio_mensual' => $benMensual, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
     'cant_detalles' => $benMensual->beneficios()->count(),
     'beneficios'=> $benMensual->beneficios()
-    ->select('fecha','players','totalwager','totalout','grossrevenue')
+    ->select('fecha','jugadores','TotalWager','TotalOut','GrossRevenue')
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 

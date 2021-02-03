@@ -570,10 +570,10 @@ $('#btn-reintentarProducido').click(function(e) {
 function agregarFilaDetalleBeneficio(beneficio){
   const fila = $('<tr>');
   fila.append($('<td>').addClass('col-xs-2').append(beneficio.fecha));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.players));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.totalwager));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.totalout));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.grossrevenue));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.jugadores));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.TotalWager));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.TotalOut));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.GrossRevenue));
   fila.append($('<td>').addClass('col-xs-2').append('&nbsp;'));
   $('#tablaVistaPrevia tbody').append(fila);
 }

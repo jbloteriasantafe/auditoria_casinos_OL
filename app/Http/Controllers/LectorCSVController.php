@@ -203,18 +203,18 @@ class LectorCSVController extends Controller
     (
       id_beneficio_mensual,
       fecha,
-      players,
-      totalwager,
-      totalout,
-      grossrevenue
+      jugadores,
+      TotalWager,
+      TotalOut,
+      GrossRevenue
     )
     SELECT
     id_beneficio_mensual, 
     DateReport as fecha,
-    Players as players,
-    TotalWager as totalwager,
-    TotalOut as totalout,
-    GrossRevenue as grossrevenue
+    Players as jugadores,
+    TotalWager,
+    TotalOut,
+    GrossRevenue
     FROM beneficio_temporal
     WHERE beneficio_temporal.id_beneficio_mensual = '%d' AND beneficio_temporal.Total = ''
     ",$benMensual->id_beneficio_mensual);//La ultima comparacion en el WHERE es para ignorar la linea final con el total
@@ -231,12 +231,12 @@ class LectorCSVController extends Controller
     //@TODO: Revisar si esta bien calculado el bruto
     $query = sprintf("UPDATE beneficio_mensual bm
     SET bm.bruto = IFNULL((
-      SELECT SUM(b.totalwager - b.totalout)
+      SELECT SUM(b.TotalWager - b.TotalOut)
       FROM beneficio b
-      WHERE b.id_beneficio_mensual = '%d'
+      WHERE b.id_beneficio_mensual = bm.id_beneficio_mensual
       GROUP BY b.id_beneficio_mensual
     ),0)
-    WHERE bm.id_beneficio_mensual = '%d'",$benMensual->id_beneficio_mensual,$benMensual->id_beneficio_mensual);
+    WHERE bm.id_beneficio_mensual = '%d'",$benMensual->id_beneficio_mensual);
     $pdo->exec($query);
     //Actualizo la entidad
     $benMensual = BeneficioMensual::find($benMensual->id_beneficio_mensual);
