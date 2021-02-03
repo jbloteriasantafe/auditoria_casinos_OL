@@ -40,6 +40,7 @@ class LectorCSVController extends Controller
     $producido->id_plataforma = $plataforma;
     $producido->fecha = $fecha;
     $producido->id_tipo_moneda = $moneda;
+    $producido->valor = 0;
     $producido->save();
 
     $producidos_viejos = DB::table('producido')->where([
@@ -59,6 +60,7 @@ class LectorCSVController extends Controller
 
     $path = $archivoCSV->getRealPath();
 
+    //No se puede usar parametro preparado LOAD DATA por lo que busque
     //A totalwager y gross revenue le saco el $, le saco el punto de los miles y le cambio la coma decimal por un punto
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE producido_temporal
@@ -82,7 +84,8 @@ class LectorCSVController extends Controller
                       ",$path,$producido->id_producido);
 
     $pdo->exec($query);
-    $query = sprintf(" INSERT INTO detalle_producido 
+
+    $query = $pdo->prepare("INSERT INTO detalle_producido 
     (id_producido,
     cod_juego,
     categoria,
@@ -107,16 +110,22 @@ class LectorCSVController extends Controller
     GrossRevenue,
     ((TotalWagerCash + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as valor
     FROM producido_temporal
-    WHERE producido_temporal.id_producido = '%d'
-    ",$producido->id_producido);
+    WHERE producido_temporal.id_producido = :id_producido");
+    $query->execute([":id_producido" => $producido->id_producido]);
 
-    $pdo->exec($query);
+    $query = $pdo->prepare("DELETE FROM producido_temporal WHERE id_producido = :id_producido");
+    $query->execute([":id_producido" => $producido->id_producido]);
 
-    $query = sprintf(" DELETE FROM producido_temporal
-                       WHERE id_producido = '%d'
-                       ",$producido->id_producido);
+    $query = $pdo->prepare("UPDATE producido p
+    SET p.valor = IFNULL((
+      SELECT SUM(dp.valor)
+      FROM detalle_producido dp
+      WHERE dp.id_producido = p.id_producido
+      GROUP BY dp.id_producido
+    ),0)
+    WHERE p.id_producido = :id_producido");
 
-    $pdo->exec($query);
+    $query->execute([":id_producido" => $producido->id_producido]);
 
     DB::connection()->enableQueryLog();
 
@@ -125,7 +134,7 @@ class LectorCSVController extends Controller
     ->groupBy('cod_juego')
     ->havingRaw('COUNT(distinct id_detalle_producido) > 1')->get()->count();
 
-    /*$inhabilitados_reportando = 999;//@TODO Agregar estado a plataforma_tiene_juego
+    /*$inhabilitados_reportando = 999;
     $habilitados_sin_reportar = 999;
     $juego_faltante_en_bd = 999;
     $juego_en_bd_sin_asignar_plataforma = 999;
@@ -166,40 +175,41 @@ class LectorCSVController extends Controller
 
     $path = $archivoCSV->getRealPath();
     //DateReport es un quilombo porque no puedo usar REGEXP_REPLACE en el servidor de prueba porque es mysql 5.7
-    $query = sprintf("LOAD DATA local INFILE '%s'
-                      INTO TABLE beneficio_temporal
-                      FIELDS TERMINATED BY ','
-                      OPTIONALLY ENCLOSED BY '\"'
-                      ESCAPED BY '\"'
-                      LINES TERMINATED BY '\\r\\n'
-                      IGNORE 1 LINES
-                      (@Total,@DateReport,@Currency,@TotalRegistrations,@Verified,@TotalVerified,@Players,@TotalDeposits,@TotalWithdrawals,@TotalBonus,@TotalManualAdjustments,@TotalVPoints,@TotalWager,@TotalOut,@GrossRevenue,@lastupdated)
-                       SET id_beneficio_mensual = '%d',
-                       Total = @Total,
-                       DateReport = CONCAT(
-                        SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',-1),'-',
-                        LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',2),'/',-1),2,'00'),'-',
-                        LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',1),2,'00')
-                       ),
-                       Currency = @Currency,
-                       TotalRegistrations = @TotalRegistrations,
-                       Verified = @Verified,
-                       TotalVerified = @TotalVerified,
-                       Players = @Players,
-                       TotalDeposits          = REPLACE(REPLACE(REPLACE(REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),
-                       TotalWithdrawals       = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),
-                       TotalBonus             = REPLACE(@TotalBonus,',','.'),
-                       TotalManualAdjustments = REPLACE(@TotalManualAdjustments,',','.'),
-                       TotalVPoints           = REPLACE(@TotalVPoints,',','.'),
-                       TotalWager             = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
-                       TotalOut               = REPLACE(@TotalOut,',','.'),
-                       GrossRevenue           = REPLACE(REPLACE(REPLACE(REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.'),
-                       lastupdated = @lastupdated
-                      ",$path,$benMensual->id_beneficio_mensual);
 
+    //No se puede usar parametro preparado LOAD DATA por lo que busque
+    $query = sprintf("LOAD DATA local INFILE '%s'
+    INTO TABLE beneficio_temporal
+    FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '\"'
+    ESCAPED BY '\"'
+    LINES TERMINATED BY '\\r\\n'
+    IGNORE 1 LINES
+    (@Total,@DateReport,@Currency,@TotalRegistrations,@Verified,@TotalVerified,@Players,@TotalDeposits,@TotalWithdrawals,@TotalBonus,@TotalManualAdjustments,@TotalVPoints,@TotalWager,@TotalOut,@GrossRevenue,@lastupdated)
+     SET id_beneficio_mensual = %d,
+     Total = @Total,
+     DateReport = CONCAT(
+      SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',-1),'-',
+      LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',2),'/',-1),2,'00'),'-',
+      LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',1),2,'00')
+     ),
+     Currency = @Currency,
+     TotalRegistrations = @TotalRegistrations,
+     Verified = @Verified,
+     TotalVerified = @TotalVerified,
+     Players = @Players,
+     TotalDeposits          = REPLACE(REPLACE(REPLACE(REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),
+     TotalWithdrawals       = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),
+     TotalBonus             = REPLACE(@TotalBonus,',','.'),
+     TotalManualAdjustments = REPLACE(@TotalManualAdjustments,',','.'),
+     TotalVPoints           = REPLACE(@TotalVPoints,',','.'),
+     TotalWager             = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
+     TotalOut               = REPLACE(@TotalOut,',','.'),
+     GrossRevenue           = REPLACE(REPLACE(REPLACE(REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.'),
+     lastupdated = @lastupdated",$path,$benMensual->id_beneficio_mensual);
     $pdo->exec($query);
 
-    $query = sprintf(" INSERT INTO beneficio 
+    //La ultima comparacion en el WHERE es para ignorar la ultima linea
+    $query = $pdo->prepare("INSERT INTO beneficio 
     (
       id_beneficio_mensual,
       fecha,
@@ -216,28 +226,24 @@ class LectorCSVController extends Controller
     TotalOut,
     GrossRevenue
     FROM beneficio_temporal
-    WHERE beneficio_temporal.id_beneficio_mensual = '%d' AND beneficio_temporal.Total = ''
-    ",$benMensual->id_beneficio_mensual);//La ultima comparacion en el WHERE es para ignorar la linea final con el total
+    WHERE beneficio_temporal.id_beneficio_mensual = :id_beneficio_mensual AND beneficio_temporal.Total = ''");
+    $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
 
-    $pdo->exec($query);
-
-    $query = sprintf("DELETE FROM beneficio_temporal
-    WHERE id_beneficio_mensual = '%d'
-    ",$benMensual->id_beneficio_mensual);
-
-    $pdo->exec($query);
+    $query = $pdo->prepare("DELETE FROM beneficio_temporal WHERE id_beneficio_mensual = :id_beneficio_mensual");
+    $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
 
     //Lo updateo por SQL porque son DECIMAL y no se si hay error de casteo si lo hago en PHP (pasa a float?)
     //@TODO: Revisar si esta bien calculado el bruto
-    $query = sprintf("UPDATE beneficio_mensual bm
+    $query = $pdo->prepare("UPDATE beneficio_mensual bm
     SET bm.bruto = IFNULL((
       SELECT SUM(b.TotalWager - b.TotalOut)
       FROM beneficio b
       WHERE b.id_beneficio_mensual = bm.id_beneficio_mensual
       GROUP BY b.id_beneficio_mensual
     ),0)
-    WHERE bm.id_beneficio_mensual = '%d'",$benMensual->id_beneficio_mensual);
-    $pdo->exec($query);
+    WHERE bm.id_beneficio_mensual = :id_beneficio_mensual");
+    $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
+
     //Actualizo la entidad
     $benMensual = BeneficioMensual::find($benMensual->id_beneficio_mensual);
 

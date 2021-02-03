@@ -470,11 +470,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_beneficios'))
                                          <li>
                                            <div id="opcBeneficios" class="opcionesHover" 
-                                           @if(false)
                                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/beneficios'" href="#" style="cursor: pointer;"
-                                           @else
-                                           style="color: grey;"
-                                           @endif
                                            >
                                              <span>Beneficios</span>
                                            </div>

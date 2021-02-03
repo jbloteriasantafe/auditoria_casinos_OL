@@ -35,21 +35,16 @@ $id_usuario = $usuario['usuario']->id_usuario;
                             <div class="panel-body">
                               <div class="row"> <!-- Primera fila -->
                                 <div class="col-lg-3">
-                                  <h5>Casino</h5>
-                                  <select class="form-control" id="selectCasinos">
-                                    @if($casinos->count() == 1)
-                                    <option id="{{$casinos[0]->id_casino}}" value="{{$casinos[0]->id_casino}}">{{$casinos[0]->nombre}}</option>
-                                    @else
-                                    <option value="0">- Seleccione un casino -</option>
-                                     @foreach ($casinos as $casino)
-                                     <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                  <h5>Plataforma</h5>
+                                  <select class="form-control" id="selectPlataformas">
+                                    <option value="">- Seleccione una plataforma -</option>
+                                     @foreach ($plataformas as $p)
+                                     <option id="{{$p->id_plataforma}}" value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
                                      @endforeach
-                                    @endif
                                   </select>
                                 </div>
                                 <div class="col-lg-3">
                                     <h5>Fecha Desde</h5>
-
                                     <div class="form-group">
                                        <div class='input-group date' id='dtpFechaDesde' data-link-field="fecha_desde" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                                            <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
@@ -58,20 +53,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                        </div>
                                        <input class="form-control" type="hidden" id="fecha_desde" value=""/>
                                     </div>
-
-                                    <!-- <div class="form-group">
-                                       <div class='input-group date' id='dtpFechaDesde' data-link-field="fecha_desde" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                                           <input type='text' class="form-control" placeholder="Fecha Desde"/>
-                                           <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-times"></i></span>
-                                           <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                           <input class="form-control" type="hidden" id="fecha_desde" value=""/>
-                                       </div>
-                                    </div> -->
-
                                 </div>
                                 <div class="col-lg-3">
                                   <h5>Fecha Hasta</h5>
-
                                   <div class="form-group">
                                      <div class='input-group date' id='dtpFechaHasta' data-link-field="fecha_hasta" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha Hasta" id="B_fecha_inicio"/>
@@ -80,12 +64,11 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_hasta" value=""/>
                                   </div>
-
                                 </div>
                                 <div class="col-lg-3">
                                   <h5>Tipo Moneda</h5>
                                   <select class="form-control" id="selectTipoMoneda">
-                                    <option value="0">- Seleccione un Tipo Moneda -</option>
+                                    <option value="">- Seleccione un Tipo Moneda -</option>
                                      @foreach ($tipos_moneda as $tipo_moneda)
                                      <option id="{{$tipo_moneda->id_tipo_moneda}}" value="{{$tipo_moneda->id_tipo_moneda}}">{{$tipo_moneda->descripcion}}</option>
                                      @endforeach
@@ -119,11 +102,11 @@ $id_usuario = $usuario['usuario']->id_usuario;
                               <table id="tablaBeneficios" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-2" value="casino.nombre" estado="">CASINO <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-2" value="diferencias_mes.mes" estado="">MES <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-1" value="diferencias_mes.anio" estado="">AÑO <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-2" value="tipo_moneda.descripcion" estado="">T. MONEDA <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="diferencias_mes.diferencias_mes" estado="">DÍAS CON DIFERENCIA<i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="p.nombre" estado="">PLATAFORMA <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="bm.fecha" estado="">MES <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-1">AÑO</th>
+                                    <th class="col-xs-2" value="tm.descripcion" estado="">T. MONEDA <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="diferencias_mes" estado="">DÍAS CON DIFERENCIA<i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2">ACCIÓN</th>
                                   </tr>
                                 </thead>
@@ -187,8 +170,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   <form id="frmValidarBeneficio" name="frmValidarBeneficio" class="form-horizontal" novalidate="">
                           <div class="row">
                             <div class="col-md-3">
-                              <h5>Casino</h5>
-                              <input type="text" readonly="true" id="casinoModal" disabled class="form-control">
+                              <h5>Plataforma</h5>
+                              <input type="text" readonly="true" id="plataformaModal" disabled class="form-control">
                             </div>
                             <div class="col-md-3">
                               <h5>Tipo Moneda</h5>
@@ -297,7 +280,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 </div>
 
                 <div class="modal-body franjaRojaModal">
-                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
+                  <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
                           <div class="col-xs-12">
                             <strong>¿Seguro desea eliminar Producido? Podría ocasionar errores serios en el sistema.</strong>

@@ -60,8 +60,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
   e.preventDefault();
-
-  var page_size = (page_size != null) ? page_size : 10;
+  
   var page_number = (pagina != null) ? pagina : 1;
   var sort_by = (columna != null) ? {columna,orden} : null;
   if(sort_by == null){ // limpio las columnas
@@ -75,7 +74,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     var size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+  var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
   // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaBeneficios .activa').attr('value'),orden: $('#tablaBeneficios .activa').attr('estado')} ;
@@ -84,7 +83,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
 
   var formData = {
-      id_casino: $('#selectCasinos').val(),
+      id_plataforma: $('#selectPlataformas').val(),
       fecha_desde: $('#fecha_desde').val(),
       fecha_hasta: $('#fecha_hasta').val(),
       id_tipo_moneda: $('#selectTipoMoneda').val(),
@@ -116,26 +115,25 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
 //Validación
 $(document).on('click','.validar',function(e){
-  //id_casino | año | mes | id_tipo_moneda
+  //id_plataforma | año | mes | id_tipo_moneda
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
   e.preventDefault();
 
   var formData = {
-      id_casino: $(this).attr('data-casino'),
+      id_plataforma: $(this).attr('data-plataforma'),
       anio: $(this).attr('data-anio'),
       mes: $(this).attr('data-mes'),
       id_tipo_moneda: $(this).attr('data-tipo'),
   }
 
-  $('#casinoModal').val($(this).parent().parent().find('td:nth-child(1)').text());
+  $('#plataformaModal').val($(this).parent().parent().find('td:nth-child(1)').text());
   $('#tipoMonedaModal').val($(this).parent().parent().find('td:nth-child(4)').text());
   $('#anioModal').val($(this).parent().parent().find('td:nth-child(3)').text());
   $('#mesModal').val($(this).parent().parent().find('td:nth-child(2)').text());
 
   $.ajax({
       type: 'POST',
-      // url: 'beneficios/validarBeneficios',
       url: 'beneficios/obtenerBeneficiosParaValidar',
       data: formData,
       dataType: 'json',
@@ -294,7 +292,7 @@ function generarFilaTabla(beneficio){
       fila.attr('id','beneficio' + beneficio.id_beneficio_mensual)
           .append($('<td>')
               .addClass('col-xs-2')
-              .text(beneficio.casino)
+              .text(beneficio.plataforma)
           )
           .append($('<td>')
               .addClass('col-xs-2')
@@ -336,7 +334,7 @@ function generarFilaTabla(beneficio){
               .append($('<span>').text(' '))
               .append($('<button>')
                   .addClass('btn btn-info planilla popInfo')
-                  .attr('data-casino', beneficio.id_casino)
+                  .attr('data-plataforma', beneficio.id_plataforma)
                   .attr('data-tipo', beneficio.id_tipo_moneda)
                   .attr('data-anio', beneficio.anio)
                   .attr('data-mes',beneficio.mes)
@@ -355,7 +353,7 @@ function generarFilaTabla(beneficio){
           fila.append($('<td>')
               .append($('<button>')
                   .addClass('btn btn-success validar popInfo')
-                  .attr('data-casino', beneficio.id_casino)
+                  .attr('data-plataforma', beneficio.id_plataforma)
                   .attr('data-tipo', beneficio.id_tipo_moneda)
                   .attr('data-anio', beneficio.anio)
                   .attr('data-mes',beneficio.mes)
@@ -372,7 +370,7 @@ function generarFilaTabla(beneficio){
               .append($('<span>').text(' '))
               .append($('<button>')
                   .addClass('btn btn-info planilla popInfo')
-                  .attr('data-casino', beneficio.id_casino)
+                  .attr('data-plataforma', beneficio.id_plataforma)
                   .attr('data-tipo', beneficio.id_tipo_moneda)
                   .attr('data-anio', beneficio.anio)
                   .attr('data-mes',beneficio.mes)
@@ -571,7 +569,7 @@ $(document).on('click','#btn-validar-si',function(e){
 $(document).on('click','.planilla',function(){
     $('#alertaArchivo').hide();
 console.log($(this).attr('data-tipo'));
-    window.open('beneficios/generarPlanilla/' + $(this).attr('data-casino') + "/" + $(this).attr('data-tipo') + "/" + $(this).attr('data-anio') +"/"+ $(this).attr('data-mes'),'_blank');
+    window.open('beneficios/generarPlanilla/' + $(this).attr('data-plataforma') + "/" + $(this).attr('data-tipo') + "/" + $(this).attr('data-anio') +"/"+ $(this).attr('data-mes'),'_blank');
 
 });
 

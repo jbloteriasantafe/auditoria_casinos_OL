@@ -351,6 +351,7 @@ $('#btn-eliminarModal').click(function (e) {
       url: url,
       success: function (data) {
         $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
+        $('#monedaInfoImportacion').change();
         $('#modalEliminar').modal('hide');
       },
       error: function (data) {
