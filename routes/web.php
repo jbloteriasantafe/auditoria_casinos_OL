@@ -200,7 +200,7 @@ Route::get('producidos/maquinasProducidos/{id_producido}','ProducidoController@a
 
 Route::get('beneficios','BeneficioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_beneficios');
 Route::post('beneficios/buscarBeneficios','BeneficioController@buscarBeneficios');
-Route::post('beneficios/obtenerBeneficiosParaValidar','BeneficioController@obtenerBeneficiosParaValidar');
+Route::get('beneficios/obtenerBeneficiosParaValidar/{id_beneficio_mensual}','BeneficioController@obtenerBeneficiosParaValidar');
 Route::post('beneficios/ajustarBeneficio','BeneficioController@ajustarBeneficio');
 Route::post('beneficios/validarBeneficios','BeneficioController@validarBeneficios');
 Route::post('beneficios/validarBeneficiosSinProducidos','BeneficioController@validarBeneficiosSinProducidos');

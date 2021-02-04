@@ -10,13 +10,9 @@ class Producido extends Model
   protected $connection = 'mysql';
   protected $table = 'producido';
   protected $primaryKey = 'id_producido';
-  protected $visible = array('id_producido','fecha','id_plataforma','id_tipo_moneda','valor','cant_juegos_forzados','id_juegos_forzados','beneficio_calculado');
+  protected $visible = array('id_producido','fecha','id_plataforma','id_tipo_moneda','jugadores','ingreso','premio','valor','cant_juegos_forzados','id_juegos_forzados');
   public $timestamps = false;
   protected $appends = array('beneficio_calculado');
-
-  public function getBeneficioCalculadoAttribute(){
-    return DetalleProducido::where('id_producido','=',$this->id_producido)->sum('valor');
-  }
 
   public function plataforma(){
     return $this->belongsTo('App\Plataforma','id_plataforma','id_plataforma');

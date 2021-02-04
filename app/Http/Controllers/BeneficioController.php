@@ -86,10 +86,10 @@ class BeneficioController extends Controller
     //En teoria lo podria hacer mas rapido...
     $diferencias_subquery = "SELECT diff_bm.id_beneficio_mensual, 
     SUM(CASE 
-          WHEN (diff_p.valor IS NULL     AND diff_b.GrossRevenue IS NOT NULL) THEN 1
-          WHEN (diff_p.valor IS NOT NULL AND diff_b.GrossRevenue IS NULL)     THEN 1
-          WHEN (diff_p.valor IS NULL     AND diff_b.GrossRevenue IS NULL)     THEN 0
-          WHEN (diff_p.valor - diff_b.GrossRevenue) <> 0                      THEN 1
+          WHEN (diff_p.valor IS NULL     AND diff_b.valor IS NOT NULL) THEN 1
+          WHEN (diff_p.valor IS NOT NULL AND diff_b.valor IS NULL)     THEN 1
+          WHEN (diff_p.valor IS NULL     AND diff_b.valor IS NULL)     THEN 0
+          WHEN (diff_p.valor - diff_b.valor) <> 0                      THEN 1
           ELSE 0
         END) as diferencias,
     COUNT(diff_p.id_producido) as dias_p,
@@ -130,9 +130,22 @@ class BeneficioController extends Controller
     return ['current_page' => $page,'total' => $pages,'per_page' => $request->page_size,'data' => $resultados];
   }
 
-  public function obtenerBeneficiosParaValidar(Request $request){
-    $resultados = $this->obtenerBeneficiosPorMes($request->id_plataforma,$request->id_tipo_moneda,$request->anio,$request->mes);
-    return ['resultados' => $resultados];
+  public function obtenerBeneficiosParaValidar($id_beneficio_mensual){
+    $resultados = DB::table('beneficio_mensual')->selectRaw(
+      'beneficio.id_beneficio, beneficio.fecha, beneficio.valor as beneficio,
+      IFNULL(producido.valor + beneficio.ajuste,0) as beneficio_calculado, 
+      (IFNULL(producido.valor + beneficio.ajuste,0) - beneficio.valor) as diferencia,
+      producido.id_producido as id_producido'
+    )
+    ->leftJoin('beneficio','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
+    ->leftJoin('producido',function($j){
+      return $j->on('producido.id_plataforma','=','beneficio_mensual.id_plataforma')->on('producido.id_tipo_moneda','=','beneficio_mensual.id_tipo_moneda')
+      ->on('producido.fecha','=','beneficio.fecha');
+    })
+    ->where('beneficio_mensual.id_beneficio_mensual',$id_beneficio_mensual)
+    ->orderBy('beneficio.fecha','asc')
+    ->get();
+    return $resultados;
   }
   // cami coments
   //desde el modal de ajustar beneficios,

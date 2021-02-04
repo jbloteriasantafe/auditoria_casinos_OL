@@ -194,22 +194,18 @@ $(document).on('click','.planilla', function(){
   head.children().remove();
   if(tipo_importacion == 2){
     head.append($('<th>').addClass('col-xs-2').append('JUEGO'));
-    head.append($('<th>').addClass('col-xs-1').append('CATEGORIA'));
-    head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
-    head.append($('<th>').addClass('col-xs-1').append('TotalWagerCash'));
-    head.append($('<th>').addClass('col-xs-1').append('TotalWagerBonus'));
-    head.append($('<th>').addClass('col-xs-1').append('TotalWager'));
-    head.append($('<th>').addClass('col-xs-1').append('GrossRevenueCash'));
-    head.append($('<th>').addClass('col-xs-1').append('GrossRevenueBonus'));
-    head.append($('<th>').addClass('col-xs-1').append('GrossRevenue'));
+    head.append($('<th>').addClass('col-xs-2').append('CATEGORIA'));
+    head.append($('<th>').addClass('col-xs-2').append('JUGADORES'));
+    head.append($('<th>').addClass('col-xs-2').append('INGRESO'));
+    head.append($('<th>').addClass('col-xs-2').append('PREMIO'));
     head.append($('<th>').addClass('col-xs-2').append('VALOR'));
   }
   else if(tipo_importacion == 3){
     head.append($('<th>').addClass('col-xs-2').append('FECHA'));
     head.append($('<th>').addClass('col-xs-2').append('JUGADORES'));
-    head.append($('<th>').addClass('col-xs-2').append('TotalWager'));
-    head.append($('<th>').addClass('col-xs-2').append('TotalOut'));
-    head.append($('<th>').addClass('col-xs-2').append('GrossRevenue'));
+    head.append($('<th>').addClass('col-xs-2').append('INGRESO'));
+    head.append($('<th>').addClass('col-xs-2').append('PREMIO'));
+    head.append($('<th>').addClass('col-xs-2').append('VALOR'));
     head.append($('<th>').addClass('col-xs-2').append('&nbsp;'));
   }
   $('#tablaVistaPrevia tbody tr').remove();
@@ -364,14 +360,10 @@ $('#btn-eliminarModal').click(function (e) {
 function agregarFilaDetalleProducido(producido) {
   var fila = $('<tr>');
   fila.append($('<td>').addClass('col-xs-2').text(producido.cod_juego));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.categoria));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.jugadores));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.TotalWagerCash));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.TotalWagerBonus));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.TotalWager));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.GrossRevenueCash));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.GrossRevenueBonus));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.GrossRevenue));
+  fila.append($('<td>').addClass('col-xs-2').append(producido.categoria));
+  fila.append($('<td>').addClass('col-xs-2').append(producido.jugadores));
+  fila.append($('<td>').addClass('col-xs-2').append(producido.ingreso));
+  fila.append($('<td>').addClass('col-xs-2').append(producido.premio));
   fila.append($('<td>').addClass('col-xs-2').append(producido.valor));
   $('#tablaVistaPrevia tbody').append(fila);
 }
@@ -572,9 +564,9 @@ function agregarFilaDetalleBeneficio(beneficio){
   const fila = $('<tr>');
   fila.append($('<td>').addClass('col-xs-2').append(beneficio.fecha));
   fila.append($('<td>').addClass('col-xs-2').append(beneficio.jugadores));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.TotalWager));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.TotalOut));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.GrossRevenue));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.ingreso));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.premio));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.valor));
   fila.append($('<td>').addClass('col-xs-2').append('&nbsp;'));
   $('#tablaVistaPrevia tbody').append(fila);
 }

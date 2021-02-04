@@ -40,6 +40,9 @@ class LectorCSVController extends Controller
     $producido->id_plataforma = $plataforma;
     $producido->fecha = $fecha;
     $producido->id_tipo_moneda = $moneda;
+    $producido->jugadores = 0;
+    $producido->ingreso = 0;
+    $producido->premio = 0;
     $producido->valor = 0;
     $producido->save();
 
@@ -90,25 +93,17 @@ class LectorCSVController extends Controller
     cod_juego,
     categoria,
     jugadores,
-    TotalWagerCash,
-    TotalWagerBonus,
-    TotalWager,
-    GrossRevenueCash,
-    GrossRevenueBonus,
-    GrossRevenue,
+    ingreso,
+    premio,
     valor)
     SELECT 
     id_producido,
     GameId as cod_juego,
     GameCategory as categoria,
     Players as jugadores,
-    TotalWagerCash,
-    TotalWagerBonus,
-    TotalWager,
-    GrossRevenueCash,
-    GrossRevenueBonus,
-    GrossRevenue,
-    ((TotalWagerCash + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as valor
+    (TotalWagerCash + TotalWagerBonus) as ingreso,
+    ((TotalWagerCash + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as premio,
+    (GrossRevenueCash + GrossRevenueBonus) as valor
     FROM producido_temporal
     WHERE producido_temporal.id_producido = :id_producido");
     $query->execute([":id_producido" => $producido->id_producido]);
@@ -116,16 +111,18 @@ class LectorCSVController extends Controller
     $query = $pdo->prepare("DELETE FROM producido_temporal WHERE id_producido = :id_producido");
     $query->execute([":id_producido" => $producido->id_producido]);
 
-    $query = $pdo->prepare("UPDATE producido p
-    SET p.valor = IFNULL((
-      SELECT SUM(dp.valor)
+    $query = $pdo->prepare("UPDATE 
+    producido p,
+    (
+      SELECT SUM(dp.jugadores) as jugadores,SUM(dp.ingreso) as ingreso,SUM(dp.premio) as premio,SUM(dp.valor) as valor
       FROM detalle_producido dp
-      WHERE dp.id_producido = p.id_producido
+      WHERE dp.id_producido = :id_producido1
       GROUP BY dp.id_producido
-    ),0)
-    WHERE p.id_producido = :id_producido");
+    ) total
+    SET p.jugadores = IFNULL(total.jugadores,0), p.ingreso = IFNULL(total.ingreso,0),p.premio = IFNULL(total.premio,0),p.valor = IFNULL(total.valor,0)
+    WHERE p.id_producido = :id_producido2");
 
-    $query->execute([":id_producido" => $producido->id_producido]);
+    $query->execute([":id_producido1" => $producido->id_producido,":id_producido2" => $producido->id_producido]);
 
     DB::connection()->enableQueryLog();
 
@@ -154,7 +151,10 @@ class LectorCSVController extends Controller
     $benMensual->id_tipo_moneda = $moneda;
     $fecha_aux = explode("-",$fecha);
     $benMensual->fecha = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
-    $benMensual->bruto = 0;
+    $benMensual->jugadores = 0;
+    $benMensual->ingreso = 0;
+    $benMensual->premio = 0;
+    $benMensual->valor = 0;
     $benMensual->save();
     
     //Verifico si ya existen con las mismas caracteristicas, differente ID y los borro
@@ -214,17 +214,21 @@ class LectorCSVController extends Controller
       id_beneficio_mensual,
       fecha,
       jugadores,
-      TotalWager,
-      TotalOut,
-      GrossRevenue
+      ingreso,
+      premio,
+      valor,
+      ajuste,
+      observacion
     )
     SELECT
     id_beneficio_mensual, 
     DateReport as fecha,
     Players as jugadores,
-    TotalWager,
-    TotalOut,
-    GrossRevenue
+    TotalWager as ingreso,
+    TotalOut as premio,
+    GrossRevenue as valor,
+    0 as ajuste,
+    '' as observacion
     FROM beneficio_temporal
     WHERE beneficio_temporal.id_beneficio_mensual = :id_beneficio_mensual AND beneficio_temporal.Total = ''");
     $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
@@ -233,16 +237,16 @@ class LectorCSVController extends Controller
     $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
 
     //Lo updateo por SQL porque son DECIMAL y no se si hay error de casteo si lo hago en PHP (pasa a float?)
-    //@TODO: Revisar si esta bien calculado el bruto
-    $query = $pdo->prepare("UPDATE beneficio_mensual bm
-    SET bm.bruto = IFNULL((
-      SELECT SUM(b.TotalWager - b.TotalOut)
+    $query = $pdo->prepare("UPDATE beneficio_mensual bm,
+    (
+      SELECT SUM(b.jugadores) as jugadores,SUM(b.ingreso) as ingreso,SUM(b.premio) as premio,SUM(b.valor) as valor
       FROM beneficio b
-      WHERE b.id_beneficio_mensual = bm.id_beneficio_mensual
+      WHERE b.id_beneficio_mensual = :id_beneficio_mensual1
       GROUP BY b.id_beneficio_mensual
-    ),0)
-    WHERE bm.id_beneficio_mensual = :id_beneficio_mensual");
-    $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
+    ) total
+    SET bm.jugadores = IFNULL(total.jugadores,0),bm.ingreso = IFNULL(total.ingreso,0),bm.premio = IFNULL(total.premio,0),bm.valor = IFNULL(total.valor,0)
+    WHERE bm.id_beneficio_mensual = :id_beneficio_mensual2");
+    $query->execute([":id_beneficio_mensual1" => $benMensual->id_beneficio_mensual,":id_beneficio_mensual2" => $benMensual->id_beneficio_mensual]);
 
     //Actualizo la entidad
     $benMensual = BeneficioMensual::find($benMensual->id_beneficio_mensual);

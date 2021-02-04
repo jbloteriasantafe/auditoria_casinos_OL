@@ -43,7 +43,7 @@ class ImportacionController extends Controller
     return ['beneficio_mensual' => $benMensual, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
     'cant_detalles' => $benMensual->beneficios()->count(),
     'beneficios'=> $benMensual->beneficios()
-    ->select('fecha','jugadores','TotalWager','TotalOut','GrossRevenue')
+    ->select('fecha','jugadores','ingreso','premio','valor')
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
@@ -53,7 +53,7 @@ class ImportacionController extends Controller
     return ['producido' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
     'cant_detalles' => $producido->detalles()->count(),
     'detalles_producido'=> $producido->detalles()
-    ->select('cod_juego','categoria','jugadores','TotalWagerCash','TotalWagerBonus','TotalWager','GrossRevenueCash','GrossRevenueBonus','GrossRevenue','valor')
+    ->select('cod_juego','categoria','jugadores','ingreso','premio','valor')
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 

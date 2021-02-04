@@ -110,28 +110,19 @@ $(document).on('click','.validar',function(e){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
   e.preventDefault();
-
-  const formData = {
-    id_plataforma: $(this).attr('data-plataforma'),
-    anio: $(this).attr('data-anio'),
-    mes: $(this).attr('data-mes'),
-    id_tipo_moneda: $(this).attr('data-tipo'),
-  }
-
   $('#plataformaModal').val($(this).parent().parent().find('td:nth-child(1)').text());
   $('#tipoMonedaModal').val($(this).parent().parent().find('td:nth-child(4)').text());
   $('#anioModal').val($(this).parent().parent().find('td:nth-child(3)').text());
   $('#mesModal').val($(this).parent().parent().find('td:nth-child(2)').text());
 
   $.ajax({
-    type: 'POST',
-    url: 'beneficios/obtenerBeneficiosParaValidar',
-    data: formData,
+    type: 'GET',
+    url: 'beneficios/obtenerBeneficiosParaValidar/'+$(this).attr('data-id'),
     dataType: 'json',
     success: function (data) {
       $('#tablaModal #cuerpoTabla tr').remove();
-      for (let i = 0; i < data.resultados.length; i++) {
-        const filaBeneficio = generarFilaModal(data.resultados[i]);
+      for (let i = 0; i < data.length; i++) {
+        const filaBeneficio = generarFilaModal(data[i]);
         $('#tablaModal #cuerpoTabla').append(filaBeneficio)
       }
       $('#textoExito').text('');
@@ -243,6 +234,7 @@ function generarFilaTabla(beneficio){
       .attr('data-tipo', beneficio.id_tipo_moneda)
       .attr('data-anio', beneficio.anio)
       .attr('data-mes',beneficio.mes)
+      .attr('data-id',beneficio.id_beneficio_mensual)
       .val(beneficio.id_beneficio)
       .append($('<i>').addClass('fa fa-fw fa-check'))
     );

@@ -9,7 +9,7 @@ class Beneficio extends Model
   protected $connection = 'mysql';
   protected $table = 'beneficio';
   protected $primaryKey = 'id_beneficio';
-  protected $visible = array('id_beneficio','id_beneficio_mensual','fecha','Players','TotalWager','TotalOut','GrossRevenue');
+  protected $visible = array('id_beneficio','id_beneficio_mensual','fecha','jugadores','ingreso','premio','valor','ajuste','observacion');
   public $timestamps = false;
 
   public function beneficio_mensual(){
