@@ -155,6 +155,7 @@ class LectorCSVController extends Controller
     $benMensual->ingreso = 0;
     $benMensual->premio = 0;
     $benMensual->valor = 0;
+    $benMensual->validado = false;
     $benMensual->save();
     
     //Verifico si ya existen con las mismas caracteristicas, differente ID y los borro
