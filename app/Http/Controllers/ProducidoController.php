@@ -845,55 +845,35 @@ class ProducidoController extends Controller
 
   }
 
-  // generarPlanilla crea la planilla del producido total del dia, con todas las maquinas que dieron diferencia
-  // junto a los ajustes , ya sean automaticos o manual
+  // generarPlanilla crea la planilla del producido total del dia
   public function generarPlanilla($id_producido){
     $producido = Producido::find($id_producido);
-    $resultados = DB::table('detalle_producido')->join('ajuste_producido','detalle_producido.id_detalle_producido','=','ajuste_producido.id_detalle_producido')
-                                        ->leftJoin('tipo_ajuste','detalle_producido.id_tipo_ajuste','=','tipo_ajuste.id_tipo_ajuste')
-                                        ->join('maquina', 'maquina.id_maquina','=','detalle_producido.id_maquina')
-                                        ->where('detalle_producido.id_producido',$id_producido)
-                                        ->select('maquina.nro_admin as nro_maquina','ajuste_producido.producido_calculado as prod_calc',
-                                        'ajuste_producido.producido_sistema as prod_sist','ajuste_producido.diferencia as diferencia','tipo_ajuste.descripcion as d','detalle_producido.valor as prod_calc_operado', 'detalle_producido.observacion as obs')
-                                        ->orderBy('nro_maquina','asc')
-                                        ->get();
+    $detalles = DB::table('producido')
+    ->selectRaw('detalle_producido.cod_juego, detalle_producido.ingreso, detalle_producido.premio, detalle_producido.valor, juego.id_juego IS NOT NULL AS en_bd')
+    ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
+    ->leftJoin('juego','juego.cod_juego','=','detalle_producido.cod_juego')
+    ->leftJoin('plataforma_tiene_juego',function($j){
+      return $j->on('producido.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+      ->on('juego.id_juego','=','plataforma_tiene_juego.id_juego');
+    })
+    ->where('producido.id_producido',$id_producido)
+    ->orderBy('detalle_producido.cod_juego','asc')->get();
+    //Para debuggear ->orderBy('detalle_producido.id_detalle_producido','asc') es mejor porque ordena segun el orden de insercion del CSV
 
-    $pro= new \stdClass();
-    $pro->casinoNom = $producido->casino->nombre;
+    $pro = new \stdClass();
+    $pro->plataforma = $producido->plataforma->nombre;
     $pro->tipo_moneda = $producido->tipo_moneda->descripcion;
     if($pro->tipo_moneda == 'ARS'){
       $pro->tipo_moneda = 'Pesos';
     }
-    else{
+    else if ($pro->tipo_moneda == 'USD'){
       $pro->tipo_moneda = 'Dólares';
     }
-    $año = $producido->fecha[0].$producido->fecha[1].$producido->fecha[2].$producido->fecha[3];
-    $mes = $producido->fecha[5].$producido->fecha[6];
-    $dia = $producido->fecha[8].$producido->fecha[9];
-    $pro->fecha_prod = $dia."-".$mes."-".$año;
+    
+    $fecha = explode("-",$producido->fecha);
+    $pro->fecha_prod = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
 
-    $ajustes = array();
-    $MTMobservaciones= array();
-    foreach($resultados as $resultado){
-      $res = new \stdClass();
-      $res->maquina = $resultado->nro_maquina;
-      $res->calculado = number_format($resultado->prod_calc, 2, ",", ".");
-      $res->sistema = number_format($resultado->prod_sist, 2, ",", ".");
-      $res->dif = number_format($resultado->diferencia, 2, ",", ".");
-      $res->descripcion = $resultado->d;
-      $res->calculado_operado=number_format($resultado->prod_calc_operado, 2, ",", ".");
-      $ajustes[] = $res;
-      // agrego a una lista todas aquellas mtm con observaciones para ser motrada en otra tabla
-      if ($resultado->obs!=""){
-        $resObs=new \stdClass();
-        $resObs->maquina = $resultado->nro_maquina;
-        $resObs->observacion=$resultado->obs;
-        $MTMobservaciones[]=$resObs;
-      }
-    };
-
-    $view = View::make('planillaProducidos',compact('ajustes','pro','MTMobservaciones'));
-
+    $view = View::make('planillaProducidos',compact('detalles','pro'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
