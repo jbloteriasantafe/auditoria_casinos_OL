@@ -132,9 +132,11 @@ class BeneficioController extends Controller
 
   public function obtenerBeneficiosParaValidar($id_beneficio_mensual){
     $resultados = DB::table('beneficio_mensual')->selectRaw(
-      'beneficio.id_beneficio, beneficio.fecha, beneficio.valor as beneficio,
-      IFNULL(producido.valor + beneficio.ajuste,0) as beneficio_calculado, 
-      (IFNULL(producido.valor + beneficio.ajuste,0) - beneficio.valor) as diferencia,
+      'beneficio.id_beneficio, beneficio.fecha,
+      (IFNULL(producido.valor,0)) AS beneficio_calculado,
+      (IFNULL(beneficio.valor,0)) as beneficio,
+      (IFNULL(beneficio.ajuste,0)) as ajuste,
+      (IFNULL(producido.valor,0) - IFNULL(beneficio.valor,0) + IFNULL(beneficio.ajuste,0)) AS diferencia,
       producido.id_producido as id_producido'
     )
     ->leftJoin('beneficio','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
@@ -147,13 +149,7 @@ class BeneficioController extends Controller
     ->get();
     return $resultados;
   }
-  // cami coments
-  //desde el modal de ajustar beneficios,
-  //directamente se ajusta desde ahi cada beneficio.
-  //y en la pantalla le indica como queda la diferencia, segun los
-  //valores que habia recibido cuando abrio el modal.
-  //o sea, que si yo ajusto 20 mil veces la misma fecha,
-  // a las modificaciones anteriores no las elimina!!! WTF!?
+
   public function ajustarBeneficio(Request $request){
     Validator::make($request->all(), [
             'valor' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
@@ -161,12 +157,11 @@ class BeneficioController extends Controller
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
 
-    $ajuste = new AjusteBeneficio();
-    $ajuste->valor = $request->valor;
-    $ajuste->id_beneficio = $request->id_beneficio;
-    $ajuste->save();
+    $b = Beneficio::find($request->id_beneficio);
+    $b->ajuste += $request->valor;
+    $b->save();
 
-    return ['ajuste' => $ajuste];
+    return ['ajuste' => $b->ajuste,'diferencia' => $b->diferencia];
   }
 
   public function validarBeneficios(Request $request){

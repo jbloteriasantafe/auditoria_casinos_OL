@@ -164,30 +164,36 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
+function generarContentAjuste(ajuste,id_beneficio){
+  const formulario =  `<div align="right">
+                        <input class="form-control valorAjuste" type="text" value="${ajuste}" placeholder="JACKPOT">
+                        <br>
+                        <button id="${id_beneficio}" class="btn btn-successAceptar ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>
+                        <button class="btn btn-default cancelarAjuste" type="button">CANCELAR</button>
+                      </div>`;
+  return formulario;
+}
+
 //Generar las filas de los beneficios por cada día del mes para el modal
 function generarFilaModal(beneficio){
   const fila = $('<tr>');
-  const formulario =  `<div align="right">
-                        <input class="form-control valorAjuste" type="text" value="${beneficio.diferencia * -1}" placeholder="JACKPOT">
-                        <br>
-                        <button id="${beneficio.id_beneficio}" class="btn btn-successAceptar ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>
-                        <button class="btn btn-default cancelarAjuste" type="button">CANCELAR</button>
-                      </div>`;
+
 
   fila.attr('id','id'+beneficio.id_beneficio)
-    .append($('<td>').text(beneficio.fecha))
-    .append($('<td>').text(beneficio.beneficio_calculado))
-    .append($('<td>').text(beneficio.beneficio))
-    .append($('<td>').text(beneficio.diferencia))
+    .append($('<td>').text(beneficio.fecha).addClass('fecha'))
+    .append($('<td>').text(beneficio.beneficio_calculado).addClass('calculado'))
+    .append($('<td>').text(beneficio.beneficio).addClass('importado'))
+    .append($('<td>').text(beneficio.ajuste).addClass('ajuste'))
+    .append($('<td>').text(beneficio.diferencia).addClass('diferencia'))
     .append($('<td>')
         .append($('<button>')
-            .addClass('btn btn-success pop')
+            .addClass('btn btn-success pop boton_ajuste')
             .attr('tabindex', 0)
             .attr('data-trigger','manual')
             .attr('data-toggle','popover')
             .attr('data-html','true')
             .attr('title','AJUSTE')
-            .attr('data-content',formulario)
+            .attr('data-content',generarContentAjuste(-beneficio.diferencia,beneficio.id_beneficio))
             .attr('disabled',(beneficio.diferencia == 0))
             .append($('<i>').addClass('fa fa-fw fa-wrench'))
         )
@@ -261,14 +267,10 @@ $(document).on('click','.ajustar',function(e){
       data: formData,
       dataType: 'json',
       success: function (data) {
-        console.log(data);
-        var calculado = Math.round((parseFloat($('#id' + data.ajuste.id_beneficio).find('td:nth-child(2)').html()) + parseFloat(data.ajuste.valor))*100)/100;
-        var beneficio = Math.round((parseFloat($('#id' + data.ajuste.id_beneficio).find('td:nth-child(3)').html()))*100)/100;
-        var diferencia = Math.round((calculado - beneficio)*100)/100;
-        console.log(calculado);
-        $('#id' + data.ajuste.id_beneficio).find('td:nth-child(2)').text(calculado.toFixed(2));
-        $('#id' + data.ajuste.id_beneficio).find('td:nth-child(4)').text(diferencia.toFixed(2));
-        $('#id' + data.ajuste.id_beneficio).find('td:nth-child(5) button').attr('disabled',(diferencia == 0));
+        $('#id' + formData.id_beneficio).find('.ajuste').text(data.ajuste.toFixed(2));
+        $('#id' + formData.id_beneficio).find('.diferencia').text(data.diferencia.toFixed(2));
+        $('#id' + formData.id_beneficio).find('.boton_ajuste').attr('disabled',(data.diferencia == 0))
+        .attr('data-content',generarContentAjuste(-data.diferencia,formData.id_beneficio))
         $('.pop').popover('hide');
       },
       error: function (data) {
