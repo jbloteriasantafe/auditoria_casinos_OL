@@ -204,8 +204,7 @@ Route::get('beneficios/obtenerBeneficiosParaValidar/{id_beneficio_mensual}','Ben
 Route::post('beneficios/ajustarBeneficio','BeneficioController@ajustarBeneficio');
 Route::post('beneficios/validarBeneficios','BeneficioController@validarBeneficios');
 Route::post('beneficios/validarBeneficiosSinProducidos','BeneficioController@validarBeneficiosSinProducidos');
-Route::get('beneficios/generarPlanilla/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@generarPlanilla');
-Route::post('beneficios/cargarImpuesto','BeneficioController@cargarImpuesto');
+Route::get('beneficios/generarPlanilla/{id_beneficio_mensual}','BeneficioController@generarPlanilla');
 
 /**************
  Estadisticas

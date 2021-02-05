@@ -117,7 +117,7 @@ $(document).on('click','.validar',function(e){
 
   $.ajax({
     type: 'GET',
-    url: 'beneficios/obtenerBeneficiosParaValidar/'+$(this).attr('data-id'),
+    url: 'beneficios/obtenerBeneficiosParaValidar/'+$(this).val(),
     dataType: 'json',
     success: function (data) {
       $('#tablaModal #cuerpoTabla tr').remove();
@@ -230,12 +230,7 @@ function generarFilaTabla(beneficio){
     acciones.append($('<button>')
       .addClass('btn btn-success validar')
       .attr('title','VALIDAR')
-      .attr('data-plataforma', beneficio.id_plataforma)
-      .attr('data-tipo', beneficio.id_tipo_moneda)
-      .attr('data-anio', beneficio.anio)
-      .attr('data-mes',beneficio.mes)
-      .attr('data-id',beneficio.id_beneficio_mensual)
-      .val(beneficio.id_beneficio)
+      .val(beneficio.id_beneficio_mensual)
       .append($('<i>').addClass('fa fa-fw fa-check'))
     );
   }
@@ -243,11 +238,7 @@ function generarFilaTabla(beneficio){
   acciones.append($('<button>')
     .addClass('btn btn-info planilla')
     .attr('title','IMPRIMIR')
-    .attr('data-plataforma', beneficio.id_plataforma)
-    .attr('data-tipo', beneficio.id_tipo_moneda)
-    .attr('data-anio', beneficio.anio)
-    .attr('data-mes',beneficio.mes)
-    .val(beneficio.id_beneficio)
+    .val(beneficio.id_beneficio_mensual)
     .append($('<i>').addClass('fa fa-fw fa-print'))
   );
   fila.append(acciones);
@@ -259,7 +250,6 @@ $(document).on('click','.ajustar',function(e){
 
   e.preventDefault();
 
-  // console.log($(this).parent().find('.valorAjuste').val());
   var formData = {
     id_beneficio: $(this).attr('id'),
     valor: $(this).parent().find('.valorAjuste').val().replace(/,/g,"."),
@@ -399,7 +389,7 @@ $(document).on('click','#btn-validar-si',function(e){
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
     $('#alertaArchivo').hide();
-    window.open('beneficios/generarPlanilla/' + $(this).attr('data-plataforma') + "/" + $(this).attr('data-tipo') + "/" + $(this).attr('data-anio') +"/"+ $(this).attr('data-mes'),'_blank');
+    window.open('beneficios/generarPlanilla/' + $(this).val(),'_blank');
 });
 
 //Opacidad del modal al minimizar

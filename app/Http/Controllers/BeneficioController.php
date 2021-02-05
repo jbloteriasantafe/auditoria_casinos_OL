@@ -350,142 +350,51 @@ class BeneficioController extends Controller
     return "true";
   }
 
-  public function cargarImpuesto(Request $request){
-    Validator::make($request->all(), [
-            'id_beneficio_mensual' => 'required|exists:beneficio_mensual,id_beneficio_mensual',
-            'impuesto' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/']
-    ], array(), self::$atributos)->after(function($validator){
-    })->validate();
-
-    $ben = BeneficioMensual::find($request->id_beneficio_mensual);
-    $ben->iea = $request->impuesto;
-    $porcentaje = Porcentaje::where([['id_plataforma',$ben->id_plataforma],['id_actividad',1]])->first();
-    $ben->canon = ($ben->bruto - $ben->iea)*$porcentaje->valor;
-    $ben->save();
-
-    return $ben;
-  }
-
-  private function obtenerBeneficiosPorMes($id_plataforma,$id_tipo_moneda,$anio,$mes){
-    $resultados = DB::table('beneficio')->select('beneficio.id_beneficio as id_beneficio','beneficio.fecha as fecha',
-                                                  DB::raw('(CAST(beneficio.valor AS DECIMAL(15,2))) as beneficio'),
-                                                  DB::raw('(CAST((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) AS DECIMAL(15,2))) AS beneficio_calculado'),
-                                                  DB::raw('(CAST(((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) - beneficio.valor) AS DECIMAL(15,2))) AS diferencia'),
-                                                  DB::raw('CASE WHEN ((IFNULL(producido.id_producido,0)) != 0) THEN 1 ELSE 0 END AS existe_producido'),
-                                                  'producido.id_producido as id_producido')
-                                        ->leftJoin('producido',function ($leftJoin) use ($id_plataforma,$id_tipo_moneda,$anio,$mes){
-                                          $leftJoin->on('producido.fecha','=','beneficio.fecha')
-                                               ->where([['producido.id_plataforma','=',$id_plataforma],['producido.id_tipo_moneda','=',$id_tipo_moneda]])
-                                               ->whereMonth('producido.fecha',$mes)
-                                               ->whereYear('producido.fecha',$anio);
-                                          })
-                                        ->leftJoin('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
-                                        ->leftJoin('ajuste_beneficio','ajuste_beneficio.id_beneficio','=','beneficio.id_beneficio')
-                                        ->where([['beneficio.id_plataforma',$id_plataforma],['beneficio.id_tipo_moneda',$id_tipo_moneda]])
-                                        ->whereMonth('beneficio.fecha',$mes)
-                                        ->whereYear('beneficio.fecha',$anio)
-                                        ->groupBy('beneficio.valor','beneficio.fecha','beneficio.id_beneficio','producido.id_producido','ajuste_beneficio.valor')
-                                        ->orderBy('beneficio.fecha','asc')
-                                        ->get();
-    return $resultados;
-  }
-
-  /*^^^^
-  *|||||
-  //con imaginacion son flechas
-  *
-  * retorna : un array con :
-    id_beneficio	822
-    fecha	2018-06-01
-    beneficio	3465750.37
-    beneficio_calculado	3465750.37
-    diferencia	0.00
-    existe_producido	1
-
-
-    para cada fecha del mes
-  */
-
-
-  public function generarPlanilla($id_plataforma,$id_tipo_moneda,$anio,$mes){
-
-    $nombrePlataforma = DB::table('plataforma')->select('plataforma.nombre as nombre')
-                                         ->where('plataforma.id_plataforma',$id_plataforma)
-                                         ->first();
-
-    $tipoMoneda = DB::table('tipo_moneda')->select('tipo_moneda.descripcion as tipo_moneda')
-                                           ->where('tipo_moneda.id_tipo_moneda',$id_tipo_moneda)
-                                           ->first();
-
+  public function generarPlanilla($id_beneficio_mensual){
+    $benMensual = BeneficioMensual::find($id_beneficio_mensual);
     $ben = new \stdClass();
-    $ben->plataforma = $nombrePlataforma->nombre;
-    $ben->moneda = $tipoMoneda->tipo_moneda;
+    $ben->plataforma = $benMensual->plataforma->nombre;
+    $ben->moneda = $benMensual->tipo_moneda->descripcion;
     if($ben->moneda == 'ARS'){
-         $ben->moneda = 'Pesos';
-         }
-       else{
-         $ben->moneda = 'Dólares';
-         }
+      $ben->moneda = 'Pesos';
+    }
+    else if($ben->moneda == 'USD'){
+      $ben->moneda = 'Dólares';
+    }
+    $mes_arr = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    $fecha = explode("-",$benMensual->fecha);
+    $ben->mes = $mes_arr[intval($fecha[1])-1];
+    $ben->anio = $fecha[0];
 
-    switch ($mes) {
-         case 1:
-             $mesEdit = "Enero";
-             break;
-         case 2:
-             $mesEdit = "Febrero";
-             break;
-         case 3:
-             $mesEdit = "Marzo";
-             break;
-         case 4:
-             $mesEdit = "Abril";
-             break;
-         case 5:
-             $mesEdit = "Mayo";
-             break;
-         case 6:
-             $mesEdit = "Junio";
-             break;
-         case 7:
-             $mesEdit = "Julio";
-             break;
-         case 8:
-             $mesEdit = "Agosto";
-             break;
-         case 9:
-             $mesEdit = "Septiembre";
-             break;
-         case 10:
-             $mesEdit = "Octubre";
-             break;
-         case 11:
-             $mesEdit = "Noviembre";
-             break;
-         case 12:
-             $mesEdit = "Diciembre";
-             break;
-     }
-    $ben->mes = $mesEdit;
-    $ben->anio = $anio;
+    $resultados = 
+    DB::table('beneficio_mensual')
+    ->selectRaw('beneficio.id_beneficio as id_beneficio, beneficio.fecha as fecha,
+                IFNULL(producido.valor,0) AS beneficio_calculado,
+                IFNULL(beneficio.valor,0) as beneficio,
+                IFNULL(beneficio.ajuste,0) as ajuste,
+                (IFNULL(producido.valor,0) - IFNULL(beneficio.valor,0) + IFNULL(beneficio.ajuste,0)) AS diferencia')
+    ->leftJoin('beneficio','beneficio.id_beneficio_mensual','=','beneficio_mensual.id_beneficio_mensual')
+    ->leftJoin('producido',function ($leftJoin) use ($benMensual){
+      $leftJoin->on('producido.fecha','=','beneficio.fecha')
+      ->where('producido.id_plataforma',$benMensual->id_plataforma)
+      ->where('producido.id_tipo_moneda',$benMensual->id_tipo_moneda);
+    })
+    ->orderBy('beneficio.fecha','asc')
+    ->get();
 
-    $resultados = $this->obtenerBeneficiosPorMes($id_plataforma,$id_tipo_moneda,$anio,$mes);
-
-    $ajustes = array();
-    foreach ($resultados as $resultado){//resultado:
+    $dias = array();
+    foreach ($resultados as $resultado){
       $res = new \stdClass();
-
-      $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
-      $mes = $resultado->fecha[5].$resultado->fecha[6];
-      $dia = $resultado->fecha[8].$resultado->fecha[9];
-      $res->fecha = $dia."-".$mes."-".$año;
-
+      $fecha = explode("-",$resultado->fecha);
+      $res->fecha      = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
       $res->bcalculado = number_format($resultado->beneficio_calculado, 2, ",", ".");
       $res->bimportado = number_format($resultado->beneficio, 2, ",", ".");
-      $res->dif = number_format($resultado->diferencia, 2, ",", ".");
-      $ajustes[] = $res;
+      $res->ajuste     = number_format($resultado->ajuste, 2, ",", ".");
+      $res->dif        = number_format($resultado->diferencia, 2, ",", ".");
+      $dias[] = $res;
     }
 
-    $view = View::make('planillaBeneficios',compact('ajustes','ben'));
+    $view = View::make('planillaBeneficios',compact('dias','ben'));
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
