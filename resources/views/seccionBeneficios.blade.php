@@ -152,22 +152,22 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
         </div> <!-- /.row -->
 
-    <!-- Modal validar beneficio -->
-    <div class="modal fade" id="modalValidarBeneficio" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <!-- Modal beneficio -->
+    <div class="modal fade" id="modalBeneficioMensual" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg" style="width:80%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FFB74D;">
                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">VALIDAR BENEFICIOS</h3>
+                 <h3 class="modal-title">BENEFICIOS</h3>
                 </div>
 
                 <div  id="colapsadoCargar" class="collapse in">
 
                 <div class="modal-body modalCuerpo">
 
-                  <form id="frmValidarBeneficio" name="frmValidarBeneficio" class="form-horizontal" novalidate="">
+                  <form id="frmBeneficio" name="frmBeneficio" class="form-horizontal" novalidate="">
                           <div class="row">
                             <div class="col-md-3">
                               <h5>Plataforma</h5>
@@ -203,8 +203,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                           </tr>
                                       </thead>
                                       <tbody id="cuerpoTabla" style="color:black;">
-
-
                                       </tbody>
                                   </table>
                               </div>
@@ -217,8 +215,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   </div>
                 </div>
                 <div class="modal-footer">
-                  <!-- <button type="button" class="btn btn-warningModificar" id="btn-guardar" value="nuevo">GUARDAR TEMPORALMENTE</button> -->
-                  <button type="button" class="btn btn-warningModificar" id="btn-validar-si" value="nuevo">SI</button>
+                  <button type="button" class="btn btn-warningModificar" id="btn-validar-si" value="nuevo">VALIDAR SIN PRODUCIDOS</button>
                   <button type="button" class="btn btn-warningModificar" id="btn-validar" value="nuevo">VALIDAR BENEFICIOS</button>
                   <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal">SALIR</button>
                   <input type="hidden" id="id_beneficio" value="0">
@@ -233,7 +230,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
           <div class="modal-dialog" style="width:80%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
@@ -303,19 +299,16 @@ $id_usuario = $usuario['usuario']->id_usuario;
       <div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg"  >
               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
-                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title">| COTIZACIÓN DÓLAR->PESO</h3>
                 </div>
 
                 <div class="modal-body" style="background-color: white;">
-
                     <div class="row" style="padding-bottom: 15px;">
                         <div class="col-md-12">
                             <div id="calendarioInicioBeneficio"></div>
                       </div>
-
                 </div>
 
                 <div class="modal-footer">
@@ -342,8 +335,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
       <h5>Tarjeta de Beneficios</h5>
       <p>
         Se observan informes de beneficios con sus respectivas diferencias, donde dispone los datos obtenidos por día en el mes
-        que se desea ver. Además, se implementa la opción de cargar el impuesto (IEA) y la validación de aquellos que requiera
-        los ajustes necesarios para su finalización de toma de datos.
+        que se desea ver. Además, se implementa la validación de aquellos que requieran ajustes.
       </p>
     </div>
     @endsection

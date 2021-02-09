@@ -104,20 +104,28 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   });
 });
 
-//Validación
+$(document).on('click','.ver',function(e){
+  e.preventDefault();
+  mostrarBeneficioMensual($(this).val(),'ver');;
+});
+
 $(document).on('click','.validar',function(e){
+  e.preventDefault();
+  mostrarBeneficioMensual($(this).val(),'validar');
+});
+
+function mostrarBeneficioMensual(id_beneficio_mensual,modo){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  e.preventDefault();
-  $('#plataformaModal').val($(this).parent().parent().find('td:nth-child(1)').text());
-  $('#tipoMonedaModal').val($(this).parent().parent().find('td:nth-child(4)').text());
-  $('#anioModal').val($(this).parent().parent().find('td:nth-child(3)').text());
-  $('#mesModal').val($(this).parent().parent().find('td:nth-child(2)').text());
+  const fila = $('#beneficio'+id_beneficio_mensual);
+  $('#plataformaModal').val(fila.find('.plataforma').text());
+  $('#tipoMonedaModal').val(fila.find('.moneda').text());
+  $('#anioModal').val(fila.find('.anio').text());
+  $('#mesModal').val(fila.find('.mes').text());
 
-  const id_beneficio_mensual = $(this).val();
   $.ajax({
     type: 'GET',
-    url: 'beneficios/obtenerBeneficiosParaValidar/'+id_beneficio_mensual,
+    url: 'beneficios/obtenerBeneficios/'+id_beneficio_mensual,
     dataType: 'json',
     success: function (data) {
       $('#tablaModal #cuerpoTabla tr').remove();
@@ -126,17 +134,32 @@ $(document).on('click','.validar',function(e){
         $('#tablaModal #cuerpoTabla').append(filaBeneficio)
       }
       $('#textoExito').text('');
-      $('#modalValidarBeneficio').modal('show');
-      $('#btn-validar-si').hide();
-      $('#btn-validar').show();
-      $('#btn-validar').val(id_beneficio_mensual);
-      $('#btn-validar-si').val(id_beneficio_mensual);
+      if(modo == 'validar'){
+        $('#modalBeneficioMensual .modal-title').text('VALIDAR BENEFICIOS');
+        $('#modalBeneficioMensual .modal-header').css('background-color','#FFB74D');
+        $('#btn-validar-si').hide();
+        $('#btn-validar').show();
+        $('#btn-validar').val(id_beneficio_mensual);
+        $('#btn-validar-si').val(id_beneficio_mensual);
+      }
+      else{
+        $('#modalBeneficioMensual .modal-title').text('BENEFICIOS');
+        $('#modalBeneficioMensual .modal-header').css('background-color','#4FC3F7');
+        $('#modalBeneficioMensual textarea').attr('disabled',true);
+        $('#modalBeneficioMensual #cuerpoTabla button').attr('disabled',true);
+        $('#btn-validar-si').hide();
+        $('#btn-validar').hide();
+      }
+
+      $('#modalBeneficioMensual').modal('show');
     },
     error: function (data) {
         console.log('Error:', data);
     }
   });
-});
+}
+
+
 
 $(document).on('click','#tablaBeneficios thead tr th[value]',function(e){
   $('#tablaBeneficios th').removeClass('activa');
@@ -179,8 +202,6 @@ function generarContentAjuste(ajuste,id_beneficio){
 //Generar las filas de los beneficios por cada día del mes para el modal
 function generarFilaModal(beneficio){
   const fila = $('<tr>');
-
-
   fila.attr('id','id'+beneficio.id_beneficio)
     .append($('<td>').text(beneficio.fecha).addClass('fecha'))
     .append($('<td>').text(beneficio.beneficio_calculado).addClass('calculado'))
@@ -200,7 +221,7 @@ function generarFilaModal(beneficio){
             .append($('<i>').addClass('fa fa-fw fa-wrench'))
         )
     )
-    .append($('<td>').append($('<textarea>').addClass('form-control').css('resize','vertical')))
+    .append($('<td>').append($('<textarea>').addClass('form-control').css('resize','vertical').text(beneficio.observacion)))
     .append($('<td>').append($('<button>')
       .append($('<i>')
         .addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-search')
@@ -227,13 +248,19 @@ function generarFilaTabla(beneficio){
   const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
   fila.attr('id','beneficio' + beneficio.id_beneficio_mensual)
-  .append($('<td>').addClass('col-xs-2').text(beneficio.plataforma))
-  .append($('<td>').addClass('col-xs-2').text(meses[beneficio.mes - 1]))
-  .append($('<td>').addClass('col-xs-1').text(beneficio.anio))
-  .append($('<td>').addClass('col-xs-2').text(beneficio.tipo_moneda))
-  .append($('<td>').addClass('col-xs-3').text(beneficio.diferencias_mes))
+  .append($('<td>').addClass('col-xs-2 plataforma').text(beneficio.plataforma))
+  .append($('<td>').addClass('col-xs-2 mes').text(meses[beneficio.mes - 1]))
+  .append($('<td>').addClass('col-xs-1 anio').text(beneficio.anio))
+  .append($('<td>').addClass('col-xs-2 moneda').text(beneficio.tipo_moneda))
+  .append($('<td>').addClass('col-xs-3 diferencias').text(beneficio.diferencias_mes))
 
   const acciones = $('<td>');
+  acciones.append($('<button>')
+    .addClass('btn btn-success ver')
+    .attr('title','VER')
+    .val(beneficio.id_beneficio_mensual)
+    .append($('<i>').addClass('fa fa-fw fa-search-plus'))
+  );
   if(beneficio.validado == 0){
     acciones.append($('<button>')
       .addClass('btn btn-success validar')
@@ -242,7 +269,6 @@ function generarFilaTabla(beneficio){
       .append($('<i>').addClass('fa fa-fw fa-check'))
     );
   }
-
   acciones.append($('<button>')
     .addClass('btn btn-info planilla')
     .attr('title','IMPRIMIR')
@@ -293,26 +319,26 @@ function mensajeError(errores) {
   }, 250);
 }
 
-$(document).on('click','#btn-validar',function(e){
+function validarBeneficios(id_beneficio_mensual,validar_beneficios_sin_producidos){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-
-  e.preventDefault();
 
   let beneficios = [];
   $('#cuerpoTabla tr').each(function(){
     const b = {
       id_beneficio: $(this).attr('id').substring(2),
-      observacion: $(this).find('td:nth-child(6) textarea').val(),
+      observacion: $(this).find('textarea').val(),
     };
     beneficios.push(b);
   });
   $('#textoExito').text('');
 
   const formData = {
-    id_beneficio_mensual: $(this).val(),
+    id_beneficio_mensual: id_beneficio_mensual,
     beneficios: beneficios,
+    validar_beneficios_sin_producidos: validar_beneficios_sin_producidos
   };
 
+  ocultarErrorValidacion($('#modalBeneficioMensual textarea'));
   $.ajax({
     type: 'POST',
     url: 'beneficios/validarBeneficios',
@@ -321,7 +347,7 @@ $(document).on('click','#btn-validar',function(e){
     success: function (data) {
       console.log(data);
       $('#tablaModal #cuerpoTabla tr').remove();
-      $('#modalValidarBeneficio').modal('hide');
+      $('#modalBeneficioMensual').modal('hide');
       $('#mensajeExito').hide();
       $('#mensajeExito h3').text('BENEFICIOS validados');
       $('#mensajeExito p').text('Los beneficios fueron validados correctamente');
@@ -343,60 +369,19 @@ $(document).on('click','#btn-validar',function(e){
       if(data.responseJSON.id_beneficio_mensual !== undefined){
         mensajeError(data.responseJSON.id_beneficio_mensual);
       }
+      $('#btn-validar-si').show();
     }
   });
+}
+
+$(document).on('click','#btn-validar',function(e){
+  e.preventDefault();
+  validarBeneficios($(this).val(),1);
 });
 
 $(document).on('click','#btn-validar-si',function(e){
-  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-
   e.preventDefault();
-
-  let beneficios_ajustados = [];
-
-  $('#cuerpoTabla tr').each(function(){
-    var beneficios_ajustado = {
-      id_beneficio: $(this).attr('id').substring(2),
-      observacion: $(this).find('td:nth-child(6) textarea').val(),
-    };
-    beneficios_ajustados.push(beneficios_ajustado);
-  });
-  $('#textoExito').text('');
-  const formData = {
-    beneficios_ajustados: beneficios_ajustados,
-  }
-
-  $.ajax({
-    type: 'POST',
-    url: 'beneficios/validarBeneficiosSinProducidos',
-    data: formData,
-    dataType: 'json',
-    success: function (data) {
-      console.log(data);
-      $('#tablaModal #cuerpoTabla tr').remove();
-      $('#modalValidarBeneficio').modal('hide');
-      $('#mensajeExito').hide();
-      $('#mensajeExito h3').text('BENEFICIOS validados');
-      $('#mensajeExito h4').text('Los beneficios fueron validados correctamente');
-      $('#mensajeExito div').css('background-color','#6dc7be');
-      $('#mensajeExito').show();
-      $('#btn-buscar').trigger('click');
-    },
-    error: function (data) {
-      console.log('Error:', data);
-      var texto = "";
-      $('#textoExito').text('');
-      if(data.responseJSON.id_beneficio !== undefined){
-        texto += 'Hay beneficios sin ajustar.  ';
-        $('#btn-validar-si').hide();
-      }
-      if(data.responseJSON.not_found !== undefined){
-        texto += 'Recargue la página.  ';
-        $('#btn-validar-si').hide();
-      }
-      $('#textoExito').text('Errores: '+ texto);
-    }
-  });
+  validarBeneficios($(this).val(),0);
 });
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR

@@ -197,14 +197,15 @@ Route::get('producidos/maquinasProducidos/{id_producido}','ProducidoController@a
 /**********
  Beneficios
 ***********/
+Route::group(['prefix' => 'beneficios','middleware' =>'tiene_permiso:ver_seccion_beneficios'],function(){
+  Route::get('/','BeneficioController@buscarTodo');
+  Route::post('/buscarBeneficios','BeneficioController@buscarBeneficios');
+  Route::get('/obtenerBeneficios/{id_beneficio_mensual}','BeneficioController@obtenerBeneficios');
+  Route::post('/ajustarBeneficio','BeneficioController@ajustarBeneficio');
+  Route::post('/validarBeneficios','BeneficioController@validarBeneficios');
+  Route::get('/generarPlanilla/{id_beneficio_mensual}','BeneficioController@generarPlanilla');
+});
 
-Route::get('beneficios','BeneficioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_beneficios');
-Route::post('beneficios/buscarBeneficios','BeneficioController@buscarBeneficios');
-Route::get('beneficios/obtenerBeneficiosParaValidar/{id_beneficio_mensual}','BeneficioController@obtenerBeneficiosParaValidar');
-Route::post('beneficios/ajustarBeneficio','BeneficioController@ajustarBeneficio');
-Route::post('beneficios/validarBeneficios','BeneficioController@validarBeneficios');
-Route::post('beneficios/validarBeneficiosSinProducidos','BeneficioController@validarBeneficiosSinProducidos');
-Route::get('beneficios/generarPlanilla/{id_beneficio_mensual}','BeneficioController@generarPlanilla');
 
 /**************
  Estadisticas
