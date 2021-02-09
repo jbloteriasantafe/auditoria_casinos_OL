@@ -215,8 +215,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="estadisticasPorCasino"><i class="fa fa-share fa-2x"></i>@svg('tablero_modif','iconoTableroModif')</a>
                                           @elseif($visitada->ruta == 'interanuales')
                                             <a href="interanuales"><i class="fa fa-share fa-2x"></i>@svg('tablero_control','iconoTableroModif')</a>
-                                          @elseif($visitada->ruta == 'informesMTM')
-                                            <a href="informesMTM"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoInformesModif')</a>
+                                          @elseif($visitada->ruta == 'informesJuegos')
+                                            <a href="informesJuegos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoInformesModif')</a>
                                           @elseif($visitada->ruta == 'bingo')
                                             <a href="bingo"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
                                           @elseif($visitada->ruta == 'diferencia-bingo')

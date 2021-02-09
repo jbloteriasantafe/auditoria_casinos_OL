@@ -6,12 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\TipoMoneda;
-use App\Casino;
+use App\Plataforma;
 use App\LogMaquina;
 use App\Beneficio;
 use View;
 use Dompdf\Dompdf;
-use App\Maquina;
+use App\Juego;
+use \Datetime;
+use App\BeneficioMensual;
 use App\DetalleRelevamiento;
 use App\EstadoMaquina;
 use App\Cotizacion;
@@ -23,54 +25,17 @@ use Illuminate\Support\Facades\Schema;
 class informesController extends Controller
 {
 
-  private static $atributos = ['nro_admin' => 'Número de administración',
-                               'id_casino' => 'ID de Casino'];
+  private static $atributos = ['cod_juego' => 'Código del juego',
+                               'id_plataforma' => 'ID de plataforma'];
 
     /*
       CONTROLADOR ENCARGADO DE OBTENER DATOS
       PARA PANTALLAS DE INFORMES
     */
 
-  public function obtenerMes($mes_num){ // @params $mes_numer integer. Devuleve el mes correspondiente a un entero . @return String
-    switch ($mes_num) {
-        case 1:
-           $mesEdit = "Enero";
-           break;
-        case 2:
-           $mesEdit = "Febrero";
-           break;
-        case 3:
-           $mesEdit = "Marzo";
-           break;
-        case 4:
-           $mesEdit = "Abril";
-           break;
-        case 5:
-           $mesEdit = "Mayo";
-           break;
-       case 6:
-           $mesEdit = "Junio";
-           break;
-       case 7:
-           $mesEdit = "Julio";
-           break;
-       case 8:
-           $mesEdit = "Agosto";
-           break;
-       case 9:
-           $mesEdit = "Septiembre";
-           break;
-       case 10:
-           $mesEdit = "Octubre";
-           break;
-       case 11:
-           $mesEdit = "Noviembre";
-           break;
-       case 12:
-           $mesEdit = "Diciembre";
-           break;
-    }
-    return $mesEdit;
+  public function obtenerMes($mes_num){
+    $mes_map = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    return $mes_map[intval($mes_num)-1];
   }
 
   public function generarPlanilla($year,$mes,$id_casino,$tipo_moneda){
@@ -244,85 +209,46 @@ class informesController extends Controller
     return $sum;
   }
 
-  public function obtenerUltimosBeneficiosPorCasino(){
+  public function obtenerUltimosBeneficiosPorPlataforma(){
+      $plataformas = Plataforma::all();
+      $monedas = TipoMoneda::all();
+      $fecha = date_create_from_format('Y-m-d','2020-10-01');//Inicio de casinos online
+      $mes_que_viene = new Datetime();//devuelve hoy
+      $mes_que_viene->modify('first day of next month');
 
-      $beneficios_mel = DB::table('beneficio_mensual')->where([['id_casino',1],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
-      $beneficios_sfe = DB::table('beneficio_mensual')->where([['id_casino',2],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
-      $beneficios_ros = DB::table('beneficio_mensual')->where([['id_casino',3],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
-                           //->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')->get();
-
-      $ajustesSF = array();
-
-      foreach($beneficios_sfe as $resultado){
-        $resSF = new \stdClass();
-        $año = $resultado->anio_mes[0].$resultado->anio_mes[1].$resultado->anio_mes[2].$resultado->anio_mes[3];
-        $mes = $resultado->anio_mes[5].$resultado->anio_mes[6];
-        $casino = $resultado->id_casino;
-        $tipoMoneda = $resultado->id_tipo_moneda;
-        $verifica = $this->verficaCarga($año,$mes,$casino,$tipoMoneda);
-
-        $mesEdit = $this->obtenerMes($mes);
-
-        $resSF->anio_mes = $mesEdit." ".$año;
-        $resSF->casino = $casino;
-        $resSF->anio = $año;
-        $resSF->mes = $mes;
-        $resSF->moneda = $tipoMoneda;
-        $resSF->estado = $verifica;
-        $ajustesSF[] = $resSF;
-      };
-
-      $ajustesMEL = array();
-      foreach($beneficios_mel as $resultado){
-        $resML = new \stdClass();
-        $año = $resultado->anio_mes[0].$resultado->anio_mes[1].$resultado->anio_mes[2].$resultado->anio_mes[3];
-        $mes = $resultado->anio_mes[5].$resultado->anio_mes[6];
-        $casino = $resultado->id_casino;
-        $tipoMoneda = $resultado->id_tipo_moneda;
-        $verifica = $this->verficaCarga($año,$mes,$casino,$tipoMoneda);
-
-        $mesEdit = $this->obtenerMes($mes);
-
-        $resML->anio_mes = $mesEdit." ".$año;
-        $resML->casino = $casino;
-        $resML->anio = $año;
-        $resML->mes = $mes;
-        $resML->moneda = $tipoMoneda;
-        $resML->estado = $verifica;
-        $ajustesML[] = $resML;
-      };
-
-      $ajustesROS = array();
-      foreach($beneficios_ros as $resultado){
-        $resROS = new \stdClass();
-        $año = $resultado->anio_mes[0].$resultado->anio_mes[1].$resultado->anio_mes[2].$resultado->anio_mes[3];
-        $mes = $resultado->anio_mes[5].$resultado->anio_mes[6];
-        $casino = $resultado->id_casino;
-        $tipoMoneda = $resultado->id_tipo_moneda;
-        $verifica = $this->verficaCarga($año,$mes,$casino,$tipoMoneda);
-
-        $mesEdit = $this->obtenerMes($mes);
-
-        $resROS->anio_mes = $mesEdit." ".$año;
-        $resROS->casino = $casino;
-        $resROS->anio = $año;
-        $resROS->mes = $mes;
-        $resROS->moneda = $tipoMoneda;
-        if($resultado->id_tipo_moneda == '1'){
-              $resROS->moneda = '$';
-              }
-              else{
-                $resROS->moneda = 'U$S';
+      $resultados = [];
+      foreach($plataformas as $p){
+        $resultados[$p->id_plataforma] = ["beneficios" => [],"plataforma" => $p->nombre];
+      }
+      while($fecha->format('Y-m') != $mes_que_viene->format('Y-m')){
+        foreach($plataformas as $p){
+          foreach($monedas as $m){
+            $anio = $fecha->format('Y');
+            $mes = $fecha->format('m');
+            $existe_beneficio = BeneficioMensual::where(
+              [['id_plataforma','=',$p->id_plataforma],
+               ['id_tipo_moneda','=',$m->id_tipo_moneda]]
+            )->whereYear('fecha','=',$anio)->whereMonth('fecha','=',$mes)->count() > 0;
+            $resultado = new \stdClass();
+            $resultado->mes = $mes;
+            $resultado->anio = $anio;
+            $resultado->anio_mes = $this->obtenerMes($mes)." ".$anio;
+            $resultado->plataforma = $p->id_plataforma;
+            $resultado->moneda = $m->descripcion;
+            $resultado->estado = $existe_beneficio;
+            $aux["beneficios"][] = $resultado;
+            $resultados[$p->id_plataforma]["beneficios"][] = $resultado;
+          }
         }
-        $resROS->id_tipo_moneda=$resultado->id_tipo_moneda;
-        $resROS->estado = $verifica;
-        $ajustesROS[] = $resROS;
-      };
-      UsuarioController::getInstancia()->agregarSeccionReciente('Informes MTM' ,'informesMTM');
+        $fecha->modify('first day of next month');
+      }
+      foreach($plataformas as $p){
+        $resultados[$p->id_plataforma]["beneficios"] = array_reverse($resultados[$p->id_plataforma]["beneficios"]);
+      }
 
-      return view('seccionInformesMTM',['beneficios_mel' => $ajustesML,
-                      'beneficios_sfe' => $ajustesSF,
-                      'beneficios_ros' => $ajustesROS]);
+      UsuarioController::getInstancia()->agregarSeccionReciente('Informes Juegos' ,'informesJuegos');
+
+      return view('seccionInformesJuegos',['resultados' => $resultados, 'plataformas' => $plataformas, 'monedas' => $monedas]);
   }
 
   public function verficaCarga($year,$mes,$id_casino,$tipo_moneda){

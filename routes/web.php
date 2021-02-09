@@ -229,8 +229,11 @@ Route::get('informeContableMTM','informesController@buscarTodoInformeContable');
 Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@obtenerInformeContableDeMaquina');//informe ultimos 30 dias
 
 //seccion informes mtm (pestaña informes)
-Route::get('informesMTM','informesController@obtenerUltimosBeneficiosPorCasino');
-Route::get('informesMTM/generarPlanilla/{year}/{mes}/{id_casino}/{id_tipo_moneda}','informesController@generarPlanilla');
+//@TODO: Agregar y asignar privilegios para esta sección
+Route::group(['prefix' => 'informesJuegos'],function(){
+  Route::get('/','informesController@obtenerUltimosBeneficiosPorPlataforma');
+  Route::get('/generarPlanilla/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@generarPlanilla');
+});
 
 /*calendario*/
 Route::get('calendario_eventos',function(){

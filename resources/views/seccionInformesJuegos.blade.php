@@ -13,149 +13,66 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="css/zona-file-large.css">
 @endsection
 
-        <!-- <div class="container-fluid">
-          <div class="row">
-            <div class="col-md-12 bannerImportaciones">
-              <h1><img width="80" src="/img/logos/informes_juegos_blue.png" alt=""> INFORMES DE JUEGOS</h1>
+        <style>
+        .imgwrapper {
+          width: 80%;
+        }
+        </style>
+        <div class="row">
+        @foreach($resultados as $r)
+          <div class="col-md-{{intval(12.0/count($resultados))}}">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="panel">
+                  <center><img width="100%" src="/img/tarjetas/banner_CSF.jpg"></center>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-12 col-xl-12">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h4>{{$r["plataforma"]}}</h4>
+                  </div>
+                  <div class="panel-body">
+                    <table class="table table-fixed tablesorter">
+                      <thead>
+                        <tr>
+                          <th class="col-xs-4">FECHA</th>
+                          <th class="col-xs-5">MONEDA</th>
+                          <th class="col-xs-3">ACCIÓN</th>
+                        </tr>
+                      </thead>
+                      <tbody style="height: 356px;">
+                      @foreach($r["beneficios"] as $b)
+                        <tr id="">
+                          <td class="col-xs-4">{{$b->anio_mes}}</td>
+                          <td class="col-xs-5">{{$b->moneda}}</td>
+                          <td class="col-xs-3">
+                            @if($b->estado == 1)
+                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->plataforma}}" data-moneda="{{$b->moneda}}" class="btn btn-info planilla detalle" type="button">
+                                  <i class="fa fa-fw fa-print"></i>
+                            </button>
+                            @endif
+                            @if($b->estado == 0)
+                            <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
+                              <i class="fa fa-exclamation" style="color: #FFA726;"></i>
+                            </a>
+                            @endif
+                        </tr>
+                      @endforeach
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div> -->
-
-                <div class="row">
-
-                  <div class="col-md-4">
-                      <div class="row">
-                          <div class="col-lg-12">
-                            <div class="panel">
-                                <center><img width="100%" src="/img/tarjetas/banner_CSF.jpg"></center>
-                            </div>
-                          </div>
-                      </div>
-                      <div class="row">
-                          <div class="col-lg-12 col-xl-12">
-                            <div class="panel panel-default">
-                              <div class="panel-heading">
-                                  <h4>Beneficios - Juegos Santa fe</h4>
-                              </div>
-                              <div class="panel-body">
-                                <table id="" class="table table-fixed tablesorter">
-                                  <thead>
-                                      <tr>
-                                        <th class="col-xs-7">FECHA</th>
-                                        <th class="col-xs-5">ACCIÓN</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody style="height: 356px;">
-                                      <tr>
-                                        <td class="col-xs-8"></td>
-                                        <td class="col-xs-4">
-                                            <button class="btn btn-info planilla detalle" type="button">
-                                                <i class="fa fa-fw fa-print"></i>
-                                            </button>
-                                          <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
-                                            <i class="fa fa-exclamation" style="color: #FFA726;"></i>
-                                          </a>
-                                        </td>
-                                      </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                      </div> <!-- row -->
-                  </div>
-
-                  <div class="col-md-4">
-                    <div class="row">
-                        <div class="col-lg-12">
-                          <div class="panel">
-                            <center><img width="100%" src="/img/tarjetas/banner_MEL.jpg"></center>
-                          </div>
-                        </div>
-                    </div>
-                      <div class="row">
-                          <div class="col-lg-12 col-xl-12">
-                            <div class="panel panel-default">
-                              <div class="panel-heading">
-                                  <h4>Beneficios - Juegos Melincué</h4>
-                              </div>
-                              <div class="panel-body">
-                                <table id="" class="table table-fixed tablesorter">
-                                  <thead>
-                                      <tr>
-                                        <th class="col-xs-7">FECHA</th>
-                                        <th class="col-xs-5">ACCIÓN</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody style="height: 356px;">
-                                      <tr id="">
-                                        <td class="col-xs-8"></td>
-                                        <td class="col-xs-4">
-                                          <button  class="btn btn-info planilla detalle" type="button">
-                                                <i class="fa fa-fw fa-print"></i>
-                                          </button>
-                                          <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
-                                            <i class="fa fa-exclamation" style="color: #FFA726;"></i>
-                                          </a>
-                                      </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                      </div> <!-- row -->
-                  </div>
-
-                  <div class="col-md-4">
-                    <div class="row">
-                        <div class="col-lg-12">
-                          <div class="panel">
-                            <center><img width="100%" src="/img/tarjetas/banner_ROS.jpg"></center>
-                          </div>
-                        </div>
-                    </div>
-                      <div class="row">
-                          <div class="col-lg-12 col-xl-12">
-                            <div class="panel panel-default">
-                              <div class="panel-heading">
-                                  <h4>Beneficios - Juegos Rosario</h4>
-                              </div>
-                              <div class="panel-body">
-                                <table id="" class="table table-fixed tablesorter">
-                                  <thead>
-                                      <tr>
-                                        <th class="col-xs-4">FECHA</th>
-                                        <th class="col-xs-5">MONEDA</th>
-                                        <th class="col-xs-3">ACCIÓN</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody style="height: 356px;">
-                                      <tr>
-                                        <td class="col-xs-5"></td>
-                                        <td class="col-xs-5"></td>
-                                        <td class="col-xs-2">
-                                            <button class="btn btn-info planilla detalle" type="button">
-                                                <i class="fa fa-fw fa-print"></i>
-                                            </button>
-                                          <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
-                                            <i class="fa fa-exclamation" style="color: #FFA726;"></i>
-                                          </a>
-                                        </td>
-                                      </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                      </div> <!-- row -->
-                  </div>
-
-
-            </div>
-            <!-- row -->
-
+        @endforeach
+        </div>
         <!-- Modal planilla relevamientos -->
         <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
               <div class="modal-dialog" style="width:80%;">
@@ -201,9 +118,29 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection
+
+    <!-- Comienza modal de ayuda -->
+    @section('tituloDeAyuda')
+    <h3 class="modal-title" style="color: #fff;">| INFORMES DE TRAGAMONEDAS</h3>
+    @endsection
+    @section('contenidoAyuda')
+    <div class="col-md-12">
+      <h5>Tarjeta de Informes de Tragamonedas</h5>
+      <p>
+        Se presenta un informe final acerca del desempeño mensual de cada casino, teniendo en cuenta puntos como el detalle por día de la cantidad
+        de máquinas presentes en cada casino, lo apostado, premios, cantidad de premios totales, el beneficio, su promedio y el % de devolución.
+      </p>
+    </div>
+    @endsection
+    <!-- Termina modal de ayuda -->
+
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionJuegosBeneficios.js" type="text/javascript">
+    <script src="js/seccionMTMbeneficios.js" charset="utf-8"></script>
+    <script>
+      $(document).ready(function(){
+          $('[data-toggle="popover"]').popover();
+      });
     </script>
 
     <!-- Custom input Bootstrap -->

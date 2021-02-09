@@ -559,12 +559,8 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="informes">
                               <li>
-                                <div id="opcInformesMTM" class="opcionesHover" 
-                                @if(false)
-                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesMTM'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
+                                <div id="opcInformesJuegos" class="opcionesHover" 
+                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesJuegos'" href="#" style="cursor: pointer;"
                                 >
                                   <span>Juegos</span>
                                 </div>
