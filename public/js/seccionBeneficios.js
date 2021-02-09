@@ -270,9 +270,10 @@ $(document).on('click','.ajustar',function(e){
       dataType: 'json',
       success: function (data) {
         $('#id' + formData.id_beneficio).find('.ajuste').text(data.ajuste.toFixed(2));
-        $('#id' + formData.id_beneficio).find('.diferencia').text(data.diferencia.toFixed(2));
-        $('#id' + formData.id_beneficio).find('.boton_ajuste').attr('disabled',(data.diferencia == 0))
-        .attr('data-content',generarContentAjuste(-data.diferencia,formData.id_beneficio))
+        const dif = data.diferencia.toFixed(2);
+        $('#id' + formData.id_beneficio).find('.diferencia').text(dif);
+        $('#id' + formData.id_beneficio).find('.boton_ajuste').attr('disabled',(dif == 0))
+        .attr('data-content',generarContentAjuste(-dif,formData.id_beneficio))
         $('.pop').popover('hide');
       },
       error: function (data) {
@@ -280,6 +281,17 @@ $(document).on('click','.ajustar',function(e){
       }
     });
 });
+
+function mensajeError(errores) {
+  $('#mensajeError .textoMensaje').empty();
+  for (let i = 0; i < errores.length; i++) {
+      $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
+  }
+  $('#mensajeError').hide();
+  setTimeout(function() {
+      $('#mensajeError').show();
+  }, 250);
+}
 
 $(document).on('click','#btn-validar',function(e){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -320,21 +332,17 @@ $(document).on('click','#btn-validar',function(e){
     error: function (data) {
       console.log('Error:', data);
       $('#textoExito').text('');
-      /*let texto = "";
-      if(data.responseJSON.id_beneficio !== undefined){
-        texto += 'Hay beneficios sin ajustar.  ';
-          $('#btn-validar-si').hide();
+      const keys = Object.keys(data.responseJSON);
+      console.log(data.responseJSON);
+      for(const kidx in keys){
+        const k = keys[kidx];
+        if(k == 'id_beneficio_mensual') continue;
+        const error = data.responseJSON[k].join('\n');
+        mostrarErrorValidacion($('#id'+k+' textarea'),error,false);
       }
-      if(data.responseJSON.id_producido !== undefined){
-        texto += 'Hay producidos sin cargar. ¿Desea validarlos de todos modos?';
-        $('#btn-validar-si').show();
-        $('#btn-validar').hide();
+      if(data.responseJSON.id_beneficio_mensual !== undefined){
+        mensajeError(data.responseJSON.id_beneficio_mensual);
       }
-      if(data.responseJSON.not_found !== undefined){
-        texto += 'Recargue la página.  ';
-        $('#btn-validar-si').hide();
-      }
-      $('#textoExito').text('Errores: '+ texto);*/
     }
   });
 });

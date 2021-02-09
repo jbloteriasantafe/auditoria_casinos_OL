@@ -161,8 +161,8 @@ class BeneficioController extends Controller
     $b->ajuste += $request->valor;
     $b->save();
     $benMensual = $b->beneficio_mensual;
-    $benMensual->valor -= $request->valor;
-    $benmensual->save();
+    $benMensual->ajuste += $request->valor;
+    $benMensual->save();
     return ['ajuste' => $b->ajuste,'diferencia' => $b->diferencia];
   }
 
@@ -178,13 +178,13 @@ class BeneficioController extends Controller
       $beneficios = [];
       foreach($bMensual->beneficios as $b){
         $beneficios[$b->id_beneficio] = $b;
-        if(is_null($b->prod)){
-          $validator->errors()->add('id_producido','No hay producidos cargados para el beneficio del día '.$b->fecha.'.'); 
+        if(is_null($b->producido)){
+          $validator->errors()->add($b->id_beneficio,'No hay producidos cargados.'); 
           continue;
         }
         $diff_round = round($b->diferencia,2);
         if($diff_round != 0.00){
-          $validator->errors()->add('id_beneficio', 'No se ajustó el beneficio del día '.$b->fecha.'. Diferencia de '.$diff_round.'.');
+          $validator->errors()->add($b->id_beneficio, 'Falta ajustar.');
         }
       }
       $mes = date("n",strtotime($bMensual->fecha));
@@ -196,7 +196,7 @@ class BeneficioController extends Controller
       }
       foreach($data['beneficios'] as $b){
         if(!array_key_exists($b['id_beneficio'],$beneficios)){
-          $validator->errors()->add('id_beneficio', 'El beneficio del día '.$b['id_beneficio'].' no corresponde al beneficio mensual');
+          $validator->errors()->add('id_beneficio_mensual', 'El beneficio '.$b['id_beneficio'].' no corresponde al beneficio mensual, informar al area de informatica.');
         }
       }
     })->validate();
@@ -301,6 +301,7 @@ class BeneficioController extends Controller
   public function generarPlanilla($id_beneficio_mensual){
     $benMensual = BeneficioMensual::find($id_beneficio_mensual);
     $ben = new \stdClass();
+    dump($benMensual->toArray());
     $ben->plataforma = $benMensual->plataforma->nombre;
     $ben->moneda = $benMensual->tipo_moneda->descripcion;
     if($ben->moneda == 'ARS'){
