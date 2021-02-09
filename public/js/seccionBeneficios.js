@@ -146,7 +146,7 @@ function mostrarBeneficioMensual(id_beneficio_mensual,modo){
         $('#modalBeneficioMensual .modal-title').text('BENEFICIOS');
         $('#modalBeneficioMensual .modal-header').css('background-color','#4FC3F7');
         $('#modalBeneficioMensual textarea').attr('disabled',true);
-        $('#modalBeneficioMensual #cuerpoTabla button').attr('disabled',true);
+        $('#modalBeneficioMensual #cuerpoTabla button').not('.ver-producido').attr('disabled',true);
         $('#btn-validar-si').hide();
         $('#btn-validar').hide();
       }
