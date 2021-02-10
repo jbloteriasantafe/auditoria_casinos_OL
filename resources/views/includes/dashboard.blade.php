@@ -486,6 +486,25 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                         </li>
                         @endif
 
+                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_ae_alta']))
+                        <div class="separadoresMenu">AUTOEXCLUSIÓN (FÍSICO)</div>
+                        <li>
+                          <div id="" class="opcionesHover"  href="">
+                            <a 
+                            href="{{'//'.$_SERVER['SERVER_NAME'].':8003/autoexclusion'}}"
+                            target="_blank">
+                            <span class="flechita">
+                                <i class="fa fa-angle-right"></i>
+                              </span>
+                              <span class="icono" style="padding-bottom: 50px;">
+                                @svg('usuario','iconoUsuarios')
+                              </span>
+                              <span>AUTOEXCLUSIÓN</span>
+                            </a>
+                          </div>
+                        </li>
+                        @endif
+
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
                                                                                                             'informes_mtm','informes_bingos','informes_mesas']))
                         <div class="separadoresMenu">ESTADÍSTICAS</div>
