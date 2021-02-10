@@ -27,4 +27,7 @@ class TipoMoneda extends Model
   public function juegos(){
     return $this->hasMany('App\Juego','id_tipo_moneda','id_tipo_moneda');
   }
+  public function cotizaciones(){
+    return $this->hasMany('App\Cotizacion','id_tipo_moneda','id_tipo_moneda');
+  }
 }

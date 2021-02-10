@@ -514,7 +514,7 @@ function procesarDatosProducidos(e) {
         $('#fechaProducido input').attr('disabled',false);
         $('#fechaProducido span').show()
       }
-      $('#monedaProducido').val(1).attr('disabled',true);
+      $('#monedaProducido').val(1);
       $('#modalImportacionProducidos #mensajeInvalido').hide();
       //Mostrar botón SUBIR
       $('#btn-guardarProducido').show();
