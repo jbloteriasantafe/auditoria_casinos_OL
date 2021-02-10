@@ -491,7 +491,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                         <li>
                           <div id="" class="opcionesHover"  href="">
                             <a 
-                            href="{{'//'.$_SERVER['SERVER_NAME'].':8003/autoexclusion'}}"
+                            href="{{'//'.$_SERVER['SERVER_NAME'].':8000/autoexclusion'}}"
                             target="_blank">
                             <span class="flechita">
                                 <i class="fa fa-angle-right"></i>
