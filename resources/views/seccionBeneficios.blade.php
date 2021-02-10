@@ -224,77 +224,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
             </div>
           </div>
     </div>
-
-    <!-- Modal planilla relevamientos -->
-    <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:80%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
-                </div>
-
-                <div  id="colapsadoCargar" class="collapse in">
-
-                <div class="modal-body modalCuerpo">
-
-                  <form id="frmPlanilla" name="frmPlanilla" class="form-horizontal" novalidate="">
-
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <!-- Carga de archivos! | Uno para el modal de nuevo y otro para modificar -->
-                                  <div class="zona-file-lg">
-                                      <input id="cargaArchivo" data-borrado="false" type="file" multiple>
-                                  </div>
-
-                                  <div class="alert alert-danger fade in" role="alert" id="alertaArchivo"><span></span></div>
-                              </div>
-                          </div>
-
-                  </form>
-
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-successAceptar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                  <!-- <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button> -->
-                  <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
-                  <input type="hidden" id="id_relevamiento" value="0">
-                </div>
-              </div>
-            </div>
-          </div>
-    </div>
-
-
-    <!-- Modal Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-title">ADVERTENCIA</h3>
-                </div>
-
-                <div class="modal-body franjaRojaModal">
-                  <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
-                      <div class="form-group error ">
-                          <div class="col-xs-12">
-                            <strong>¿Seguro desea eliminar Producido? Podría ocasionar errores serios en el sistema.</strong>
-                          </div>
-                      </div>
-                  </form>
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-danger" id="btn-eliminarModal" value="0">ELIMINAR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-                </div>
-            </div>
-          </div>
-    </div>
-
-    
+        
     <!-- Modal cotizacion -->
       <div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg"  >

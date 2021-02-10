@@ -34,15 +34,15 @@ tr:nth-child(even) {
   </head>
   <body>
     <div class="encabezadoImg">
-          <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-          <h2><span>MTM | Informe de beneficios ({{$total->moneda}})</span></h2>
+      <img src="img/logos/banner_nuevo_portrait.png" width="900">
+      <h2 style="left:35%;"><span>MTM | Informe de beneficios ({{$total->moneda}})</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></span></div>
     <div class="primerEncabezado">
       Se han realizado los procedimientos de control correspondientes
       al mes de <b>{{$mesTexto}}</b> de la <b>Plataforma de {{$total->plataforma}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>Juegos Online</b>
-      se obtuvo un beneficio de <b>${{$total_beneficio}}</b>, detallando a continuación el producido diario.
+      se obtuvo un beneficio de <b>${{$total_beneficio}}</b>, detallando a continuación el beneficio diario.
     </div>
     <br>
     <table>
@@ -52,7 +52,7 @@ tr:nth-child(even) {
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
         @if($cotizacionDefecto != 1)
-        <th class="tablaInicio">COTIZACION</th>
+        <th class="tablaInicio">COTIZACION (*)</th>
         @endif
         <th class="tablaInicio">BENEFICIO</th>
       </tr>
@@ -83,5 +83,17 @@ tr:nth-child(even) {
         <td class="tablaCampos total">{{$total_beneficio}}</td>
       </tr>
     </table>
+    @if($cotizacionDefecto != 1)
+    <div>
+      <p> 
+        <FONT SIZE=1> <strong>* </strong>Cotización establecida por la Dirección General de Casinos y Bingos (Nota N° 277/16) <br>
+        <i> "... se utilizará como tipo de cambio para efectuar la conversión a pesos, el valor del dólar 
+          oficial tipo comprador (información suministrada por el Banco de la Nación Argentina) correspondiente a la fecha de producción
+            de las MTM. Para el caso de los días Sábados, Domingos y Feriados, se utilizará como tipo de cambio, el del último día hábil disponible.."
+          </FONT>
+        </i>
+      </p>
+    </div>
+    @endif
   </body>
 </html>

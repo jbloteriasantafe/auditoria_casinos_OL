@@ -28,8 +28,8 @@
   </head>
   <body>
     <div class="encabezadoImg">
-      <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-      <h2><span>RMTM03 | Control de beneficio diario en {{$ben->moneda}}.</span></h2>
+      <img src="img/logos/banner_nuevo_portrait.png" width="900">
+      <h2 style="left:28%;"><span>RMTM03 | Control de beneficio diario en {{$ben->moneda}}.</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></span></div>
@@ -61,7 +61,12 @@
     </table>
     <br>
     <div class="titulo">
-        Observaciones: <div style="top:-14px; left:100px; font: normal 12px Helvetica, Sans-Serif;">- Acá va a una observación -</div>
+        Observaciones: <div style="top:-14px; left:100px; font: normal 12px Helvetica, Sans-Serif;"></div>
+        <div style="color: #dddddd;"><!-- Justo te entran 666 puntos!!!! -->
+          @for($i = 0; $i<666; $i++)
+          .
+          @endfor
+        </div>
     </div>
   </body>
 </html>
