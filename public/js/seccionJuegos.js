@@ -1,5 +1,9 @@
 $(document).ready(function(){
-  $('.tituloSeccionPantalla').text('Juegos');
+  $('#barraMaquinas').attr('aria-expanded','true');
+  $('#gestionarJuegos').removeClass();
+  $('#gestionarJuegos').addClass('subMenu2 collapse in');
+  $('#gestionarJuegos').siblings('div.opcionesHover').attr('aria-expanded','true');
+  $('.tituloSeccionPantalla').text('Juegos de Software');
   $('#opcJuegos').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcJuegos').addClass('opcionesSeleccionado');
 

@@ -50,7 +50,8 @@ class JuegoController extends Controller
     }
 
     return ['juego' => $juego , 'certificados' => $juego->gliSoft ,
-            'plataformas' => DB::table('plataforma_tiene_juego')->where('id_juego',$id)->get()];
+            'plataformas' => DB::table('plataforma_tiene_juego')->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+            ->where('id_juego',$id)->get()];
   }
 
   public function obtenerLogs($id){

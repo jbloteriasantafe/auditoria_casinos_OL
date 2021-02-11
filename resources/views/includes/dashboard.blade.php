@@ -321,7 +321,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                                                                                             'ver_seccion_formulas','ver_seccion_juegos','ver_seccion_glisoft',
                                                                                                             'ver_seccion_glihard','ver_seccion_sectores']))
                         <li>
-                            <div class="opcionesHover" data-target="#gestionarMTM" data-toggle="collapse">
+                            <div class="opcionesHover" data-target="#gestionarJuegos" data-toggle="collapse">
                               <span class="flechita">
                                 <i class="fa fa-angle-right"></i>
                               </span>
@@ -331,7 +331,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                 <span>Juegos</span>
                             </div>
                               <!-- CUARTO NIVEL -->
-                              <ul class="subMenu2 collapse" id="gestionarMTM">
+                              <ul class="subMenu2 collapse" id="gestionarJuegos">
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_juegos'))
                                   <li>
                                     <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
@@ -361,7 +361,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                                                                                             'ver_seccion_informecontable','ver_seccion_informesector']))
                         <div class="separadoresMenu">AUDITORÍA</div>
                         <li>
-                            <div id="barraMaquinas" class="opcionesHover" data-target="#maquinas" data-toggle="collapse" href="#">
+                            <div id="barraJuegos" class="opcionesHover" data-target="#juegos" data-toggle="collapse" href="#">
                                 <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
                                 </span>
@@ -372,7 +372,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             </div>
 
                             <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="maquinas">
+                            <ul class="subMenu1 collapse" id="juegos">
                               @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
                               'ver_seccion_informecontable','ver_seccion_informesector']))
                               <li>

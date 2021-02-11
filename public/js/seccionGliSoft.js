@@ -1,13 +1,9 @@
 $(document).ready(function(){
-  $('#barraMaquinas').attr('aria-expanded','true');
-  $('#maquinas').removeClass();
-  $('#maquinas').addClass('subMenu1 collapse in');
-  $('#gestionarMTM').removeClass();
-  $('#gestionarMTM').addClass('subMenu2 collapse in');
-  $('#gestionarMTM').siblings('div.opcionesHover').attr('aria-expanded','true');
-
+  $('#gestionarJuegos').attr('aria-expanded','true');
+  $('#gestionarJuegos').removeClass();
+  $('#gestionarJuegos').addClass('subMenu2 collapse in');
+  $('#gestionarJuegos').siblings('div.opcionesHover').attr('aria-expanded','true');
   $('.tituloSeccionPantalla').text('Certificados de Software');
-  $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcGliSoft').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcGliSoft').addClass('opcionesSeleccionado');
   

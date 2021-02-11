@@ -22,8 +22,8 @@ $('#btn-minimizarBeneficios').click(function(){
 
 $(document).ready(function(){
   $('#barraMaquinas').attr('aria-expanded','true');
-  $('#maquinas').removeClass();
-  $('#maquinas').addClass('subMenu1 collapse in');
+  $('#juegos').removeClass();
+  $('#juegos').addClass('subMenu1 collapse in');
   $('#procedimientos').removeClass();
   $('#procedimientos').addClass('subMenu2 collapse in');
 
