@@ -12,7 +12,6 @@ class SecRecientes extends Model
   protected $visible = array('id_sec_reciente','orden','seccion', 'ruta', 'id_usuario');
   public $timestamps = false;
 
-
   public function usuario(){
     return $this->belongsTo('App\Usuario','id_usuario','id_usuario');
   }

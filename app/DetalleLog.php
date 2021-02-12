@@ -15,5 +15,4 @@ class DetalleLog extends Model
   public function log(){
     return $this->belongsTo('App\Log','id_log','id_log');
   }
-  
 }

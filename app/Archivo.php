@@ -17,18 +17,6 @@ class Archivo extends Model
     return $this->hasOne('App\GliSoft','id_archivo','id_archivo');
   }
 
-  public function gliHard(){
-    return $this->hasOne('App\GliHard','id_archivo','id_archivo');
-  }
-
-  public function nota(){
-    return $this->hasOne('App\Nota','id_archivo','id_archivo');
-  }
-
-  public function eventualidad(){
-    return $this->hasOne('App\Eventualidad','id_archivo','id_archivo');
-  }
-
   public static function boot(){
         parent::boot();
         Archivo::observe(new ArchivoObserver());
@@ -41,5 +29,4 @@ class Archivo extends Model
   public function getId(){
     return $this->id_archivo;
   }
-
 }

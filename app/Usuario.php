@@ -66,21 +66,9 @@ class Usuario extends Model
     public function getEsCasinoAeAttribute(){
       return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',9)->get()) > 0);
     }
-
-    public function relevamientos_apuestas(){
-      return $this->belongsToMany('App\Mesas\RelevamientoApuestas','fiscalizador_relevo_apuesta','id_usuario','id_relevamiento_apuestas_mesas');
-    }
-
+    
     public function roles(){
 	     return $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol');
-    }
-
-    public function logs_movimientos(){
-	     return $this->belongsToMany('App\LogMovimiento','controlador_movimiento','id_controlador_movimiento','id_log_movimiento');
-    }
-
-    public function eventualidades(){
-       return $this->belongsToMany('App\Eventualidad','fisca_tiene_eventualidad','id_fiscalizador','id_eventualidad');
     }
     public function casinos(){
       return $this->belongsToMany('App\Casino','usuario_tiene_casino','id_usuario','id_casino');
@@ -88,49 +76,15 @@ class Usuario extends Model
     public function logs(){
       return $this->hasMany('App\Log','id_usuario','id_usuario');
     }
-    public function relevamientos_cargados(){
-      return $this->hasMany('App\Relevamiento','id_usuario_cargador','id_usuario');
-    }
-    public function relevamientos_fiscalizados(){
-      return $this->hasMany('App\Relevamiento','id_usuario_fiscalizador','id_usuario');
-    }
-    public function relevamientos_progresivos_cargados(){
-      return $this->hasMany('App\RelevamientoProgresivo','id_usuario_cargador','id_usuario');
-    }
-    public function relevamientos_progresivos_fiscalizados(){
-      return $this->hasMany('App\RelevamientoProgresivo','id_usuario_fiscalizador','id_usuario');
-    }
-    public function movimientos_fiscalizados(){
-      return $this->hasMany('App\FiscalizacionMov','id_fiscalizador','id_usuario');
-    }
-    public function movimientos_cargados(){
-      return $this->hasMany('App\FiscalizacionMov','id_cargador','id_usuario');
-    }
-    public function relevamientos_fiscalizados_movimientos(){
-      return $this->hasMany('App\RelevamientoMovimiento','id_fiscalizador','id_usuario');
-    }
-    public function relevamientos_cargados_movimientos(){
-      return $this->hasMany('App\RelevamientoMovimiento','id_cargador','id_usuario');
-    }
 
     public function secciones_recientes(){
       return $this->hasMany('App\SecRecientes','id_usuario','id_usuario')->orderBy('orden','asc');
-    }
-
-    public function estadosAE(){
-      return $this->hasMany('App\Autoexclusion\EstadoAE','id_usuario','id_usuario');
     }
 
     public static function boot(){
           parent::boot();
           Usuario::observe(new UsuarioObserver());
     }
-
-    // public function agregarRuta($string){
-    //   $visitados = $this->ultimos_visitados;
-    //   $vistas = explode(";" , $visitados);
-    //   $this->ultimos_visitados = $string . ";" . $vistas[0] . ";" . $vistas[1] . ";" . $vistas[2] ;
-    // }
 
     //si el usuario forma parte del casino $id_casino devuelve verdadero
     public function usuarioTieneCasino($id_casino){
@@ -141,12 +95,6 @@ class Usuario extends Model
           }
       }
       return $bandera;
-    }
-
-    //notificaciones
-    public function routeNotificationForMail()
-    {
-        return $this->email;
     }
 
     public function lastNotifications()

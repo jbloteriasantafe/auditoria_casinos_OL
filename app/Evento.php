@@ -23,10 +23,6 @@ class Evento extends Model
       return $this->belongsTo('App\TipoEvento','id_tipo_evento','id_tipo_evento');
   }
 
-  public function fiscalizacion(){
-      return $this->belongsTo('App\FiscalizacionMov','id_fiscalizacion_movimiento','id_fiscalizacion_movimiento');
-  }
-
   public function desde(){
     return $this->hora_inicio;
   }
@@ -42,5 +38,4 @@ class Evento extends Model
   public function getId(){
     return $this->id_evento;
   }
-
 }

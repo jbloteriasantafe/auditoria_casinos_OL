@@ -12,13 +12,12 @@ class TipoEvento extends Model
   protected $visible = array('id_tipo_evento','descripcion','color_text','color_back');
   public $timestamps = false;
 
-  public function eventualidades(){
+  public function eventos(){
     return $this->hasMany('App\Evento','id_tipo_evento','id_tipo_evento');
   }
 
   public static function boot(){
-        parent::boot();
-
+    parent::boot();
   }
 
   public function fondo(){
@@ -36,5 +35,4 @@ class TipoEvento extends Model
   public function getId(){
     return $this->id_tipo_evento;
   }
-
 }

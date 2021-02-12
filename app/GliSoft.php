@@ -13,7 +13,6 @@ class GliSoft extends Model
   protected $visible = array('id_gli_soft','observaciones','nro_archivo','id_archivo','id_laboratorio');
   public $timestamps = false;
 
-  //si esta fk en la entidad es belongs to, si esta en la otra es has one
   public function archivo(){
       return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
   }
@@ -24,16 +23,6 @@ class GliSoft extends Model
     return $this->belongsTo('App\Laboratorio','id_laboratorio','id_laboratorio');
   }
   
-
-  public function agregarJuegos($jarray,$id=False){
-    $arr = [];
-    if(!$id){
-      foreach($jarray as $j) $arr[] = $j->id_juego;
-    }
-    else $arr = $jarray;
-
-    $this->juegos()->syncWithoutDetaching($arr);
-  }
   public function setearJuegos($jarray,$id=False){
     $arr = [];
     if(!$id){
@@ -42,15 +31,6 @@ class GliSoft extends Model
     else $arr = $jarray;
 
     $this->juegos()->sync($arr);
-  }
-
-
-  public function casinos(){
-    return $this->hasManyThrough('App\Casino', 'App\Expediente', 'id_casino', 'id_expediente', 'id_gli_soft');
-  }
-
-  public function maquinas(){
-    return $this->HasMany('App\Maquina','id_gli_soft','id_gli_soft');
   }
 
   public function expedientes(){

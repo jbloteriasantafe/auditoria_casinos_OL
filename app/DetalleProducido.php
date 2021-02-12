@@ -12,9 +12,6 @@ class DetalleProducido extends Model
   protected $visible = array('id_detalle_producido','id_producido','cod_juego','categoria','jugadores','ingreso','premio','valor');
   public $timestamps = false;
 
-  /*public function juego(){
-    return $this->belongsTo('App\Juego','cod_juego','cod_juego');
-  }*/
   public function producido(){
     return $this->belongsTo('App\Producido','id_producido','id_producido');
   }

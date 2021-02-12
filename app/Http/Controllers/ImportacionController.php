@@ -3,16 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\ContadorHorario;
 use App\Producido;
-use App\Beneficio;
 use App\BeneficioMensual;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\RelevamientoController;
 use App\Http\Controllers\LectorCSVController;
-use App\Relevamiento;
-use App\DetalleRelevamiento;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Plataforma;
