@@ -32,9 +32,6 @@ class UsuarioController extends Controller
   }
 
   public function guardarUsuario(Request $request){
-    /*
-    validacion
-    */
     $validator=Validator::make($request->all(), [
       'usuario' => ['required' , 'max:45' , 'unique:usuario,user_name'] ,
       'email' => ['required' , 'max:45' , 'unique:usuario,email'],
@@ -98,7 +95,6 @@ class UsuarioController extends Controller
     }
     $usuario->save();
     return ['usuario' => $usuario];
-
   }
 
   public function modificarImagen(Request $request){
@@ -413,31 +409,6 @@ class UsuarioController extends Controller
   public function quienSoy(){
     $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
     return ['usuario' => $usuario];
-  }
-
-  public function chequearRolFiscalizador(){
-    $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
-
-    $resultado = Usuario::join('usuario_tiene_rol','usuario.id_usuario','=','usuario_tiene_rol.id_usuario')
-                        ->join('rol','rol.id_rol','=','usuario_tiene_rol.id_rol')
-                        ->where('rol.descripcion','=','FISCALIZADOR')
-                        ->where('rol.descripcion','<>','SUPERUSUARIO')
-                        ->where('usuario.id_usuario','=',$usuario->id_usuario)
-                        ->get();
-    if(count($resultado) == 1){
-      return 1;
-    }else{
-      return 0;
-    }
-  }
-
-  public function getCasinos(){
-    $usuario = $this->buscarUsuario(session('id_usuario'));
-    $casinos=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $casinos[]=$casino->id_casino;
-    }
-    return $casinos;
   }
 
   public function obtenerUsuario(Request $request){

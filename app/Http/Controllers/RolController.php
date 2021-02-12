@@ -47,7 +47,6 @@ class RolController extends Controller
   }
 
   public function guardarRol(Request $request){
-
     $validator=Validator::make($request->all(), [
       'descripcion' => 'required'
       ])->after(function ($validator){
@@ -61,7 +60,6 @@ class RolController extends Controller
 
       $validator->validate();
 
-
       $rol= new Rol;
       $rol->descripcion=strtoupper($request->descripcion);
       $rol->save();
@@ -70,13 +68,9 @@ class RolController extends Controller
       }
 
       return ['rol' => $rol , 'permisos' => $rol->permisos];
-
-
-
     }
 
     public function modificarRol(Request $request){
-
       $validator=Validator::make($request->all(), [
         'descripcion' => 'required'
         ])->after(function ($validator){
@@ -98,7 +92,6 @@ class RolController extends Controller
 
         $validator->validate();
 
-
         $rol= Rol::find($request->id);
         $rol->descripcion=strtoupper($request->descripcion);
 
@@ -109,27 +102,20 @@ class RolController extends Controller
           $rol->permisos()->detach();
         }
 
-
         return ['rol' => $rol, 'permisos' => $rol->permisos];
       }
 
-        public function eliminarRol($id){
-            $rol= Rol::find($id);
-            $rol->permisos()->detach();
-            $rol->usuarios()->detach();
-            $rol->delete();
-          return ['rol' => $rol] ;
-        }
+      public function eliminarRol($id){
+        $rol= Rol::find($id);
+        $rol->permisos()->detach();
+        $rol->usuarios()->detach();
+        $rol->delete();
+        return ['rol' => $rol] ;
+      }
 
       public function getRol($id){
         $rol=Rol::findorfail($id);
         return ['rol' => $rol , 'permisos' => $rol->permisos, 'usuarios' => $rol->usuarios];
-      }
-
-
-      public function getAll(){
-        $todos=Rol::all();
-        return $todos;
       }
 
       public function buscarRoles(Request $request){
@@ -145,7 +131,6 @@ class RolController extends Controller
         $id_rol= DB::table('usuario_tiene_rol')->select('id_rol')
                       ->where('id_usuario','=',$usuario)
                       ->min('id_rol');
-        //dd(['mi_Rol'=> $id_rol,'hola']);
 
         if($id_rol != 1 && $id_rol != 5){
           $roles= Rol::orderBy('id_rol' , 'desc')->where('id_rol','>',$id_rol)->where($reglas)->whereNotIn('id_rol',[5,6])->get();
@@ -165,6 +150,4 @@ class RolController extends Controller
 
         return ['roles' => $resultado];
       }
-
-
     }

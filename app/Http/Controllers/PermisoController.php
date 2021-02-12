@@ -12,20 +12,16 @@ use Illuminate\Support\Facades\DB;
 
 class PermisoController extends Controller
 {
-
   private static $instance;
 
   public static function getInstancia() {
-
       if (!isset(self::$instance)) {
           self::$instance = new PermisoController();
       }
-
       return self::$instance;
   }
 
   public function guardarPermiso(Request $request){
-
      $validator=Validator::make($request->all(), [
         'descripcion' => 'required'
       ])->after(function ($validator){
@@ -39,7 +35,6 @@ class PermisoController extends Controller
 
       $validator->validate();
 
-
       $permiso= new Permiso;
       $permiso->descripcion=strtolower($request->descripcion);
       $permiso->save();
@@ -52,14 +47,11 @@ class PermisoController extends Controller
   }
 
   public function modificarPermiso(Request $request){
-
     $validator=Validator::make($request->all(), [
       'descripcion' => 'required'
       ])->after(function ($validator){
         //validar que descripcion no exista
         $descripcion =strtolower($validator->getData()['descripcion']);
-
-
         $resultados=Permiso::where('descripcion' , '=' , $descripcion )->get();
         $permiso=Permiso::find($validator->getData()['id']);
         if($resultados->count() >= 1){
@@ -97,14 +89,6 @@ class PermisoController extends Controller
   public function getPermiso($id){
     $permiso=Permiso::findorfail($id);
     return ['permiso' => $permiso , 'roles' => $permiso->roles ];
-
-  }
-
-  public function getAll(){
-      $permisos=Permiso::all();
-
-      return  $permisos;
-
   }
 
   public function buscarPermisos(Request $request){
@@ -138,5 +122,4 @@ class PermisoController extends Controller
 
     }
   }
-
 }

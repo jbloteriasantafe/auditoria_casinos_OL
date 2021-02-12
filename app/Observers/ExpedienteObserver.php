@@ -6,7 +6,6 @@ use App\Expediente;
 
 class ExpedienteObserver extends EntityObserver
 {
-
     public function getDetalles($entidad){
       $detalles = array(//para cada modelo poner los atributos más importantes
         array('nro_exp_org',$entidad->nro_exp_org),
@@ -15,5 +14,4 @@ class ExpedienteObserver extends EntityObserver
       );
       return $detalles;
     }
-
 }

@@ -25,5 +25,4 @@ class DetalleLogController extends Controller
         $detalleLog->save();
     }
   }
-
 }

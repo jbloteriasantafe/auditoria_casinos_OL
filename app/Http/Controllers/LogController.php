@@ -19,8 +19,6 @@ class LogController extends Controller
   }
 
   public function buscarTodo(){
-    //$logs = Log::all();
-
     UsuarioController::getInstancia()->agregarSeccionReciente('Log Actividades' , 'logActividades');
     return view('seccionLogActividades');//->with('logActividades',$logs);
   }
@@ -35,11 +33,6 @@ class LogController extends Controller
       $log->usuario()->associate($id_usuario);
       $log->save();
       return $log;
-  }
-
-  public function getAll(){
-    $todos=Log::all();
-    return $todos;
   }
 
   public function obtenerLogActividad($id){
@@ -74,22 +67,4 @@ class LogController extends Controller
 
     return $resultados;
   }
-
-  //tipo_archivo,casino,fecha
-  public function obtenerUltimasImportaciones(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = array();
-    foreach($usuario->casinos as $casino){
-      $casinos [] = $casino->id_casino;
-    }
-    $importaciones = DB::table('log')->whereIn('log.tabla',['contador_horario','producido','beneficio'])
-                                     ->join('usuario_tiene_casino','log.id_usuario','=','usuario_tiene_casino.id_usuario')
-                                     ->join('casino','usuario_tiene_casino.id_casino','=','casino.id_casino')
-                                     ->whereIn('casino.id_casino',$casinos)
-                                     ->select('log.tabla as tipo_archivo','casino.nombre as casino','log.fecha as fecha')
-                                     ->orderBy('log.fecha','desc')->take(10)->get();
-
-    return $importaciones;
-  }
-
 }

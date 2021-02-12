@@ -24,7 +24,7 @@ class CasinoController extends Controller
   private static $atributos = [
       'nombre' => 'Nombre del Casino',
       'codigo' => 'Código del Casino',
-    ];
+  ];
 
   public static function getInstancia() {
     if (!isset(self::$instance)) {
@@ -43,15 +43,6 @@ class CasinoController extends Controller
     return view('Casinos.casinos')->with('casinos',$usuario->casinos);
   }
 
-  //se usa en canon mesas
-  public function getParaUsuario(){
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-
-    $cas = $user->casinos->all();
-
-    return $cas;
-  }
-
   public function obtenerCasino(Request $request,$id){
     $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
     if($usuario == null || !$usuario->usuarioTieneCasino($id)){
@@ -67,52 +58,6 @@ class CasinoController extends Controller
     'fichas_casino' => $fichas_casino,
     'fichas' => $fichas
     ];
-  }
-
-
-
-
-
-  public function obtenerTurno($id){
-
-    $dia_semana = date('w');
-
-    // // desde la base se gestiona al domingo como 7
-     if ($dia_semana==0){
-       $dia_semana=7;
-     }
-    $hora_dia = date('H:i:s');
-
-    $entrada_min = Turno::where([['id_casino' , $id] , ['dia_desde' ,'<=', $dia_semana], ['dia_hasta' ,'>=', $dia_semana]])->min('entrada');
-
-    if($hora_dia < $entrada_min){
-      if($dia_semana == 1){
-        $dia_semana= 7;
-      }else {
-        $dia_semana = $dia_semana - 1 ;
-      }
-    }
-
-    $turnos = Turno::where([['id_casino' , $id] , ['dia_desde' ,'<=', $dia_semana], ['dia_hasta' ,'>=', $dia_semana]])->get();
-    $retorno= array();
-    foreach($turnos as $turno){
-      if($turno->entrada >= $turno->salida && ($hora_dia >= $turno->entrada || $hora_dia <= $turno->salida) ){
-        $retorno[] = $turno->nro_turno;
-      }else{
-        if($hora_dia >= $turno->entrada && $hora_dia <= $turno->salida){
-          $retorno[] = $turno->nro_turno;
-        }
-      }
-    }
-
-    if(count($retorno) != 1){
-      $codigo = 500;
-    }else{
-      $codigo = 200;
-
-    }
-    return ['turno' => $retorno,
-            'CODIGO' => $codigo];
   }
 
   public function guardarCasino(Request $request){
@@ -367,8 +312,6 @@ private function asociarTurnos($turnos, $casino){
   public function validarTurnos($validator){
     //valido que no estén repetidos ->collect
     //que no se solapen
-    //dd('00:30'<= '00:00','01:00'<= '05:00'); parece que compara bien php por mas que sean string
-
     $collection = collect([]);
     foreach ($validator->getData()['turnos'] as $turno) {
       if(empty($turno['salida'])){
@@ -402,7 +345,6 @@ private function asociarTurnos($turnos, $casino){
       $hhasta = $turno->salida;
       //obtengo todos los turnos que esten entre esos dias
       $filteredHEntrada = $collection->filter(function ($value, $key) use ($ddesde,$dhasta,$hdesde,$hhasta){
-        //dd($value es el turno,$key);
         //si es que hay turnos que esten entre los dias del $turno -> la hora no se
         //debe solapar con la de $turno -> chequeo que la hora de inicio este
         //entre las horas y que la hora de salida este como hora de entrada en otro turno.
@@ -417,10 +359,6 @@ private function asociarTurnos($turnos, $casino){
                );
       });
 
-      // if(count($filteredHEntrada)>1){
-      //   $validator->errors()->add('turnos', 'Verifique el solapamiento entre turnos por la hora de entrada.');
-      //   return $validator;
-      // }
       $nro_turno = $turno->nro_turno;
 
       $filteredHSalida = $collection->filter(function ($value, $key) use ($nro_turno,$ddesde,$dhasta,$hdesde,$hhasta){
@@ -431,17 +369,7 @@ private function asociarTurnos($turnos, $casino){
                 )
                );
       });
-
-      // if(count($filteredHSalida)>1){
-      //   $validator->errors()->add('turnos', 'Verifique el solapamiento entre turnos por la hora de salida.');
-      //   return $validator;
-      // }
     }
-
-  }
-  public function getFichas(Request $request){
-    $fichas = Ficha::groupBy('id_moneda','id_ficha','valor_ficha','created_at','deleted_at','updated_at')->orderBy('valor_ficha','asc')->get()->toArray();
-    return ['fichas' => $fichas];
   }
 
   public function asociarFichas($fichas_pesos,$fichas_dolares,$id_casino){
@@ -517,5 +445,4 @@ private function asociarTurnos($turnos, $casino){
 
     return $fichas;
   }
-
 }

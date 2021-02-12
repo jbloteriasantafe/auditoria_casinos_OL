@@ -24,24 +24,24 @@ class BeneficioMensualController extends Controller
       return self::$instance;
   }
 
-  public function buscarTodoPorCasino(){
+  public function buscarTodoPorCasino(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
     $casinos = Casino::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Estasdísticas Por Casino','estadisticasPorCasino');
     return view('seccionEstadisticasPorCasino')->with('casinos',$casinos);
   }
 
-  public function buscarTodoInteranuales(){
+  public function buscarTodoInteranuales(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
     $casinos = Casino::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Estadísticas Interanuales','interanuales');
     return view('seccionEstadisticasInteranuales')->with('casinos',$casinos);
   }
 
-  public function buscarTodoGenerales(){
+  public function buscarTodoGenerales(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
     UsuarioController::getInstancia()->agregarSeccionReciente('Estadísticas Generales','estadisticasGenerales');
     return view('seccionEstadisticasGenerales');
   }
 
-  public function cargarEstadisticasGenerales(Request $request){
+  public function cargarEstadisticasGenerales(Request $request){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
 
         $fecha_inicio=$request->fecha_desde;
         $fecha_fin=$request->fecha_hasta;
@@ -80,6 +80,8 @@ class BeneficioMensualController extends Controller
           'resultadosRosario_ars' => $resultadosRosario_ars,
           'resultadosRosario_dol' => $resultadosRosario_dol,];
   }
+  
+  //@TODO: Esto se va a cambiar cuando se refactorizen los informes
   //retorna bruto y canon total, y tambien por mes
   public function calcularBrutoYCanon($fecha_inicio, $fecha_fin ,$beneficios){//por mes calcula bruto y canon total (suma de los juegos)
     $meses=array();
@@ -108,6 +110,7 @@ class BeneficioMensualController extends Controller
 
   }
 
+  //@TODO: Esto se va a cambiar cuando se refactorizen los informes
   public function cargarSeccionEstadisticasPorCasino(Request $request){
         /*
         validacion datos de entrada
@@ -234,6 +237,7 @@ class BeneficioMensualController extends Controller
 
   }
 
+  //@TODO: Esto se va a cambiar cuando se refactorizen los informes
   public function cargaSeccionInteranual(Request $request){
     $validator=Validator::make($request->all(), [
       'fecha_desde' => 'required|numeric',
@@ -318,18 +322,6 @@ class BeneficioMensualController extends Controller
              'resultadosX' => $año_x,
              'resultadosY' => $año_y];
 
-  }
-
-  public function obtenerUltimosBeneficiosPorCasino(Request $request){
-
-      $beneficios_mel = DB::table('beneficio_mensual')->where([['id_casino',1],['id_actividad',1]])->orderBy('fecha','desc')->get();
-      $beneficios_sfe = DB::table('beneficio_mensual')->where([['id_casino',2],['id_actividad',1]])->orderBy('fecha','desc')->get();
-      $beneficios_ros = DB::table('beneficio_mensual')->where([['id_casino',3],['id_actividad',1]])->orderBy('fecha','desc')
-                           ->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')->get();
-
-      return ['beneficios_mel' => $beneficios_mel,
-              'beneficios_sfe' => $beneficios_sfe,
-              'beneficios_ros' => $beneficios_ros];
   }
 
   public function eliminarBeneficioMensual($id_beneficio_mensual){

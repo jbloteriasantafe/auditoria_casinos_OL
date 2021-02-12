@@ -18,14 +18,7 @@ class CalendarioController extends Controller
 {
   private static $instance;
 
-  private static $atributos = [
-    'inicio' => 'coso',
-    'fin' => 'coso',
-    'titulo' => 'coso',
-    'descripcion' => 'coso',
-    'color'=> 'coso'
-  ];
-
+  private static $atributos = [ ];
 
   public static function getInstancia() {
     if (!isset(self::$instance)) {
@@ -65,7 +58,6 @@ class CalendarioController extends Controller
                   ->whereIn('evento.id_casino', $casinos_usuario)
                   ->get();
     return ['eventos'=>$eventos];
-    //return ['m'=> $hoyM,'y'=>$hoyY];
   }
 
   public function getOpciones(){
@@ -110,7 +102,6 @@ class CalendarioController extends Controller
   }
 
   public function crearEventoMovimiento($inicio,$fin,$titulo,$descripcion,$idCasino,$idFiscaslizacion){
-
     $evento = new Evento;
     $evento->fecha_inicio = $inicio;
     $evento->fecha_fin = $fin;
@@ -121,7 +112,6 @@ class CalendarioController extends Controller
     // se supone que el tipo de evento 1 está destinado a los movimientos de mtm
     $evento->fiscalizacion()->associate($idFiscaslizacion);
     $evento->save();
-
   }
 
   public function modificarEvento(Request $request){
@@ -144,11 +134,6 @@ class CalendarioController extends Controller
     return 1;
   }
 
-  public function marcarRealizado(Evento $evento){
-    $evento->realizado=1;
-    $evento->save();
-  }
-
   public function crearTipoEvento(Request $request){
     Validator::make($request->all(), [
         'descripcion' => 'required|unique:tipo_evento,descripcion',
@@ -162,5 +147,4 @@ class CalendarioController extends Controller
     $tipo->save();
     return $tipo;
   }
-
 }

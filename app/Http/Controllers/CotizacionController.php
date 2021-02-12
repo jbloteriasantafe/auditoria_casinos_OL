@@ -17,15 +17,12 @@ class CotizacionController extends Controller
         return self::$instance;
       }
 
-
     public function obtenerCotizaciones($fecha){
         $fecha2 = date("Y-m", strtotime("$fecha - 2 month"));
 
         return DB::table('cotizacion')
                     ->where('fecha','>=',$fecha2 . '%')
                     ->get();
-
-
         //TODO limitar la busqueda con fecha final
     }
 
@@ -45,12 +42,6 @@ class CotizacionController extends Controller
             $nuevaCotizacion->valor=$cotizacion['valor'];
             $nuevaCotizacion->save();
         }
-
-
-
-
         return "OK";
-
     }
-
 }

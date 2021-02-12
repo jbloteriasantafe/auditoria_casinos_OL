@@ -20,7 +20,7 @@ use App\Http\Controllers\FormatoController;
 
 
 class ProducidoController extends Controller
-{
+{//@TODO: Esto se va a cambiar cuando se reescriba la validación de Producidos
   private static $instance;
 
   private static $atributos=[];
@@ -60,7 +60,6 @@ class ProducidoController extends Controller
   }
 
   public function buscarTodo(){
-
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
     $producidosAValidar=array();
@@ -172,23 +171,6 @@ class ProducidoController extends Controller
 
     $pdo->exec($query);
   }
-  // modificarProducido modifica los detalles producidos asociados a un producido
-  public function modificarProducido(Request $request){
-    Validator::make($request->all(), [
-                    'detalles' => 'nullable',
-                    'detalles.*.id_producido' => 'required|exists:producido,id_producido',
-                    'detalles.*.id_detalle_producido' => 'required|exists:detalle_producido,id_detalle_producido',
-                    'detalles.*.valor' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/']
-                  ], array(), self::$atributos)->after(function($validator){
-                   })->validate();
-
-    foreach($request->detalles as $det){
-      $detalle = DetalleProducido::find($det['id_detalle_producido']);
-      $detalle->valor = $det['valor'];
-      $detalle->save();
-    }
-
-  }
   // datosAjusteMTM obitne los producidos con las maquinas que dan diferencias
   // con la informacion necesaria para ser evaluados por el auditor
   // TODO el guardado temporal no esta funcionando, pero no se usa tampoco
@@ -197,15 +179,6 @@ class ProducidoController extends Controller
     $casino=$producido->casino->id_casino;
     $fecha_fin= date('Y-m-d' , strtotime($producido->fecha. ' + 1 days'));
 
-    // $pdo = DB::connection('mysql')->getPdo();
-    //
-    // $primera_vez=0;
-    //
-    // $query = sprintf(self::$string_query , $id_producido,$fecha_fin);
-    // $resultados=$pdo->query($query);
-    //
-    // $conDiferencia=array();
-    //dd($id_maquina);
     $tipos_ajuste = TipoAjuste::all();
     $pdo = DB::connection('mysql')->getPdo();
 
@@ -320,7 +293,6 @@ class ProducidoController extends Controller
           $id_contador_final = $row['id_contador_final'];
           $id_contador_inicial = $row['id_contador_inicial'];
       }
-      //dd($producido->ajustes_producido);
       //VER SI SE PUEDE OPTIMIZAR- RECORRER DE NUEVO Y GUARDAR LAS DIFERENCIAS TARDA
 
       //en ajustes_producido se guardan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido, el cual tiene la maquina y el producido
@@ -349,7 +321,6 @@ class ProducidoController extends Controller
         $conDiferencia=array();
         $conDiferencia=$conDiferencia2;
       }
-      // dd($conDiferencia2 , 'algo');
       $validado = 0;
       $id_final = 0;
       if(count($conDiferencia) == 0){
@@ -381,7 +352,6 @@ class ProducidoController extends Controller
   // se importan en creditos
   public function calcularDiferencia($casino,$id_maquina,$nro_admin,$id_detalle_producido , $id_detalle_contador_inicial , $id_detalle_contador_final , $coinin_ini ,$coinout_ini ,$jackpot_ini,$progresivo_ini , $coinin_fin ,$coinout_fin ,$jackpot_fin,$progresivo_fin , $valor_producido, $denominacion,$denominacion_carga_inicial, $denominacion_carga_final){
       $resultado=array();
-      //if($id_detalle_contador_final!=null){
       //la denominacion carga es la que se utilizo para convertir a plata al momento de importar, la denominacion sale de la que tenia la maquina al importarte que no necesariamente es la misma al momento de validar producido
       //para santa fe y melincue que se importa en pesos, la denominacion de carga es 1, por lo que no afecta, pero en rosario, que se importa en creditos, si importa y tiene q ser distinto de 1
             //conclusion, si es de Santa Fe queda en plata, porque la denominacion es 1, si es de rosario se hace un cambio previo para cambiarlo a creditos
@@ -586,7 +556,6 @@ class ProducidoController extends Controller
   // guardarAjuste guarda el ajuste realizado por el auditor
   // solo se guarda si luego del ajuste , la diferencia es nula, es decir, es correto el ajuste
   public function guardarAjuste(Request $request){
-
       Validator::make($request->all(), [
               'producidos_ajustados' => 'nullable',
               'producidos_ajustados.*.coinin_inicial' => 'required|integer',
@@ -605,12 +574,6 @@ class ProducidoController extends Controller
               'estado' => 'required',//3 finalizado, 2 pausa
               //'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda'
       ], array(), self::$atributos)->after(function($validator){
-        //consistencia de maquina y fecha. puede que id_detalle_contador_final e id_detalle_contador_inicial
-        // $validator->getData()['id_detalle_producido'];
-        // foreach ($validator->getData()['producidos'] as $un_detalle_ajustado) {
-        //   if($un_detalle_ajustado['id_detalle_contador_final'] != 0  )
-        // }
-
       })->validate();
       $index=0;
       $resultados=array();
@@ -835,14 +798,11 @@ class ProducidoController extends Controller
         $estado=2;
       }
 
-
-
       return [
         'estado' => $estado,
         'resueltas' => $resultados,
         'errores' => $errores,
       ];
-
   }
 
   // generarPlanilla crea la planilla del producido total del dia
@@ -972,7 +932,5 @@ class ProducidoController extends Controller
       $importado = 0;
    }
    return ['importado' => $importado , 'validado' => $validado, 'detalle' =>$detalle];
-
   }
-
 }

@@ -266,11 +266,6 @@ class JuegoController extends Controller
     return ['juego' => $juego];
   }
 
-  public function getAll(){
-    $todos=Juego::all();
-    return $todos;
-  }
-
   public function buscarJuegos(Request $request){
     $reglas=array();
     if(!empty($request->nombreJuego) ){

@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Expediente;
 use App\Plataforma;
-use App\LogMovimiento;
 use App\EstadoJuego;
 use App\Nota;
 use Illuminate\Support\Facades\DB;

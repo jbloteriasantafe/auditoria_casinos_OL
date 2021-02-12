@@ -7,18 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Validator;
 use App\TipoMoneda;
 use App\Plataforma;
-use App\LogMaquina;
 use App\Beneficio;
 use View;
 use Dompdf\Dompdf;
 use App\Juego;
 use \Datetime;
 use App\BeneficioMensual;
-use App\DetalleRelevamiento;
-use App\EstadoMaquina;
 use App\Cotizacion;
-use App\Isla;
-use App\TipoCausaNoToma;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 
@@ -33,7 +28,7 @@ class informesController extends Controller
       PARA PANTALLAS DE INFORMES
     */
 
-  public function obtenerMes($mes_num){
+  private function obtenerMes($mes_num){
     $mes_map = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
     return $mes_map[intval($mes_num)-1];
   }
@@ -101,7 +96,7 @@ class informesController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
-  public function obtenerUltimosBeneficiosPorPlataforma(){
+  public function obtenerBeneficiosPorPlataforma(){
       $plataformas = Plataforma::all();
       $monedas = TipoMoneda::all();
       $fecha = date_create_from_format('Y-m-d','2020-10-01');//Inicio de casinos online
@@ -145,7 +140,7 @@ class informesController extends Controller
       return view('seccionInformesJuegos',['resultados' => $resultados, 'plataformas' => $plataformas, 'monedas' => $monedas]);
   }
 
-  public function obtenerInformeEstadoParque(){
+  public function obtenerInformeEstadoParque(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
     foreach($usuario->casinos as $casino){
@@ -156,7 +151,7 @@ class informesController extends Controller
     return view('seccionInformeEstadoParque' , ['casinos' => $casinos]);
   }
 
-  public function obtenerInformeEstadoParqueDeParque($id_casino){
+  public function obtenerInformeEstadoParqueDeParque($id_casino){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
     //funcion que devuelve cantidad de maquinas total del casino y a su vez maquinas separadas por sector . Tambien separadas en habilitadas y deshabilitadas
     $casino = Casino::find($id_casino);
 
@@ -217,7 +212,7 @@ class informesController extends Controller
 
   }
 
-  public function buscarTodoInformeContable(){
+  public function buscarTodoInformeContable(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
     foreach($usuario->casinos as $casino){
@@ -228,13 +223,7 @@ class informesController extends Controller
     return view('contable_mtm', ['casinos' => $casinos]);
   }
 
-  public function obtenerInformeContableAzar($id_casino){
-        $nro_maquina = $this->obtenerMaquinaAlAzar($id_casino);
-        $informe = $this->obtenerInformeContableDeMaquina($nro_maquina,$id_casino);
-        return $informe;
-  }
-
-  public function obtenerInformeContableDeMaquina($id_maquina){
+  public function obtenerInformeContableDeMaquina($id_maquina){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
     //modficar para que tome ultimos dias con datos, no solo los ultimos dias
     Validator::make([
          'id_maquina' => $id_maquina,
@@ -364,7 +353,7 @@ class informesController extends Controller
             ];
   }
 
-  public function checkEstadoMaquina($fecha , $id_maquina){
+  public function checkEstadoMaquina($fecha , $id_maquina){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
       //checkeo el estado de la maquina para un dia determinado
       //CERRADO(PRODUCIDO AJUSTADO/VALIDADO), VALIDADO(RELEVACION VALIDADA) Y RELEVADO(TUVO RELEVAMIENTO PARA DICHO DIA)
       $estado_contadores = ContadorController::getInstancia()->estaCerradoMaquina($fecha,$id_maquina);
@@ -377,166 +366,5 @@ class informesController extends Controller
               'estado_relevamiento' => $estado_relevamiento,
               'estado_producido' => $estado_producido];
       //contador SE MUESTRA POR PANTALLA YA QUE NO SIEMPRE EXISTE RELEVAMIENTO PARA ESA MAQUINA EN ESA FECHA
-  }
-
-  public function obtenerMaquinaAlAzar($id_casino){
-    $resultado = DB::table('maquina')->select('nro_admin')
-                          ->where('maquina.id_casino' , $id_casino)
-                          ->inRandomOrder()
-                          ->first();
-    return $resultados['nro_admin'];
-  }
-
-  //BUSCA TODA LA INFORMACION PARA CARGAR MODAL
-  public function mostrarEstadisticasNoToma($id_mtm){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-    $casinos=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $casinos[]=$casino;
-    }
-    $mtm = Maquina::find($id_mtm);
-    // $casinos = Casino::all();
-    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => $mtm->nro_admin, 'casino' => $mtm->id_casino, 'nombre'=> $mtm->casino->nombre]);
-  }
-
-  public function mostrarEstadisticasNoTomaGenerico(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-    $casinos=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $casinos[]=$casino;
-    }
-    //$mtm = Maquina::find($id_mtm);
-    // $casinos = Casino::all();
-    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => null, 'casino' =>null, 'nombre'=> null]);
-  }
-
-  public function obtenerEstadisticasNoToma($id){
-    $maquina = Maquina::find($id);
-    $aux= new \stdClass();
-    $aux->nro_admin=$maquina->nro_admin;
-    $aux->marca = $maquina->marca;
-    $aux->juego = $maquina->juego_activo->nombre_juego;
-    $aux->casino = $maquina->casino->nombre;
-    $aux->sector = $maquina->isla->sector->descripcion;
-    $aux->nro_isla = $maquina->isla->nro_isla;
-    $aux->codigo = $maquina->isla->codigo;
-    $aux->denominacion = $maquina->denominacion;
-    $aux->porcentaje_devolucion = $maquina->porcentaje_devolucion;
-    $aux->id_casino=$maquina->id_casino;
-
-
-    $resultados = DB::table('detalle_relevamiento')->select('relevamiento.fecha','tipo_causa_no_toma.descripcion','tipo_causa_no_toma.codigo')
-                                        ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
-                                        ->join('sector','sector.id_sector','=','relevamiento.id_sector')
-                                        ->join('casino','casino.id_casino','=','sector.id_casino')
-                                        ->join('tipo_causa_no_toma','detalle_relevamiento.id_tipo_causa_no_toma','=','tipo_causa_no_toma.id_tipo_causa_no_toma')
-                                        ->where([['id_maquina','=',$id],['backup','=',0]])
-                                        ->whereNotNull('detalle_relevamiento.id_tipo_causa_no_toma')
-                                        ->orderBy('relevamiento.fecha', 'DESC')
-                                        ->get();
-
-    return ['maquina' => $aux , 'resultados' => $resultados];
-
-  }
-
-  public function mostrarInformeSector(){
-    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Sector' ,'informeSector');
-    return view('seccionInformesSectores',
-    [
-      'es_admin' => $user->es_administrador || $user->es_superusuario,
-      'estados' => EstadoMaquina::all()
-    ]);
-  }
-  public function obtenerMTMs(){
-    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $casinos = $user->casinos;
-    $sectores = [];
-    foreach($casinos as $c){
-      foreach($c->sectores as $s){
-          $sectores[]=$s;
-      }
-      $sin_asignar = new \stdClass();
-      //Le asigno como id, el negativo del casino
-      //Como es uno solo por casino, esta garantizado a que sea distinto
-      $sin_asignar->id_sector = "SIN_ASIGNAR_".$c->id_casino;
-      $sin_asignar->descripcion = "SIN ASIGNAR";
-      $sin_asignar->id_casino = $c->id_casino;
-      $sin_asignar->cantidad_maquinas = null;
-      $sin_asignar->deleted_at = null;
-      $sectores[]=$sin_asignar;
-    }
-    
-    $islas = [];
-    foreach($casinos as $c){
-      $sin_asignar = new \stdClass();
-      //Creo una isla especial para asignar las maquinas sin isla.
-      $sin_asignar->id_isla = "SIN_ISLA_".$c->id_casino;
-      $sin_asignar->nro_isla = "SIN ISLA";
-      $sin_asignar->codigo = "SIN ISLA";
-      $sin_asignar->cantidad_maquinas = null;
-      $sin_asignar->id_casino = $c->id_casino;
-      $sin_asignar->id_sector = "SIN_ASIGNAR_".$c->id_casino;
-      $sin_asignar->deleted_at = null;
-      $islas[] = $sin_asignar;
-      foreach($c->islas as $i){
-        $aux = $i->toArray();
-        //Si no tiene sector, lo enlazo con SIN ASIGNAR
-        if(is_null($i->id_sector)) $i->id_sector = "SIN_ASIGNAR_".$c->id_casino;
-        $islas[] = $i;
-      }
-    }
-    $expresion_estado = 'IFNULL(estado.descripcion,"") as estado_descripcion,IF(m.deleted_at is NULL,"0","1") as borrada';
-    $maquinas = DB::table('maquina as m')
-    ->selectRaw('m.*,i.id_sector,'.$expresion_estado)
-    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
-    ->join('isla as i','m.id_isla','=','i.id_isla')
-    ->whereNotNull('i.id_sector')
-    ->orderBy('m.nro_admin','asc')->get()->toArray();
-
-    //Necesito sacar la columna de isla de maquina, la otra que queda era listar todas a pata.
-    $columnas_str = "";
-    $columnas = Schema::getColumnListing('maquina');
-    foreach($columnas as $col){
-      if($col != "id_isla"){
-        $columnas_str .= ", m.".$col;
-      }
-    }
-    $m_sin_isla = DB::table('maquina as m')
-    ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,CONCAT("SIN_ISLA_",m.id_casino) as id_isla,'.$expresion_estado.$columnas_str)
-    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
-    ->whereNull('m.id_isla')
-    ->orderBy('m.nro_admin','asc')->get()->toArray();
-
-    $m_sin_sector = DB::table('maquina as m')
-    ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,m.*,'.$expresion_estado)
-    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
-    ->join('isla as i','m.id_isla','=','i.id_isla')
-    ->whereNull('i.id_sector')
-    ->orderBy('m.nro_admin','asc')->get()->toArray();
-
-    $todas = array_merge($maquinas,$m_sin_isla,$m_sin_sector);
-
-    $keylist = ['id_casino','nombre'];
-    $filter = function($v,$idx) use (&$keylist){
-      $ret = [];
-      foreach($keylist as $k){
-        $ret[$k] = $v->{$k};
-      }
-      return $ret;
-    };
-    $casinos = $casinos->map($filter);
-    $keylist = ['id_sector','descripcion','id_casino'];
-    $sectores = collect($sectores)->map($filter);//->only(['id_sector','descripcion','id_casino'])->all();
-    $keylist = ['id_isla','nro_isla','id_sector','id_casino'];
-    $islas = collect($islas)->map($filter);
-    $keylist = ['id_maquina','nro_admin','id_estado_maquina','estado_descripcion','id_isla','id_sector','id_casino','borrada'];
-    $todas = collect($todas)->map($filter);
-    return [
-      'casinos' => $casinos, 
-      'sectores' => $sectores, 
-      'islas' => $islas, 
-      'maquinas' => $todas
-    ];
   }
 }

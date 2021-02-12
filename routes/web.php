@@ -42,13 +42,10 @@ Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_c
   Route::get('/','CasinoController@buscarTodo');
   Route::get('/obtenerCasino/{id?}','CasinoController@obtenerCasino');
   Route::post('/guardarCasino','CasinoController@guardarCasino');
-  Route::get('/obtenerTurno/{id}','CasinoController@obtenerTurno');
   Route::post('/modificarCasino','CasinoController@modificarCasino');
   Route::delete('/eliminarCasino/{id}','CasinoController@eliminarCasino');
   Route::get('/get', 'CasinoController@getAll');
-  Route::get('/getCasinos', 'CasinoController@getParaUsuario');
   Route::get('/getMeses/{id_casino}', 'CasinoController@meses');
-  Route::get('/getFichas','CasinoController@getFichas');
 });
 
 /***********
@@ -89,8 +86,6 @@ Route::post('permiso/guardar','PermisoController@guardarPermiso');
 Route::post('rol/guardar','RolController@guardarRol');
 Route::post('rol/modificar','RolController@modificarRol');
 Route::post('permiso/modificar','PermisoController@modificarPermiso');
-Route::get('permiso/getAll','PermisoController@getAll');
-Route::get('rol/getAll','RolController@getAll');
 Route::post('permiso/buscarPermisosPorRoles',"PermisoController@buscarPermisosPorRoles");
 /***********
 Borrar permiso
@@ -231,7 +226,7 @@ Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@ob
 //seccion informes mtm (pestaña informes)
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informesJuegos'],function(){
-  Route::get('/','informesController@obtenerUltimosBeneficiosPorPlataforma');
+  Route::get('/','informesController@obtenerBeneficiosPorPlataforma');
   Route::get('/generarPlanilla/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@generarPlanilla');
 });
 
