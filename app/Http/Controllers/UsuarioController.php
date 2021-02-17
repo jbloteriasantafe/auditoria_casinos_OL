@@ -196,7 +196,6 @@ class UsuarioController extends Controller
 
   public function buscarTodo(){
     $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
-
     $plataformas = [];
     $roles = [];
     if($user->es_superusuario){
@@ -233,7 +232,6 @@ class UsuarioController extends Controller
   public function leerImagenUsuario(){
     $file = Usuario::find(session('id_usuario'));
     $data = $file->imagen;
-
     return Response::make(base64_decode($data), 200, [ 'Content-Type' => 'image/jpeg',
                                                       'Content-Disposition' => 'inline; filename="lalaaa.jpeg"']);
   }
@@ -241,7 +239,6 @@ class UsuarioController extends Controller
   public function tieneImagen(){
     $file = Usuario::find(session('id_usuario'));
     $data = $file->imagen;
-
     return $data != null;
   }
 
@@ -296,7 +293,7 @@ class UsuarioController extends Controller
   public function obtenerUsuariosRol($id_plataforma, $id_rol){
     $rta = DB::table('usuario')
                 ->join('usuario_tiene_rol','usuario.id_usuario','=','usuario_tiene_rol.id_usuario')
-                ->join('usuario_tiene_plataforma','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
+                ->join('usuario_tiene_plataforma','usuario.id_usuario','=','usuario_tiene_plataforma.id_usuario')
                 ->whereIn('usuario_tiene_rol.id_rol',$id_rol)
                 ->where('usuario_tiene_plataforma.id_plataforma','=', $id_plataforma)
                 ->whereNull('usuario.deleted_at')
@@ -307,14 +304,5 @@ class UsuarioController extends Controller
   public function quienSoy(){
     $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
     return ['usuario' => $usuario];
-  }
-
-  public function obtenerUsuario(Request $request){
-    if($request->session()->has("id_usuario")){
-      $id_usuario = $request->session()->get("id_usuario");
-      $usuario = Usuario::find($id_usuario);
-      return $usuario;
-    }
-    return null;
   }
 }

@@ -625,31 +625,26 @@ $('#btn-eliminar').click( function(e) {
      }
  })
  $.ajax({
-     type: "delete",
-     url:  '/usuarios/eliminarUsuario',
-     data: formData,
+    type: "delete",
+    url:  '/usuarios/eliminarUsuario',
+    data: formData,
     dataType: 'json',
-
-     success: function (data) {
-        console.log(data);
-
-         $('#cuerpoTabla #usuario' + id).remove();
-         $("#tablaUsuarios").trigger("update");
-         $('#modalEliminar').modal('hide');
-
-     },
-     error: function (data) {
-         console.log('Error:', data);
-     }
+    success: function (data) {
+      console.log(data);
+      $('#cuerpoTabla #usuario' + id).remove();
+      $("#tablaUsuarios").trigger("update");
+      $('#modalEliminar').modal('hide');
+      $('#buscar').click();
+    },
+    error: function (data) {
+        console.log('Error:', data);
+    }
  });
-
-
 });
 
 //Función que obtiene los permisos de acuerdo a los roles seleccionados
 function mostrarPermisos(roles, modal) {
   modal.empty();
-  // $('#modalModificar #contenedorPermisos').empty();
 
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 

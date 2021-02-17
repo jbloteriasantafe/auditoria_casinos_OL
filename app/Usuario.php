@@ -82,17 +82,6 @@ class Usuario extends Model
       Usuario::observe(Observers\ParametrizedObserver::class);
     }
 
-    //si el usuario forma parte del casino $id_casino devuelve verdadero
-    public function usuarioTieneCasino($id_casino){
-      $bandera=false;
-      foreach($this->casinos as $casino){
-          if($casino->id_casino == $id_casino){
-              $bandera=true;
-          }
-      }
-      return $bandera;
-    }
-
     public function lastNotifications()
     {
       return $this->notifications()

@@ -1,35 +1,9 @@
 $(document).ready(function(){
-
-  //Prueba///////////////////////////////////////////
-  // $('#diseñoCrearEvento').modal('show');
-////////////////////////////////////////////////////
-
-
   $('#mensajeExito').hide();
   $('#mensajeError').hide();
 
   $('.tituloSeccionPantalla').text('Calendario');
 
-  // $('#horaDesde').datetimepicker({
-  //   language:  'es',
-  //   autoclose: 1,
-  //   todayHighlight: 1,
-  //   format: 'dd MM yyyy HH:ii',
-  //   pickerPosition: "bottom-left",
-  //   startView: 3,
-  //   minView: 0,
-  //   container: $('#modalEvento'),
-  // });
-  // $('#horaHasta').datetimepicker({
-  //   language:  'es',
-  //   autoclose: 1,
-  //   todayHighlight: 1,
-  //   format: 'HH:ii',
-  //   pickerPosition: "bottom-left",
-  //   startView: 3,
-  //   minView: 0,
-  //   container: $('#modalEvento'),
-  // });
   $('#hastaFecha').datetimepicker({
     language:  'es',
     autoclose: 1,
@@ -159,10 +133,6 @@ $(document).ready(function(){
         editable: true,
         selectable: true,
         allDaySlot: false,
-        //events: "index.php?view=1",  request to load current events
-
-        // eventTextColor:'#000',
-
         //SELECCIONA UN EVENTO
         eventClick:  function(event, jsEvent, view) {
 
@@ -177,7 +147,7 @@ $(document).ready(function(){
                 $('#diseñoCalendario .contenedorEvento .tituloEvento').text(data.evento.titulo);
                 $('#diseñoCalendario .contenedorEvento .descripcionEvento').text(data.evento.descripcion);
 
-                $('#diseñoCalendario .casinoEvento').text(data.casino.nombre);
+                $('#diseñoCalendario .plataformaEvento').text(data.plataforma.nombre);
                 $('#diseñoCalendario .tipodeEvento').text(data.tipo_evento.descripcion);
 
 
@@ -214,7 +184,7 @@ $(document).ready(function(){
               //Limpiar modal
               $('#tituloEvento').val('');
               $('#descripcionEvento').val('');
-              $('#diseñoCrearEvento #casinoEvento option').remove();
+              $('#diseñoCrearEvento #plataformaEvento option').remove();
               $('#destinatariosEvento li').remove();
               $('#tiposEvento li').remove();
               $('#desde_fecha').val('');
@@ -243,7 +213,7 @@ $(document).ready(function(){
 
               $('#hastaFecha').datetimepicker('update', end._d);
 
-              //Setear destinatarios, tipos de eventos y casinos
+              //Setear destinatarios, tipos de eventos y plataformas
               $.get('calendario_eventos/getOpciones', function(data){
                 console.log('get:',data);
                 for (var i = 0; i < data.roles.length; i++) {
@@ -254,9 +224,9 @@ $(document).ready(function(){
                   $('#destinatariosEvento').append(fila);
                 }
 
-                for (var i = 0; i < data.casinos.length; i++) {
-                  $('#diseñoCrearEvento #casinoEvento')
-                  .append($('<option>').val(data.casinos[i].id_casino).text(data.casinos[i].nombre))
+                for (var i = 0; i < data.plataformas.length; i++) {
+                  $('#diseñoCrearEvento #plataformaEvento')
+                  .append($('<option>').val(data.plataformas[i].id_plataforma).text(data.plataformas[i].nombre))
                 };
 
                 for (var i = 0; i < data.tipos_eventos.length; i++) {
@@ -374,22 +344,6 @@ $(document).ready(function(){
           editable: true,
           selectable: true,
           allDaySlot: false,
-
-
-            // // assign calendar
-            // locale: 'es',
-            // header:{
-            //   eft: '',
-            //   center: 'title',
-            //   right:'prev,next today',
-            // },
-            // //defaultView: 'agendaWeek',
-            // editable: true,
-            // selectable: true,
-            // allDaySlot: false,
-            // events: "index.php?view=1",  // request to load current events
-            // // eventTextColor:'#000',
-
             eventClick:  function(event, jsEvent, view) {  // when some one click on any event
 
                 $.get('calendario_eventos/getEvento/' + event.id, function(data){
@@ -399,7 +353,7 @@ $(document).ready(function(){
                     $('#diseñoCalendario .contenedorEvento .tituloEvento').text(data.evento.titulo);
                     $('#diseñoCalendario .contenedorEvento .descripcionEvento').text(data.evento.descripcion);
 
-                    $('#diseñoCalendario .casinoEvento').text(data.casino.nombre);
+                    $('#diseñoCalendario .plataformaEvento').text(data.plataforma.nombre);
                     $('#diseñoCalendario .tipodeEvento').text(data.tipo_evento.descripcion);
 
                     var fecha_inicio = moment(data.evento.fecha_inicio).format('dddd, DD MMMM YYYY');
@@ -498,9 +452,6 @@ if(esAdmin) {
     guardarTipoEvento();
   })
 }); //fin document ready
-// $('#modalTipoEv').on('hidden.bs.modal', function() {
-//   $('#colorFondo').hide();
-// });
 
 function mostrarMes() {
   //obtengo la fecha que me esta mostrando el calendario
@@ -555,7 +506,7 @@ function guardarEvento(){ // add event
     var desde_hora = $('#desde_hora').val();
     var hasta_hora = $('#hasta_hora').val();
 
-    var casino = $('#casinoEvento').val();
+    var plataforma = $('#plataformaEvento').val();
     var tipo = $('input:radio[name="tiposEventosRadio"]:checked').val();
 
     //recupero los roles seleccionados en el modal
@@ -572,7 +523,7 @@ function guardarEvento(){ // add event
       fin: hasta_fecha,
       desde: desde_hora,
       hasta: hasta_hora,
-      id_casino: casino,
+      id_plataforma: plataforma,
       id_tipo_evento: tipo,
       id_rol: id_rol,
     }
@@ -648,42 +599,38 @@ function guardarEvento(){ // add event
 
 //funcion para crear tipos de eventos nuevos
 function guardarTipoEvento(){
-
   $('#mensajeExito').hide();
+  var colorT= $('input:radio[name=colorText]:checked').val();
+  var colorF= $('#colorFondo').val().toUpperCase();
+  var descripcion = $('#tipoNuevo').val();
 
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
 
-    var colorT= $('input:radio[name=colorText]:checked').val();
-    var colorF= $('#colorFondo').val().toUpperCase();
-    var descripcion = $('#tipoNuevo').val();
+  var formData = {
+    descripcion: descripcion,
+    fondo:colorF,
+    texto:colorT
+  }
 
+  $.ajax({
+      type: 'POST',
+      url: 'calendario_eventos/crearTipoEvento',
+      data: formData,
+      dataType: 'json',
 
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
+      success: function(data) {
+          console.log(data);
+          $('#modalTipoEv').modal('hide');
 
-    var formData = {
-      descripcion: descripcion,
-      fondo:colorF,
-      texto:colorT
-    }
-
-    $.ajax({
-        type: 'POST',
-        url: 'calendario_eventos/crearTipoEvento',
-        data: formData,
-        dataType: 'json',
-
-        success: function(data) {
-           console.log(data);
-           $('#modalTipoEv').modal('hide');
-
-          $('#mensajeExito h3').text('TIPO DE EVENTO GUARDADO!');
-        },
-        error: function (data) {
-          $('#mensajeErrorCreacionTipo').show();
-          console.log('error:',data);
-        },
-    });
+        $('#mensajeExito h3').text('TIPO DE EVENTO GUARDADO!');
+      },
+      error: function (data) {
+        $('#mensajeErrorCreacionTipo').show();
+        console.log('error:',data);
+      },
+  });
 }

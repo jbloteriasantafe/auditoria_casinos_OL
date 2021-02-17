@@ -10,7 +10,7 @@ use App\Evento;
 use App\Usuario;
 use App\Rol;
 use App\TipoEvento;
-use App\Casino;
+use App\Plataforma;
 use App\Notifications\CalendarioEvento;
 
 
@@ -44,10 +44,10 @@ class CalendarioController extends Controller
     $hoyY = date('Y');
     $hoyM = date('m');
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos_usuario = array();
+    $plats = array();
 
     foreach($usuario->plataformas as $p) {
-      $casinos_usuario[] = $p->id_plataforma;
+      $plats[] = $p->id_plataforma;
     }
     //@TODO: Adaptar eventos para plataformas
     $eventos = DB::table('evento')
@@ -55,14 +55,14 @@ class CalendarioController extends Controller
                   ->join('tipo_evento','tipo_evento.id_tipo_evento','=','evento.id_tipo_evento')
                   ->whereMonth('fecha_inicio',$hoyM)
                   ->whereYear('fecha_inicio',$hoyY)
-                  ->whereIn('evento.id_casino', $casinos_usuario)
+                  ->whereIn('evento.id_plataforma', $plats)
                   ->get();
     return ['eventos'=>$eventos];
   }
 
   public function getOpciones(){
     return['roles' => Rol::all(),
-     'casinos' => Casino::all(),
+     'plataformas' => Plataforma::all(),
       'tipos_eventos' => TipoEvento::all()];
   }
 
@@ -73,7 +73,7 @@ class CalendarioController extends Controller
         'fin' => 'required|date',
         'titulo' => 'required',
         'descripcion' => 'required',
-        'id_casino' => 'required',
+        'id_plataforma' => 'required',
         'id_tipo_evento' => 'required',
         'id_rol' =>'required',
         'desde' => '',
@@ -87,7 +87,7 @@ class CalendarioController extends Controller
     $evento->hora_fin = $request->hasta;
     $evento->titulo = $request->titulo;
     $evento->descripcion = $request->descripcion;
-    $evento->casino()->associate($request->id_casino);
+    $evento->plataforma()->associate($request->id_plataforma);
     $evento->tipo_evento()->associate($request->id_tipo_evento);
     $evento->save();
 
@@ -101,19 +101,6 @@ class CalendarioController extends Controller
 
   }
 
-  public function crearEventoMovimiento($inicio,$fin,$titulo,$descripcion,$idCasino,$idFiscaslizacion){
-    $evento = new Evento;
-    $evento->fecha_inicio = $inicio;
-    $evento->fecha_fin = $fin;
-    $evento->titulo = $titulo;
-    $evento->descripcion = $descripcion;
-    $evento->casino()->associate($idCasino);
-    $evento->tipo_evento()->associate(1);
-    // se supone que el tipo de evento 1 está destinado a los movimientos de mtm
-    $evento->fiscalizacion()->associate($idFiscaslizacion);
-    $evento->save();
-  }
-
   public function modificarEvento(Request $request){
     $ev = Evento::find($request['id']);
     $ev->fecha_inicio = $request['inicio'];
@@ -124,9 +111,7 @@ class CalendarioController extends Controller
 
   public function getEvento($id){
     $ev = Evento::find($id);
-    $inicio= $ev->fecha_inicio;
-    $fin = $ev->fecha_fin;
-    return ['evento'=> $ev, 'casino' => $ev->casino, 'tipo_evento' => $ev->tipo_evento];
+    return ['evento'=> $ev, 'plataforma' => $ev->plataforma, 'tipo_evento' => $ev->tipo_evento];
   }
 
   public function eliminarEvento($id){

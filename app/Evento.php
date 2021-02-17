@@ -10,13 +10,13 @@ class Evento extends Model
   protected $table = 'evento';
   protected $primaryKey = 'id_evento';
   protected $visible = array('id_evento','fecha_inicio','fecha_fin',
-  'hora_inicio','hora_fin','titulo','descripcion','id_casino','id_tipo_evento',
+  'hora_inicio','hora_fin','titulo','descripcion','id_plataforma','id_tipo_evento',
   'realizado');
 
   public $timestamps = false;
 
-  public function casino(){
-    return $this->belongsTo('App\Casino','id_casino','id_casino');
+  public function plataforma(){
+    return $this->belongsTo('App\Plataforma','id_plataforma','id_plataforma');
   }
 
   public function tipo_evento(){

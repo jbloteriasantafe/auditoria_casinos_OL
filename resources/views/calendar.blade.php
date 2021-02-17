@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 $id_usuario = $usuario['usuario']->id_usuario;
-$cas = $usuario['usuario']->casinos;
+$plats = $usuario['usuario']->plataformas;
 ?>
 
  @extends('includes.dashboard')
@@ -75,9 +75,9 @@ $cas = $usuario['usuario']->casinos;
                 <input class="form-control" id="title" name="title" placeholder="Escriba el título del Evento" type="text" value="">
             </div>
             <div class="col-xs-6">
-              <h5>Casino</h5>
-              <select class="form-control" id="casinoEv">
-                <option class="default"  value="" selected>- Seleccione casino -</option>
+              <h5>Plataforma</h5>
+              <select class="form-control" id="plataformaEv">
+                <option class="default"  value="" selected>- Seleccione plataforma -</option>
               </select>
             </div>
           </div>
@@ -184,7 +184,7 @@ $cas = $usuario['usuario']->casinos;
       font-size: 18px;
     }
 
-    .casinoEvento, .tipodeEvento {
+    .plataformaEvento, .tipodeEvento {
       font-family: Roboto-Regular;
       font-size: 20px;
     }
@@ -224,8 +224,8 @@ $cas = $usuario['usuario']->casinos;
 
               <div class="row" style="border-top: 1px solid #ccc; border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                   <div class="col-md-6" style="text-align:center;border-right:1px solid #ccc;">
-                      <h5>CASINO</h5>
-                      <p class="casinoEvento">Santa Fe</p>
+                      <h5>PLATAFORMA</h5>
+                      <p class="plataformaEvento">CCO</p>
                   </div>
                   <div class="col-md-6" style="text-align:center;">
                       <h5>TIPO DE EVENTO</h5>
@@ -312,8 +312,8 @@ $cas = $usuario['usuario']->casinos;
                     <input id="tituloEvento" class="form-control" type="text" name="" value="" style="">
                 </div>
                 <div class="col-md-4">
-                    <h5>CASINO</h5>
-                    <select id="casinoEvento" class="form-control" name="">
+                    <h5>PLATAFORMA</h5>
+                    <select id="plataformaEvento" class="form-control" name="">
                     </select>
                 </div>
             </div>
