@@ -2,7 +2,6 @@ var id_usuario; //variable global, se usa para saber el usuario que esta siendo 
 
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
-
   $('#barraUsuarios').attr('aria-expanded','true');
   $('#usuarios').removeClass();
   $('#usuarios').addClass('subMenu1 collapse in');
@@ -28,9 +27,9 @@ $(document).ready(function() {
       }
   });
 
-  $('#modalModificar #contenedorCasino').prop('disabled',false);
+  $('#modalModificar #contenedorPlataforma').prop('disabled',false);
   $('#modalModificar #rol' + 1 ).prop('visible' ,true);
-
+  $('#buscar').click();
 });
 
 $('#btn-ayuda').click(function(e){
@@ -267,12 +266,12 @@ $('#buscar').click(function(e){
 $('#btn-guardar').on('click',function (e) {
   console.log('algo');
   var roles=[];
-  var casinos=[];
+  var plataformas=[];
   $('#modalCrear #contenedorRoles input:checked').each(function(e){
     roles.push($(this).val());
   })
-  $('#modalCrear #contenedorCasino input:checked').each(function(e){
-    casinos.push($(this).val());
+  $('#modalCrear #contenedorPlataforma input:checked').each(function(e){
+    plataformas.push($(this).val());
   })
 
   $.ajaxSetup({
@@ -291,8 +290,7 @@ $('#btn-guardar').on('click',function (e) {
       contraseña: $('#password').val(),
       email: $('#email').val(),
       roles: roles,
-      casinos: casinos,
-
+      plataformas: plataformas,
   }
 
   $.ajax({
@@ -389,9 +387,9 @@ $(document).on('click','.info',function(){
     //Setear los permisos del usuario
     mostrarPermisos(data.roles, $('#modalVer #contenedorPermisos'))  ;
 
-    //Setear los casinos del usuario
-    for (var i = 0; i < data.casinos.length; i++) {
-      $('#modalVer #casino' + data.casinos[i].id_casino ).prop('checked' ,true);
+    //Setear las plataformas del usuario
+    for (var i = 0; i < data.plataformas.length; i++) {
+      $('#modalVer #plataforma' + data.plataformas[i].id_plataforma ).prop('checked' ,true);
     }
 
 
@@ -416,7 +414,7 @@ $(document).on('click','.modificar',function(){
   $('#modAlertaEmail').hide();
   $('#modAlertaPassword').hide();
 
-  $('#modalModificar #contenedorCasino').prop('disabled',false);
+  $('#modalModificar #contenedorPlataforma').prop('disabled',false);
   $('#modalModificar #rol' + 1 ).prop('visible' ,true);
 
     id_usuario = $(this).val();
@@ -433,7 +431,7 @@ $(document).on('click','.modificar',function(){
     $('#btn-modificiar').val(data.usuario.id_usuario);
     // $('#modalModificar #contenedorPermisos').empty();
 
-    //si el usuario no es superusuario, que se deshabilite seleccionar casinos y
+    //si el usuario no es superusuario, que se deshabilite seleccionar plataformas y
     //que no le figure el rol superusuario
 
 
@@ -443,7 +441,7 @@ $(document).on('click','.modificar',function(){
     }
 
     if(!data.superusuario){
-      $('#modalModificar #contenedorCasino').attr('style','display:none;');
+      $('#modalModificar #contenedorPlataforma').attr('style','display:none;');
       $('#modalModificar #rol' + 1 ).attr('style','display:none;');
       $('#modalModificar #rol' + 5 ).attr('style','display:none;');
       $('#modalModificar #d' + 5 ).remove();
@@ -453,9 +451,9 @@ $(document).on('click','.modificar',function(){
     //Setear los permisos del usuario
     mostrarPermisos(data.roles,$('#modalModificar #contenedorPermisos'));
 
-    //Setear los casinos del usuario
-    for (var i = 0; i < data.casinos.length; i++) {
-      $('#modalModificar #casino' + data.casinos[i].id_casino ).prop('checked' ,true);
+    //Setear los plataformas del usuario
+    for (var i = 0; i < data.plataformas.length; i++) {
+      $('#modalModificar #plataforma' + data.plataformas[i].id_plataforma ).prop('checked' ,true);
     }
 
     $('#modalModificar').modal('show');
@@ -467,12 +465,12 @@ modificar usuario
 */
 $("#btn-modificiar").click(function (e) {
   var roles=[];
-  var casinos=[];
+  var plataformas=[];
   $('#modalModificar #contenedorRoles input:checked').each(function(e){
     roles.push($(this).val());
   })
-  $('#modalModificar #contenedorCasino input:checked').each(function(e){
-    casinos.push($(this).val());
+  $('#modalModificar #contenedorPlataforma input:checked').each(function(e){
+    plataformas.push($(this).val());
   })
 
   $.ajaxSetup({
@@ -491,7 +489,7 @@ $("#btn-modificiar").click(function (e) {
       password: $('#modPassword').val(),
       email: $('#modEmail').val(),
       roles: roles,
-      casinos: casinos,
+      plataformas: plataformas,
       origen: 1,
 
   }

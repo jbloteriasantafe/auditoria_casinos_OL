@@ -62,31 +62,6 @@
                                 </tr>
                               </thead>
                               <tbody id="cuerpoTabla" style="height: 450px;">
-                                @foreach($usuarios as $usuario)
-                                <tr id="usuario{{$usuario->id_usuario}}">
-                                  <td class="col-xs-3">{{$usuario->user_name}}</td>
-                                  <td class="col-xs-3">{{$usuario->nombre}}</td>
-                                  <td class="col-xs-3">{{$usuario->email}}</td>
-                                  <td class="col-xs-3">
-                                                                <!-- ENLACE DE BOTON MODAL-->
-                                  <button type="button" class="btn btn-info info" value="{{$usuario->id_usuario}}">
-                                    <i class="fa fa-fw fa-search-plus"></i>
-                                  </button>
-                                  <button type="button" class="btn btn-warning modificar" value="{{$usuario->id_usuario}}">
-                                    <i class="fa fa-fw fa-pencil-alt"></i>
-                                  </button>
-                                  <button type="button" class="btn btn-danger openEliminar" value="{{$usuario->id_usuario}}">
-                                    <i class="fa fa-fw fa-trash-alt"></i>
-                                  </button>
-
-                                  </td>
-
-                                </tr>
-                                <!-- <tr id="var_{{$usuario->id_usuario}}" class="collapse" style="background-color:white;">
-                                  <td colspan="4" class="col-xs-12"><h3>ASD</h3></td>
-
-                                </tr> -->
-                                @endforeach
                               </tbody>
 
                             </table>
@@ -164,10 +139,10 @@
 
                           <!-- nuevas secciones -->
                           <div class="row">
-                              <div class="col-md-12" id="contenedorCasino">
-                                <h5>Casino</h5>
-                                @foreach($casinos as $casino)
-                                <input style="margin-left:40px;" id="casino{{$casino->id_casino}}" type="checkbox" name="" value="{{$casino->id_casino}}"> {{$casino->nombre}}
+                              <div class="col-md-12" id="contenedorPlataforma">
+                                <h5>Plataforma</h5>
+                                @foreach($plataformas as $p)
+                                <input style="margin-left:40px;" id="plataforma{{$p->id_plataforma}}" type="checkbox" name="" value="{{$p->id_plataforma}}"> {{$p->nombre}}
                                 @endforeach
                               </div>
                           </div>
@@ -202,7 +177,6 @@
                       <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ACEPTAR</button>
                       <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
                       <button type="button" class="btn btn-default" data-dismiss="modal" style="display: none;">SALIR</button>
-                      <!-- <input type="hidden" id="id_juego" name="id_juego" value="0"> -->
                     </div>
                   </div>
                 </div>
@@ -252,10 +226,10 @@
 
                           <!-- nuevas secciones -->
                           <div class="row">
-                              <div class="col-md-12" id="contenedorCasino">
-                                <h5>Casino</h5>
-                                @foreach($casinos as $casino)
-                                <input style="margin-left:40px;" id="casino{{$casino->id_casino}}" type="checkbox" name="" value="{{$casino->id_casino}}" disabled> {{$casino->nombre}}
+                              <div class="col-md-12" id="contenedorPlataforma">
+                                <h5>Plataforma</h5>
+                                @foreach($plataformas as $p)
+                                <input style="margin-left:40px;" id="plataforma{{$p->id_plataforma}}" type="checkbox" name="" value="{{$p->id_plataforma}}" disabled> {{$p->nombre}}
                                 @endforeach
                               </div>
                           </div>
@@ -334,19 +308,16 @@
                           <div class="col-md-6">
                               <h5>Contraseña</h5>
                               <button id="btn-resetearPass" class="btn btn-infoBuscar" type="button" name="button">RESETEAR CONTRASEÑA  [DNI]</button>
-                              <!-- <input type="text" class="form-control" id="modPassword" name="nro_niv_progresivos" placeholder="Contraseña" value="">
-                              <br>
-                              <span id="modAlertaPassword" class="alertaSpan"></span> -->
                           </div>
                           </div>
                       <br>
                       <div style="border-bottom: 1px solid #eee;"></div><br>
 
                       <div class="row">
-                          <div class="col-md-12" id="contenedorCasino">
-                            <h5>Casino</h5>
-                            @foreach($casinos as $casino)
-                            <input style="margin-left:40px;" id="casino{{$casino->id_casino}}" type="checkbox" name="" value="{{$casino->id_casino}}"> {{$casino->nombre}}
+                          <div class="col-md-12" id="contenedorPlataforma">
+                            <h5>Plataforma</h5>
+                            @foreach($plataformas as $p)
+                            <input style="margin-left:40px;" id="plataforma{{$p->id_plataforma}}" type="checkbox" name="" value="{{$p->id_plataforma}}"> {{$p->nombre}}
                             @endforeach
                           </div>
                       </div>
@@ -428,7 +399,7 @@
 <div class="col-md-12">
   <h5>Tarjetas de gestionar usuarios</h5>
   <p>
-    Gestiona el ingreso o baja de usuarios existentes en el sistema. Permite asociarlos a diferentes casinos y roles que derivan en sus tareas asignadas.
+    Gestiona el ingreso o baja de usuarios existentes en el sistema. Permite asociarlos a diferentes plataformas y roles que derivan en sus tareas asignadas.
   </p>
 </div>
 

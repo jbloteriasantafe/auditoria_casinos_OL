@@ -167,9 +167,9 @@
                                   </div>
                                   <h5 class="C_tituloInfo">CASINO(S)</h5>
                                   <ul id="C_casinos">
-                                    @foreach ($usuario['usuario']->casinos as $casino)
+                                    @foreach ($usuario['usuario']->plataformas as $p)
                                       <li>
-                                        <h3>{{$casino->nombre}}</h3>
+                                        <h3>{{$p->nombre}}</h3>
                                       </li>
                                     @endforeach
                                     <!-- <li>

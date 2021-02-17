@@ -46,10 +46,10 @@ class CalendarioController extends Controller
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos_usuario = array();
 
-    foreach($usuario->casinos as $casino) {
-      $casinos_usuario[] = $casino->id_casino;
+    foreach($usuario->plataformas as $p) {
+      $casinos_usuario[] = $p->id_plataforma;
     }
-
+    //@TODO: Adaptar eventos para plataformas
     $eventos = DB::table('evento')
                   ->select('evento.*','tipo_evento.descripcion as tipo_evento', 'tipo_evento.color_back as fondo','tipo_evento.color_text as texto')
                   ->join('tipo_evento','tipo_evento.id_tipo_evento','=','evento.id_tipo_evento')
@@ -91,7 +91,7 @@ class CalendarioController extends Controller
     $evento->tipo_evento()->associate($request->id_tipo_evento);
     $evento->save();
 
-    $usuarios = UsuarioController::getInstancia()->obtenerUsuariosRol($request->id_casino, $request->id_rol);
+    $usuarios = UsuarioController::getInstancia()->obtenerUsuariosRol($request->id_plataforma, $request->id_rol);
     foreach ($usuarios as $user){
       $u = Usuario::find($user->id_usuario);
       $u->notify(new CalendarioEvento($evento));

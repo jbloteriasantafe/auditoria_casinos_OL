@@ -59,7 +59,7 @@ class ProducidoController extends Controller
     return self::$instance;
   }
 
-  public function buscarTodo(){
+  public function buscarTodo(){//@TODO: Arreglar esto cuando se adapte el ajuste de producidos a Online
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
     $producidosAValidar=array();

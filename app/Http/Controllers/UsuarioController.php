@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Response;
 use App\Usuario;
 use App\Rol;
-use App\Casino;
+use App\Plataforma;
 use App\Relevamiento;
 use App\SecRecientes;
 use App\Http\Controllers\Controller;
@@ -32,66 +32,48 @@ class UsuarioController extends Controller
   }
 
   public function guardarUsuario(Request $request){
-    $validator=Validator::make($request->all(), [
+    Validator::make($request->all(), [
       'usuario' => ['required' , 'max:45' , 'unique:usuario,user_name'] ,
       'email' => ['required' , 'max:45' , 'unique:usuario,email'],
       'contraseña' => ['required', 'max:45'],
       'nombre' => ['required'],
       'imagen' => ['nullable', 'image'],
-      'casinos' => 'required'
+      'plataformas' => 'required'
      ])->after(function ($validator){
-                 //validar que descripcion no exista
-                $email =$validator->getData()['email'];
-                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                  $validator->errors()->add('email', 'Formato de email inválido.');
-                }
-                $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
-                $cas = array();
-                foreach ($user->casinos as $cass) {
-                  $cas[]=$cass->id_casino;
-                }
-                $lotiene = false;
-                foreach ($cas as $c) {
-                  foreach ($validator->getData()['casinos'] as $cc) {
-                    if($c == $cc){
-                      $lotiene = true;
-                    }
-                  }
-                }
-                if(!$lotiene){
-                  $validator->errors()->add('id_casino', 'FAIL.');
-                }
-      });
+          //validar que descripcion no exista
+        $email =$validator->getData()['email'];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+          $validator->errors()->add('email', 'Formato de email inválido.');
+        }
+        $user = $this->quienSoy()['usuario'];
+        $plats = array();
+        foreach ($user->plataformas as $p) {
+          $plats[]=$p->id_plataforma;
+        }
+        foreach ($validator->getData()['plataformas'] as $p) {
+          if(!in_array($p,$plats)){
+            $validator->errors()->add('id_plataforma', 'FAIL.');
+            break;
+          }
+        }
+    })->validate();
 
-     $validator->validate();
-    /*
-    captura de datos
-    */
-    $nombre=$request->nombre;
-    $pass=$request->contraseña;
-    $username=$request->usuario;
-    $email=$request->email;
-    $roles=$request->roles;
-    //falta validar que sea de al menos un casino
-    $casinos = $request->casinos;
-    /*
-    crea modelo
-    */
     $usuario= new Usuario;
-    $usuario->nombre=$nombre;
-    $usuario->user_name=$username;
-    $usuario->password=$pass;
-    $usuario->email=$email;
+    $usuario->nombre = $request->nombre;
+    $usuario->user_name = $request->usuario;
+    $usuario->password= $request->contraseña;
+    $usuario->email = $request->email;
     if($request->imagen != null){
       $usuario->imagen = base64_encode(file_get_contents($request->imagen->getRealPath()));
     }
     $usuario->save();
 
-    if(!empty($roles)){
-    $usuario->roles()->sync($roles);
+    if(!empty($request->roles)){
+      $usuario->roles()->sync($request->roles);
     }
-    if(!empty($casinos)){
-      $usuario->casinos()->sync($casinos);
+    if(!empty($request->plataformas)){
+      //falta validar que sea de al menos una plataforma
+      $usuario->plataformas()->sync($request->plataformas);
     }
     $usuario->save();
     return ['usuario' => $usuario];
@@ -163,45 +145,26 @@ class UsuarioController extends Controller
   }
 
   public function modificarUsuario(Request $request){
-    $messages = [
-    'user_name.required' => 'El campo Nombre de usuario no puede estar vacio',
-    ];
     $this->validate($request, [
       'nombre' => ['required','max:45', Rule::unique('usuario')->ignore( $request->id_usuario,'id_usuario')],
       'user_name' => ['required', 'max:45' , Rule::unique('usuario')->ignore( $request->id_usuario,'id_usuario')],
-      // 'password' => ['required', 'max:45'],
-
       'email' =>  ['required', 'max:45' , Rule::unique('usuario')->ignore( $request->id_usuario,'id_usuario')]
-    ], $messages);
+    ], ['user_name.required' => 'El campo Nombre de usuario no puede estar vacio']);
 
-
-    $usuario=Usuario::find($request->id_usuario);
+    $usuario = Usuario::find($request->id_usuario);
     $usuario->nombre = $request->nombre;
     $usuario->user_name = $request->user_name;
     $usuario->email = $request->email;
-    // $usuario->password = $request->password;
     $usuario->save();
-
-    $roles=$request->roles;
-    $casinos=$request->casinos;
-        if(!empty($roles)){
-          $usuario->roles()->sync($roles);
-        }else{
-          $usuario->roles()->detach();
-        }
-        if(!empty($casinos)){
-          $usuario->casinos()->sync($casinos);
-        }else {
-          $usuario->casinos()->detach();
-        }
-
+    $usuario->roles()->sync($request->roles);
+    $usuario->plataformas()->sync($request->plataformas);
     return ['usuario' => $usuario];
   }
 
   public function eliminarUsuario(Request $request){
-    $usuario= Usuario::find($request->id);
+    $usuario = Usuario::find($request->id);
     $usuario->roles()->detach();
-    $usuario->casinos()->detach();
+    $usuario->plataformas()->detach();
     $usuario->delete();
     return ['usuario' => $usuario];
   }
@@ -212,21 +175,20 @@ class UsuarioController extends Controller
     $email = (empty($request->email)) ? '%' : '%'.$request->email.'%';
 
     $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
-    $cas = array();
-    foreach ($user->casinos as $cass) {
-      $cas[]=$cass->id_casino;
+    $plats = array();
+    foreach ($user->plataformas as $p) {
+      $plats[]=$p->id_plataforma;
     }
 
     $resultado=DB::table('usuario')
-                    ->select('usuario.*')
-                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
-                    ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->where([['usuario.nombre','like',$nombre],['usuario.user_name','like',$usuario],['usuario.email','like',$email]])
-                    ->whereIn('casino.id_casino',$cas)
-                    ->whereNull('usuario.deleted_at')
-                    ->distinct('id_usuario')
-                    ->orderBy('user_name','asc')
-                    ->get();
+    ->select('usuario.*')
+    ->join('usuario_tiene_plataforma','usuario_tiene_plataforma.id_usuario','=','usuario.id_usuario')
+    ->where([['usuario.nombre','like',$nombre],['usuario.user_name','like',$usuario],['usuario.email','like',$email]])
+    ->whereIn('usuario_tiene_plataforma.id_plataforma',$plats)
+    ->whereNull('usuario.deleted_at')
+    ->distinct('id_usuario')
+    ->orderBy('user_name','asc')
+    ->get();
 
     return ['usuarios' => $resultado];
 
@@ -234,74 +196,32 @@ class UsuarioController extends Controller
 
   public function buscarTodo(){
     $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
-    $cas = array();
-    foreach ($user->casinos as $cass) {
-      $cas[]=$cass->id_casino;
-    }
 
-
-    $resultado = DB::table('usuario_tiene_rol')
-                    ->whereIn('id_rol',[1])
-                    ->where('id_usuario','=',$user->id_usuario)
-                    ->get();
-
-    if(count($resultado) > 0){ //usuario es superusuario
-      //le dejo ver todos los usuarios
-      $resultados=DB::table('usuario')
-                        ->select('usuario.*')
-                        ->distinct('id_usuario')
-                        ->whereNull('usuario.deleted_at')
-                        ->orderBy('user_name','asc')
-                        ->get();
+    $plataformas = [];
+    $roles = [];
+    if($user->es_superusuario){
+      $plataformas = Plataforma::all();
+      $roles = Rol::all();
     }
     else{
-      $resultados=DB::table('usuario')
-                        ->select('usuario.*')
-                        ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
-                        ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                        ->whereIn('casino.id_casino',$cas)
-                        ->distinct('id_usuario')
-                        ->whereNull('usuario.deleted_at')
-                        ->orderBy('user_name','asc')
-                        ->get();
-    }
-
-    $rolController= RolController::getInstancia();
-
-    $resultado = DB::table('usuario_tiene_rol')
-                    ->whereIn('id_rol',[2])
-                    ->where('id_usuario','=',$user->id_usuario)
-                    ->get();
-
-    if(count($resultado) > 0){//el usuario es administrador
-      $casinos=Casino::whereIn('id_casino',$cas)->get();
+      $plataformas = $user->plataformas;
       $roles = Rol::whereNotIn('id_rol',[1,5,6])->get();
-    }else{
-      $casinos=Casino::all();
-      $roles=Rol::all();
     }
 
     $this->agregarSeccionReciente('Usuarios' ,'usuarios');
-    return view('seccionUsuarios',  ['usuarios' => $resultados , 'roles' => $roles , 'casinos' => $casinos]);
+    return view('seccionUsuarios',  ['roles' => $roles , 'plataformas' => $plataformas]);
   }
 
   //sin la session iniciada usa esta funcion ----
   public function buscarUsuario($id){
     $usuario=Usuario::find($id);
-    return ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos];
+    return ['usuario' => $usuario, 'roles' => $usuario->roles , 'plataformas' => $usuario->plataformas];
   }
   //en la seccion usuarios (ajaxUsuarios.js)
   public function buscarUsuarioSecUsuarios($id){
     $usuario=Usuario::find($id);
-    $user = session('id_usuario');
-    $esSuper = DB::table('usuario_tiene_rol')->where([['id_rol','=',1],['id_usuario','=',$user]])->get();
-    $bool = 0;
-    if(count($esSuper)>0){
-      $bool = 1;
-    }
-    return ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos,
-            'superusuario' => $bool
-            ];
+    return ['usuario' => $usuario, 'roles' => $usuario->roles , 'plataformas' => $usuario->plataformas,
+            'superusuario' => $this->quienSoy()['usuario']->es_superusuario];
   }
 
   public function configUsuario(){
@@ -346,61 +266,39 @@ class UsuarioController extends Controller
 
     //si no tiene creadas las secciones_recientes
     if($user->secciones_recientes->count() == 0){
-      $sec1 = new SecRecientes;
-      $sec1->orden = 1;
-      $sec1->seccion = $seccion;
-      $sec1->ruta = $ruta;
-      $sec1->usuario()->associate($user->id_usuario);
-      $sec1->save();
-
-      $sec2 = new SecRecientes;
-      $sec2->orden = 2;
-      $sec2->seccion = null;
-      $sec2->ruta = null;
-      $sec2->usuario()->associate($user->id_usuario);
-      $sec2->save();
-
-      $sec3 = new SecRecientes;
-      $sec3->orden = 3;
-      $sec3->seccion = null;
-      $sec3->ruta = null;
-      $sec3->usuario()->associate($user->id_usuario);
-      $sec3->save();
-
-      $sec4 = new SecRecientes;
-      $sec4->orden = 3;
-      $sec4->seccion = null;
-      $sec4->ruta = null;
-      $sec4->usuario()->associate($user->id_usuario);
-      $sec4->save();
-
-
+      for($i=1;$i<=4;$i++){
+        $sec1 = new SecRecientes;
+        $sec1->orden = $i;
+        $sec1->seccion = $seccion;
+        $sec1->ruta = $ruta;
+        $sec1->usuario()->associate($user->id_usuario);
+        $sec1->save();
+        $seccion = null;
+        $ruta = null;
+      }
     }else{
       $secciones = $user->secciones_recientes;
-      if($seccion != $secciones[1]->seccion && $seccion != $secciones[0]->seccion && $seccion != $secciones[2]->seccion && $seccion != $secciones[3]->seccion){//evito repetidos
-
-        $secciones[3]->seccion = $secciones[2]->seccion;
-        $secciones[3]->ruta = $secciones[2]->ruta;
-        $secciones[3]->save();
-        $secciones[2]->seccion = $secciones[1]->seccion;
-        $secciones[2]->ruta = $secciones[1]->ruta;
-        $secciones[2]->save();
-        $secciones[1]->seccion = $secciones[0]->seccion;
-        $secciones[1]->ruta = $secciones[0]->ruta;
-        $secciones[1]->save();
+      $secciones_nombres = [];
+      foreach($secciones as $s) $secciones_nombres[] = $s->seccion;
+      if(!in_array($seccion,$secciones_nombres)){//Evita repetidos
+        for($i=3;$i>=1;$i--){
+          $secciones[$i]->seccion = $secciones[$i-1]->seccion;
+          $secciones[$i]->ruta    = $secciones[$i-1]->ruta;
+          $secciones[$i]->save();
+        }
         $secciones[0]->seccion = $seccion;
-        $secciones[0]->ruta = $ruta;
+        $secciones[0]->ruta    = $ruta;
         $secciones[0]->save();
       }
     }
   }
 
-  public function obtenerUsuariosRol($id_casino, $id_rol){
+  public function obtenerUsuariosRol($id_plataforma, $id_rol){
     $rta = DB::table('usuario')
                 ->join('usuario_tiene_rol','usuario.id_usuario','=','usuario_tiene_rol.id_usuario')
-                ->join('usuario_tiene_casino','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
+                ->join('usuario_tiene_plataforma','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
                 ->whereIn('usuario_tiene_rol.id_rol',$id_rol)
-                ->where('usuario_tiene_casino.id_casino','=', $id_casino)
+                ->where('usuario_tiene_plataforma.id_plataforma','=', $id_plataforma)
                 ->whereNull('usuario.deleted_at')
                 ->get();
     return $rta;

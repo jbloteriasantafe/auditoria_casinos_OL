@@ -17,14 +17,8 @@ class Usuario extends Model
     protected $primaryKey = 'id_usuario';
     protected $visible = array('id_usuario','user_name','nombre','email', 'dni' ,'ultimos_visitados');
     protected $hidden = array('imagen','password','token');
-    protected $appends = array('plataformas','es_superusuario','es_controlador','elimina_cya','es_administrador','es_fiscalizador','es_control','es_despacho','es_casino_ae');
+    protected $appends = array('es_superusuario','es_controlador','elimina_cya','es_administrador','es_fiscalizador','es_control','es_despacho','es_casino_ae');
 
-    public function getPlataformasAttribute(){
-      $plataformas = [];
-      foreach($this->casinos as $c)
-        foreach($c->plataformas as $p) $plataformas[] = $p->id_plataforma;
-      return Plataforma::whereIn('id_plataforma',$plataformas)->get();
-    }
     //en cierres y aperturas de mesas
     public function getEliminaCyaAttribute(){
       $roles = $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->get();
@@ -68,6 +62,9 @@ class Usuario extends Model
     
     public function roles(){
 	     return $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol');
+    }
+    public function plataformas(){
+      return $this->belongsToMany('App\Plataforma','usuario_tiene_plataforma','id_usuario','id_plataforma');
     }
     public function casinos(){
       return $this->belongsToMany('App\Casino','usuario_tiene_casino','id_usuario','id_casino');

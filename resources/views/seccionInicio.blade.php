@@ -37,10 +37,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                     echo $roles->descripcion.' - ';
                                     } ?></span>
                                 <br>
-                                <h5 style="display:inline-block">CASINO(S) ASOCIADO(S) </h5><span style="margin-top:6px; margin-left: 15px;">
+                                <h5 style="display:inline-block">PLATAFORMA(S) ASOCIADO(S) </h5><span style="margin-top:6px; margin-left: 15px;">
                                   <?php echo ' - ';
-                                  foreach($usuario['usuario']->casinos as $casinos){
-                                    echo $casinos->nombre.' - ' ;
+                                  foreach($usuario['usuario']->plataformas as $p){
+                                    echo $p->nombre.' - ' ;
                                     } ?> </span>
 
                                   <!-- <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin"> -->
