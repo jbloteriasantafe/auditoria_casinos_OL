@@ -4,13 +4,6 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PermisoObserver extends Observers\ParametrizedObserver
-{
-  public function __construct(){
-    parent::__construct('descripcion');
-  }
-}
-
 class Permiso extends Model
 {
     protected $connection = 'mysql';
@@ -25,7 +18,7 @@ class Permiso extends Model
 
     public static function boot(){
       parent::boot();
-      Permiso::observe(PermisoObserver::class);
+      Permiso::observe(Observers\FullObserver::class);
     }
 
     public function getTableName(){
