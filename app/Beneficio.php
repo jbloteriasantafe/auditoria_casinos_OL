@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\BeneficioObserver;
+
 class Beneficio extends Model
 {
   protected $connection = 'mysql';
@@ -30,18 +30,5 @@ class Beneficio extends Model
 
   public function getDiferenciaAttribute(){
     return $this->calculado - $this->valor + $this->ajuste;
-  }
-
-  public static function boot(){
-    parent::boot();
-    Beneficio::observe(new BeneficioObserver());
-  }
-
-  public function getTableName(){
-    return $this->table;
-  }
-
-  public function getId(){
-    return $this->id_beneficio;
   }
 }

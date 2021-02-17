@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ResolucionObserver;
 
 class Resolucion extends Model
 {
@@ -19,7 +18,7 @@ class Resolucion extends Model
 
   public static function boot(){
     parent::boot();
-    Resolucion::observe(new ResolucionObserver());
+    Resolucion::observe(Observers\FullObserver::class);
   }
 
   public function getTableName(){
@@ -29,5 +28,4 @@ class Resolucion extends Model
   public function getId(){
     return $this->id_resolucion;
   }
-
 }

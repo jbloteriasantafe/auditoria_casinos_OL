@@ -30,12 +30,4 @@ class Evento extends Model
   public function hasta(){
     return $this->hora_fin;
   }
-
-  public function getTableName(){
-    return $this->table;
-  }
-
-  public function getId(){
-    return $this->id_evento;
-  }
 }

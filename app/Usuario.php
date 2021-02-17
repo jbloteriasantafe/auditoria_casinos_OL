@@ -5,7 +5,6 @@ namespace App;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Observers\UsuarioObserver;
 use App\Plataforma;
 
 class Usuario extends Model
@@ -82,8 +81,8 @@ class Usuario extends Model
     }
 
     public static function boot(){
-          parent::boot();
-          Usuario::observe(new UsuarioObserver());
+      parent::boot();
+      Usuario::observe(Observers\ParametrizedObserver::class);
     }
 
     //si el usuario forma parte del casino $id_casino devuelve verdadero

@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\RolObserver;
 
 class Rol extends Model
 {
@@ -22,8 +21,8 @@ class Rol extends Model
   }
 
   public static function boot(){
-        parent::boot();
-        Rol::observe(new RolObserver());
+    parent::boot();
+    Rol::observe(Observers\FullObserver::class);
   }
 
   public function getTableName(){

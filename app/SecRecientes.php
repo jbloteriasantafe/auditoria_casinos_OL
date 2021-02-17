@@ -15,13 +15,4 @@ class SecRecientes extends Model
   public function usuario(){
     return $this->belongsTo('App\Usuario','id_usuario','id_usuario');
   }
-
-  public function getTableName(){
-    return $this->table;
-  }
-
-  public function getId(){
-    return [$this->id_usuario, $this->orden];
-  }
-
 }

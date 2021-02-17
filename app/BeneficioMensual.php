@@ -23,4 +23,17 @@ class BeneficioMensual extends Model
   public function beneficios(){
     return $this->hasMany('App\Beneficio','id_beneficio_mensual','id_beneficio_mensual');
   }
+
+  public static function boot(){
+    parent::boot();
+    BeneficioMensual::observe(Observers\FullObserver::class);
+  }
+
+  public function getTableName(){
+    return $this->table;
+  }
+
+  public function getId(){
+    return $this->id_beneficio_mensual;
+  }
 }

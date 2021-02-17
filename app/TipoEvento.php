@@ -27,12 +27,4 @@ class TipoEvento extends Model
   public function texto(){
     return $this->color_text;
   }
-
-  public function getTableName(){
-    return $this->table;
-  }
-
-  public function getId(){
-    return $this->id_tipo_evento;
-  }
 }

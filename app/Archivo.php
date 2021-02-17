@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ArchivoObserver;
+
+class ArchivoObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('nombre_archivo');
+  }
+}
 
 class Archivo extends Model
 {
@@ -18,8 +23,8 @@ class Archivo extends Model
   }
 
   public static function boot(){
-        parent::boot();
-        Archivo::observe(new ArchivoObserver());
+    parent::boot();
+    Archivo::observe(ArchivoObserver::class);
   }
 
   public function getTableName(){

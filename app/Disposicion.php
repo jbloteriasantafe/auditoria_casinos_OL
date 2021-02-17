@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\DisposicionObserver;
 
 class Disposicion extends Model
 {
@@ -21,8 +20,8 @@ class Disposicion extends Model
   }
 
   public static function boot(){
-        parent::boot();
-        Disposicion::observe(new DisposicionObserver());
+    parent::boot();
+    Disposicion::observe(Observers\FullObserver::class);
   }
 
   public function getTableName(){

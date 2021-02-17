@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ExpedienteObserver;
 
 class Expediente extends Model
 {
@@ -35,8 +34,8 @@ class Expediente extends Model
   }
 
   public static function boot(){
-        parent::boot();
-        Expediente::observe(new ExpedienteObserver());
+    parent::boot();
+    Expediente::observe(Observers\FullObserver::class);
   }
 
   public function getTableName(){

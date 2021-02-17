@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\NotaObserver;
 
 class Nota extends Model
 {
@@ -31,8 +30,8 @@ class Nota extends Model
   }
 
   public static function boot(){
-        parent::boot();
-        Nota::observe(new NotaObserver());
+    parent::boot();
+    Nota::observe(Observers\FullObserver::class);
   }
 
   public function getTableName(){

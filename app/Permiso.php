@@ -3,7 +3,13 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\PermisoObserver;
+
+class PermisoObserver extends Observers\ParametrizedObserver
+{
+  public function __construct(){
+    parent::__construct('descripcion');
+  }
+}
 
 class Permiso extends Model
 {
@@ -19,7 +25,7 @@ class Permiso extends Model
 
     public static function boot(){
       parent::boot();
-      Permiso::observe(new PermisoObserver());
+      Permiso::observe(PermisoObserver::class);
     }
 
     public function getTableName(){
@@ -29,5 +35,4 @@ class Permiso extends Model
     public function getId(){
       return $this->id_permiso;
     }
-
 }

@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\JuegoObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
@@ -54,7 +53,7 @@ class Juego extends Model
 
   public static function boot(){
     parent::boot();
-    Juego::observe(new JuegoObserver());
+    Juego::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\GliSoftObserver;
 
 class GliSoft extends Model
 {
@@ -38,8 +37,8 @@ class GliSoft extends Model
   }
 
   public static function boot(){
-        parent::boot();
-        GliSoft::observe(new GliSoftObserver());
+    parent::boot();
+    GliSoft::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

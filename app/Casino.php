@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\CasinoObserver;
 
 class Casino extends Model
 {
@@ -24,18 +23,5 @@ class Casino extends Model
   }
   public function plataformas(){
     return $this->belongsToMany('App\Plataforma','plataforma_tiene_casino','id_casino','id_plataforma');
-  }
-  
-  public static function boot(){
-        parent::boot();
-        Casino::observe(new CasinoObserver());
-  }
-
-  public function getTableName(){
-    return $this->table;
-  }
-
-  public function getId(){
-    return $this->id_casino;
   }
 }

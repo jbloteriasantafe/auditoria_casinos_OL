@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ProducidoObserver;
 
 class Producido extends Model
 {
@@ -28,7 +27,7 @@ class Producido extends Model
 
   public static function boot(){
     parent::boot();
-    Producido::observe(new ProducidoObserver());
+    Producido::observe(Observers\FullObserver::class);
   }
 
   public function getTableName(){
@@ -38,6 +37,4 @@ class Producido extends Model
   public function getId(){
     return $this->id_producido;
   }
-
-
 }
