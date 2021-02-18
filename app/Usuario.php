@@ -84,8 +84,7 @@ class Usuario extends Model
 
     public function lastNotifications()
     {
-      return $this->notifications()
-                      ->orderBy('id', 'desc')->take(10)->get();
+      return $this->notifications()->whereNull('read_at')->orderBy('created_at','desc')->take(10)->get();
     }
 
     public function getTableName(){
