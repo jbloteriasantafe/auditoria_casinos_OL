@@ -32,51 +32,61 @@ class UsuarioController extends Controller
   }
 
   public function guardarUsuario(Request $request){
+    $user = $this->quienSoy()['usuario'];
+    $plats = [];
+    foreach ($user->plataformas as $p) {
+      $plats[]=$p->id_plataforma;
+    }
     Validator::make($request->all(), [
-      'usuario' => ['required' , 'max:45' , 'unique:usuario,user_name'] ,
-      'email' => ['required' , 'max:45' , 'unique:usuario,email'],
-      'contraseña' => ['required', 'max:45'],
-      'nombre' => ['required'],
-      'imagen' => ['nullable', 'image'],
-      'plataformas' => 'required'
-     ])->after(function ($validator){
-          //validar que descripcion no exista
-        $email =$validator->getData()['email'];
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-          $validator->errors()->add('email', 'Formato de email inválido.');
+      'id_usuario' => 'nullable|integer|exists:usuario,id_usuario',
+      'nombre' => 'required|max:100|unique:usuario,nombre,'.$request->id_usuario.',id_usuario',
+      'user_name' => 'required|max:45|unique:usuario,user_name,'.$request->id_usuario.',id_usuario',
+      'email' =>  'required|max:70|unique:usuario,email,'.$request->id_usuario.',id_usuario',
+      'password' => 'required_if:id_usuario,""|max:45',
+      'imagen' => 'nullable|image',
+      'plataformas' => 'required|array',
+      'plataformas.*' => 'exists:plataforma,id_plataforma',
+      'roles' => 'required|array',
+      'roles.*' => 'exists:rol,id_rol',
+    ], [
+      'required' => 'No puede estar vacio','required_if' => 'No puede estar vacio','unique' => 'Tiene que ser único',
+      'max' => 'Supera el limite'
+    ])->after(function ($v) use ($plats){
+      //validar que descripcion no exista
+      if($v->errors()->any()) return;
+      $email = $v->getData()['email'];
+      if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $v->errors()->add('email', 'Formato de email inválido.');
+      }
+      foreach ($v->getData()['plataformas'] as $p) {
+        if(!in_array($p,$plats)){
+          $v->errors()->add('id_plataforma', 'No puede acceder a la plataforma.');
+          break;
         }
-        $user = $this->quienSoy()['usuario'];
-        $plats = array();
-        foreach ($user->plataformas as $p) {
-          $plats[]=$p->id_plataforma;
-        }
-        foreach ($validator->getData()['plataformas'] as $p) {
-          if(!in_array($p,$plats)){
-            $validator->errors()->add('id_plataforma', 'FAIL.');
-            break;
-          }
-        }
+      }
     })->validate();
 
-    $usuario= new Usuario;
-    $usuario->nombre = $request->nombre;
-    $usuario->user_name = $request->usuario;
-    $usuario->password= $request->contraseña;
-    $usuario->email = $request->email;
-    if($request->imagen != null){
-      $usuario->imagen = base64_encode(file_get_contents($request->imagen->getRealPath()));
-    }
-    $usuario->save();
-
-    if(!empty($request->roles)){
+    DB::transaction(function () use ($request){
+      $usuario = null;
+      if(!empty($request->id_usuario)){ 
+        $usuario = Usuario::find($request->id_usuario);
+      }
+      else{
+        $usuario = new Usuario;
+        $usuario->password = $request->password; 
+      }
+      $usuario->nombre = $request->nombre;
+      $usuario->user_name = $request->user_name;
+      $usuario->email = $request->email;
+      if($request->imagen != null){
+        $usuario->imagen = base64_encode(file_get_contents($request->imagen->getRealPath()));
+      }
+      $usuario->save();
       $usuario->roles()->sync($request->roles);
-    }
-    if(!empty($request->plataformas)){
-      //falta validar que sea de al menos una plataforma
       $usuario->plataformas()->sync($request->plataformas);
-    }
-    $usuario->save();
-    return ['usuario' => $usuario];
+    });
+    
+    return 1;
   }
 
   public function modificarImagen(Request $request){
@@ -144,36 +154,22 @@ class UsuarioController extends Controller
     return $usuario;
   }
 
-  public function modificarUsuario(Request $request){
-    $this->validate($request, [
-      'nombre' => ['required','max:45', Rule::unique('usuario')->ignore( $request->id_usuario,'id_usuario')],
-      'user_name' => ['required', 'max:45' , Rule::unique('usuario')->ignore( $request->id_usuario,'id_usuario')],
-      'email' =>  ['required', 'max:45' , Rule::unique('usuario')->ignore( $request->id_usuario,'id_usuario')]
-    ], ['user_name.required' => 'El campo Nombre de usuario no puede estar vacio']);
-
-    $usuario = Usuario::find($request->id_usuario);
-    $usuario->nombre = $request->nombre;
-    $usuario->user_name = $request->user_name;
-    $usuario->email = $request->email;
-    $usuario->save();
-    $usuario->roles()->sync($request->roles);
-    $usuario->plataformas()->sync($request->plataformas);
-    return ['usuario' => $usuario];
-  }
-
-  public function eliminarUsuario(Request $request){
-    $usuario = Usuario::find($request->id);
-    $usuario->roles()->detach();
-    $usuario->plataformas()->detach();
-    $usuario->delete();
-    return ['usuario' => $usuario];
+  public function eliminarUsuario($id_usuario){
+    DB::transaction(function () use ($id_usuario){
+      $usuario = Usuario::find($id_usuario);
+      $usuario->roles()->detach();
+      $usuario->plataformas()->detach();
+      $usuario->delete();
+    });
+    return ['codigo' => 200];
   }
 
   public function buscarUsuarios(Request $request){
-    $nombre = (empty($request->nombre)) ? '%' : '%'.$request->nombre.'%';
-    $usuario = (empty($request->usuario)) ? '%' : '%'.$request->usuario.'%';
-    $email = (empty($request->email)) ? '%' : '%'.$request->email.'%';
-
+    $reglas = [];
+    if(!empty($request->nombre)) $reglas[] = ['usuario.nombre','like','%'.$request->nombre.'%'];
+    if(!empty($request->usuario)) $reglas[] = ['usuario.user_name','like','%'.$request->usuario.'%'];
+    if(!empty($request->email)) $reglas[] = ['usuario.email','like','%'.$request->email.'%'];
+    if(!empty($request->id_plataforma)) $reglas[] = ['usuario_tiene_plataforma.id_plataforma','=',$request->id_plataforma];
     $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
     $plats = array();
     foreach ($user->plataformas as $p) {
@@ -183,7 +179,7 @@ class UsuarioController extends Controller
     $resultado=DB::table('usuario')
     ->select('usuario.*')
     ->join('usuario_tiene_plataforma','usuario_tiene_plataforma.id_usuario','=','usuario.id_usuario')
-    ->where([['usuario.nombre','like',$nombre],['usuario.user_name','like',$usuario],['usuario.email','like',$email]])
+    ->where($reglas)
     ->whereIn('usuario_tiene_plataforma.id_plataforma',$plats)
     ->whereNull('usuario.deleted_at')
     ->distinct('id_usuario')
@@ -212,15 +208,9 @@ class UsuarioController extends Controller
   }
 
   //sin la session iniciada usa esta funcion ----
-  public function buscarUsuario($id){
-    $usuario=Usuario::find($id);
+  public function buscarUsuario($id_usuario){
+    $usuario=Usuario::find($id_usuario);//TODO SACAR PASSWD
     return ['usuario' => $usuario, 'roles' => $usuario->roles , 'plataformas' => $usuario->plataformas];
-  }
-  //en la seccion usuarios (ajaxUsuarios.js)
-  public function buscarUsuarioSecUsuarios($id){
-    $usuario=Usuario::find($id);
-    return ['usuario' => $usuario, 'roles' => $usuario->roles , 'plataformas' => $usuario->plataformas,
-            'superusuario' => $this->quienSoy()['usuario']->es_superusuario];
   }
 
   public function configUsuario(){
@@ -242,17 +232,16 @@ class UsuarioController extends Controller
     return $data != null;
   }
 
-  public function reestablecerContraseña(Request $request){
-    $validator=Validator::make($request->all(), [
+  public function reestablecerContraseña($id_usuario){
+    Validator::make(["id_usuario" => $id_usuario], [
       'id_usuario' => ['required'  , 'exists:usuario,id_usuario'] ,
-     ])->after(function ($validator){
+    ])->validate();
 
-      });
-    $validator->validate();
-
-    $usuario = Usuario::find($request->id_usuario);
-    $usuario->password = $usuario->dni;
-    $usuario->save();
+    DB::transaction(function () use ($id_usuario){
+      $usuario = Usuario::find($id_usuario);
+      $usuario->password = $usuario->dni;
+      $usuario->save();
+    });
 
     return ['codigo' => 200];
   }

@@ -105,21 +105,11 @@ class PermisoController extends Controller
   }
 
   public function buscarPermisosPorRoles(Request $request) {
-    $roles = array();
+    $roles = $request->roles ?? [];
+    $permisos = DB::table("permiso")->select("permiso.id_permiso","permiso.descripcion")
+                                    ->join("rol_tiene_permiso","permiso.id_permiso","=","rol_tiene_permiso.id_permiso")
+                                    ->whereIn("rol_tiene_permiso.id_rol",$roles)->distinct()->get();
 
-    if ($request->roles != null) {
-      foreach ($request->roles as $rol) {
-        $roles[] = $rol;
-      }
-    }
-
-    if($roles != null) {
-      $permisos = DB::table("permiso")->select("permiso.id_permiso","permiso.descripcion")
-                                      ->join("rol_tiene_permiso","permiso.id_permiso","=","rol_tiene_permiso.id_permiso")
-                                      ->whereIn("rol_tiene_permiso.id_rol",$roles)->distinct()->get();
-
-      return ["permisos" => $permisos];
-
-    }
+    return ["permisos" => $permisos];
   }
 }

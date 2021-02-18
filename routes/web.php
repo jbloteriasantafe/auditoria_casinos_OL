@@ -66,12 +66,10 @@ Usuarios
 Route::group(['prefix' => 'usuarios','middleware' => 'tiene_permiso:ver_seccion_usuarios'],function(){
   Route::get('/','UsuarioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_usuarios');
   Route::post('/buscar','UsuarioController@buscarUsuarios');
-  Route::get('/buscar/{id}','UsuarioController@buscarUsuario');
-  Route::get('/get/{id}','UsuarioController@buscarUsuarioSecUsuarios'); //Este se usa cuando se modifica, ni idea por que por separado de ver.
+  Route::get('/buscarUsuario/{id_usuario}','UsuarioController@buscarUsuario');
   Route::post('/guardarUsuario','UsuarioController@guardarUsuario');
-  Route::post('/modificarUsuario','UsuarioController@modificarUsuario');
-  Route::delete('/eliminarUsuario','UsuarioController@eliminarUsuario');
-  Route::post('/reestablecerContraseña','UsuarioController@reestablecerContraseña');
+  Route::delete('/eliminarUsuario/{id_usuario}','UsuarioController@eliminarUsuario');
+  Route::get('/reestablecerContraseña/{id_usuario}','UsuarioController@reestablecerContraseña');
 });
 Route::get('usuarios/quienSoy','UsuarioController@quienSoy');//Los pongo aca porque no pertenecen a la seccion Usuarios (no necesitan del permiso)
 Route::get('usuarios/imagen','UsuarioController@leerImagenUsuario');
