@@ -245,8 +245,8 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <input id="inputCodigoOperador" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
                       </div>
                       <div class="col-md-4">
-                        <h5>Codigo de proveedor</h5>
-                        <input id="inputCodigoProveedor" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
+                        <h5>Proveedor</h5>
+                        <input id="inputProveedor" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
                       </div>
                     </div>
                   </div>

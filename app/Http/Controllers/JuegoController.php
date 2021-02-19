@@ -72,7 +72,7 @@ class JuegoController extends Controller
       'movil' => 'nullable|boolean',
       'escritorio' => 'nullable|boolean',
       'codigo_operador' => 'nullable|string|max:100',
-      'codigo_proveedor' => 'nullable|string|max:100',
+      'proveedor' => 'nullable|string|max:100',
       'plataformas' => 'required|array',
       'plataformas.*.id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
       'plataformas.*.id_estado_juego' => 'nullable|integer|exists:estado_juego,id_estado_juego',
@@ -115,7 +115,7 @@ class JuegoController extends Controller
       $juego->escritorio = $request->escritorio;
       $juego->movil = $request->movil;
       $juego->codigo_operador = $request->codigo_operador;
-      $juego->codigo_proveedor = $request->codigo_proveedor;
+      $juego->proveedor = $request->proveedor;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->save();
@@ -162,7 +162,7 @@ class JuegoController extends Controller
       'movil' => 'nullable|boolean',
       'escritorio' => 'nullable|boolean',
       'codigo_operador' => 'nullable|string|max:100',
-      'codigo_proveedor' => 'nullable|string|max:100',
+      'proveedor' => 'nullable|string|max:100',
       'plataformas' => 'required|array',
       'plataformas.*.id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
       'plataformas.*.id_estado_juego' => 'nullable|integer|exists:estado_juego,id_estado_juego',
@@ -208,7 +208,7 @@ class JuegoController extends Controller
       $juego->escritorio = $request->escritorio;
       $juego->movil = $request->movil;
       $juego->codigo_operador = $request->codigo_operador;
-      $juego->codigo_proveedor = $request->codigo_proveedor;
+      $juego->proveedor = $request->proveedor;
       $juego->id_tipo_moneda = $request->id_tipo_moneda;
       $juego->id_categoria_juego = $request->id_categoria_juego;
       $juego->save();

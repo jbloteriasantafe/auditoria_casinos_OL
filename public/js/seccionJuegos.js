@@ -280,7 +280,7 @@ function estilizarJSON(j){
   const blacklist = ['id_juego'];
   //Lo ordeno de manera similar al mostrarJuego
   const order = ['nombre_juego','id_categoria_juego',
-  'cod_juego','escritorio','movil','plataformas','codigo_operador','codigo_proveedor',
+  'cod_juego','escritorio','movil','plataformas','codigo_operador','proveedor',
   'certificados','denominacion_juego','porcentaje_devolucion','id_tipo_moneda'];
   const keys = order.concat(Object.keys(j).filter(k => !order.includes(k))); //Si alguna no esta en la lista de arriba se agrega abajo de todo
   for(const idx in keys){
@@ -421,7 +421,7 @@ $('#btn-guardar').click(function (e) {
       escritorio: $('#escritorio').prop('checked') * 1,
       movil: $('#movil').prop('checked') * 1,
       codigo_operador: $('#inputCodigoOperador').val(),
-      codigo_proveedor: $('#inputCodigoProveedor').val(),
+      proveedor: $('#inputProveedor').val(),
       plataformas: $.map($('.plataforma'), 
         function(p){
           return {
@@ -610,7 +610,7 @@ function mostrarJuego(juego, certificados,plataformas){
   $('#inputCodigoJuego').val(juego.cod_juego);
   $('#selectCategoria').val(juego.id_categoria_juego);
   $('#inputCodigoOperador').val(juego.codigo_operador);
-  $('#inputCodigoProveedor').val(juego.codigo_proveedor);
+  $('#inputProveedor').val(juego.proveedor);
   $('#motivo').val("");
   $('#escritorio').prop('checked',juego.escritorio == 1);
   $('#movil').prop('checked',juego.movil == 1);

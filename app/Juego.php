@@ -13,7 +13,7 @@ class Juego extends Model
   protected $table = 'juego';
   protected $primaryKey = 'id_juego';
   protected $visible = array(
-    'id_juego','nombre_juego','cod_juego','codigo_operador','codigo_proveedor',
+    'id_juego','nombre_juego','cod_juego','codigo_operador','proveedor',
     'denominacion_contable','denominacion_juego','porcentaje_devolucion', 'escritorio','movil',
     'id_unidad_medida','id_tipo_moneda','id_categoria_juego','deleted_at'
   );
