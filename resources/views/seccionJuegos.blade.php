@@ -5,6 +5,7 @@
 
 @section('estilos')
   <link rel="stylesheet" href="/css/paginacion.css">
+  <link rel="stylesheet" href="/css/fileinput.css">
   <link rel="stylesheet" href="/css/lista-datos.css">
 @endsection
 
@@ -116,7 +117,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </div> <!-- Fin del row de la tabla -->
 
 
-                <div class="col-lg-12 col-xl-3">
+                <div class="col-lg-4 col-xl-3">
                   <div class="row">
                     <div class="col-lg-12">
                      <a href="" id="btn-nuevo" style="text-decoration: none;">
@@ -135,19 +136,19 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                      </a>
                     </div>
                   </div>
-
-
-                  {{-- <div class="row">
+                </div>
+                <div class="col-lg-4 col-xl-3">
+                  <div class="row">
                     <div class="col-lg-12">
-                     <a href="" id="btn-nuevo-pack" style="text-decoration: none;">
+                     <a href="" id="btn-informe-diferencias" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
-                          <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
-                          <div class="backgroundNuevo"></div>
+                          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+                          <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
                           <div class="row">
                               <div class="col-xs-12">
                                 <center>
-                                    <h5 class="txtLogo">+</h5>
-                                    <h4 class="txtNuevo">NUEVO PACK</h4>
+                                    <h5 class="txtLogo">-</h5>
+                                    <h4 class="txtNuevo">INFORME DIFERENCIAS</h4>
                                 </center>
                               </div>
                           </div>
@@ -155,29 +156,8 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                      </a>
                     </div>
                   </div>
-
-
-                  <div class="row">
-                    <div class="col-lg-12">
-                     <a href="" id="btn-open-asociar-pack-juego" style="text-decoration: none;">
-                      <div class="panel panel-default panelBotonNuevo">
-                          <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
-                          <div class="backgroundNuevo"></div>
-                          <div class="row">
-                              <div class="col-xs-12">
-                                <center>
-                                    <h5 class="txtLogo">+</h5>
-                                    <h4 class="txtNuevo">ASOCIAR PACK-JUEGO</h4>
-                                </center>
-                              </div>
-                          </div>
-                      </div>
-                     </a>
-                    </div>
-                  </div> --}}
-
-
                 </div>
+
 
           </div> <!--/columna TABLA -->
 
@@ -401,6 +381,47 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
           </div>
     </div>
     
+    <div class="modal fade" id="modalVerificarEstados" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
+            <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+            <button id="btn-minimizarVerificarEstados" type="button" class="close" 
+            data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerificarEstados" style="position:relative; right:20px; top:5px">
+              <i class="fa fa-minus"></i>
+            </button>
+            <h3 class="modal-title">| VERIFICAR ESTADOS DE JUEGOS</h3>
+          </div>
+          <div  id="colapsadoVerificarEstados" class="collapse in">
+            <div class="modal-body modalCuerpo">
+              <div id="rowArchivo" class="row" style="">
+                <div class="col-xs-12">
+                  <h5>ARCHIVO</h5>
+                  <div class="zona-file">
+                    <input id="archivo" data-borrado="false" type="file" name="" >
+                  </div>
+                </div>
+              </div>
+              <div id="datosVerificarEstados" class="row">
+                <div class="col-xs-8 col-xs-offset-2">
+                  <h5 style="text-align: center">PLATAFORMA</h5>
+                  <select id="plataformaVerificarEstado" class="form-control">
+                    <option value="">Seleccione</option>
+                    @foreach ($plataformas as $plataforma)
+                    <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-successAceptar" id="btn-verificarEstados">VERIFICAR</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
@@ -427,6 +448,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     <script src="/js/paginacion.js" charset="utf-8"></script>
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
+    <script src="/js/fileinput.min.js" type="text/javascript"></script>
     <!-- JavaScript personalizado -->
     <script src="/js/seccionJuegos.js" charset="utf-8"></script>
     @endsection

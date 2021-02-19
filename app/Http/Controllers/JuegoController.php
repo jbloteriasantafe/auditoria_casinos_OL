@@ -15,6 +15,10 @@ use App\EstadoJuego;
 use App\LogJuego;
 use App\Plataforma;
 use Validator;
+use Storage;
+use View;
+use Dompdf\Dompdf;
+use SplFixedArray;
 
 class JuegoController extends Controller
 {
@@ -407,5 +411,66 @@ class JuegoController extends Controller
       $val = $val ? $val->nombre : null;
     }
     return $val;
+  }
+
+  public function generarDiferenciasEstadosJuegos(Request $request){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if($user->plataformas()->where('plataforma.id_plataforma',$request->id_plataforma)->count() <= 0)
+      return response()->json(["errores" => ["No puede acceder a la plataforma"]],422);
+    
+    $resultado = [];
+    $fila = 0;
+    $codigo_idx = -1;
+    $nombre_idx = -1;
+    $estado_idx = -1;
+    if (($gestor = fopen($request->archivo->getRealPath(), "r")) !== FALSE) {
+        while (($datos = fgetcsv($gestor, 1000, ",")) !== FALSE) {
+            if($fila == 0){
+              $codigo_idx = array_search("GameCode",$datos);
+              $nombre_idx = array_search("GameName",$datos);
+              $estado_idx = array_search("IsPublished",$datos);
+              if($codigo_idx === false || $nombre_idx === false || $estado_idx === false){
+                fclose($gestor);
+                return response()->json(["errores" => ["Error en el formato del archivo."]],422);
+              }
+            }
+            else{;
+              $r = ["juego" => '',"codigo" => '',"estado_recibido" => '', "estado_esperado" => ''];
+              $r["juego"] = $datos[$nombre_idx];
+              $r["codigo"] = $datos[$codigo_idx];
+              $r["estado_recibido"] = $datos[$estado_idx];
+              $r["estado_esperado"] = "TEST";
+              $resultado[$fila-1] = $r;
+            }
+            $fila++;
+        }
+        fclose($gestor);
+    }
+    $view = View::make('planillaDiferenciasEstadosJuegos',compact('resultado'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    $directorio = 'planillaDiferenciasEstadosJuegos';
+    if(!Storage::exists($directorio)) {
+      Storage::makeDirectory($directorio, 0775, true); //creates directory
+    }
+    $path = $directorio.'/'. 'test.pdf';
+    $file = $dompdf->output();
+    Storage::put($path,$file);
+    return 'juegos/'.$path;
+  }
+  public function planillaDiferenciasEstadosJuegos($archivo){
+    $directorio = 'planillaDiferenciasEstadosJuegos';
+    if(!Storage::exists($directorio)) {
+      Storage::makeDirectory($directorio, 0775, true); //creates directory
+    }
+    $path = $directorio.'/'.$archivo;
+    if(!Storage::exists($path)) return "Archivo no encontrado";
+    return response()->make(Storage::get($path), 200, 
+    ['Content-Type' => 'application/pdf','Content-Disposition' => 'inline; filename="'.$archivo.'"']);
   }
 }

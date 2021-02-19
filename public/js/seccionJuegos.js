@@ -231,15 +231,6 @@ $('#btn-eliminarModal').click(function (e) {
         },
         error: function (data) {
           console.log('Error: ', data);
-          const response = data.responseJSON;
-          if(typeof response.maquina_juego_activo !== 'undefined'){
-            let mensaje = "El juego esta activo en las maquinas ";
-            for(let i=0;i<response.maquina_juego_activo.length;i++){
-              mensaje+=response.maquina_juego_activo[i] + ",";
-            }
-            mensaje += " tiene que cambiarlo a otro para poder eliminarlo."
-            mensajeError([mensaje]);
-          }
         }
     });
 });
@@ -648,13 +639,83 @@ $('#btn-agregarCertificado').click(function(){
   agregarRenglonCertificado();
 });
 
-function mensajeError(errores) {
+function mensajeError(errores,timeout = 3000) {
   $('#mensajeError .textoMensaje').empty();
   for (let i = 0; i < errores.length; i++) {
       $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
   }
-  $('#mensajeError').hide();
+  $('#mensajeError').modal('show');
   setTimeout(function() {
-      $('#mensajeError').show();
-  }, 250);
+    $('#mensajeError').modal('hide');
+  }, timeout);
 }
+
+/* INFORME DIFERENCIAS */
+function reiniciarModalVerificarEstados(){
+  $('#modalVerificarEstados #archivo')[0].files[0] = null;
+  $('#modalVerificarEstados #archivo').attr('data-borrado','false');
+  $("#modalVerificarEstados #archivo").fileinput('destroy').fileinput({
+    language: 'es',
+    showRemove: false,
+    showUpload: false,
+    showCaption: false,
+    showZoom: false,
+    browseClass: "btn btn-primary",
+    previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+    overwriteInitial: false,
+    initialPreviewAsData: true,
+    dropZoneEnabled: false,
+    preferIconicPreview: true,
+    previewFileIconSettings: {
+      'csv': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>'
+    },
+    allowedFileExtensions: ['csv'],
+  });
+  $('#plataformaVerificarEstado').val("");
+  $('#btn-verificarEstados').hide();
+}
+
+//Modal para generar informe de diferencias
+$('#btn-informe-diferencias').click(function(e){
+  e.preventDefault();
+  reiniciarModalVerificarEstados();
+  $('#modalVerificarEstados').modal('show');
+});
+
+$('#modalVerificarEstados #archivo').on('fileerror', function(event, data, msg) {
+  mensajeError(["Error al cargar el archivo.",msg]);
+  reiniciarModalVerificarEstados();
+});
+
+$('#modalVerificarEstados #archivo').on('fileclear', function(event) {
+  reiniciarModalVerificarEstados();
+});
+
+$('#modalVerificarEstados #archivo').on('fileselect', function(event) {
+  $('#btn-verificarEstados').show();
+});
+
+$('#btn-verificarEstados').click(function(){
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  let formData = new FormData();
+  formData.append('id_plataforma', $('#plataformaVerificarEstado').val());
+  if($('#modalVerificarEstados #archivo').attr('data-borrado') == 'false' && $('#modalVerificarEstados #archivo')[0].files[0] != null){
+    formData.append('archivo' , $('#modalVerificarEstados #archivo')[0].files[0]);
+  }
+  $.ajax({
+    type: "POST",
+    url: "/juegos/generarDiferenciasEstadosJuegos",
+    data: formData,
+    processData: false,
+    contentType:false,
+    cache:false,
+    success: function (data) {
+      console.log(data);
+      window.open(data,'_blank');
+    },
+    error: function (data) {
+      console.log(data);
+      mensajeError(data.responseJSON["errores"]);
+    }
+  });
+});
