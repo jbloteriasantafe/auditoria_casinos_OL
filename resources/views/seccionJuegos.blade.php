@@ -65,6 +65,10 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     <input id="buscadorCodigoJuego" class="form-control" placeholder="Código del Juego">
                                   </div>
                                   <div class="col-md-3">
+                                    <h5>Proveedor</h5>
+                                    <input id="buscadorProveedor" class="form-control" placeholder="Proveedor">
+                                  </div>
+                                  <div class="col-md-3">
                                     <h5>Código de certificado</h5>
                                     <input id="buscadorCodigo" class="form-control" placeholder="Código de identificación">
                                   </div>

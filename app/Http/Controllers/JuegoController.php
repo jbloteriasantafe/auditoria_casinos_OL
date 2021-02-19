@@ -271,8 +271,13 @@ class JuegoController extends Controller
     if(!empty($request->nombreJuego) ){
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
-    if(!empty($request->cod_Juego)){
-      $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_Juego  .'%'];
+    if(!empty($request->cod_juego)){
+      $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_juego  .'%'];
+    }
+    if(!empty($request->proveedor) && $request->proveedor != '-'){//Si manda 1 guion significa sin proveedor
+      //Si manda dos guiones, significa 1 guion
+      $proveedor = $request->proveedor == '--'? '-' : $request->proveedor;
+      $reglas[]=['juego.proveedor', 'like' , '%' . $proveedor  .'%'];
     }
     if(!empty($request->id_plataforma)){
       $reglas[] = ['plataforma_tiene_juego.id_plataforma','=',$request->id_plataforma];
@@ -306,12 +311,14 @@ class JuegoController extends Controller
       $resultados = $resultados->whereIn('plataforma_tiene_juego.id_plataforma',$plataformas_usuario);
     }
 
-    if(!empty($request->codigoId)){
-      if(trim($request->codigoId) == '-'){//Si me envia un gion, significa sin certificado
+    if($request->proveedor == '-') $resultados = $resultados->whereNull('juego.proveedor');
+
+    if(!empty($request->certificado)){
+      if(trim($request->certificado) == '-'){//Si me envia un gion, significa sin certificado
         $resultados = $resultados->whereNull('gli_soft.id_gli_soft');
       }
       else {
-        $codigos = explode(',',$request->codigoId);
+        $codigos = explode(',',$request->certificado);
         foreach($codigos as &$c) $c = trim($c);
 
         $resultados = $resultados->where(function ($query) use ($codigos){
@@ -320,7 +327,6 @@ class JuegoController extends Controller
             else $query->orWhere('gli_soft.nro_archivo','like','%'.$c.'%');
           }
         });
-
       }
     }
 
