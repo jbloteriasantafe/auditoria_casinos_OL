@@ -89,7 +89,7 @@ $('#buscar').click(function(e){
      dataType: 'json',
      success: function (data) {
       $('#tituloBusqueda').text(data.usuarios.length == 0? 'No se encontraron Usuarios' : `Se encontraron ${data.usuarios.length} Usuarios`);
-      for (var i = 0; i < data.usuarios.length; i++) {
+      for (let i = 0; i < data.usuarios.length; i++) {
         const u = data.usuarios[i];
         const fila = $('#filaEjemploUsuario').clone().attr('id',u.id_usuario);
         fila.find('.user_name').text(u.user_name);
@@ -114,17 +114,10 @@ $('#btn-guardar').on('click',function (e) {
   e.preventDefault();
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  let roles = [];
-  $('#contenedorRoles input:checked').each(function(e){
-    roles.push($(this).val());
-  });
-
+  const roles = $('#contenedorRoles input:checked').map(function(){ return $(this).val(); }).get();
   //Si tiene para elegir con checkboxes (superadmin), chequea ahi, si no les manda las que tiene asociado el usuario
-  let plataformas = [];
   const plats = $('#contenedorPlataforma input').length > 0? $('#contenedorPlataforma input:checked') :  $('#buscadorPlataforma option');
-  plats.each(function(e){
-    plataformas.push($(this).val());
-  });
+  const plataformas = plats.map(function(){ return $(this).val(); }).get();
 
   const formData = {
     id_usuario: $(this).val(),
@@ -182,7 +175,7 @@ function cargarUsuario(id_usuario,modo){
   $('#frmUsuario').trigger('reset');
   $('#btn-guardar').val('');
   $('#btn-resetearPass').prop('disabled',false);
-  mostrarPermisos([],$('#contenedorPermisos'))
+  mostrarPermisos([]);
   ocultarErrorValidacion($('#modalUsuario input,button'));
   ocultarErrorValidacion($('#contenedorRoles'));
   ocultarErrorValidacion($('#contenedorPlataforma'));
@@ -217,15 +210,15 @@ function cargarUsuario(id_usuario,modo){
       $('#email').val(data.usuario.email);
       $('#password').val(modo == "mostrar" ? '**************' : '');
 
-      for (var i = 0; i < data.plataformas.length; i++) {
+      for (let i = 0; i < data.plataformas.length; i++) {
         $(`#plataforma${data.plataformas[i].id_plataforma}`).prop('checked' ,true);
       }
 
-      for (var i = 0; i < data.roles.length; i++) {
+      for (let i = 0; i < data.roles.length; i++) {
         $(`#rol${data.roles[i].id_rol}`).prop('checked' ,true);
       }
 
-      mostrarPermisos(data.roles, $('#contenedorPermisos'));
+      mostrarPermisos(data.roles);
       $('#modalUsuario').modal('show');
     });
   }
@@ -283,12 +276,9 @@ function mostrarPermisos(roles) {
       success: function (data) {
         console.log(data);
         cont.parent().find('h5').text("PERMISOS (" + data.permisos.length + ")");
-        for (var i = 0; i < data.permisos.length; i++) {
-          cont.append($('<div>')
-            .addClass('tagPermiso')
-            .attr('id', data.permisos[i].id_permiso)
-            .text(data.permisos[i].descripcion)
-          );
+        const permiso = $('<div>').addClass('tagPermiso');
+        for (let i = 0; i < data.permisos.length; i++) {
+          cont.append(permiso.clone().attr('id', data.permisos[i].id_permiso).text(data.permisos[i].descripcion));
         }
       },
       error: function (error) {

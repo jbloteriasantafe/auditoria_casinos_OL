@@ -31,6 +31,10 @@ class UsuarioController extends Controller
       return self::$instance;
   }
 
+  private function esUnico($campo,$val,$id_exceptuado){
+    return Usuario::where([[$campo,'=',$val],['id_usuario','<>',$id_exceptuado]])->whereNull('deleted_at')->count() == 0;
+  }
+
   public function guardarUsuario(Request $request){
     $user = $this->quienSoy()['usuario'];
     $plats = [];
@@ -39,26 +43,29 @@ class UsuarioController extends Controller
     }
     Validator::make($request->all(), [
       'id_usuario' => 'nullable|integer|exists:usuario,id_usuario',
-      'nombre' => 'required|max:100|unique:usuario,nombre,'.$request->id_usuario.',id_usuario',
-      'user_name' => 'required|max:45|unique:usuario,user_name,'.$request->id_usuario.',id_usuario',
-      'email' =>  'required|max:70|unique:usuario,email,'.$request->id_usuario.',id_usuario',
+      'nombre' => 'required|max:100',
+      'user_name' => 'required|max:45',
+      'email' =>  'required|max:70',
       'password' => 'required_if:id_usuario,""|max:45',
       'imagen' => 'nullable|image',
       'plataformas' => 'required|array',
       'plataformas.*' => 'exists:plataforma,id_plataforma',
       'roles' => 'required|array',
       'roles.*' => 'exists:rol,id_rol',
-    ], [
-      'required' => 'No puede estar vacio','required_if' => 'No puede estar vacio','unique' => 'Tiene que ser único',
-      'max' => 'Supera el limite'
-    ])->after(function ($v) use ($plats){
-      //validar que descripcion no exista
+    ], ['required' => 'No puede estar vacio','required_if' => 'No puede estar vacio','max' => 'Supera el limite'])
+    ->after(function ($v) use ($plats){
       if($v->errors()->any()) return;
-      $email = $v->getData()['email'];
+      $data = $v->getData();
+      $email = $data['email'];
       if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $v->errors()->add('email', 'Formato de email inválido.');
       }
-      foreach ($v->getData()['plataformas'] as $p) {
+      //No puedo usar reglas de laravel porque tengo que verificar que sea NULL deleted_at
+      if(!$this->esUnico('nombre',$data['nombre'],$data['id_usuario'])) $v->errors()->add('nombre','Tiene que ser único');
+      if(!$this->esUnico('user_name',$data['user_name'],$data['id_usuario'])) $v->errors()->add('user_name','Tiene que ser único');
+      if(!$this->esUnico('email',$data['email'],$data['id_usuario'])) $v->errors()->add('email','Tiene que ser único');
+      
+      foreach ($data['plataformas'] as $p) {
         if(!in_array($p,$plats)){
           $v->errors()->add('id_plataforma', 'No puede acceder a la plataforma.');
           break;

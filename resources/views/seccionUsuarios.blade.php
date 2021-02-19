@@ -42,12 +42,12 @@
                     @endforeach
                   </select>
                 </div>
-                <div class="col-md-3">
-                  <h5 style="color:#F5F5F5;">boton buscar</h5>
-                  <button id="buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                <div class="row" style="padding-top: 8% !important;">
+                  <div class="col-md-1 col-md-offset-5">
+                    <button id="buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                  </div>
                 </div>
               </div>
-              <br>
             </div>
           </div>
         </div>
@@ -227,5 +227,5 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/ajaxUsuarios.js"></script>
+<script src="js/seccionUsuarios.js"></script>
 @endsection
