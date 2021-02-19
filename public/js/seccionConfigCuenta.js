@@ -1,7 +1,5 @@
 $(document).ready(function(e){
-
   $('.tituloSeccionPantalla').text('Configuración de Cuenta');
-
 });
 
 //Guardar solo la imagen de perfil
@@ -64,7 +62,6 @@ $('#btn-guardarDatos').click(function(e){
 
     var formData = new FormData();
     formData.append('id_usuario', $(this).val());
-    // formData.append('nombre', $('#nombre').val());
     formData.append('user_name',$('#user_name').val());
     formData.append('email', $('#email').val());
 
@@ -78,8 +75,6 @@ $('#btn-guardarDatos').click(function(e){
       cache:false,
       success: function (data) {
           console.log(data);
-          //MOSTRAR MENSAJE ÉXTIO
-          // $('#imgPerfil').attr('src', 'data:image/jpeg;base64,' + data.imagen);
           $('#C_username').text("@" + data.user_name);
           $('.nombreUsuario h4').text("@" + data.user_name);
 
@@ -137,8 +132,6 @@ $('#btn-guardarNuevoPass').click(function(e){
           $('#mensajeExito .cabeceraMensaje').addClass('modificar');
           $('#mensajeExito p').text("Se han modificado correctamente sus datos.");
           $('#mensajeExito').show();
-          //MOSTRAR MENSAJE ÉXTIO
-          // $('#imgPerfil').attr('src', 'data:image/jpeg;base64,' + data.imagen);
       },
       error: function (data) {
           console.log(data);
@@ -157,20 +150,9 @@ $('#btn-guardarNuevoPass').click(function(e){
           if (typeof response.password_nuevo_confirmation != 'undefined') {
               mostrarErrorValidacion($('#pass_repetida'), response.password_nuevo_confirmation[0], true);
           }
-
-
           if (typeof response.password_incorrecta != 'undefined') {
               mostrarErrorValidacion($('#pass_actual'), response.password_incorrecta[0], true);
           }
-
-          // if(typeof response.password_incorrecta !== 'undefined'){
-          //   $('#password_actual').popover('show');
-          //   $('.popover').addClass('popAlerta');
-          // }
-          // if(typeof response.password_nuevo !== 'undefined'){
-          //   $('#password_nuevo_confirmation').popover('show');
-          //   $('.popover').addClass('popAlerta');
-          // }
       }
     });
 });
@@ -215,9 +197,7 @@ $(document).on('change','#upload', function(e){
         $imagenPerfil.croppie('bind', {
             url: e.target.result
         }).then(function(){
-
           console.log('jQuery bind complete');
-
         });
     }
 
@@ -246,17 +226,7 @@ $('.cancelar').on('click', function () {
    $('.modal:visible').modal('hide');
 })
 
-
-$('#modalCambiarPass').on('hidden.bs.modal', function() {
-
-})
-
-$('#modalCambiarImagen').on('hidden.bs.modal', function() {
-  $('.password').val();
-})
-
 $('#modalEditarDatos').on('hidden.bs.modal', function() {
   $('#user_name').val($('#user_name').attr('data-user'));
   $('#email').val($('#email').attr('data-email'));
-
 })

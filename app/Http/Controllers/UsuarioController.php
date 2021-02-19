@@ -73,7 +73,7 @@ class UsuarioController extends Controller
       }
     })->validate();
 
-    DB::transaction(function () use ($request){
+    DB::transaction(function () use ($request,$plats){
       $usuario = null;
       if(!empty($request->id_usuario)){ 
         $usuario = Usuario::find($request->id_usuario);
@@ -90,7 +90,8 @@ class UsuarioController extends Controller
       }
       $usuario->save();
       $usuario->roles()->sync($request->roles);
-      $usuario->plataformas()->sync($request->plataformas);
+      $usuario->plataformas()->detach($plats);//Le saco todos lo que tiene acceso el usuario
+      $usuario->plataformas()->syncWithoutDetaching($request->plataformas);//Les agrego los que mando
     });
     
     return 1;
