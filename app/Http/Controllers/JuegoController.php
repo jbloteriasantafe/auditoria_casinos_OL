@@ -275,7 +275,7 @@ class JuegoController extends Controller
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
     if(!empty($request->cod_juego) && $request->cod_juego != '-'){
-      $reglas[]=['juego.cod_juego', 'like' , '%' . $cod_juego  .'%'];
+      $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_juego  .'%'];
     }
     if(!empty($request->proveedor) && $request->proveedor != '-'){//Si manda 1 guion significa sin proveedor
       //Tengo que hacer esto porque no tiene validacion de regex cuando se guarda, puede mandar solo guiones
