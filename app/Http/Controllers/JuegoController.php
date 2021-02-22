@@ -18,7 +18,6 @@ use Validator;
 use Storage;
 use View;
 use Dompdf\Dompdf;
-use SplFixedArray;
 
 class JuegoController extends Controller
 {
@@ -414,39 +413,63 @@ class JuegoController extends Controller
   }
 
   public function generarDiferenciasEstadosJuegos(Request $request){
+    //Esto se puede pasar a usar una tabla temporal y hacerlo por SQL si demora mucho, no deberia porque pocas deberian reportar diferencias
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if($user->plataformas()->where('plataforma.id_plataforma',$request->id_plataforma)->count() <= 0)
       return response()->json(["errores" => ["No puede acceder a la plataforma"]],422);
     
     $resultado = [];
-    $fila = 0;
-    $codigo_idx = -1;
-    $nombre_idx = -1;
-    $estado_idx = -1;
-    if (($gestor = fopen($request->archivo->getRealPath(), "r")) !== FALSE) {
-        while (($datos = fgetcsv($gestor, 1000, ",")) !== FALSE) {
-            if($fila == 0){
-              $codigo_idx = array_search("GameCode",$datos);
-              $nombre_idx = array_search("GameName",$datos);
-              $estado_idx = array_search("IsPublished",$datos);
-              if($codigo_idx === false || $nombre_idx === false || $estado_idx === false){
-                fclose($gestor);
-                return response()->json(["errores" => ["Error en el formato del archivo."]],422);
-              }
-            }
-            else{;
-              $r = ["juego" => '',"codigo" => '',"estado_recibido" => '', "estado_esperado" => ''];
-              $r["juego"] = $datos[$nombre_idx];
-              $r["codigo"] = $datos[$codigo_idx];
-              $r["estado_recibido"] = $datos[$estado_idx];
-              $r["estado_esperado"] = "TEST";
-              $resultado[$fila-1] = $r;
-            }
-            $fila++;
-        }
-        fclose($gestor);
+    $codigo_idx = false;
+    $nombre_idx = false;
+    $estado_idx = false;
+
+    $query = DB::table('plataforma_tiene_juego')
+    ->select('estado_juego.nombre')
+    ->join('juego','juego.id_juego','=','plataforma_tiene_juego.id_juego')
+    ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
+    ->where('plataforma_tiene_juego.id_plataforma','=',$request->id_plataforma);
+
+    //Los que esperaba que estaban activos, inactivos, ausentes(-1)
+    $resultado = ["Ausente" => []];
+    foreach(EstadoJuego::all() as $e){
+      $resultado[$e->nombre] = [];
     }
-    $view = View::make('planillaDiferenciasEstadosJuegos',compact('resultado'));
+
+    if (($gestor = fopen($request->archivo->getRealPath(), "r")) !== FALSE) {
+      if(($datos = fgetcsv($gestor, 1000, ",")) !== FALSE){
+        $codigo_idx = array_search("GameCode",$datos);
+        $nombre_idx = array_search("GameName",$datos);
+        $estado_idx = array_search("IsPublished",$datos);
+        if($codigo_idx === false || $nombre_idx === false || $estado_idx === false){
+          fclose($gestor);
+          return response()->json(["errores" => ["Error en el formato del archivo."]],422);
+        }
+      }
+      else return response()->json(["errores" => ["Error en el formato del archivo."]],422);
+
+      while (($datos = fgetcsv($gestor, 1000, ",")) !== FALSE) {
+        $r = [];
+        $r["juego"] = $datos[$nombre_idx];
+        $cod_juego = $datos[$codigo_idx];
+        $r["codigo"] = $cod_juego;
+        $estado   = strtoupper($datos[$estado_idx]);
+        $estado_t = $estado == "TRUE";
+        $estado_f = $estado == "FALSE";
+        $r["estado_recibido"] = $estado_t? "Activo": ($estado_f? "Inactivo" : $estado);
+        $estado_esperado = (clone $query)->where('juego.cod_juego','=',$cod_juego)->first();
+        if(is_null($estado_esperado)) $estado_esperado = "Ausente";
+        else $estado_esperado = $estado_esperado->nombre;
+        if($estado_esperado != $r["estado_recibido"])
+          $resultado[$estado_esperado][] = $r;
+      }
+      fclose($gestor);
+    }
+    foreach($resultado as &$v){
+      usort($v,function($a,$b){
+        return strnatcmp($a["juego"],$b["juego"])?? strnatcmp($a["codigo"],$b["codigo"]);
+      });
+    }
+    $view = View::make('planillaDiferenciasEstadosJuegos',compact('resultado','estados'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -456,9 +479,9 @@ class JuegoController extends Controller
 
     $directorio = 'planillaDiferenciasEstadosJuegos';
     if(!Storage::exists($directorio)) {
-      Storage::makeDirectory($directorio, 0775, true); //creates directory
+      Storage::makeDirectory($directorio, 0775, true);
     }
-    $path = $directorio.'/'. 'test.pdf';
+    $path = $directorio.'/'. time() . '.pdf';
     $file = $dompdf->output();
     Storage::put($path,$file);
     return 'juegos/'.$path;
@@ -466,7 +489,7 @@ class JuegoController extends Controller
   public function planillaDiferenciasEstadosJuegos($archivo){
     $directorio = 'planillaDiferenciasEstadosJuegos';
     if(!Storage::exists($directorio)) {
-      Storage::makeDirectory($directorio, 0775, true); //creates directory
+      Storage::makeDirectory($directorio, 0775, true);
     }
     $path = $directorio.'/'.$archivo;
     if(!Storage::exists($path)) return "Archivo no encontrado";

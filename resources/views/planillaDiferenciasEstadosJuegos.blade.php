@@ -40,25 +40,27 @@ tr:nth-child(even) {
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></span></div>
     <div class="primerEncabezado">
-      Se han realizado los procedimientos de control correspondientes y se encontraron las siguientes diferencias con respecto al estado de los juegos 
-      de Casinos Online
+      Se realizaron los procedimientos de control correspondientes y se encontraron las siguientes diferencias
     </div>
+    @foreach($resultado as $e => $detalles)
+    @if(count($detalles) > 0)
     <br>
+    <div class="primerEncabezado" style="text-align: center;">Estado esperado: {{$e}}</div>
     <table>
       <tr>
-        <th class="tablaInicio">CÓDIGO</th>
-        <th class="tablaInicio">JUEGO</th>
-        <th class="tablaInicio">ESTADO RECIBIDO</th>
-        <th class="tablaInicio">ESTADO ESPERADO</th>
+        <th class="tablaInicio" width="25%">CÓDIGO</th>
+        <th class="tablaInicio" width="50%">JUEGO</th>
+        <th class="tablaInicio" width="25%">ESTADO RECIBIDO</th>
       </tr>
-      @foreach($resultado as $r)
+      @foreach($detalles as $d)
       <tr>
-        <td class="tablaCampos">{{$r["codigo"]}}</td>
-        <td class="tablaCampos">{{$r["juego"]}}</td>
-        <td class="tablaCampos">{{$r["estado_recibido"]}}</td>
-        <td class="tablaCampos">{{$r["estado_esperado"]}}</td>
+        <td class="tablaCampos">{{$d["codigo"]}}</td>
+        <td class="tablaCampos">{{$d["juego"]}}</td>
+        <td class="tablaCampos">{{$d["estado_recibido"]}}</td>
       </tr>
       @endforeach
     </table>
+    @endif
+    @endforeach
   </body>
 </html>
