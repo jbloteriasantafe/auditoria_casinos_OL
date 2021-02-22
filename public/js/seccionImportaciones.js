@@ -492,7 +492,9 @@ function toIso(f){
   //input fecha tipo 1/11/2020 06:00:00
   aux = f.split(' ');
   f = aux[0].split('/');
-  return f[2]+'-'+f[1]+'-'+(f[0].length==1? '0'+f[0] : f[0])+'T'+aux[1];
+  const mm = (f[1].length==1? '0'+f[1]: f[1]);
+  const dd = (f[0].length==1? '0'+f[0]: f[0]);
+  return f[2]+'-'+mm+'-'+dd+'T'+aux[1];
 }
 
 function procesarDatosProducidos(e) {

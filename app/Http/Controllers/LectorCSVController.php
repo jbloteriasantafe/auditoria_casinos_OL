@@ -72,10 +72,10 @@ class LectorCSVController extends Controller
                       ESCAPED BY '\"'
                       LINES TERMINATED BY '\\r\\n'
                       IGNORE 1 LINES
-                      (@DateReport,@GameId,@GameCategory,@Players,@TotalWagerCash,@TotalWagerBonus,@TotalWager,@GrossRevenueCash,@GrossRevenueBonus,@GrossRevenue)
+                      (@DateReport,@GameCode,@GameCategory,@Players,@TotalWagerCash,@TotalWagerBonus,@TotalWager,@GrossRevenueCash,@GrossRevenueBonus,@GrossRevenue)
                        SET id_producido = '%d',
                        DateReport = @DateReport,
-                       GameId = @GameId,
+                       GameCode = @GameCode,
                        GameCategory = @GameCategory,
                        Players = @Players,
                        TotalWagerCash = REPLACE(@TotalWagerCash,',','.'),
@@ -98,7 +98,7 @@ class LectorCSVController extends Controller
     valor)
     SELECT 
     id_producido,
-    GameId as cod_juego,
+    GameCode as cod_juego,
     GameCategory as categoria,
     Players as jugadores,
     (TotalWagerCash + TotalWagerBonus) as ingreso,

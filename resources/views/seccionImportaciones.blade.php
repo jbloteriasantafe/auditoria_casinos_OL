@@ -41,7 +41,6 @@ $id_usuario = session('id_usuario');
                          </a>
                         </div>
                     </div> <!--    .row | IMPORTAR PRODUCIDOS -->
-
                     <!-- IMPORTAR BENEFICIOS -->
                     <div class="row">
                         <div class="col-sm-12 col-md-12 col-xl-12">
@@ -61,7 +60,9 @@ $id_usuario = session('id_usuario');
                          </a>
                         </div>
                     </div> <!-- .row | IMPORTAR BENEFICIOS -->
-
+                    <div class="row">
+                      <a href="/temporalProducidoCCO.html" target="_blank"  class="btn btn-infoBuscar col-md-offset-1" type="button">Generar Producido de CCO</a>
+                    </div>
               </div> <!-- .columna de los BOTONES -->
 
 
