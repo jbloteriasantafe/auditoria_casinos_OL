@@ -23,7 +23,12 @@ tr:nth-child(even) {
   border-top: 2px double black;
 }
 </style>
-
+  <?php 
+  $widths = ["fecha" => "9","jugadores" => "12","apostado" => "24","premios" => "24", "beneficio" => "24","dev" => "7"];
+  if($cotizacionDefecto != 1){
+    $widths = ["fecha" => "9","jugadores" => "12","apostado" => "19","premios" => "19", "cotizacion" => "15","beneficio" => "19","dev" => "7"];
+  }
+  ?>
   <head>
     <meta charset="utf-8">
     <title></title>
@@ -45,16 +50,17 @@ tr:nth-child(even) {
       se obtuvo un beneficio de <b>${{$total_beneficio}}</b>, detallando a continuación el beneficio diario.
     </div>
     <br>
-    <table>
+    <table style="table-layout: fixed;">
       <tr>
-        <th class="tablaInicio">FECHA</th>
-        <th class="tablaInicio">JUGADORES</th>
-        <th class="tablaInicio">APOSTADO</th>
-        <th class="tablaInicio">PREMIOS</th>
+        <th class="tablaInicio" width="{{$widths['fecha']}}%">FECHA</th>
+        <th class="tablaInicio" width="{{$widths['jugadores']}}%">JUGADORES</th>
+        <th class="tablaInicio" width="{{$widths['apostado']}}%">APOSTADO</th>
+        <th class="tablaInicio" width="{{$widths['premios']}}%">PREMIOS</th>
         @if($cotizacionDefecto != 1)
-        <th class="tablaInicio">COTIZACION (*)</th>
+        <th class="tablaInicio" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
         @endif
-        <th class="tablaInicio">BENEFICIO</th>
+        <th class="tablaInicio" width="{{$widths['beneficio']}}%">BENEFICIO</th>
+        <th class="tablaInicio" width="{{$widths['dev']}}%">% DEV</th>
       </tr>
       <?php $ultima_cotizacion = $cotizacionDefecto;?>
       @foreach ($dias as $d)
@@ -70,6 +76,7 @@ tr:nth-child(even) {
         <td class="tablaCampos">{{$ultima_cotizacion}}</td>
         @endif
         <td class="tablaCampos">{{$d->valor*$ultima_cotizacion}}</td>
+        <td class="tablaCampos">{{$d->ingreso != 0.0? round(100*$d->premio/$d->ingreso,2) : '-'}}</td>
       </tr>
       @endforeach
       <tr class="total">
@@ -81,6 +88,7 @@ tr:nth-child(even) {
         <td class="tablaCampos total">-</td>
         @endif
         <td class="tablaCampos total">{{$total_beneficio}}</td>
+        <td class="tablaCampos total">{{$total->ingreso != 0.0? round(100*$total->premio/$total->ingreso,2) : '-'}}</td>
       </tr>
     </table>
     @if($cotizacionDefecto != 1)
