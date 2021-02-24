@@ -673,6 +673,7 @@ function reiniciarModalVerificarEstados(){
   });
   $('#plataformaVerificarEstado').val("");
   $('#btn-verificarEstados').hide();
+  $('#resultado_diferencias').attr('href','#').removeAttr('download').hide();
 }
 
 //Modal para generar informe de diferencias
@@ -731,6 +732,7 @@ $('#btn-verificarEstados').click(function(){
       const mi = lPad(ahora.getMinutes());
       const ss = lPad(ahora.getSeconds());
       $('#resultado_diferencias').attr('download',`Diferencias-Estados-${yyyy}-${mm}-${dd}-${hh}-${mi}-${ss}.pdf`);
+      $('#resultado_diferencias').show();
     },
     error: function (data) {
       console.log(data);

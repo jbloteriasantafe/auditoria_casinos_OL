@@ -403,19 +403,19 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                 </div>
               </div>
               <div id="datosVerificarEstados" class="row">
-                <div class="col-xs-8 col-xs-offset-2">
                   <h5 style="text-align: center">PLATAFORMA</h5>
-                  <select id="plataformaVerificarEstado" class="form-control">
+                  <div class="row"><select id="plataformaVerificarEstado" class="form-control">
                     <option value="">Seleccione</option>
                     @foreach ($plataformas as $plataforma)
                     <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
                     @endforeach
                   </select>
+                  </div>
                 </div>
               </div>
-              <div class="row">
+              <div class="row" style="text-align: center;">
                 <a href="#" target="_blank"  id="resultado_diferencias"
-                class="btn col-md-offset-5 col-md-1" type="button" style="text-align: center;">Descargar PDF</a>
+                class="btn" type="button" style="font-weight: bold;">Descargar PDF</a>
               </div>
             </div>
             <div class="modal-footer">
