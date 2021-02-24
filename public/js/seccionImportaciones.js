@@ -193,20 +193,27 @@ $(document).on('click','.planilla', function(){
   const head = $('#tablaVistaPrevia thead tr');
   head.children().remove();
   if(tipo_importacion == 2){
-    head.append($('<th>').addClass('col-xs-2').append('JUEGO'));
-    head.append($('<th>').addClass('col-xs-2').append('CATEGORIA'));
-    head.append($('<th>').addClass('col-xs-2').append('JUGADORES'));
-    head.append($('<th>').addClass('col-xs-2').append('APUESTA'));
-    head.append($('<th>').addClass('col-xs-2').append('PREMIO'));
-    head.append($('<th>').addClass('col-xs-2').append('BENEFICIO'));
+    head.append($('<th>').addClass('col-xs-1').append('JUEGO'));
+    head.append($('<th>').addClass('col-xs-1').append('CATEGORIA'));
+    head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
+    head.append($('<th>').addClass('col-xs-1').append('APUESTA (Ef)'));
+    head.append($('<th>').addClass('col-xs-1').append('APUESTA (Bo)'));
+    head.append($('<th>').addClass('col-xs-1').append('APUESTA'));
+    head.append($('<th>').addClass('col-xs-1').append('PREMIO (Ef)'));
+    head.append($('<th>').addClass('col-xs-1').append('PREMIO (Bo)'));
+    head.append($('<th>').addClass('col-xs-1').append('PREMIO'));
+    head.append($('<th>').addClass('col-xs-1').append('BENEFICIO (Ef)'));
+    head.append($('<th>').addClass('col-xs-1').append('BENEFICIO (Bo)'));
+    head.append($('<th>').addClass('col-xs-1').append('BENEFICIO'));
   }
   else if(tipo_importacion == 3){
-    head.append($('<th>').addClass('col-xs-2').append('FECHA'));
-    head.append($('<th>').addClass('col-xs-2').append('JUGADORES'));
+    head.append($('<th>').addClass('col-xs-1').append('FECHA'));
+    head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
+    head.append($('<th>').addClass('col-xs-2').append('DEPOSITOS'));
+    head.append($('<th>').addClass('col-xs-2').append('RETIROS'));
     head.append($('<th>').addClass('col-xs-2').append('APUESTA'));
     head.append($('<th>').addClass('col-xs-2').append('PREMIO'));
     head.append($('<th>').addClass('col-xs-2').append('BENEFICIO'));
-    head.append($('<th>').addClass('col-xs-2').append('&nbsp;'));
   }
   $('#tablaVistaPrevia tbody tr').remove();
 
@@ -234,10 +241,10 @@ function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
     data: {id_beneficio_mensual: id_beneficio_mensual,page: page,size: size},
     dataType: 'json',
     success: function (data) {
-      $('#previewPage').text(page);
+      $('#previewPage').text(page+1);
       const totales = Math.ceil(data.cant_detalles/size);
       $('#previewTotal').text(totales);
-      $('#nextPreview').attr('disabled',page >= totales);
+      $('#nextPreview').attr('disabled',(page+1) >= totales);
       $('#modalPlanilla #fecha').val(convertirDate(data.beneficio_mensual.fecha));
       $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
@@ -265,10 +272,10 @@ function actualizarPreviewProducidos(id_producido,page,size){
     data: {id_producido: id_producido,page: page,size: size},
     dataType: 'json',
     success: function (data) {
-      $('#previewPage').text(page);
+      $('#previewPage').text(page+1);
       const totales = Math.ceil(data.cant_detalles/size);
       $('#previewTotal').text(totales);
-      $('#nextPreview').attr('disabled',page >= totales);
+      $('#nextPreview').attr('disabled',(page+1) >= totales);
       $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
       $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
@@ -359,12 +366,18 @@ $('#btn-eliminarModal').click(function (e) {
 /*********************** PRODUCIDOS *********************************/
 function agregarFilaDetalleProducido(producido) {
   var fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-2').text(producido.cod_juego));
-  fila.append($('<td>').addClass('col-xs-2').append(producido.categoria));
-  fila.append($('<td>').addClass('col-xs-2').append(producido.jugadores));
-  fila.append($('<td>').addClass('col-xs-2').append(producido.apuesta));
-  fila.append($('<td>').addClass('col-xs-2').append(producido.premio));
-  fila.append($('<td>').addClass('col-xs-2').append(producido.beneficio));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.cod_juego));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.categoria));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.jugadores));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.apuesta_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.apuesta_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.apuesta));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.premio_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.premio_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.premio));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.beneficio_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.beneficio_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(producido.beneficio));
   $('#tablaVistaPrevia tbody').append(fila);
 }
 
@@ -564,12 +577,13 @@ $('#btn-reintentarProducido').click(function(e) {
 /*********************** BENEFICIOS *********************************/
 function agregarFilaDetalleBeneficio(beneficio){
   const fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.fecha));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.jugadores));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.fecha));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.jugadores));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.depositos));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.retiros));
   fila.append($('<td>').addClass('col-xs-2').append(beneficio.apuesta));
   fila.append($('<td>').addClass('col-xs-2').append(beneficio.premio));
   fila.append($('<td>').addClass('col-xs-2').append(beneficio.beneficio));
-  fila.append($('<td>').addClass('col-xs-2').append('&nbsp;'));
   $('#tablaVistaPrevia tbody').append(fila);
 }
 
