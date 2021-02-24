@@ -809,7 +809,7 @@ class ProducidoController extends Controller
   public function generarPlanilla($id_producido){
     $producido = Producido::find($id_producido);
     $detalles = DB::table('producido')
-    ->selectRaw('detalle_producido.cod_juego, detalle_producido.ingreso, detalle_producido.premio, detalle_producido.valor, juego.id_juego IS NOT NULL AS en_bd')
+    ->selectRaw('detalle_producido.cod_juego, detalle_producido.apuesta, detalle_producido.premio, detalle_producido.beneficio, juego.id_juego IS NOT NULL AS en_bd')
     ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
     ->leftJoin('juego','juego.cod_juego','=','detalle_producido.cod_juego')
     ->leftJoin('plataforma_tiene_juego',function($j){

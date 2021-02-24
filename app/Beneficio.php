@@ -9,7 +9,10 @@ class Beneficio extends Model
   protected $connection = 'mysql';
   protected $table = 'beneficio';
   protected $primaryKey = 'id_beneficio';
-  protected $visible = array('id_beneficio','id_beneficio_mensual','fecha','jugadores','ingreso','premio','valor','ajuste','observacion');
+  protected $visible = array('id_beneficio','id_beneficio_mensual','fecha',
+    'jugadores','depositos','retiros',
+    'apuesta','premio','beneficio',
+    'ajuste','observacion');
   protected $appends = array('calculado','diferencia','producido');
   public $timestamps = false;
 
@@ -25,10 +28,10 @@ class Beneficio extends Model
   public function getCalculadoAttribute(){
     $prod = $this->producido;
     if(is_null($prod)) return 0;
-    return $prod->valor;
+    return $prod->beneficio;
   }
 
   public function getDiferenciaAttribute(){
-    return $this->calculado - $this->valor + $this->ajuste;
+    return $this->calculado - $this->beneficio + $this->ajuste;
   }
 }

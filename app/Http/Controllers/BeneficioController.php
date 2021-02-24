@@ -86,10 +86,10 @@ class BeneficioController extends Controller
     //En teoria lo podria hacer mas rapido...
     $diferencias_subquery = "SELECT diff_bm.id_beneficio_mensual, 
     SUM(CASE 
-          WHEN (diff_p.valor IS NULL     AND diff_b.valor IS NOT NULL) THEN 1
-          WHEN (diff_p.valor IS NOT NULL AND diff_b.valor IS NULL)     THEN 0
-          WHEN (diff_p.valor IS NULL     AND diff_b.valor IS NULL)     THEN 0
-          WHEN (diff_p.valor - diff_b.valor) <> 0                      THEN 1
+          WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NOT NULL) THEN 1
+          WHEN (diff_p.beneficio IS NOT NULL AND diff_b.beneficio IS NULL)     THEN 0
+          WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NULL)     THEN 0
+          WHEN (diff_p.beneficio - diff_b.beneficio) <> 0                      THEN 1
           ELSE 0
         END) as diferencias,
     COUNT(diff_p.id_producido) as dias_p,
@@ -133,10 +133,10 @@ class BeneficioController extends Controller
   public function obtenerBeneficios($id_beneficio_mensual){
     $resultados = DB::table('beneficio_mensual')->selectRaw(
       'beneficio.id_beneficio, beneficio.fecha,
-      (IFNULL(producido.valor,0)) AS beneficio_calculado,
-      (IFNULL(beneficio.valor,0)) as beneficio,
+      (IFNULL(producido.beneficio,0)) AS beneficio_calculado,
+      (IFNULL(beneficio.beneficio,0)) as beneficio,
       (IFNULL(beneficio.ajuste,0)) as ajuste,
-      (IFNULL(producido.valor,0) - IFNULL(beneficio.valor,0) + IFNULL(beneficio.ajuste,0)) AS diferencia,
+      (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) + IFNULL(beneficio.ajuste,0)) AS diferencia,
       producido.id_producido as id_producido,
       IFNULL(beneficio.observacion,"") as observacion'
     )
@@ -234,10 +234,10 @@ class BeneficioController extends Controller
     $resultados = 
     DB::table('beneficio_mensual')
     ->selectRaw('beneficio.id_beneficio as id_beneficio, beneficio.fecha as fecha,
-                IFNULL(producido.valor,0) AS beneficio_calculado,
-                IFNULL(beneficio.valor,0) as beneficio,
+                IFNULL(producido.beneficio,0) AS beneficio_calculado,
+                IFNULL(beneficio.beneficio,0) as beneficio,
                 IFNULL(beneficio.ajuste,0) as ajuste,
-                (IFNULL(producido.valor,0) - IFNULL(beneficio.valor,0) + IFNULL(beneficio.ajuste,0)) AS diferencia')
+                (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) + IFNULL(beneficio.ajuste,0)) AS diferencia')
     ->leftJoin('beneficio','beneficio.id_beneficio_mensual','=','beneficio_mensual.id_beneficio_mensual')
     ->leftJoin('producido',function ($leftJoin) use ($benMensual){
       $leftJoin->on('producido.fecha','=','beneficio.fecha')

@@ -43,17 +43,17 @@
       <tr>
         <th class="tablaInicio">BD</th>
         <th class="tablaInicio">JUEGO</th>
-        <th class="tablaInicio">INGRESO</th>
+        <th class="tablaInicio">APUESTA</th>
         <th class="tablaInicio">PREMIO</th>
         <th class="tablaInicio">DIFERENCIAS</th>
       </tr>
       @foreach ($detalles as $d)
       <tr>
-        <td class="tablaCampos">{{$d->en_bd}}</td>
+        <td class="tablaCampos">{{$d->en_bd? 'SÍ' : 'NO'}}</td>
         <td class="tablaCampos">{{$d->cod_juego}}</td>
-        <td class="tablaCampos">{{$d->ingreso}}</td>
+        <td class="tablaCampos">{{$d->apuesta}}</td>
         <td class="tablaCampos">{{$d->premio}}</td>
-        <td class="tablaCampos">{{$d->valor}}</td>
+        <td class="tablaCampos">{{$d->beneficio}}</td>
       </tr>
       @endforeach
     </table>

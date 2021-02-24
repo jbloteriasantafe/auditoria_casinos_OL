@@ -70,25 +70,25 @@ tr:nth-child(even) {
       <tr>
         <td class="tablaCampos">{{$d->fecha}}</td>
         <td class="tablaCampos">{{$d->jugadores}}</td>
-        <td class="tablaCampos">{{$d->ingreso}}</td>
+        <td class="tablaCampos">{{$d->apuesta}}</td>
         <td class="tablaCampos">{{$d->premio}}</td>
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos">{{$ultima_cotizacion}}</td>
         @endif
-        <td class="tablaCampos">{{$d->valor*$ultima_cotizacion}}</td>
-        <td class="tablaCampos">{{$d->ingreso != 0.0? round(100*$d->premio/$d->ingreso,2) : '-'}}</td>
+        <td class="tablaCampos">{{$d->beneficio*$ultima_cotizacion}}</td>
+        <td class="tablaCampos">{{$d->apuesta != 0.0? round(100*$d->premio/$d->apuesta,2) : '-'}}</td>
       </tr>
       @endforeach
       <tr class="total">
         <td class="tablaCampos total">{{$total->fecha}}</td>
         <td class="tablaCampos total">{{$total->jugadores}}</td>
-        <td class="tablaCampos total">{{$total->ingreso}}</td>
+        <td class="tablaCampos total">{{$total->apuesta}}</td>
         <td class="tablaCampos total">{{$total->premio}}</td>
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total">-</td>
         @endif
         <td class="tablaCampos total">{{$total_beneficio}}</td>
-        <td class="tablaCampos total">{{$total->ingreso != 0.0? round(100*$total->premio/$total->ingreso,2) : '-'}}</td>
+        <td class="tablaCampos total">{{$total->apuesta != 0.0? round(100*$total->premio/$total->apuesta,2) : '-'}}</td>
       </tr>
     </table>
     @if($cotizacionDefecto != 1)

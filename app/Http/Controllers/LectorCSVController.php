@@ -41,9 +41,9 @@ class LectorCSVController extends Controller
     $producido->fecha = $fecha;
     $producido->id_tipo_moneda = $moneda;
     $producido->jugadores = 0;
-    $producido->ingreso = 0;
-    $producido->premio = 0;
-    $producido->valor = 0;
+    $producido->apuesta_efectivo   = 0;$producido->apuesta_bono   = 0;$producido->apuesta   = 0;
+    $producido->premio_efectivo    = 0;$producido->premio_bono    = 0;$producido->premio    = 0;
+    $producido->beneficio_efectivo = 0;$producido->beneficio_bono = 0;$producido->beneficio = 0;
     $producido->save();
 
     $producidos_viejos = DB::table('producido')->where([
@@ -63,7 +63,7 @@ class LectorCSVController extends Controller
 
     $path = $archivoCSV->getRealPath();
 
-    //No se puede usar parametro preparado LOAD DATA por lo que busque
+    //No se puede usar sentencia preparada LOAD DATA por lo que busque
     //A totalwager y gross revenue le saco el $, le saco el punto de los miles y le cambio la coma decimal por un punto
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE producido_temporal
@@ -93,17 +93,23 @@ class LectorCSVController extends Controller
     cod_juego,
     categoria,
     jugadores,
-    ingreso,
-    premio,
-    valor)
+    apuesta_efectivo  , apuesta_bono  , apuesta,
+    premio_efectivo   , premio_bono   , premio,
+    beneficio_efectivo, beneficio_bono, beneficio)
     SELECT 
     id_producido,
     GameCode as cod_juego,
     GameCategory as categoria,
     Players as jugadores,
-    (TotalWagerCash + TotalWagerBonus) as ingreso,
-    ((TotalWagerCash + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as premio,
-    (GrossRevenueCash + GrossRevenueBonus) as valor
+    TotalWagerCash                         as apuesta_efectivo,
+    TotalWagerBonus                        as apuesta_bono,
+    (TotalWagerCash   + TotalWagerBonus)   as apuesta,
+    (TotalWagerCash   - GrossRevenueCash)  as premio_efectivo,
+    (TotalWagerBonus  - GrossRevenueBonus) as premio_bono,
+    ((TotalWagerCash  + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as premio,
+    GrossRevenueCash                       as beneficio_efectivo,
+    GrossRevenueBonus                      as beneficio_bono,
+    (GrossRevenueCash + GrossRevenueBonus) as beneficio
     FROM producido_temporal
     WHERE producido_temporal.id_producido = :id_producido");
     $query->execute([":id_producido" => $producido->id_producido]);
@@ -114,12 +120,18 @@ class LectorCSVController extends Controller
     $query = $pdo->prepare("UPDATE 
     producido p,
     (
-      SELECT SUM(dp.jugadores) as jugadores,SUM(dp.ingreso) as ingreso,SUM(dp.premio) as premio,SUM(dp.valor) as valor
+      SELECT SUM(dp.jugadores) as jugadores,
+      SUM(dp.apuesta_efectivo)   as apuesta_efectivo  , SUM(dp.apuesta_bono)   as apuesta_bono  , SUM(dp.apuesta)   as apuesta,
+      SUM(dp.premio_efectivo)    as premio_efectivo   , SUM(dp.premio_bono)    as premio_bono   , SUM(dp.premio)    as premio,
+      SUM(dp.beneficio_efectivo) as beneficio_efectivo, SUM(dp.beneficio_bono) as beneficio_bono, SUM(dp.beneficio) as beneficio
       FROM detalle_producido dp
       WHERE dp.id_producido = :id_producido1
       GROUP BY dp.id_producido
     ) total
-    SET p.jugadores = IFNULL(total.jugadores,0), p.ingreso = IFNULL(total.ingreso,0),p.premio = IFNULL(total.premio,0),p.valor = IFNULL(total.valor,0)
+    SET p.jugadores = IFNULL(total.jugadores,0),
+    p.apuesta_efectivo   = IFNULL(total.apuesta_efectivo,0)  , p.apuesta_bono   = IFNULL(total.apuesta_bono,0)  , p.apuesta   = IFNULL(total.apuesta,0),
+    p.premio_efectivo    = IFNULL(total.premio_efectivo,0)   , p.premio_bono    = IFNULL(total.premio_bono,0)   , p.premio    = IFNULL(total.premio,0),
+    p.beneficio_efectivo = IFNULL(total.beneficio_efectivo,0), p.beneficio_bono = IFNULL(total.beneficio_bono,0), p.beneficio = IFNULL(total.beneficio,0)
     WHERE p.id_producido = :id_producido2");
 
     $query->execute([":id_producido1" => $producido->id_producido,":id_producido2" => $producido->id_producido]);
@@ -151,10 +163,8 @@ class LectorCSVController extends Controller
     $benMensual->id_tipo_moneda = $moneda;
     $fecha_aux = explode("-",$fecha);
     $benMensual->fecha = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
-    $benMensual->jugadores = 0;
-    $benMensual->ingreso = 0;
-    $benMensual->premio = 0;
-    $benMensual->valor = 0;
+    $benMensual->jugadores = 0;$benMensual->depositos = 0;$benMensual->retiros   = 0;
+    $benMensual->apuesta   = 0;$benMensual->premio    = 0;$benMensual->beneficio = 0;
     $benMensual->ajuste = 0;
     $benMensual->validado = false;
     $benMensual->save();
@@ -178,7 +188,7 @@ class LectorCSVController extends Controller
     $path = $archivoCSV->getRealPath();
     //DateReport es un quilombo porque no puedo usar REGEXP_REPLACE en el servidor de prueba porque es mysql 5.7
 
-    //No se puede usar parametro preparado LOAD DATA por lo que busque
+    //No se puede usar sentencia preparada LOAD DATA por lo que busque
     $query = sprintf("LOAD DATA local INFILE '%s'
     INTO TABLE beneficio_temporal
     FIELDS TERMINATED BY ','
@@ -188,26 +198,26 @@ class LectorCSVController extends Controller
     IGNORE 1 LINES
     (@Total,@DateReport,@Currency,@TotalRegistrations,@Verified,@TotalVerified,@Players,@TotalDeposits,@TotalWithdrawals,@TotalBonus,@TotalManualAdjustments,@TotalVPoints,@TotalWager,@TotalOut,@GrossRevenue,@lastupdated)
      SET id_beneficio_mensual = %d,
-     Total = @Total,
-     DateReport = CONCAT(
+     Total                  = @Total,
+     DateReport             = CONCAT(
       SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',-1),'-',
       LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',2),'/',-1),2,'00'),'-',
       LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',1),2,'00')
      ),
-     Currency = @Currency,
-     TotalRegistrations = @TotalRegistrations,
-     Verified = @Verified,
-     TotalVerified = @TotalVerified,
-     Players = @Players,
-     TotalDeposits          = REPLACE(REPLACE(REPLACE(REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),
-     TotalWithdrawals       = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),
+     Currency               = @Currency,
+     TotalRegistrations     = @TotalRegistrations,
+     Verified               = @Verified,
+     TotalVerified          = @TotalVerified,
+     Players                = @Players,
+     TotalDeposits          = IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),0.00),
+     TotalWithdrawals       = IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),0.00),
      TotalBonus             = REPLACE(@TotalBonus,',','.'),
      TotalManualAdjustments = REPLACE(@TotalManualAdjustments,',','.'),
      TotalVPoints           = REPLACE(@TotalVPoints,',','.'),
      TotalWager             = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
      TotalOut               = REPLACE(@TotalOut,',','.'),
      GrossRevenue           = REPLACE(REPLACE(REPLACE(REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.'),
-     lastupdated = @lastupdated",$path,$benMensual->id_beneficio_mensual);
+     lastupdated            = @lastupdated",$path,$benMensual->id_beneficio_mensual);
     $pdo->exec($query);
 
     //La ultima comparacion en el WHERE es para ignorar la ultima linea
@@ -216,19 +226,23 @@ class LectorCSVController extends Controller
       id_beneficio_mensual,
       fecha,
       jugadores,
-      ingreso,
+      depositos,
+      retiros,
+      apuesta,
       premio,
-      valor,
+      beneficio,
       ajuste,
       observacion
     )
     SELECT
     id_beneficio_mensual, 
-    DateReport as fecha,
-    Players as jugadores,
-    TotalWager as ingreso,
-    TotalOut as premio,
-    GrossRevenue as valor,
+    DateReport       as fecha,
+    Players          as jugadores,
+    TotalDeposits    as depositos,
+    TotalWithdrawals as retiros,
+    TotalWager       as apuesta,
+    TotalOut         as premio,
+    GrossRevenue     as beneficio,
     0 as ajuste,
     '' as observacion
     FROM beneficio_temporal
@@ -241,12 +255,13 @@ class LectorCSVController extends Controller
     //Lo updateo por SQL porque son DECIMAL y no se si hay error de casteo si lo hago en PHP (pasa a float?)
     $query = $pdo->prepare("UPDATE beneficio_mensual bm,
     (
-      SELECT SUM(b.jugadores) as jugadores,SUM(b.ingreso) as ingreso,SUM(b.premio) as premio,SUM(b.valor) as valor
+      SELECT SUM(b.jugadores) as jugadores, SUM(b.depositos) as depositos, SUM(b.retiros)   as retiros,
+             SUM(b.apuesta)   as apuesta  , SUM(b.premio)    as premio   , SUM(b.beneficio) as beneficio
       FROM beneficio b
       WHERE b.id_beneficio_mensual = :id_beneficio_mensual1
       GROUP BY b.id_beneficio_mensual
     ) total
-    SET bm.jugadores = IFNULL(total.jugadores,0),bm.ingreso = IFNULL(total.ingreso,0),bm.premio = IFNULL(total.premio,0),bm.valor = IFNULL(total.valor,0)
+    SET bm.jugadores = IFNULL(total.jugadores,0),bm.apuesta = IFNULL(total.apuesta,0),bm.premio = IFNULL(total.premio,0),bm.beneficio = IFNULL(total.beneficio,0)
     WHERE bm.id_beneficio_mensual = :id_beneficio_mensual2");
     $query->execute([":id_beneficio_mensual1" => $benMensual->id_beneficio_mensual,":id_beneficio_mensual2" => $benMensual->id_beneficio_mensual]);
 
@@ -258,6 +273,6 @@ class LectorCSVController extends Controller
     $pdo = null;
 
     return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->fecha, 
-    'bruto' => $benMensual->bruto, 'dias' => $benMensual->beneficios()->count()]; 
+    'bruto' => $benMensual->beneficio, 'dias' => $benMensual->beneficios()->count()]; 
   }
 }

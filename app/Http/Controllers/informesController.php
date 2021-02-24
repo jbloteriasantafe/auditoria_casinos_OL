@@ -38,7 +38,7 @@ class informesController extends Controller
       DB::raw('CONCAT(LPAD(DAY(producido.fecha)  ,2,"00"),"-",
                       LPAD(MONTH(producido.fecha),2,"00"),"-",
                       YEAR(producido.fecha)) as fecha'),
-    'jugadores','ingreso','premio','producido.valor','cotizacion.valor as cotizacion')
+    'jugadores','apuesta','premio','producido.beneficio','cotizacion.valor as cotizacion')
     ->leftJoin('cotizacion',function($j){
       return $j->on('cotizacion.fecha','=','producido.fecha')->on('cotizacion.id_tipo_moneda','=','producido.id_tipo_moneda');
     })
@@ -49,9 +49,9 @@ class informesController extends Controller
 
     $total = DB::table('producido')->select(
       DB::raw('SUM(jugadores) as jugadores'),
-      DB::raw('SUM(ingreso)   as ingreso'),
+      DB::raw('SUM(apuesta)   as apuesta'),
       DB::raw('SUM(premio)    as premio'),
-      DB::raw('SUM(valor)     as valor')
+      DB::raw('SUM(beneficio)     as beneficio')
     )
     ->where([['producido.id_plataforma','=',$id_plataforma],['producido.id_tipo_moneda','=',$id_tipo_moneda]])
     ->whereYear('fecha','=',$anio)
@@ -61,9 +61,9 @@ class informesController extends Controller
     if(is_null($total)){
       $total = new \stdClass;
       $total->jugadores = 0;
-      $total->ingreso = 0;
+      $total->apuesta = 0;
       $total->premio = 0;
-      $total->valor = 0;
+      $total->beneficio = 0;
     }
     $total->fecha = '##-'.str_pad($mes,2,"0",STR_PAD_LEFT).'-'.$anio;
     $total->plataforma = Plataforma::find($id_plataforma)->nombre;
@@ -78,7 +78,7 @@ class informesController extends Controller
       $ultima_cotizacion = $cotizacionDefecto;
       foreach($dias as $d){
         $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion; 
-        $total_beneficio += $ultima_cotizacion*$d->valor;
+        $total_beneficio += $ultima_cotizacion*$d->beneficio;
       }
     }
 
