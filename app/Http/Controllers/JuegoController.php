@@ -476,24 +476,6 @@ class JuegoController extends Controller
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    $directorio = 'planillaDiferenciasEstadosJuegos';
-    if(!Storage::exists($directorio)) {
-      Storage::makeDirectory($directorio, 0775, true);
-    }
-    $path = $directorio.'/'. time() . '.pdf';
-    $file = $dompdf->output();
-    Storage::put($path,$file);
-    return 'juegos/'.$path;
-  }
-  public function planillaDiferenciasEstadosJuegos($archivo){
-    $directorio = 'planillaDiferenciasEstadosJuegos';
-    if(!Storage::exists($directorio)) {
-      Storage::makeDirectory($directorio, 0775, true);
-    }
-    $path = $directorio.'/'.$archivo;
-    if(!Storage::exists($path)) return "Archivo no encontrado";
-    return response()->make(Storage::get($path), 200, 
-    ['Content-Type' => 'application/pdf','Content-Disposition' => 'inline; filename="'.$archivo.'"']);
+    return base64_encode($dompdf->output());
   }
 }

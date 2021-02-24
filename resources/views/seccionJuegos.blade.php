@@ -413,6 +413,10 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                   </select>
                 </div>
               </div>
+              <div class="row">
+                <a href="#" target="_blank"  id="resultado_diferencias"
+                class="btn col-md-offset-5 col-md-1" type="button" style="text-align: center;">Descargar PDF</a>
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-successAceptar" id="btn-verificarEstados">VERIFICAR</button>

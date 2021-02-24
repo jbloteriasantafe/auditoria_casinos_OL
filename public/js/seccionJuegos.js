@@ -709,9 +709,28 @@ $('#btn-verificarEstados').click(function(){
     processData: false,
     contentType:false,
     cache:false,
-    success: function (data) {
-      console.log(data);
-      window.open(data,'_blank');
+    responseType: "blob",
+    success: function (data) {//Robado de https://stackoverflow.com/questions/2805330/opening-pdf-string-in-new-window-with-javascript
+      const byteCharacters = atob(data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const file = new Blob([byteArray], { type: 'application/pdf;base64' });
+      const fileURL = window.URL.createObjectURL(file);
+      $('#resultado_diferencias').attr('href',fileURL);
+      const ahora = new Date();
+      const yyyy = ahora.getFullYear();
+      const lPad = function(s){
+        return s.length == 1? '0'+s : s;
+      };
+      const mm = lPad(ahora.getMonth()+1);
+      const dd = lPad(ahora.getDate());
+      const hh = lPad(ahora.getHours());
+      const mi = lPad(ahora.getMinutes());
+      const ss = lPad(ahora.getSeconds());
+      $('#resultado_diferencias').attr('download',`Diferencias-Estados-${yyyy}-${mm}-${dd}-${hh}-${mi}-${ss}.pdf`);
     },
     error: function (data) {
       console.log(data);
