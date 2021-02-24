@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html>
+  <style>
+  </style>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div>
+    <div>
+      ResumenDeNegocio.csv
+      <input type="file" accept=".csv" id="beneficio">
+    </div>
+    <div>
+      Operaciones.csv
+      <input type="file" accept=".csv" id="operaciones">
+    </div>
+    <div>
+      <button id="generar">Generar!</button>
+    </div>
+    <div>
+      <textarea id="resultado" readonly></textarea>
+    </div>
+    <div>
+      <a id="resultado_link">Descargar</a>
+    </div>
+  </body>
+  <script src="/js/CSV_parser.js"></script>
+  <script src="/js/jquery.js"></script>
+  <script>
+    function convertirBeneficio(beneficio,operaciones){
+      beneficio = CSV_parse(beneficio);
+      const op_fecha_idx = 4;//Hardcodeo porque los archivos son gigantes y no puedo hacerlo dinamico y rapido..
+      const op_premioOapuesta_idx = 6;
+      const op_bonoOefec_idx = 7;
+      const op_cantidad_idx = 8;
+      operaciones = CSV_parse(operaciones,{},function(value, row, col){
+        if (col != op_fecha_idx && 
+            col != op_premioOapuesta_idx &&
+            col != op_bonoOefec_idx &&
+            col != op_cantidad_idx) return "";
+        return value;
+      });
+      let fecha_PremiosBono = {};
+      {
+        for(let i = 1;i<operaciones.length;i++){
+          const row = operaciones[i];
+          const premioOapuesta  = row[op_premioOapuesta_idx-1];
+          const bonoOefect = row[op_bonoOefec_idx-1];
+          if(premioOapuesta != "Premio" || bonoOefect != "Bono universal") continue;
+          const fecha = row[op_fecha_idx-1];
+          const nfecha = fecha.substr(0,10);
+          const cantidad = row[op_cantidad_idx-1];
+          const ncantidad = parseFloat(cantidad.replaceAll(",","."));
+          if(nfecha in fecha_PremiosBono) fecha_PremiosBono[nfecha]+=ncantidad;
+          else fecha_PremiosBono[nfecha]=ncantidad;
+        }
+      }
+      let resultado = [];
+      {
+        let header = beneficio[0];
+        const DateReport_idx = header.indexOf("Periodo");
+        const Players_idx = header.indexOf("Jugadores");
+        const TotalDeposits_idx = header.indexOf("Ventas Brutas");
+        const TotalWithdrawals_idx = header.indexOf("Retiradas");
+        const TotalManualAdjustments_idx = header.indexOf("Ajuste Manual");
+        const TotalWager_idx = header.indexOf("Apuestas Totales");
+        const PremiosEfectivo_idx = header.indexOf("Premios Efectivo");
+        //const BeneficioEfectivo_idx = header.indexOf("GGR");
+        resultado.push([
+            "Total",
+            "DateReport",
+            "Currency",
+            "TotalRegistrations",
+            "Verified",
+            "Players",
+            "TotalDeposits",
+            "TotalWithdrawals",
+            "TotalBonus",
+            "TotalManualAdjustments",
+            "TotalVPoints",
+            "TotalWager",
+            "TotalOut",
+            "GrossRevenue",
+            "lastupdated",
+        ]);        
+        for(let i = 1;i<beneficio.length;i++){
+          const row = beneficio[i];
+          const fecha = row[DateReport_idx];
+          const premio_bono = fecha in fecha_PremiosBono? fecha_PremiosBono[fecha] : 0.00;
+          //Premios = Premios_Ef + PremiosBono
+          const premio_total = parseFloat(row[PremiosEfectivo_idx].replaceAll(",",".")) + premio_bono;
+          //Beneficios = Apuestas - Premios
+          const beneficio_total = parseFloat(row[TotalWager_idx].replaceAll(",","."))-premio_total;
+          resultado.push([
+            "",
+            row[DateReport_idx] + " 06:00:00",
+            "ARS",
+            "",
+            "",
+            row[Players_idx],
+            row[TotalDeposits_idx],
+            row[TotalWithdrawals_idx],
+            "",
+            row[TotalManualAdjustments_idx],
+            "",
+            row[TotalWager_idx],
+            premio_total.toFixed(2).replaceAll(".",","),
+            beneficio_total.toFixed(2).replaceAll(".",","),
+            "",
+          ]);
+        }
+      }
+      //console.log(resultado);
+      const resultado_str = CSV_stringify(resultado).replaceAll('\n','\r\n'); 
+      $('#resultado').val(resultado_str);
+      let blob = new Blob([resultado_str],{type: 'text/csv'});
+      const link = window.URL.createObjectURL(blob);
+      $('#resultado_link').attr('href',link);
+      $('#resultado_link').attr('download','beneficio_'+$('#beneficio')[0].files[0].name);
+    }
+    $('#generar').click(function(e){
+      e.preventDefault();
+      let beneficio_reader = new FileReader();
+      beneficio_reader.onload = function(){
+        let operaciones_reader = new FileReader();
+        operaciones_reader.onload = function(){
+          convertirBeneficio(beneficio_reader.result,operaciones_reader.result);    
+        };
+        operaciones_reader.readAsText($('#operaciones')[0].files[0]);   
+      };
+      beneficio_reader.readAsText($('#beneficio')[0].files[0]);
+    });
+  </script>
+</html>
