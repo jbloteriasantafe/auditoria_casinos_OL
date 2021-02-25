@@ -78,6 +78,7 @@
             "Currency",
             "TotalRegistrations",
             "Verified",
+            "TotalVerified",
             "Players",
             "TotalDeposits",
             "TotalWithdrawals",
@@ -103,6 +104,7 @@
             "ARS",
             "",
             "",
+            "",
             row[Players_idx],
             row[TotalDeposits_idx],
             row[TotalWithdrawals_idx],
@@ -122,7 +124,9 @@
       let blob = new Blob([resultado_str],{type: 'text/csv'});
       const link = window.URL.createObjectURL(blob);
       $('#resultado_link').attr('href',link);
-      $('#resultado_link').attr('download','beneficio_'+$('#beneficio')[0].files[0].name);
+      const desde = resultado[1][1].substr(0,10);
+      const hasta = resultado[resultado.length-1][1].substr(0,10);
+      $('#resultado_link').attr('download',`beneficio_BP_${desde}_${hasta}.csv`);
     }
     $('#generar').click(function(e){
       e.preventDefault();
