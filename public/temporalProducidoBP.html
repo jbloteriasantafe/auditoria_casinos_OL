@@ -115,12 +115,12 @@
           gamelist[sala],
           val["servicio"],
           Object.keys(val["jugadores"]).length,
-          ap_ef.toFixed(2),
-          ap_bo.toFixed(2),
-          (ap_ef+ap_bo).toFixed(2),
-          (ap_ef-prem_ef).toFixed(2),
-          (ap_bo-prem_bo).toFixed(2),
-          (ap_ef+ap_bo-prem_ef-prem_bo).toFixed(2)
+          ap_ef.toFixed(2).replaceAll('.',','),
+          ap_bo.toFixed(2).replaceAll('.',','),
+          (ap_ef+ap_bo).toFixed(2).replaceAll('.',','),
+          (ap_ef-prem_ef).toFixed(2).replaceAll('.',','),
+          (ap_bo-prem_bo).toFixed(2).replaceAll('.',','),
+          (ap_ef+ap_bo-prem_ef-prem_bo).toFixed(2).replaceAll('.',',')
         ]);
       }
       const resultado_str = CSV_stringify(resultado).replaceAll('\n','\r\n');
