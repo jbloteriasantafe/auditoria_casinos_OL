@@ -35,6 +35,30 @@
   <script src="/js/CSV_parser.js"></script>
   <script src="/js/jquery.js"></script>
   <script>
+    function esFicticio(jid){
+      const ids = [
+        "2097",//bsftestars
+        "1507",//Diego84
+        "1543",//fedealen78
+        "1536",//juninho
+        "1862",//PARdeJOTOS
+        "1792",//pragmatic
+        "1500",//tecnalis
+        "2096",//testbsf
+        "2379",//testin
+        "1501",//TestServicios
+        "1503",//TestServicios003
+        "1504",//TestServicios005
+        "1502",//TestServicos002
+        "4880",//TestServicios006
+        "4881",//TestServicios007
+        "4884",//TestServicios008
+        "4882",//TestServicios009
+        "4883",//TestServicios010
+        "4887",//TestServicios011
+      ];
+      return ids.includes(jid);
+    };
     function toIso(f){
       f = f.split("/");
       const lPad = function(s){return s.length == 1? '0'+s : s};
@@ -71,10 +95,11 @@
       let agrupadoPorSala = {};
       for(let i = 1;i<operaciones.length;i++){
         const row = operaciones[i];
+        const jugador = row[jugador_idx-1];
+        if(esFicticio(jugador)) continue;
         const op = row[tipoOp_idx-1];
         const balance = row[tipoBal_idx-1];
         if((op == "Apuesta" || op == "Premio") && (balance == "Efectivo" || balance == "Bono universal")){
-          const jugador  = row[jugador_idx-1];
           const cantidad = row[cantidad_idx-1];
           const servicio = row[servicio_idx-1];
           const sala     = row[sala_idx-1];

@@ -35,6 +35,30 @@
   <script src="/js/CSV_parser.js"></script>
   <script src="/js/jquery.js"></script>
   <script>
+    function esFicticio(jid){
+      const ids = [
+        "2097",//bsftestars
+        "1507",//Diego84
+        "1543",//fedealen78
+        "1536",//juninho
+        "1862",//PARdeJOTOS
+        "1792",//pragmatic
+        "1500",//tecnalis
+        "2096",//testbsf
+        "2379",//testin
+        "1501",//TestServicios
+        "1503",//TestServicios003
+        "1504",//TestServicios005
+        "1502",//TestServicos002
+        "4880",//TestServicios006
+        "4881",//TestServicios007
+        "4884",//TestServicios008
+        "4882",//TestServicios009
+        "4883",//TestServicios010
+        "4887",//TestServicios011
+      ];
+      return ids.includes(jid);
+    };
     function toIso(f){
       f = f.split("/");
       const lPad = function(s){return s.length == 1? '0'+s : s};
@@ -45,6 +69,7 @@
     }
     function convertirBeneficio(beneficio,operaciones){
       beneficio = CSV_parse(beneficio);
+      const op_jugador_idx = 2;
       const op_fecha_idx = 4;//Hardcodeo porque los archivos son gigantes y no puedo hacerlo dinamico y rapido..
       const op_premioOapuesta_idx = 6;
       const op_bonoOefec_idx = 7;
@@ -53,13 +78,16 @@
         if (col != op_fecha_idx && 
             col != op_premioOapuesta_idx &&
             col != op_bonoOefec_idx &&
-            col != op_cantidad_idx) return "";
+            col != op_cantidad_idx &&
+            col != op_jugador_idx) return "";
         return value;
       });
       let fecha_PremiosBono = {};
       {
         for(let i = 1;i<operaciones.length;i++){
           const row = operaciones[i];
+          const jugador = row[op_jugador_idx-1];
+          if(esFicticio(jugador)) continue;
           const premioOapuesta  = row[op_premioOapuesta_idx-1];
           const bonoOefect = row[op_bonoOefec_idx-1];
           if(premioOapuesta != "Premio" || bonoOefect != "Bono universal") continue;
