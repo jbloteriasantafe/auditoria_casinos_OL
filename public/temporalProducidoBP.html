@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html>
+  <style>
+  </style>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div>
+      <h3>Producido BPLAY</h3>
+    </div>
+    <div>
+      ListadoSalas.csv
+      <input type="file" accept=".csv" id="gamelist">
+    </div>
+    <div>
+      Operaciones1Dia.csv
+      <input type="file" accept=".csv" id="producido">
+    </div>
+    <div>
+      <button id="generar">Generar!</button>
+    </div>
+    <div>
+      <textarea id="resultado" readonly style="width: 100%;height: 400px;"></textarea>
+    </div>
+    <div>
+      <a id="resultado_link">Descargar</a>
+    </div>
+  </body>
+  <script src="/js/CSV_parser.js"></script>
+  <script src="/js/jquery.js"></script>
+  <script>
+    function toIso(f){
+      f = f.split("/");
+      const lPad = function(s){return s.length == 1? '0'+s : s};
+      return f[2]+'-'+lPad(f[1])+'-'+lPad(f[0]);
+    }
+    function combinarArchivos(gamelist,operaciones){
+      gamelist = CSV_parse(gamelist);
+      let Sala_Code = {};
+      {
+        const sala_idx = gamelist[0].indexOf("ogp_room_name");
+        const code_idx = gamelist[0].indexOf("ogp_room_id");
+        for(let i = 1;i<gamelist.length;i++){
+          const row = gamelist[i];
+          const sala = row[sala_idx];
+          const code = row[code_idx];
+          gamelist[sala] = code;
+        }
+      }
+      const jugador_idx = 2;
+      const fecha_idx =  4;
+      const tipoOp_idx = 6;
+      const tipoBal_idx = 7;
+      const cantidad_idx = 8;
+      const servicio_idx = 11;
+      const sala_idx = 12;
+      operaciones = CSV_parse(operaciones,{},function(value, row, col){
+        if (col != jugador_idx && col != fecha_idx && col != tipoOp_idx && col != tipoBal_idx &&
+            col != cantidad_idx && col != servicio_idx && col != sala_idx) return "";
+        return value;
+      });
+      let agrupadoPorSala = {};
+      for(let i = 1;i<operaciones.length;i++){
+        const row = operaciones[i];
+        const op = row[tipoOp_idx-1];
+        const balance = row[tipoBal_idx-1];
+        if((op == "Apuesta" || op == "Premio") && (balance == "Efectivo" || balance == "Bono universal")){
+          const jugador  = row[jugador_idx-1];
+          const cantidad = row[cantidad_idx-1];
+          const servicio = row[servicio_idx-1];
+          const sala     = row[sala_idx-1];
+          if(!(sala in agrupadoPorSala)){
+            let aux = {};
+            aux["Apuesta"] = {"Efectivo" : 0.0, "Bono universal": 0.0};
+            aux["Premio"] = {"Efectivo" : 0.0, "Bono universal": 0.0};
+            aux["jugadores"] = {};
+            aux["servicio"] = servicio;
+            agrupadoPorSala[sala] = aux;
+          }
+          agrupadoPorSala[sala][op][balance]+=parseFloat(cantidad);
+          agrupadoPorSala[sala]["jugadores"][jugador] = true;
+        }
+      }
+      let resultado = [];
+      resultado.push([
+        "DateReport",
+        "GameCode",
+        "GameCategory",
+        "Players",
+        "TotalWagerCash",
+        "TotalWagerBonus",
+        "TotalWager",
+        "GrossRevenueCash",
+        "GrossRevenueBonus",
+        "GrossRevenue"
+      ]);
+      const fecha = operaciones[1][fecha_idx-1].split(" ")[0];
+      for(const sala in agrupadoPorSala){
+        const val = agrupadoPorSala[sala];
+        const ap_ef = Math.abs(val["Apuesta"]["Efectivo"]);
+        const ap_bo = Math.abs(val["Apuesta"]["Bono universal"]);
+        const prem_ef = Math.abs(val["Premio"]["Efectivo"]);
+        const prem_bo = Math.abs(val["Premio"]["Bono universal"]);
+        resultado.push([
+          fecha + " 06:00:00",
+          gamelist[sala],
+          val["servicio"],
+          Object.keys(val["jugadores"]).length,
+          ap_ef.toFixed(2),
+          ap_bo.toFixed(2),
+          (ap_ef+ap_bo).toFixed(2),
+          (ap_ef-prem_ef).toFixed(2),
+          (ap_bo-prem_bo).toFixed(2),
+          (ap_ef+ap_bo-prem_ef-prem_bo).toFixed(2)
+        ]);
+      }
+      const resultado_str = CSV_stringify(resultado).replaceAll('\n','\r\n');
+      $('#resultado').text(resultado_str); 
+      let blob = new Blob([resultado_str],{type: 'text/csv'});
+      const link = window.URL.createObjectURL(blob);
+      $('#resultado_link').attr('href',link);
+      const fechaIso = toIso(fecha);
+      $('#resultado_link').attr('download',`producido_BP_${fechaIso}.csv`,'combinado_'+$('#producido')[0].files[0].name);
+    }
+    $('#generar').click(function(e){
+      e.preventDefault();
+      let glist_reader = new FileReader();
+      glist_reader.onload = function(){
+        let operaciones_reader = new FileReader();
+        operaciones_reader.onload = function(){
+          combinarArchivos(glist_reader.result,operaciones_reader.result);    
+        }
+        operaciones_reader.readAsText($('#producido')[0].files[0]);
+      }
+      glist_reader.readAsText($('#gamelist')[0].files[0]);
+    });
+  </script>
+</html>

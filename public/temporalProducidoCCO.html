@@ -12,6 +12,9 @@
   </head>
   <body>
     <div>
+      <h3>Producido CCO</h3>
+    </div>
+    <div>
       GameList.csv
       <input type="file" accept=".csv" id="gamelist">
     </div>
@@ -23,7 +26,7 @@
       <button id="generar">Generar!</button>
     </div>
     <div>
-      <textarea id="resultado" readonly style="width: 100%;height: 600px;"></textarea>
+      <textarea id="resultado" readonly style="width: 100%;height: 400px;"></textarea>
     </div>
     <div>
       <a id="resultado_link">Descargar</a>
@@ -76,7 +79,6 @@
       e.preventDefault();
       let glist_reader = new FileReader();
       glist_reader.onload = function(){
-        //usar reader.result
         let producido_reader = new FileReader();
         producido_reader.onload = function(){
           combinarArchivos(glist_reader.result,producido_reader.result);    
