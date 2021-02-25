@@ -23,7 +23,7 @@
       <button id="generar">Generar!</button>
     </div>
     <div>
-      <textarea id="resultado" readonly></textarea>
+      <textarea id="resultado" readonly style="width: 100%;height: 600px;"></textarea>
     </div>
     <div>
       <a id="resultado_link">Descargar</a>
@@ -32,6 +32,11 @@
   <script src="/js/CSV_parser.js"></script>
   <script src="/js/jquery.js"></script>
   <script>
+    function toIso(f){
+      f = f.split("/");
+      const lPad = function(s){return s.length == 1? '0'+s : s};
+      return f[2]+'-'+lPad(f[1])+'-'+lPad(f[0]);
+    }
     function combinarArchivos(gamelist,producido){
       gamelist = CSV_parse(gamelist);
       producido = CSV_parse(producido);
@@ -64,7 +69,8 @@
       let blob = new Blob([resultado_str],{type: 'text/csv'});
       const link = window.URL.createObjectURL(blob);
       $('#resultado_link').attr('href',link);
-      $('#resultado_link').attr('download','combinado_'+$('#producido')[0].files[0].name);
+      const fecha = toIso(resultado[1][0].split(" ")[0]);
+      $('#resultado_link').attr('download',`producido_CCO_${fecha}.csv`,'combinado_'+$('#producido')[0].files[0].name);
     }
     $('#generar').click(function(e){
       e.preventDefault();
