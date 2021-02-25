@@ -40,6 +40,9 @@
       const lPad = function(s){return s.length == 1? '0'+s : s};
       return f[2]+'-'+lPad(f[1])+'-'+lPad(f[0]);
     }
+    function getFloat(str_f){
+      return parseFloat(str_f.replaceAll(" ","").replaceAll(".","").replaceAll(",","."))
+    }
     function combinarArchivos(gamelist,operaciones){
       gamelist = CSV_parse(gamelist);
       let Sala_Code = {};
@@ -83,7 +86,7 @@
             aux["servicio"] = servicio;
             agrupadoPorSala[sala] = aux;
           }
-          agrupadoPorSala[sala][op][balance]+=parseFloat(cantidad);
+          agrupadoPorSala[sala][op][balance]+=getFloat(cantidad);
           agrupadoPorSala[sala]["jugadores"][jugador] = true;
         }
       }

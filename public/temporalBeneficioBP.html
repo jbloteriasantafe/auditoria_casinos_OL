@@ -40,6 +40,9 @@
       const lPad = function(s){return s.length == 1? '0'+s : s};
       return f[2]+'-'+lPad(f[1])+'-'+lPad(f[0]);
     }
+    function getFloat(str_f){
+      return parseFloat(str_f.replaceAll(" ","").replaceAll(".","").replaceAll(",","."))
+    }
     function convertirBeneficio(beneficio,operaciones){
       beneficio = CSV_parse(beneficio);
       const op_fecha_idx = 4;//Hardcodeo porque los archivos son gigantes y no puedo hacerlo dinamico y rapido..
@@ -63,9 +66,10 @@
           const fecha = row[op_fecha_idx-1];
           const nfecha = fecha.split(" ")[0];
           const cantidad = row[op_cantidad_idx-1];
-          const ncantidad = parseFloat(cantidad.replaceAll(",","."));
-          if(nfecha in fecha_PremiosBono) fecha_PremiosBono[nfecha]+=ncantidad;
-          else fecha_PremiosBono[nfecha]=ncantidad;
+          if(!(nfecha in fecha_PremiosBono)) fecha_PremiosBono[nfecha] = 0.0;
+          const ncantidad = getFloat(cantidad);
+          fecha_PremiosBono[nfecha]+=ncantidad;
+          aux += fecha + " --- " + ncantidad + "\n";
         }
       }
       let resultado = [];
@@ -101,9 +105,9 @@
           const fecha = row[DateReport_idx];
           const premio_bono = fecha in fecha_PremiosBono? fecha_PremiosBono[fecha] : 0.00;
           //Premios = Premios_Ef + PremiosBono
-          const premio_total = parseFloat(row[PremiosEfectivo_idx].replaceAll(",",".")) + premio_bono;
+          const premio_total = Math.abs(getFloat(row[PremiosEfectivo_idx])) + Math.abs(premio_bono);
           //Beneficios = Apuestas - Premios
-          const beneficio_total = parseFloat(row[TotalWager_idx].replaceAll(",","."))-premio_total;
+          const beneficio_total = getFloat(row[TotalWager_idx])-premio_total;
           resultado.push([
             "",
             row[DateReport_idx] + " 06:00:00",
