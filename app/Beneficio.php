@@ -12,7 +12,7 @@ class Beneficio extends Model
   protected $visible = array('id_beneficio','id_beneficio_mensual','fecha',
     'jugadores','depositos','retiros',
     'apuesta','premio','beneficio',
-    'ajuste','observacion');
+    'ajuste','puntos_club_jugadores','observacion');
   protected $appends = array('calculado','diferencia','producido');
   public $timestamps = false;
 

@@ -166,6 +166,7 @@ class LectorCSVController extends Controller
     $benMensual->jugadores = 0;$benMensual->depositos = 0;$benMensual->retiros   = 0;
     $benMensual->apuesta   = 0;$benMensual->premio    = 0;$benMensual->beneficio = 0;
     $benMensual->ajuste = 0;
+    $benMensual->puntos_club_jugadores = 0;
     $benMensual->validado = false;
     $benMensual->save();
     
@@ -232,6 +233,7 @@ class LectorCSVController extends Controller
       premio,
       beneficio,
       ajuste,
+      puntos_club_jugadores,
       observacion
     )
     SELECT
@@ -243,8 +245,9 @@ class LectorCSVController extends Controller
     TotalWager       as apuesta,
     TotalOut         as premio,
     GrossRevenue     as beneficio,
-    0 as ajuste,
-    '' as observacion
+    0                as ajuste,
+    TotalVPoints     as puntos_club_jugadores,
+    ''               as observacion
     FROM beneficio_temporal
     WHERE beneficio_temporal.id_beneficio_mensual = :id_beneficio_mensual AND beneficio_temporal.Total = ''");
     $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
@@ -256,12 +259,15 @@ class LectorCSVController extends Controller
     $query = $pdo->prepare("UPDATE beneficio_mensual bm,
     (
       SELECT SUM(b.jugadores) as jugadores, SUM(b.depositos) as depositos, SUM(b.retiros)   as retiros,
-             SUM(b.apuesta)   as apuesta  , SUM(b.premio)    as premio   , SUM(b.beneficio) as beneficio
+             SUM(b.apuesta)   as apuesta  , SUM(b.premio)    as premio   , SUM(b.beneficio) as beneficio,
+             SUM(b.ajuste)    as ajuste   , SUM(b.puntos_club_jugadores) as puntos_club_jugadores
       FROM beneficio b
       WHERE b.id_beneficio_mensual = :id_beneficio_mensual1
       GROUP BY b.id_beneficio_mensual
     ) total
-    SET bm.jugadores = IFNULL(total.jugadores,0),bm.apuesta = IFNULL(total.apuesta,0),bm.premio = IFNULL(total.premio,0),bm.beneficio = IFNULL(total.beneficio,0)
+    SET bm.jugadores = IFNULL(total.jugadores,0),bm.apuesta = IFNULL(total.apuesta,0),bm.premio = IFNULL(total.premio,0),
+        bm.beneficio = IFNULL(total.beneficio,0),bm.ajuste  = IFNULL(total.ajuste,0),
+        bm.puntos_club_jugadores = IFNULL(total.puntos_club_jugadores,0)
     WHERE bm.id_beneficio_mensual = :id_beneficio_mensual2");
     $query->execute([":id_beneficio_mensual1" => $benMensual->id_beneficio_mensual,":id_beneficio_mensual2" => $benMensual->id_beneficio_mensual]);
 
