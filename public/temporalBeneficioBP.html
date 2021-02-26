@@ -19,11 +19,11 @@
       <input type="file" accept=".csv" id="beneficio">
     </div>
     <div>
-      OperacionesMes.csv
-      <input type="file" accept=".csv" id="operaciones">
+      Operaciones.csv (Multiples, 1 por día)
+      <input type="file" accept=".csv" id="operaciones" multiple>
     </div>
     <div>
-      <button id="generar">Generar!</button>
+      <button id="generar">Generar!</button><span id="reporteEstado" style="font-style: italic;"></span>
     </div>
     <div>
       <textarea id="resultado" readonly style="width: 100%;height: 400px;"></textarea>
@@ -67,41 +67,11 @@
     function getFloat(str_f){
       return parseFloat(str_f.replaceAll(" ","").replaceAll(".","").replaceAll(",","."))
     }
-    function convertirBeneficio(beneficio,operaciones){
-      beneficio = CSV_parse(beneficio);
-      const op_jugador_idx = 2;
-      const op_fecha_idx = 4;//Hardcodeo porque los archivos son gigantes y no puedo hacerlo dinamico y rapido..
-      const op_premioOapuesta_idx = 6;
-      const op_bonoOefec_idx = 7;
-      const op_cantidad_idx = 8;
-      operaciones = CSV_parse(operaciones,{},function(value, row, col){
-        if (col != op_fecha_idx && 
-            col != op_premioOapuesta_idx &&
-            col != op_bonoOefec_idx &&
-            col != op_cantidad_idx &&
-            col != op_jugador_idx) return "";
-        return value;
-      });
-      let fecha_PremiosBono = {};
-      {
-        for(let i = 1;i<operaciones.length;i++){
-          const row = operaciones[i];
-          const jugador = row[op_jugador_idx-1];
-          if(esFicticio(jugador)) continue;
-          const premioOapuesta  = row[op_premioOapuesta_idx-1];
-          const bonoOefect = row[op_bonoOefec_idx-1];
-          if(premioOapuesta != "Premio" || bonoOefect != "Bono universal") continue;
-          const fecha = row[op_fecha_idx-1];
-          const nfecha = fecha.split(" ")[0];
-          const cantidad = row[op_cantidad_idx-1];
-          if(!(nfecha in fecha_PremiosBono)) fecha_PremiosBono[nfecha] = 0.0;
-          const ncantidad = getFloat(cantidad);
-          fecha_PremiosBono[nfecha]+=ncantidad;
-        }
-      }
+    function generarBeneficio(resNegocio,fechaPremBo){
+      resNegocio = CSV_parse(resNegocio);
       let resultado = [];
       {
-        let header = beneficio[0];
+        let header = resNegocio[0];
         const DateReport_idx = header.indexOf("Periodo");
         const Players_idx = header.indexOf("Jugadores");
         const TotalDeposits_idx = header.indexOf("Ventas Brutas");
@@ -127,10 +97,11 @@
             "GrossRevenue",
             "lastupdated",
         ]);
-        for(let i = 1;i<beneficio.length;i++){
-          const row = beneficio[i];
+        $('#reporteEstado').text('Generando beneficio 0%');
+        for(let i = 1;i<resNegocio.length;i++){
+          const row = resNegocio[i];
           const fecha = row[DateReport_idx];
-          const premio_bono = fecha in fecha_PremiosBono? fecha_PremiosBono[fecha] : 0.00;
+          const premio_bono = fecha in fechaPremBo? fechaPremBo[fecha] : 0.00;
           //Premios = Premios_Ef + PremiosBono
           const premio_total = Math.abs(getFloat(row[PremiosEfectivo_idx])) + Math.abs(premio_bono);
           //Beneficios = Apuestas - Premios
@@ -153,6 +124,8 @@
             beneficio_total.toFixed(2).replaceAll(".",","),
             "",
           ]);
+          const porcentaje = (100.0*(i+1)/resNegocio.length).toFixed(2);
+          $('#reporteEstado').text(`Generando beneficio ${porcentaje}%`);
         }
       }
       const resultado_str = CSV_stringify(resultado).replaceAll('\n','\r\n'); 
@@ -163,18 +136,65 @@
       const desde = toIso(resultado[1][1].split(" ")[0]);
       const hasta = toIso(resultado[resultado.length-1][1].split(" ")[0]);
       $('#resultado_link').attr('download',`beneficio_BP_${desde}_${hasta}.csv`);
+      $('#reporteEstado').text('Generado');
     }
+    function obtenerFechaPremioBono(operaciones){
+      const op_jugador_idx = 2;
+      const op_fecha_idx = 4;//Hardcodeo porque los archivos son gigantes y no puedo hacerlo dinamico y rapido..
+      const op_premioOapuesta_idx = 6;
+      const op_bonoOefec_idx = 7;
+      const op_cantidad_idx = 8;
+      operaciones = CSV_parse(operaciones,{},function(value, row, col){
+        if (col != op_fecha_idx && 
+            col != op_premioOapuesta_idx &&
+            col != op_bonoOefec_idx &&
+            col != op_cantidad_idx &&
+            col != op_jugador_idx) return "";
+        return value;
+      });
+      let fechaPremBo = {};
+      {
+        for(let i = 1;i<operaciones.length;i++){
+          const row = operaciones[i];
+          const jugador = row[op_jugador_idx-1];
+          if(esFicticio(jugador)) continue;
+          const premioOapuesta  = row[op_premioOapuesta_idx-1];
+          const bonoOefect = row[op_bonoOefec_idx-1];
+          if(premioOapuesta != "Premio" || bonoOefect != "Bono universal") continue;
+          const fecha = row[op_fecha_idx-1];
+          const nfecha = fecha.split(" ")[0];
+          const cantidad = row[op_cantidad_idx-1];
+          if(!(nfecha in fechaPremBo)) fechaPremBo[nfecha] = 0.0;
+          const ncantidad = getFloat(cantidad);
+          fechaPremBo[nfecha]+=ncantidad;
+        }
+      }
+      return fechaPremBo;
+    }
+
+    function leerOperaciones(files,onFinish = function(fechaPremBo){console.log(fechaPremBo);},i = 0,acumulado = {}){
+      if(i >= files.length) return onFinish(acumulado);
+      $('#reporteEstado').text(`${i+1}/${files.length} operaciones`);
+      const op = files[i];
+      let op_reader = new FileReader;
+      op_reader.onload = function(){
+        const fechaPremBo = obtenerFechaPremioBono(op_reader.result);
+        leerOperaciones(files,onFinish,i+1,Object.assign(acumulado,fechaPremBo));
+      };
+      op_reader.readAsText(op);
+    }
+
     $('#generar').click(function(e){
       e.preventDefault();
-      let beneficio_reader = new FileReader();
-      beneficio_reader.onload = function(){
-        let operaciones_reader = new FileReader();
-        operaciones_reader.onload = function(){
-          convertirBeneficio(beneficio_reader.result,operaciones_reader.result);    
+      //Lee todos los archivos de operaciones y crea un mapa fecha -> premiosBono
+      const fechaPremBo = leerOperaciones($('#operaciones')[0].files,function(fechaPremBo){
+        $('#reporteEstado').text('Generando beneficio');
+        let resNegocio_reader = new FileReader();
+        resNegocio_reader.onload = function(){
+          generarBeneficio(resNegocio_reader.result,fechaPremBo);
         };
-        operaciones_reader.readAsText($('#operaciones')[0].files[0]);   
-      };
-      beneficio_reader.readAsText($('#beneficio')[0].files[0]);
+        resNegocio_reader.readAsText($('#beneficio')[0].files[0]);
+      });
     });
   </script>
 </html>
