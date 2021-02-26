@@ -454,11 +454,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_producidos'))
                                          <li>
                                            <div id="opcProducidos" class="opcionesHover" 
-                                           @if(false)
                                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/producidos'" href="#" style="cursor: pointer;"
-                                           @else
-                                           style="color: grey;"
-                                           @endif
                                            >
                                              <span>Producidos</span>
                                            </div>

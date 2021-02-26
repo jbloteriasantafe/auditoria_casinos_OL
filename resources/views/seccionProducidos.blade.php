@@ -19,155 +19,103 @@ use Illuminate\Http\Request;
 <link rel="stylesheet" href="/css/mensajeError.css">
 @endsection
 
-      <div class="row">
-            <div class="col-lg-12 col-xl-9"> <!-- columna TABLA CASINOS -->
-              <div class="row">
-                  <div class="col-md-12">
-                      <div class="panel panel-default">
-                        <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-                          <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-                        </div>
-                        <div id="collapseFiltros" class="panel-collapse collapse">
-                          <div class="panel-body">
-                              <div class="row"> <!-- Primera fila -->
-                                <div class="col-lg-3">
-                                  <h5>Casino</h5>
-                                  <select class="form-control" id="selectCasinos">
-                                    <option value="0">- Seleccione un casino -</option>
-                                     @foreach ($casinos as $casino)
-                                     <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                     @endforeach
-                                  </select>
-                                </div>
-                                <div class="col-lg-3">
-                                  <h5>Fecha de inicio</h5>
-
-                                  <div class="form-group">
-                                     <div class='input-group date' id='dtpFechaInicio' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                                         <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
-                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fas fa-times"></i></span>
-                                         <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                                     </div>
-                                     <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
-                                  </div>
-
-                                </div>
-                                <div class="col-lg-3">
-                                  <h5>Fecha de finalización</h5>
-
-                                  <div class="form-group">
-                                     <div class='input-group date' id='dtpFechaFin' data-link-field="fecha_fin" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                                         <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin"/>
-                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                         <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                                     </div>
-                                     <input class="form-control" type="hidden" id="fecha_fin" value=""/>
-                                  </div>
-
-                                </div>
-                                <div class="col-lg-3">
-                                  <h5>Validado</h5>
-                                  <select class="form-control" id="selectValidado">
-                                    <option value="-">-</option>
-                                    <option value="1">Si</option>
-                                    <option value="0">No</option>
-                                  </select>
-                                </div>
-                              </div>
-                              <br>
-                              <div class="row">
-                                <div class="col-md-12">
-                                  <center><button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button></center>
-                                </div>
-                              </div>
-                              <br>
-                          </div>
-                        </div>
-                      </div>
-
-                  </div>
-              </div> <!-- / Tarjeta FILTROS -->
-
-              <div class="row">
-                  <div class="col-md-12">
-                      <div class="panel panel-default">
-                  <div class="panel-heading">
-                      <h4>Últimos Producidos</h4>
-                  </div>
-                  <div class="panel-body">
-                    <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
-                      <thead>
-                        <tr>
-                          <th class="col-xs-2">CASINO</th>
-                          <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                          <th class="col-xs-1">MONEDA</th>
-                          <th class="col-xs-1">VALIDADO</th>
-                          <th class="col-xs-1">CONT INI</th>
-                          <th class="col-xs-2">RELEVAMIENTOS VISADOS</th>
-                          <th class="col-xs-2">ACCIÓN</th>
-                        </tr>
-                      </thead>
-                      <tbody style="height: 350px;">
-
-                      </tbody>
-                    </table>
-                  </div>
+<div class="row">
+  <div class="col-xl-9"><!-- columna TABLA PLATAFORMAS -->
+    <div class="row">
+      <div class="panel panel-default">
+        <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+          <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+        </div>
+        <div id="collapseFiltros" class="panel-collapse collapse">
+          <div class="panel-body">
+            <div class="row"> <!-- Primera fila -->
+              <div class="col-lg-3">
+                <h5>Plataforma</h5>
+                  <select class="form-control" id="selectPlataformas">
+                    <option value="0">- Seleccione una plataforma -</option>
+                    @foreach ($plataformas as $p)
+                    <option id="{{$p->id_plataforma}}" value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                    @endforeach
+                  </select>
                 </div>
-                  </div>
-              </div>
-            </div>
-            <!-- /.col-lg-12 col-xl-9 -->
-            <div class="col-lg-12 col-xl-3">
-              <div class="row">
-                @foreach($ultimos as $p_a_validar)
-                @if($p_a_validar['producido']!=null && empty($p_a_validar['validado']))
-                <div class="col-lg-12">
-                 <a href="" class="btn-ajustar" style="text-decoration: none;" value="{{$p_a_validar['producido']->id_casino}}" data-producido="{{$p_a_validar['producido']->id_producido}}">
-                  <div class="panel panel-default panelBotonNuevo">
-                      <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-                      <div class="backgroundNuevo"></div>
-                      <div class="row">
-                          <div class="col-xs-12">
-                            <center>
-                                <h5 class="txtLogo">+<span style="font-size:100px; position:relative; top:-8px;">{{$p_a_validar['descripcion']}}</span></h5>
-                                <h4 class="txtNuevo">AJUSTAR ÚLTIMO PRODUCIDO</h4>
-                            </center>
-                          </div>
-                      </div>
-                  </div>
-                 </a>
-                </div>
-                @endif
-                @endforeach
-              </div>
-
-              <div class="row">
-                <div class="col-lg-12">
-                  <a href="importaciones" style="text-decoration:none;">
-                      <div class="tarjetaSeccionMenor" align="center">
-                        <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
-                        <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-                        <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-                      </div>
-                  </a>
-                  <!-- <a href="importaciones" style="text-decoration:none;">
-                    <div class="tarjetaSeccionMenor">
-                        <div class="imagenSeccionMenor" >
-                            <img src="/img/tarjetas/resoluciones.jpg" alt="">
-                        </div>
-                        <div class="fondoSeccionMenor">
-                            <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-                            <img width="180" class="iconoSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-                        </div>
+                <div class="col-lg-3">
+                  <h5>Fecha de inicio</h5>
+                  <div class="form-group">
+                    <div class='input-group date' id='dtpFechaInicio' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                      <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
+                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fas fa-times"></i></span>
+                      <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
                     </div>
-                  </a> -->
+                    <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
+                  </div>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Fecha de finalización</h5>
+                  <div class="form-group">
+                    <div class='input-group date' id='dtpFechaFin' data-link-field="fecha_fin" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                      <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin"/>
+                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                      <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+                    </div>
+                    <input class="form-control" type="hidden" id="fecha_fin" value=""/>
+                  </div>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Validado</h5>
+                  <select class="form-control" id="selectValidado">
+                    <option value="-">-</option>
+                    <option value="1">Si</option>
+                    <option value="0">No</option>
+                  </select>
                 </div>
               </div>
-
+              <br>
+              <div class="row">
+                <div class="col-md-12">
+                  <center><button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button></center>
+                </div>
+              </div>
+              <br>
             </div>
-        </div>  <!-- /#row -->
-
-
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>Últimos Producidos</h4>
+          </div>
+          <div class="panel-body">
+            <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th class="col-xs-2">PLATAFORMA</th>
+                  <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-1">MONEDA</th>
+                  <th class="col-xs-1">VALIDADO</th>
+                  <th class="col-xs-1">CONT INI</th>
+                  <th class="col-xs-2">RELEVAMIENTOS VISADOS</th>
+                  <th class="col-xs-2">ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody style="height: 350px;">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> <!-- / Tarjeta FILTROS -->
+    <div class="col-lg-3">
+      <a href="importaciones" style="text-decoration:none;">
+        <div class="tarjetaSeccionMenor" align="center">
+          <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
+          <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
+          <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
 <!--Modal nuevo para ajustes-->
 
 <div class="modal fade" id="modalCargaProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -427,7 +375,7 @@ use Illuminate\Http\Request;
                 </div>
 
                 <div class="modal-body franjaRojaModal">
-                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
+                  <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
                           <div class="col-xs-12">
                             <strong>¿Seguro desea eliminar Producido? Podría ocasionar errores serios en el sistema.</strong>
