@@ -97,36 +97,67 @@
             "GrossRevenue",
             "lastupdated",
         ]);
-        $('#reporteEstado').text('Generando beneficio 0%');
+        $('#reporteEstado').text('Generando beneficio');
+        let total = {
+          "Players":0,"TotalDeposits":0,"TotalWithdrawals":0,"TotalManualAdjustments":0,"TotalWager":0,"TotalOut":0,"GrossRevenue":0
+        };
         for(let i = 1;i<resNegocio.length;i++){
-          const row = resNegocio[i];
-          const fecha = row[DateReport_idx];
-          const premio_bono = fecha in fechaPremBo? fechaPremBo[fecha] : 0.00;
-          //Premios = Premios_Ef + PremiosBono
-          const premio_total = Math.abs(getFloat(row[PremiosEfectivo_idx])) + Math.abs(premio_bono);
+          const row                    = resNegocio[i];
+          const DateReport             = row[DateReport_idx];
+          const Players                = row[Players_idx];
+          const TotalDeposits          = row[TotalDeposits_idx];
+          const TotalWithdrawals       = row[TotalWithdrawals_idx];
+          const TotalManualAdjustments = row[TotalManualAdjustments_idx];
+          const TotalWager             = row[TotalWager_idx];
+          const premio_bono            = DateReport in fechaPremBo? fechaPremBo[DateReport] : 0.00;
+          //Premios = PremiosEfectivo + PremiosBono
+          const TotalOut               = Math.abs(getFloat(row[PremiosEfectivo_idx])) + Math.abs(premio_bono);
           //Beneficios = Apuestas - Premios
-          const beneficio_total = getFloat(row[TotalWager_idx])-premio_total;
+          const GrossRevenue           = getFloat(row[TotalWager_idx])-TotalOut;
           resultado.push([
             "",
-            row[DateReport_idx] + " 06:00:00",
+            DateReport + " 06:00:00",
             "ARS",
             "",
             "",
             "",
-            row[Players_idx],
-            row[TotalDeposits_idx],
-            row[TotalWithdrawals_idx],
+            Players,
+            TotalDeposits,
+            TotalWithdrawals,
             "",
-            row[TotalManualAdjustments_idx],
+            TotalManualAdjustments,
             "",
-            row[TotalWager_idx],
-            premio_total.toFixed(2).replaceAll(".",","),
-            beneficio_total.toFixed(2).replaceAll(".",","),
+            TotalWager,
+            TotalOut.toFixed(2).replaceAll(".",","),
+            GrossRevenue.toFixed(2).replaceAll(".",","),
             "",
           ]);
-          const porcentaje = (100.0*(i+1)/resNegocio.length).toFixed(2);
-          $('#reporteEstado').text(`Generando beneficio ${porcentaje}%`);
+          total["Players"]                += parseInt(Players);
+          total["TotalDeposits"]          += getFloat(TotalDeposits);
+          total["TotalWithdrawals"]       += getFloat(TotalWithdrawals);
+          total["TotalManualAdjustments"] += getFloat(TotalManualAdjustments);
+          total["TotalWager"]             += getFloat(TotalWager);
+          total["TotalOut"]               += TotalOut;
+          total["GrossRevenue"]           += GrossRevenue;
         }
+        resultado.push([
+            "Total:",
+            resultado[resultado.length-1][1],
+            "ARS",
+            "",
+            "",
+            "",
+            total["Players"],
+            total["TotalDeposits"].toFixed(2).replaceAll(".",","),
+            total["TotalWithdrawals"].toFixed(2).replaceAll(".",","),
+            "",
+            total["TotalManualAdjustments"].toFixed(2).replaceAll(".",","),
+            "",
+            total["TotalWager"].toFixed(2).replaceAll(".",","),
+            total["TotalOut"].toFixed(2).replaceAll(".",","),
+            total["GrossRevenue"].toFixed(2).replaceAll(".",","),
+            "",
+        ]);
       }
       const resultado_str = CSV_stringify(resultado).replaceAll('\n','\r\n'); 
       $('#resultado').val(resultado_str);
@@ -172,6 +203,19 @@
       return fechaPremBo;
     }
 
+    //Object.assign no suma si ya estaba la fecha, sobreescribe, lo hago a mano
+    function mergeFechaPremBo(fechaPremBo1,fechaPremBo2){
+      let result = {};
+      for(const k in fechaPremBo1){
+        result[k] = fechaPremBo1[k];
+      }
+      for(const k in fechaPremBo2){
+        if(k in result) result[k]+=fechaPremBo2[k];
+        else result[k]=fechaPremBo2[k];
+      }
+      return result;
+    }
+
     function leerOperaciones(files,onFinish = function(fechaPremBo){console.log(fechaPremBo);},i = 0,acumulado = {}){
       if(i >= files.length) return onFinish(acumulado);
       $('#reporteEstado').text(`${i+1}/${files.length} operaciones`);
@@ -179,7 +223,7 @@
       let op_reader = new FileReader;
       op_reader.onload = function(){
         const fechaPremBo = obtenerFechaPremioBono(op_reader.result);
-        leerOperaciones(files,onFinish,i+1,Object.assign(acumulado,fechaPremBo));
+        leerOperaciones(files,onFinish,i+1,mergeFechaPremBo(acumulado,fechaPremBo));
       };
       op_reader.readAsText(op);
     }
