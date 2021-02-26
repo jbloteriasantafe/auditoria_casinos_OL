@@ -67,6 +67,9 @@
     function getFloat(str_f){
       return parseFloat(str_f.replaceAll(" ","").replaceAll(".","").replaceAll(",","."))
     }
+    function fToStr(f){
+      return f.toFixed(2).replaceAll('.',',');
+    }
     function generarBeneficio(resNegocio,fechaPremBo){
       resNegocio = CSV_parse(resNegocio);
       let resultado = [];
@@ -95,7 +98,7 @@
             "TotalWager",
             "TotalOut",
             "GrossRevenue",
-            "lastupdated",
+            "lastupdated"
         ]);
         $('#reporteEstado').text('Generando beneficio');
         let total = {
@@ -113,7 +116,7 @@
           //Premios = PremiosEfectivo + PremiosBono
           const TotalOut               = Math.abs(getFloat(row[PremiosEfectivo_idx])) + Math.abs(premio_bono);
           //Beneficios = Apuestas - Premios
-          const GrossRevenue           = getFloat(row[TotalWager_idx])-TotalOut;
+          const GrossRevenue           = getFloat(row[TotalWager_idx])-TotalOut-getFloat(TotalManualAdjustments);//Al beneficio lo doy ajustado
           resultado.push([
             "",
             DateReport + " 06:00:00",
@@ -128,9 +131,9 @@
             TotalManualAdjustments,
             "",
             TotalWager,
-            TotalOut.toFixed(2).replaceAll(".",","),
-            GrossRevenue.toFixed(2).replaceAll(".",","),
-            "",
+            fToStr(TotalOut),
+            fToStr(GrossRevenue),
+            ""
           ]);
           total["Players"]                += parseInt(Players);
           total["TotalDeposits"]          += getFloat(TotalDeposits);
@@ -148,15 +151,15 @@
             "",
             "",
             total["Players"],
-            total["TotalDeposits"].toFixed(2).replaceAll(".",","),
-            total["TotalWithdrawals"].toFixed(2).replaceAll(".",","),
+            fToStr(total["TotalDeposits"]),
+            fToStr(total["TotalWithdrawals"]),
             "",
-            total["TotalManualAdjustments"].toFixed(2).replaceAll(".",","),
+            fToStr(total["TotalManualAdjustments"]),
             "",
-            total["TotalWager"].toFixed(2).replaceAll(".",","),
-            total["TotalOut"].toFixed(2).replaceAll(".",","),
-            total["GrossRevenue"].toFixed(2).replaceAll(".",","),
-            "",
+            fToStr(total["TotalWager"]),
+            fToStr(total["TotalOut"]),
+            fToStr(total["GrossRevenue"]),
+            ""
         ]);
       }
       const resultado_str = CSV_stringify(resultado).replaceAll('\n','\r\n'); 
