@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Producido;
-use App\Plataforma;
 use App\DetalleProducido;
+use App\Plataforma;
+use App\TipoMoneda;
+use App\Juego;
 use View;
 use Dompdf\Dompdf;
 use App\Http\Controllers\FormatoController;
@@ -29,53 +31,31 @@ class ProducidoController extends Controller
   public function buscarTodo(){//@TODO: Arreglar esto cuando se adapte el ajuste de producidos a Online
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
-    return view('seccionProducidos' , ['plataformas' => $usuario->plataformas]);
+    return view('seccionProducidos' , ['plataformas' => $usuario->plataformas,'tipo_monedas' => TipoMoneda::all()]);
   }
-  // buscarProducidos
+
   public function buscarProducidos(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $plataformas = array();
-    $producidosAValidar=array();
-    $producidos=array();
-    if($request->id_plataforma != 0){
+    if(!empty($request->id_plataforma)){
       $plataformas= [$request->id_plataforma];
-    }else{
-      foreach ($usuario->plataformas as $plataforma) {
-        $plataformas[] = $plataforma->id_plataforma;
-      }
+    }
+    else foreach ($usuario->plataformas as $plataforma) {
+      $plataformas[] = $plataforma->id_plataforma;
     }
 
-    $fecha_inicio_busqueda = $request->fecha_inicio;
-    $fecha_fin_busqueda = $request->fecha_fin == null ? date('Y-m-d') : $request->fecha_fin;
-    $validado = $request->validado;
-    $reglas= array();
-    if($validado != '-') $reglas[] = ['validado' , '=' , $validado];
-    //ultimos producidos cargados en el sistema con el estado de los contadores y archivos asociados.
-    if($request->fecha_inicio != null){
-      $resultados=Producido::whereIn('id_plataforma',$plataformas)->where($reglas)->whereBetween('fecha',[$fecha_inicio_busqueda, $fecha_fin_busqueda])->orderBy('fecha','desc')->get();
-    }else {
-      $resultados=Producido::whereIn('id_plataforma' , $plataformas)->where($reglas)->orderBy('fecha', 'desc')->take(50)->get();
-    }
+    $reglas = [];
+    if($request->id_tipo_moneda != "") $reglas[] = ['id_tipo_moneda','=',$request->id_tipo_moneda];
 
-    foreach($resultados as $resultado){
-      $cerrado=array();
-      $validado=array();
-      //cerrado con fecha inicio
-      $fecha_inicio=$resultado->fecha;
-      $cerrado= ContadorController::getInstancia()->estaCerrado($fecha_inicio,$resultado->id_plataforma ,$resultado->tipo_moneda);
-      //validado en la fecha fin
-      $fecha_fin=date('Y-m-d' , strtotime($resultado->fecha. ' + 1 days'));
-      $validado=RelevamientoController::getInstancia()->estaValidado($fecha_fin,$resultado->id_plataforma, $resultado->tipo_moneda);
-      $producidos[] = ['producido' => $resultado ,'cerrado' => $cerrado ,'validado' => $validado ,'plataforma' =>$resultado->plataforma , 'tipo_moneda' => $resultado->tipo_moneda];
-    }
+    $fecha_inicio = '2020-01-01';
+    $fecha_fin = date('Y-m-d');
+    if(!empty($request->fecha_inicio)) $fecha_inicio = $request->fecha_inicio;
+    if(!empty($request->fecha_fin))    $fecha_fin    = $request->fecha_fin;
 
-    $plataformas= Plataforma::whereIn('id_plataforma',$plataformas)->get();
+    $orden = $request->orden == 'asc'? 'asc':'desc';
 
-    //???
-    UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
-
-    if($request->orden == 'asc') $producidos = array_reverse($producidos);
-    
+    $producidos = Producido::whereIn('id_plataforma',$plataformas)->where($reglas)
+    ->whereBetween('fecha',[$fecha_inicio, $fecha_fin])->orderBy('fecha',$orden)->get();
     return ['producidos' => $producidos];
   }
   // eliminarProducido elimina el producido y los detalles producidos asociados
@@ -102,178 +82,32 @@ class ProducidoController extends Controller
 
     $pdo->exec($query);
   }
-  // datosAjusteMTM obitne los producidos con las maquinas que dan diferencias
-  // con la informacion necesaria para ser evaluados por el auditor
-  // TODO el guardado temporal no esta funcionando, pero no se usa tampoco
-  public function datosAjusteMTM($id_maquina,$id_producido){
-    $producido=Producido::find($id_producido);
-    $plataforma=$producido->plataforma->id_plataforma;
-    $fecha_fin= date('Y-m-d' , strtotime($producido->fecha. ' + 1 days'));
 
-    $tipos_ajuste = TipoAjuste::all();
-    $pdo = DB::connection('mysql')->getPdo();
-
-    $primera_vez=0;
-
-    $query = sprintf(self::$string_query_con_mtm , $id_producido,$fecha_fin,$id_maquina);
-    $mtm_datos=$pdo->query($query);
-    $conDiferencia=array();
-    $id_contador_final = null;
-    $id_contador_inicial = null;
-
-
-    //si no trae los datos es porque se guardó temporalmente el ajuste
-    if(empty($mtm_datos)){
-      $ajusteTemporal = AjusteTemporalProducido::where([['id_producido','=',$id_producido],['id_maquina','=',$id_maquina]])->first();
-      $mtm = Maquina::find($id_maquina);
-      $conDiferencia = ['id_maquina' => $id_maquina,
-                        'nro_admin' => $mtm->nro_admin,
-                        'id_detalle_producido' => $ajusteTemporal->id_detalle_producido,
-                        'id_detalle_contador_inicial' => $ajusteTemporal->id_detalle_contador_inicial,
-                        'id_detalle_contador_final' => $ajusteTemporal->id_detalle_contador_final,
-                        'coinin_inicio' => $ajusteTemporal->coinin_ini,
-                        'coinout_inicio' => $ajusteTemporal->coinuot_ini,
-                        'jackpot_inicio' => $ajusteTemporal->jackpot_ini,
-                        'progresivo_inicio' => $ajusteTemporal->progresivo_ini,
-                        'coinin_final' => $ajusteTemporal->coinin_fin,
-                        'coinout_final' =>  $ajusteTemporal->coinuot_fin,
-                        'jackpot_final' => $ajusteTemporal->jackpot_fin,
-                        'progresivo_final' =>$ajusteTemporal->progresivo_fin,
-                        'producido_dinero' => $ajusteTemporal->producido_sistema,
-                        //'producido_cred' => $ajusteTemporal->, lo saque porque front no lo usa y para guardar tampoco en back
-                        'denominacion' => $mtm->denominacion,
-                        'delta' => $ajusteTemporal->producido_calculado,/*calculado*/
-                        'diferencia' => $ajusteTemporal->diferencia,
-                        'observacion'=> $ajusteTemporal->observacion
-                      ];
-      return ['producidos_con_diferencia' => $conDiferencia,
-              'id_contador_final' => $ajusteTemporal->id_contador_final,
-              'id_contador_inicial' => $ajusteTemporal->id_contador_inicial ,
-              'tipos_ajuste' => $tipos_ajuste,
-              //'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final]
-            ];
-    }else{
-
-      foreach ($mtm_datos as $row) {
-          $diferencia = $this->calcularDiferencia($plataforma,$row['id_maquina'],$row['nro_admin'],
-                                                  $row['id_detalle_producido'],
-                                                  $row['id_detalle_contador_inicial'],
-                                                  $row['id_detalle_contador_final'],
-                                                  $row['coinin_ini'],$row['coinout_ini'],
-                                                  $row['jackpot_ini'],$row['progresivo_ini'],
-                                                  $row['coinin_fin'],$row['coinout_fin'],
-                                                  $row['jackpot_fin'],$row['progresivo_fin'],
-                                                  $row['valor_producido'],$row['denominacion'], $row['denominacion_carga_inicial'],$row['denominacion_carga_final']
-                                                );
-          if(!empty($diferencia))
-          {
-            $conDiferencia[]=$diferencia;
-          }
-          $id_contador_final = $row['id_contador_final'];
-          $id_contador_inicial = $row['id_contador_inicial'];
-      }
-      return ['producidos_con_diferencia' => $conDiferencia,
-              'id_contador_final' => $id_contador_final,
-              'id_contador_inicial' => $id_contador_inicial ,
-              'tipos_ajuste' => $tipos_ajuste,
-              //'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final]
-            ];
-    }
+  public function datosDetalle($id_detalle_producido){
+    $d = DetalleProducido::find($id_detalle_producido);
+    $j = Juego::where([['cod_juego','=',$d->cod_juego]])->whereNull('deleted_at')->first();
+    $pdev = function($j,$apuesta,$premio){
+      return is_null($j) || ($apuesta == 0.00)? null : abs($j->porcentaje_devolucion/100.0 - $premio/$apuesta);
+    };
+    return ['detalle' => $d,'juego' => $j,'categoria' => is_null($j) || is_null($j->categoria_juego)? '' : $j->categoria_juego->nombre,
+      'diferencias' => [
+        'apuesta'            => abs($d->apuesta_bono     + $d->apuesta_efectivo   - $d->apuesta)            >= 0.01,
+        'premio'             => abs($d->premio_bono      + $d->premio_efectivo    - $d->premio)             >= 0.01,
+        'beneficio'          => abs($d->beneficio_bono   + $d->beneficio_efectivo - $d->beneficio)          >= 0.01,
+        'beneficio_efectivo' => abs($d->apuesta_efectivo - $d->premio_efectivo    - $d->beneficio_efectivo) >= 0.01,
+        'beneficio_bono'     => abs($d->apuesta_bono     - $d->premio_bono        - $d->beneficio_bono)     >= 0.01,
+        'categoria'     =>  is_null($j) || is_null($j->categoria_juego)? true : (strtolower($j->categoria_juego->nombre) != strtolower($d->categoria)), 
+        'moneda'        =>  is_null($j)? true : $d->producido->id_tipo_moneda != $j->id_tipo_moneda,
+        'efectivo_pdev' =>  $pdev($j,$d->apuesta_efectivo,$d->premio_efectivo),
+        'bono_pdev'     =>  $pdev($j,$d->apuesta_bono,$d->premio_bono),
+        'total_pdev'    =>  $pdev($j,$d->apuesta,$d->premio),
+      ], 
+    ];
   }
 
-  // ajustarProducido
-  public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
-
-      $producido=Producido::find($id_producido);
-      $plataforma=$producido->plataforma->id_plataforma;
-      $fecha_fin= date('Y-m-d' , strtotime($producido->fecha. ' + 1 days'));
-
-      $tipos_ajuste = TipoAjuste::all();
-      $pdo = DB::connection('mysql')->getPdo();
-
-      //ver a que refiere
-      //
-      $primera_vez=0;
-
-      $query = sprintf(self::$string_query , $id_producido,$fecha_fin);
-      $resultados=$pdo->query($query);
-
-      //condiferencia son las maquinas que efectivamente dan diferencia junto con el valor operado que difiere (creo)
-      //
-      $conDiferencia=array();
-
-      foreach ($resultados as $row) {
-          $diferencia = $this->calcularDiferencia($plataforma,$row['id_maquina'],$row['nro_admin'],
-                                                  $row['id_detalle_producido'],
-                                                  $row['id_detalle_contador_inicial'],
-                                                  $row['id_detalle_contador_final'],
-                                                  $row['coinin_ini'],$row['coinout_ini'],
-                                                  $row['jackpot_ini'],$row['progresivo_ini'],
-                                                  $row['coinin_fin'],$row['coinout_fin'],
-                                                  $row['jackpot_fin'],$row['progresivo_fin'],
-                                                  $row['valor_producido'],$row['denominacion'],$row['denominacion_carga_inicial'],$row['denominacion_carga_final']
-                                                );
-
-          if(!empty($diferencia))
-          {
-            $conDiferencia[]=$diferencia;
-          }
-
-          //al estar deentro del for, solo contara el valor final
-          //
-          $id_contador_final = $row['id_contador_final'];
-          $id_contador_inicial = $row['id_contador_inicial'];
-      }
-      //VER SI SE PUEDE OPTIMIZAR- RECORRER DE NUEVO Y GUARDAR LAS DIFERENCIAS TARDA
-
-      //en ajustes_producido se guardan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido, el cual tiene la maquina y el producido
-      //aca en donde tiene efecto el resultado de calcularDiferencia()
-      if($producido->ajustes_producido->count() == 0){
-          $primera_vez=1;
-          $conDiferencia2=array();
-          $contadorAjusteAutomatico = 0;
-          foreach ($conDiferencia as $diferencia) {
-              $diferencia_ajuste = new AjusteProducido;
-              $diferencia_ajuste->producido_calculado = $diferencia['delta'];
-              $diferencia_ajuste->producido_sistema = $diferencia['producido_dinero'];
-              $diferencia_ajuste->diferencia = $diferencia['diferencia'];
-              $diferencia_ajuste->id_detalle_producido = $diferencia['id_detalle_producido'];
-              $diferencia_ajuste->save();
-
-              // veo si puedo hacer vuelta de contadores automaticamente
-              if($this->verAjusteAutomatico($diferencia)){//si no puedo ajustar retorna verdadero
-                    $conDiferencia2[]=$diferencia;
-              }else {
-                    $contadorAjusteAutomatico++;
-              }
-          }
-      }
-      if($primera_vez){
-        $conDiferencia=array();
-        $conDiferencia=$conDiferencia2;
-      }
-      $validado = 0;
-      $id_final = 0;
-      if(count($conDiferencia) == 0){
-        $validado = 1;
-        $producido->validado = 1;
-        $producido->save();
-        $contador_final= ContadorHorario::find($id_contador_final);
-        $contador_final->cerrado= 1;
-        $contador_final->save();
-        //que carajos hace aca???¬
-        $producido_fin = Producido::where([['producido.fecha' , '=' , $fecha_fin] , ['producido.id_tipo_moneda' , '=' , $producido->id_tipo_moneda], ['producido.id_plataforma' , '=' , $producido->id_plataforma]])->first();
-        $id_final = ($producido_fin != null) ? $producido_fin->id_producido : 0;
-      }
-
-      return ['producidos_con_diferencia' => $conDiferencia,
-              'id_contador_final' => $id_contador_final,
-              'id_contador_inicial' => $id_contador_inicial,
-              'tipos_ajuste' => $tipos_ajuste,
-              'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final],
-              'fecha_produccion' => $producido->fecha,
-              'moneda' => $producido->tipo_moneda
-            ];
+  public function detallesProducido($id_producido){
+      $producido = Producido::find($id_producido);
+      return ['detalles' => $producido->detalles()->select('cod_juego','id_detalle_producido')->orderBy('cod_juego','asc')->get()];
   }
 
   // calcularDiferencia calcula la diferencia que hay entre el producido calculado a partir de los contadores

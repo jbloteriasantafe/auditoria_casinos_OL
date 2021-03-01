@@ -31,10 +31,19 @@ use Illuminate\Http\Request;
             <div class="row"> <!-- Primera fila -->
               <div class="col-lg-3">
                 <h5>Plataforma</h5>
-                  <select class="form-control" id="selectPlataformas">
-                    <option value="0">- Seleccione una plataforma -</option>
+                  <select class="form-control" id="selectPlataforma">
+                    <option value="" selected>- Seleccione una plataforma -</option>
                     @foreach ($plataformas as $p)
-                    <option id="{{$p->id_plataforma}}" value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                    <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="col-lg-3">
+                <h5>Moneda</h5>
+                  <select class="form-control" id="selectMoneda">
+                    <option value="" selected>- Seleccione una moneda -</option>
+                    @foreach ($tipo_monedas as $tm)
+                    <option value="{{$tm->id_tipo_moneda}}">{{$tm->descripcion}}</option>
                     @endforeach
                   </select>
                 </div>
@@ -89,13 +98,10 @@ use Illuminate\Http\Request;
             <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
               <thead>
                 <tr>
-                  <th class="col-xs-2">PLATAFORMA</th>
-                  <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                  <th class="col-xs-1">MONEDA</th>
-                  <th class="col-xs-1">VALIDADO</th>
-                  <th class="col-xs-1">CONT INI</th>
-                  <th class="col-xs-2">RELEVAMIENTOS VISADOS</th>
-                  <th class="col-xs-2">ACCIÓN</th>
+                  <th class="col-xs-3">PLATAFORMA</th>
+                  <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3">MONEDA</th>
+                  <th class="col-xs-3">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody style="height: 350px;">
@@ -139,11 +145,11 @@ use Illuminate\Http\Request;
           </div>
           <div class="row" >
             <div class="col-md-3">
-              <h6><b>MÁQUINAS</b></h6>
+              <h6><b>JUEGOS</b></h6>
               <table id="tablaMaquinas" class="table" style="display: block;">
                 <thead style="display: block;position: relative;">
                   <tr >
-                    <th class="col-xs-2">Nº ADMIN</th>
+                    <th class="col-xs-3">CÓDIGO</th>
                     <th class="col-xs-2"></th>
                   </tr>
                 </thead>
@@ -152,8 +158,8 @@ use Illuminate\Http\Request;
               </table>
               <table>
               <tbody id="filaClon" style="display:none" class="filaCl" >
-                  <td class="col-md-3 nroAdm" value=""> nro admin</td>
-                  <td class="col-md-2 idMaqTabla" value=""> <button type="button" class="btn btn-info infoMaq" value="">
+                  <td class="col-md-3 cod_juego" value=""> codigo</td>
+                  <td class="col-md-2 botones" value=""><button type="button" class="btn btn-info infoDetalle" value="">
                     <i class="fa fa-fw fa-eye"></i>
                   </button></td>
               </tbody>
@@ -161,133 +167,111 @@ use Illuminate\Http\Request;
             </div> <!-- tablafechas -->
 
             <div id="columnaDetalle" class="col-md-9" style="border-right:2px solid #ccc;" hidden>
-              <h6 id="detallesEs"><b>DETALLES</b></h6>
-              <br>
-              <br>
               <div class="detalleMaq" >
-                <h5 id="info-denominacion"></h5>
                 <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
-
                   <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
                     <div class="col-lg-3">
-                      <h5>COININ. INICIAL</h5>
-                      <input id="coininIni" type="text" class="form-control">
-                      <br>
-                    </div> <!-- nro admin -->
-                    <div class="col-lg-3">
-                      <h5>COINOUT INI.</h5>
-                      <input id="coinoutIni" type="text" class="form-control" >
-                      <br>
-                    </div> <!-- Fisca toma -->
-
-                    <div class="col-lg-3">
-                      <h5>JACKPOT INI.</h5>
-                      <input id="jackIni" type="text" class="form-control">
-                      <br>
-                    </div> <!-- fisca carga-->
-                    <div class="col-lg-3">
-                      <h5>PROG. INICIAL</h5>
-                      <input id="progIni" type="text" class="form-control" >
-                      <br>
-                    </div> <!-- nro admin -->
-
-                  </div>
-
-                  <div class="row" style="border-left:1px solid #ccc;border-right:1px solid #ccc;">
-
-                    <br>
-
-                    <div class="col-lg-3">
-                      <h5>COININ FINAL</h5>
-                      <input id="coininFin" type="text" class="form-control">
-                      <br>
+                      <h5>APUESTA (Ef)</h5>
+                      <input id="apuesta_efectivo" type="text" class="form-control" disabled>
                     </div>
+                    <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-plus"></i></div>
                     <div class="col-lg-3">
-                      <h5>COINOUT FINAL</h5>
-                      <input id="coinoutFin" type="text" class="form-control">
-                      <br>
+                      <h5>APUESTA (Bo)</h5>
+                      <input id="apuesta_bono" type="text" class="form-control" disabled>
                     </div>
+                    <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-equals"></i></div>
                     <div class="col-lg-3">
-                      <h5>JACKPOT FINAL</h5>
-                      <input id="jackFin" type="text" class="form-control" >
-                      <br>
-                    </div>
-                    <div class="col-lg-3">
-                      <h5>PROG. FINAL</h5>
-                      <input id="progFin" type="text" class="form-control" >
-                      <br>
+                      <h5>APUESTA</h5>
+                      <input id="apuesta" type="text" class="form-control" disabled></i>
                     </div>
                   </div>
-
-                  <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-
+                  <div class="row" style="color: #ccc">
+                    <div class="col-lg-3" style="text-align: center"><i class="fa fa-fw fa-minus"></i></div>
+                    <div class="col-lg-1"></div>
+                    <div class="col-lg-3" style="text-align: center"><i class="fa fa-fw fa-minus"></i></div>
+                    <div class="col-lg-1"></div>
+                    <div class="col-lg-3" style="text-align: center"><i class="fa fa-fw fa-minus"></i></div>
+                  </div>
+                  <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
                     <div class="col-lg-3">
-                      <h5>PRODUC.CALC.</h5>
-                      <input id="prodCalc" type="text" class="form-control" readonly="readonly">
-                      <br>
-                    </div>
+                      <h5>PREMIO (Ef)</h5>
+                      <input id="premio_efectivo" type="text" class="form-control" disabled>
+                      <span style="ffont-size: 85%;">Dev <span id="efectivo_pdev"></span>%</span>
+                    </div> 
+                    <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-plus"></i></div>
                     <div class="col-lg-3">
-                      <h5>PRODUCIDO SIST.</h5>
-                      <input id="prodSist" type="text" class="form-control" >
-                      <br>
-                    </div>
-
+                      <h5>PREMIO (Bo)</h5>
+                      <input id="premio_bono" type="text" class="form-control" disabled>
+                      <span style="ffont-size: 85%;">Dev <span id="bono_pdev"></span>%</span>
+                    </div> 
+                    <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-equals"></i></div>
                     <div class="col-lg-3">
-                        <h5>DIFERENCIAS</h5>
-                        <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
-                    </div>
-                    <div class="col-lg-3">
-                        <h5>OBSERVACIONES</h5>
-                        <select class="form-control" id="observacionesAjuste">
-                           <option class="default1" value="0">-Tipo Ajuste-</option>
-                        </select>
+                      <h5>PREMIO</h5>
+                      <input id="premio" type="text" class="form-control" disabled>
+                      <span style="font-size: 85%;">Dev <span id="total_pdev"></span>%</span>
                     </div>
                   </div>
-
-                  <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-
-                      <div class="col-lg-12">
-                        <h5>OBSERVACIONES</h5>
-                        <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
-                        <br>
-                      </div>
-                      
+                  <div class="row" style="color: #ccc">
+                    <div class="col-lg-3" style="text-align: center"><i class="fa fa-fw fa-equals"></i></div>
+                    <div class="col-lg-1"></div>
+                    <div class="col-lg-3" style="text-align: center"><i class="fa fa-fw fa-equals"></i></div>
+                    <div class="col-lg-1"></div>
+                    <div class="col-lg-3" style="text-align: center"><i class="fa fa-fw fa-equals"></i></div>
+                  </div>
+                  <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
+                    <div class="col-lg-3">
+                      <h5>BENEFICIO (Ef)</h5>
+                      <input id="beneficio_efectivo" type="text" class="form-control" disabled>
                     </div>
-
-                  <div class="row" hidden>
-                    <div class="col-lg-2">
-                      <input id="data-denominacion" type="text" class="form-control" >
-                      <br>
+                    <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-plus"></i></div>
+                    <div class="col-lg-3">
+                      <h5>BENEFICIO (Bo)</h5>
+                      <input id="beneficio_bono" type="text" class="form-control" disabled>
+                    </div> 
+                    <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-equals"></i></div>
+                    <div class="col-lg-3">
+                      <h5>BENEFICIO</h5>
+                      <input id="beneficio" type="text" class="form-control" disabled>
                     </div>
-                    <div class="col-lg-2">
-                      <input id="data-contador-final" type="text" class="form-control" >
-                      <br>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-4">
+                      <h5>CATEGORIA INFORMADA</h5>
+                      <input id="categoria" type="text" class="form-control" disabled>
                     </div>
-                    <div class="col-lg-2">
-                      <input id="data-contador-inicial" type="text" class="form-control" >
-                      <br>
+                    <div class="col-lg-4">
+                      <h5>JUGADORES</h5>
+                      <input id="jugadores" type="text" class="form-control" disabled>
+                    </div> 
+                    <div class="col-lg-4">
+                      <h5>EN BASE DE DATOS</h5>
+                      <input id="en_bd" type="text" class="form-control" disabled>
                     </div>
-                    <div class="col-lg-2">
-                      <input id="data-producido" type="text" class="form-control" >
-                      <br>
+                  </div>
+                  <hr>
+                  <h6>JUEGO</h6>
+                  <div class="row">
+                    <div class="col-lg-3">
+                      <h5>NOMBRE</h5>
+                      <input id="nombre_juego" type="text" class="form-control" disabled>
                     </div>
-                    <div class="col-lg-2">
-                      <input id="data-detalle-inicial" type="text" class="form-control" >
-                      <br>
+                    <div class="col-lg-3">
+                      <h5>CATEGORIA</h5>
+                      <input id="categoria_juego" type="text" class="form-control" disabled>
                     </div>
-                    <div class="col-lg-2">
-                      <input id="data-detalle-final" type="text" class="form-control" >
-                      <br>
+                    <div class="col-lg-3">
+                      <h5>MONEDA</h5>
+                      <input id="moneda_juego" type="text" class="form-control" disabled>
+                    </div>
+                    <div class="col-lg-3">
+                      <h5>% DEV</h5>
+                      <input id="devolucion_juego" type="text" class="form-control" disabled>
                     </div>
                   </div>
                 </form>
-
               </div>
-
-
             </div>
           </div>  <!-- fin row inicial -->
-
           <div class="row" align="right" style="margin-right:20px; font-weight:bold">
           <h4 id="textoExito" hidden>Se arreglaron: 0 máquinas</h4>
       </div>

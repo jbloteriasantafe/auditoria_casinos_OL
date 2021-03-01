@@ -185,8 +185,8 @@ Route::get('producidos/buscarProducidos','ProducidoController@buscarProducidos')
 Route::get('producidos/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
 Route::get('producidos/checkEstado/{id}','ProducidoController@checkEstado');
 Route::post('producidos/guardarAjusteProducidos','ProducidoController@guardarAjuste');
-Route::get('producidos/ajustarProducido/{id_maquina}/{id_producidos}','ProducidoController@datosAjusteMTM');
-Route::get('producidos/maquinasProducidos/{id_producido}','ProducidoController@ajustarProducido');
+Route::get('producidos/datosDetalle/{id_detalle_producido}','ProducidoController@datosDetalle');
+Route::get('producidos/detallesProducido/{id_producido}','ProducidoController@detallesProducido');
 
 /**********
  Beneficios
