@@ -1,12 +1,12 @@
 $(document).ready(function(){
-  $('#barraMaquinas').attr('aria-expanded','true');
-  $('#maquinas').removeClass();
-  $('#maquinas').addClass('subMenu1 collapse in');
+  $('#barraJuegos').attr('aria-expanded','true');
+  $('#juegos').removeClass();
+  $('#juegos').addClass('subMenu1 collapse in');
   $('#procedimientos').removeClass();
   $('#procedimientos').addClass('subMenu2 collapse in');
   $('#contadores').removeClass();
   $('#contadores').addClass('subMenu3 collapse in');
-
+  
   $('.tituloSeccionPantalla').text('Beneficios');
   $('#opcBeneficios').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcBeneficios').addClass('opcionesSeleccionado');
