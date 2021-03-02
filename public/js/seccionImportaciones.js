@@ -21,12 +21,14 @@ $('#btn-minimizarBeneficios').click(function(){
 });
 
 $(document).ready(function(){
-  $('#barraMaquinas').attr('aria-expanded','true');
+  $('#barraJuegos').attr('aria-expanded','true');
   $('#juegos').removeClass();
   $('#juegos').addClass('subMenu1 collapse in');
   $('#procedimientos').removeClass();
   $('#procedimientos').addClass('subMenu2 collapse in');
-
+  $('#contadores').removeClass();
+  $('#contadores').addClass('subMenu3 collapse in');
+  
   $('.tituloSeccionPantalla').text('Importaciones');
   $('#opcImportaciones').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcImportaciones').addClass('opcionesSeleccionado');
