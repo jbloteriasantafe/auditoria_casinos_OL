@@ -178,15 +178,15 @@ Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerC
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
 
 /*******************
-PRODUCIDOS-AJUSTES PRODUCIDO
+PRODUCIDOS
 ******************/
-Route::get('producidos','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
-Route::get('producidos/buscarProducidos','ProducidoController@buscarProducidos');
-Route::get('producidos/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
-Route::get('producidos/checkEstado/{id}','ProducidoController@checkEstado');
-Route::post('producidos/guardarAjusteProducidos','ProducidoController@guardarAjuste');
-Route::get('producidos/datosDetalle/{id_detalle_producido}','ProducidoController@datosDetalle');
-Route::get('producidos/detallesProducido/{id_producido}','ProducidoController@detallesProducido');
+Route::group(['prefix' => 'producidos','middleware' =>'tiene_permiso:ver_seccion_producidos'],function(){
+  Route::get('/','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
+  Route::get('/buscarProducidos','ProducidoController@buscarProducidos');
+  Route::get('/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
+  Route::get('/datosDetalle/{id_detalle_producido}','ProducidoController@datosDetalle');
+  Route::get('/detallesProducido/{id_producido}','ProducidoController@detallesProducido');
+});
 
 /**********
  Beneficios

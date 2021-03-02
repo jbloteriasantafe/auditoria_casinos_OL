@@ -43,7 +43,7 @@ $('#btn-buscar').on('click' , function () {
     id_tipo_moneda : $('#selectMoneda').val(),
     fecha_inicio : $('#fecha_inicio').val(),
     fecha_fin : $('#fecha_fin').val() ,
-    validado : $('#selectValidado').val(),
+    correcto : $('#selectCorrecto').val(),
     orden: orden? orden: ''
   }
 
@@ -78,7 +78,6 @@ $(document).on('click','.carga',function(e){
   e.preventDefault();
   $('#columnaDetalle').hide();
   $('#mensajeExito').modal('hide');
-  limpiarCuerpoTabla();
 
   $('#modalCargaProducidos .mensajeSalida span').hide();
   const tr_html = $(this).parent().parent();
@@ -89,19 +88,20 @@ $(document).on('click','.carga',function(e){
   $('#descripcion_validacion').text(plataforma+' - '+fecha_prod+' - $'+moneda);
   $('#juegos_con_diferencias').text('---');
   $('#juegos_no_en_bd').text('---');
-
+  $('#cuerpoTabla').empty();
   $('#modalCargaProducidos #id_producido').val(id_producido);
   //ME TRAE LAS MÁQUINAS RELACIONADAS CON ESE PRODUCIDO, PRIMER TABLA DEL MODAL
   $.get('producidos/detallesProducido/' + id_producido, function(data){
+    let diferencias = 0;
     for (let i = 0; i < data.detalles.length; i++) {
       const d = data.detalles[i];
-      const fila = generarFilaJuego(d.cod_juego,d.id_detalle_producido);
+      const fila = generarFilaJuego(d);
+      diferencias+=d.diferencia;
       $('#cuerpoTabla').append(fila);
       $('#btn-salir-validado').hide();
       $('#btn-salir').show();
     }
-    $('#juegos_con_diferencias').text(data.diferencias);
-    $('#juegos_no_en_bd').text(data.no_en_bd);
+    $('#juegos_con_diferencias').text(diferencias);
   });
   $('#frmCargaProducidos').attr('data-tipoMoneda' ,tr_html.find('.tipo_moneda').attr('data-tipo'));
   $('#modalCargaProducidos').modal('show');
@@ -179,13 +179,13 @@ $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
 }); 
 
 
-/************   FUNCIONES   ***********/
-function generarFilaJuego(cod_juego, id_juego){//CARGA LA TABLA DE MÁQUINAS SOLAMENTE, DENTRO DEL MODAL
+function generarFilaJuego(d){
   var fila=$('#filaClon').clone();
   fila.removeAttr('id');
-  fila.attr('id',  id_juego);
-  fila.find('.cod_juego').text(cod_juego);
-  fila.find('button').val(id_juego);
+  fila.attr('id',  d.id_detalle_producido);
+  fila.find('.cod_juego').text(d.cod_juego);
+  fila.find('button').val(d.id_detalle_producido);
+  if(d.diferencia) fila.find('i').removeClass('fa-eye').addClass('fa-exclamation');
   fila.css('display', 'block');
   return  fila;
 }
@@ -203,10 +203,11 @@ function agregarFilaTabla(producido){
   const tr = $('<tr>')
   .append($('<td>').addClass('col-xs-3 plataforma').text(plat))
   .append($('<td>').addClass('col-xs-3 fecha_producido').text(producido.fecha))
-  .append($('<td>').addClass('col-xs-3 tipo_moneda').text(moneda))
-  .append($('<td>').addClass('col-xs-3')
+  .append($('<td>').addClass('col-xs-2 tipo_moneda').text(moneda))
+  .append($('<td>').addClass('col-xs-2 diferencias').text(producido.diferencias))
+  .append($('<td>').addClass('col-xs-2')
     .append($('<button>').addClass('btn').addClass('btn-info').addClass('carga').attr('value',producido.id_producido)
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-upload')))
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-search-plus')))
     .append($('<button>').addClass('btn').addClass('btn-info').addClass('planilla').attr('value',producido.id_producido)
       .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-print'))
     )

@@ -16,7 +16,7 @@ use App\Http\Controllers\FormatoController;
 
 
 class ProducidoController extends Controller
-{//@TODO: Esto se va a cambiar cuando se reescriba la validación de Producidos
+{
   private static $instance;
 
   private static $atributos=[];
@@ -34,6 +34,26 @@ class ProducidoController extends Controller
     return view('seccionProducidos' , ['plataformas' => $usuario->plataformas,'tipo_monedas' => TipoMoneda::all()]);
   }
 
+  private $query_diff_DP = 'SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
+  ABS(dp.premio_bono     +dp.premio_efectivo   -dp.premio)             <> 0.00 as premio,
+  ABS(dp.beneficio_bono  +dp.beneficio_efectivo-dp.beneficio)          <> 0.00 as beneficio,
+  ABS(dp.apuesta_efectivo-dp.premio_efectivo   -dp.beneficio_efectivo) <> 0.00 as beneficio_efectivo,
+  ABS(dp.apuesta_bono    -dp.premio_bono       -dp.beneficio_bono)     <> 0.00 as beneficio_bono,
+  (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
+  (j.id_juego IS NULL) or (p.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
+  IF(j.id_juego IS NULL or dp.apuesta_efectivo = 0.00,NULL,
+    (100*dp.premio_efectivo/dp.apuesta_efectivo)/j.porcentaje_devolucion) as efectivo_pdev,
+  IF(j.id_juego IS NULL or dp.apuesta_bono = 0.00,NULL,
+    (100*dp.premio_bono/dp.apuesta_bono)/j.porcentaje_devolucion) as bono_pdev,
+  IF(j.id_juego IS NULL or dp.apuesta = 0.00,NULL,
+    (100*dp.premio/dp.apuesta)/j.porcentaje_devolucion) as total_pdev,
+  dp.id_detalle_producido,
+  p.id_producido
+  FROM detalle_producido dp
+  JOIN producido p on (dp.id_producido = p.id_producido)
+  LEFT JOIN juego j on (dp.cod_juego = j.cod_juego AND j.deleted_at IS NULL)
+  LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
+
   public function buscarProducidos(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $plataformas = array();
@@ -43,7 +63,7 @@ class ProducidoController extends Controller
     else foreach ($usuario->plataformas as $plataforma) {
       $plataformas[] = $plataforma->id_plataforma;
     }
-
+    
     $reglas = [];
     if($request->id_tipo_moneda != "") $reglas[] = ['id_tipo_moneda','=',$request->id_tipo_moneda];
 
@@ -54,8 +74,17 @@ class ProducidoController extends Controller
 
     $orden = $request->orden == 'asc'? 'asc':'desc';
 
-    $producidos = Producido::whereIn('id_plataforma',$plataformas)->where($reglas)
-    ->whereBetween('fecha',[$fecha_inicio, $fecha_fin])->orderBy('fecha',$orden)->get();
+    DB::statement(sprintf("CREATE OR REPLACE VIEW detalle_producido_diferencias AS %s",$this->query_diff_DP));
+    
+    $producidos = DB::table('producido')->whereIn('id_plataforma',$plataformas)->where($reglas)
+    ->whereBetween('fecha',[$fecha_inicio, $fecha_fin])
+    ->selectRaw('producido.*, 
+    SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias')
+    ->join('detalle_producido_diferencias as diff','diff.id_producido','=','producido.id_producido')
+    ->groupBy('producido.id_producido');
+    if($request->correcto == "1") $producidos = $producidos->having('diferencias','=','0');
+    if($request->correcto == "0") $producidos = $producidos->having('diferencias','>','0');
+    $producidos = $producidos->orderBy('fecha',$orden)->get();
     return ['producidos' => $producidos];
   }
   // eliminarProducido elimina el producido y los detalles producidos asociados
@@ -83,67 +112,24 @@ class ProducidoController extends Controller
     $pdo->exec($query);
   }
 
-  private $query_diff_DP = 'SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
-  ABS(dp.premio_bono     +dp.premio_efectivo   -dp.premio)             <> 0.00 as premio,
-  ABS(dp.beneficio_bono  +dp.beneficio_efectivo-dp.beneficio)          <> 0.00 as beneficio,
-  ABS(dp.apuesta_efectivo-dp.premio_efectivo   -dp.beneficio_efectivo) <> 0.00 as beneficio_efectivo,
-  ABS(dp.apuesta_bono    -dp.premio_bono       -dp.beneficio_bono)     <> 0.00 as beneficio_bono,
-  (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
-  (j.id_juego IS NULL) or (p.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
-  IF(j.id_juego IS NULL or dp.apuesta_efectivo = 0.00,NULL,
-    (100*dp.premio_efectivo/dp.apuesta_efectivo)/j.porcentaje_devolucion) as efectivo_pdev,
-  IF(j.id_juego IS NULL or dp.apuesta_bono = 0.00,NULL,
-    (100*dp.premio_bono/dp.apuesta_bono)/j.porcentaje_devolucion) as bono_pdev,
-  IF(j.id_juego IS NULL or dp.apuesta = 0.00,NULL,
-    (100*dp.premio/dp.apuesta)/j.porcentaje_devolucion) as total_pdev,
-  dp.id_detalle_producido,
-  p.id_producido
-  FROM detalle_producido dp
-  JOIN producido p on (dp.id_producido = p.id_producido)
-  LEFT JOIN juego j on (dp.cod_juego = j.cod_juego AND j.deleted_at IS NULL)
-  LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
-
-  private function diferenciasProducido($id_producido){
-    $pdo = DB::connection('mysql')->getPdo();
-    $query = $pdo->prepare(sprintf(
-    'SELECT SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono
-                OR diff.categoria OR diff.moneda) as diferencias
-    FROM producido as prod
-    JOIN (
-      %s
-    ) as diff ON (diff.id_producido = prod.id_producido)
-    WHERE prod.id_producido = :id_producido
-    GROUP BY prod.id_producido',$this->query_diff_DP));
-    $query->execute([":id_producido" => $id_producido]);
-    return $query->fetchAll(\PDO::FETCH_ASSOC)[0]['diferencias'];
-  }
-
-  private function diferenciasDetalle($id_detalle_producido){
-    $pdo = DB::connection('mysql')->getPdo();
-    $query = $pdo->prepare(sprintf('%s WHERE dp.id_detalle_producido = :id_detalle_producido',$this->query_diff_DP));
-    $query->execute([":id_detalle_producido" => $id_detalle_producido]);
-    return $query->fetchAll(\PDO::FETCH_ASSOC)[0];
-  }
-
   public function datosDetalle($id_detalle_producido){
     $d = DetalleProducido::find($id_detalle_producido);
     $j = Juego::where([['cod_juego','=',$d->cod_juego]])->whereNull('deleted_at')->first();
 
     return ['detalle' => $d,'juego' => $j,
       'categoria' => is_null($j) || is_null($j->categoria_juego)? '' : $j->categoria_juego->nombre,
-      'diferencias' => $this->diferenciasDetalle($d->id_detalle_producido)
+      'diferencias' => DB::table('detalle_producido_diferencias')->where('id_detalle_producido',$d->$id_detalle_producido)->get()
     ];
   }
 
   public function detallesProducido($id_producido){
-      $producido = Producido::find($id_producido);
-      $detalles = $producido->detalles()->select('cod_juego','id_detalle_producido')->orderBy('cod_juego','asc')->get();
-      return ['detalles' => $detalles,'no_en_bd' => 999, 'diferencias' => $this->diferenciasProducido($id_producido), 
-      'no_en_bd' => DB::table('detalle_producido')
-      ->leftJoin('juego','detalle_producido.cod_juego','=','juego.cod_juego')
-      ->whereNull('juego.deleted_at')->where('detalle_producido.id_producido','=',$id_producido)
-      ->selectRaw('SUM(juego.id_juego IS NULL) as no_en_bd')
-      ->groupBy('detalle_producido.id_producido')->first()->no_en_bd];
+    $detalles = DB::table('detalle_producido as det')
+    ->selectRaw('det.cod_juego, det.id_detalle_producido, 
+    (diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencia')
+    ->join('detalle_producido_diferencias as diff','diff.id_detalle_producido','=','det.id_detalle_producido')
+    ->where('det.id_producido',$id_producido)
+    ->orderBy('det.cod_juego','asc')->get();
+    return ['detalles' => $detalles];
   }
   
   // generarPlanilla crea la planilla del producido total del dia
