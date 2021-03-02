@@ -139,8 +139,8 @@ use Illuminate\Http\Request;
           <div class="row" >
             <h6 style="padding-left:15px" id="descripcion_validacion"></h6>
             <h6 style="padding-left:15px">
-              Máquinas con diferencias: 
-              <span id="maquinas_con_diferencias">---</span>
+              | Juegos con diferencias: <span id="juegos_con_diferencias">---</span>
+              | Juegos NO en BD: <span id="juegos_no_en_bd">---</span>
             </h6>
           </div>
           <div class="row" >
@@ -196,13 +196,13 @@ use Illuminate\Http\Request;
                     <div class="col-lg-3">
                       <h5>PREMIO (Ef)</h5>
                       <input id="premio_efectivo" type="text" class="form-control" disabled>
-                      <span style="ffont-size: 85%;">Dev <span id="efectivo_pdev"></span>%</span>
+                      <span style="font-size: 85%;">Dev <span id="efectivo_pdev"></span>%</span>
                     </div> 
                     <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-plus"></i></div>
                     <div class="col-lg-3">
                       <h5>PREMIO (Bo)</h5>
                       <input id="premio_bono" type="text" class="form-control" disabled>
-                      <span style="ffont-size: 85%;">Dev <span id="bono_pdev"></span>%</span>
+                      <span style="font-size: 85%;">Dev <span id="bono_pdev"></span>%</span>
                     </div> 
                     <div class="col-lg-1" style="text-align: center;color: #ccc"><h5>&nbsp;</h5><i class="fa fa-fw fa-equals"></i></div>
                     <div class="col-lg-3">
