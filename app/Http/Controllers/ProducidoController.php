@@ -28,7 +28,7 @@ class ProducidoController extends Controller
     return self::$instance;
   }
 
-  public function buscarTodo(){//@TODO: Arreglar esto cuando se adapte el ajuste de producidos a Online
+  public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
     return view('seccionProducidos' , ['plataformas' => $usuario->plataformas,'tipo_monedas' => TipoMoneda::all()]);
@@ -75,7 +75,7 @@ class ProducidoController extends Controller
     $orden = $request->orden == 'asc'? 'asc':'desc';
 
     DB::statement(sprintf("CREATE OR REPLACE VIEW detalle_producido_diferencias AS %s",$this->query_diff_DP));
-    
+
     $producidos = DB::table('producido')->whereIn('id_plataforma',$plataformas)->where($reglas)
     ->whereBetween('fecha',[$fecha_inicio, $fecha_fin])
     ->selectRaw('producido.*, 

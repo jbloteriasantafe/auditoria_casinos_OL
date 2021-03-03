@@ -116,7 +116,7 @@
           //Premios = PremiosEfectivo + PremiosBono
           const TotalOut               = Math.abs(getFloat(row[PremiosEfectivo_idx])) + Math.abs(premio_bono);
           //Beneficios = Apuestas - Premios
-          const GrossRevenue           = getFloat(row[TotalWager_idx])-TotalOut-getFloat(TotalManualAdjustments);//Al beneficio lo doy ajustado
+          const GrossRevenue           = getFloat(row[TotalWager_idx])-TotalOut;
           resultado.push([
             "",
             DateReport + " 06:00:00",

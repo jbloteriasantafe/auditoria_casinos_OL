@@ -244,8 +244,8 @@ class LectorCSVController extends Controller
     TotalWithdrawals as retiros,
     TotalWager       as apuesta,
     TotalOut         as premio,
-    GrossRevenue     as beneficio,
-    0                as ajuste,
+    (GrossRevenue-TotalManualAdjustments) as beneficio,
+    TotalManualAdjustments as ajuste,
     TotalVPoints     as puntos_club_jugadores,
     ''               as observacion
     FROM beneficio_temporal
