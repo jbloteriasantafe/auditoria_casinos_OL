@@ -39,11 +39,31 @@ class BeneficioController extends Controller
     Beneficio::destroy($id_beneficio);
   }
 
+  private $diffs_view = "SELECT diff_bm.id_beneficio_mensual, 
+  SUM(CASE 
+        WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NOT NULL) THEN 1
+        WHEN (diff_p.beneficio IS NOT NULL AND diff_b.beneficio IS NULL)     THEN 0
+        WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NULL)     THEN 0
+        WHEN (diff_p.beneficio - diff_b.beneficio) <> 0                      THEN 1
+        ELSE 0
+      END) as diferencias,
+  COUNT(diff_p.id_producido) as dias_p,
+  COUNT(diff_b.id_beneficio) as dias_b
+  FROM beneficio_mensual diff_bm
+  LEFT JOIN beneficio diff_b ON diff_b.id_beneficio_mensual = diff_bm.id_beneficio_mensual
+  LEFT JOIN producido diff_p ON 
+    (diff_p.id_plataforma = diff_bm.id_plataforma AND diff_p.id_tipo_moneda = diff_bm.id_tipo_moneda AND diff_p.fecha = diff_b.fecha)
+  GROUP BY diff_bm.id_beneficio_mensual";
+
   public function buscarTodo(){
+    DB::statement(sprintf("CREATE OR REPLACE VIEW beneficios_diferencias_dias AS %s",$this->diffs_view));
+    
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Beneficios' ,'beneficios');
     return view('seccionBeneficios',['plataformas' => $usuario->plataformas,'tipos_moneda' => TipoMoneda::all()]);
   }
+
+
 
   public function buscarBeneficios(Request $request){
     Validator::make($request->all(), [//Validar filtros para evitar SQL injection mas abajo
@@ -65,69 +85,41 @@ class BeneficioController extends Controller
     foreach($usuario['usuario']->plataformas as $p){
       $plataformas[] = $p->id_plataforma;
     }
-
-    $reglas = "p.id_plataforma in (" . implode(",",$plataformas) . ")";
+    $reglas = [];
     if(!empty($request->id_tipo_moneda) && $request->id_tipo_moneda != 0){
-      $reglas = $reglas . ' AND ' . 'bm.id_tipo_moneda = ' . $request->id_tipo_moneda;
+      $reglas[] = ['bm.id_tipo_moneda','=',$request->id_tipo_moneda];
     }
     if(!empty($request->fecha_desde)){
-      $reglas = $reglas . ' AND ' . 'bm.fecha >= ' . $request->fecha_desde;
+      $reglas[] = ['bm.fecha','>=',$request->fecha_desde];
     }
     if(!empty($request->fecha_hasta)){
-      $reglas = $reglas . ' AND ' . 'bm.fecha <= ' . $request->fecha_hasta;
+      $reglas[] = ['bm.fecha','<=',$request->fecha_hasta];
     }
     if($request->id_plataforma != 0){
-      $reglas = $reglas . ' AND ' . 'bm.id_plataforma = ' . $request->id_tipo_moneda;
+      $reglas[] = ['bm.id_plataforma','=',$request->id_plataforma];
     }
 
-    $sort_by = $request->sort_by;
-
-    //WHERE o HAVING de diff_bm.id_beneficio_mensual = bm.id_beneficio_mensual en la SUBQUERY da error???
-    //En teoria lo podria hacer mas rapido...
-    $diferencias_subquery = "SELECT diff_bm.id_beneficio_mensual, 
-    SUM(CASE 
-          WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NOT NULL) THEN 1
-          WHEN (diff_p.beneficio IS NOT NULL AND diff_b.beneficio IS NULL)     THEN 0
-          WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NULL)     THEN 0
-          WHEN (diff_p.beneficio - diff_b.beneficio) <> 0                      THEN 1
-          ELSE 0
-        END) as diferencias,
-    COUNT(diff_p.id_producido) as dias_p,
-    COUNT(diff_b.id_beneficio) as dias_b
-    FROM beneficio_mensual diff_bm
-    LEFT JOIN beneficio diff_b ON diff_b.id_beneficio_mensual = diff_bm.id_beneficio_mensual
-    LEFT JOIN producido diff_p ON 
-      (diff_p.id_plataforma = diff_bm.id_plataforma AND diff_p.id_tipo_moneda = diff_bm.id_tipo_moneda AND diff_p.fecha = diff_b.fecha)
-    GROUP BY diff_bm.id_beneficio_mensual";
-
-    $pdo = DB::connection('mysql')->getPdo();
-    //Busqueda preliminar para obtener la cantidad total que matchea con la query
-    $query = sprintf("SELECT COUNT(bm.id_beneficio_mensual) as cantidad 
-    FROM beneficio_mensual bm 
-    JOIN tipo_moneda tm on tm.id_tipo_moneda = bm.id_tipo_moneda 
-    JOIN plataforma p on p.id_plataforma = bm.id_plataforma
-    WHERE (%s)",$reglas);
-    $count = $pdo->query($query)->fetchAll()[0]["cantidad"];
-    $pages = ceil($count/floatval($request->page_size));
-    $page = min(max($request->page,1),$pages);
+    $resultados = DB::table('beneficio_mensual as bm')
+    ->selectRaw('MONTH(bm.fecha) as mes, YEAR(bm.fecha) as anio, p.id_plataforma, p.nombre as plataforma,
+     tm.id_tipo_moneda, tm.descripcion as tipo_moneda, diff.diferencias as diferencias_mes,
+     bm.id_beneficio_mensual,diff.dias_p,diff.dias_b, bm.validado')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','bm.id_tipo_moneda')
+    ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
+    ->join('beneficios_diferencias_dias as diff','diff.id_beneficio_mensual','=','bm.id_beneficio_mensual')
+    ->where($reglas)
+    ->whereIn('bm.id_plataforma',$plataformas);
 
     $sort_by = ["columna" => "bm.fecha", "orden" => "desc"];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }
-    //TODO: order by
-    $query = sprintf("SELECT MONTH(bm.fecha) as mes, YEAR(bm.fecha) as anio, p.id_plataforma, p.nombre as plataforma
-    , tm.id_tipo_moneda, tm.descripcion as tipo_moneda, diff.diferencias as diferencias_mes, bm.id_beneficio_mensual,diff.dias_p,diff.dias_b, bm.validado
-    FROM beneficio_mensual bm
-    JOIN tipo_moneda tm on tm.id_tipo_moneda = bm.id_tipo_moneda
-    JOIN plataforma p on p.id_plataforma = bm.id_plataforma
-    JOIN (%s) diff on diff.id_beneficio_mensual = bm.id_beneficio_mensual
-    WHERE (%s)
-    ORDER BY %s %s
-    LIMIT %d OFFSET %d",$diferencias_subquery,$reglas,$sort_by["columna"],$sort_by["orden"],$request->page_size,($page-1)*$request->page_size);
-    $resultados = $pdo->query($query)->fetchAll(\PDO::FETCH_ASSOC);
-  
-    return ['current_page' => $page,'total' => $pages,'per_page' => $request->page_size,'data' => $resultados];
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    });
+
+    //Elimino duplicados y pagino.
+    $resultados = $resultados->groupBy('bm.id_beneficio_mensual')->paginate($request->page_size);
+    return $resultados;
   }
 
   public function obtenerBeneficios($id_beneficio_mensual){
