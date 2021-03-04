@@ -28,12 +28,6 @@ class ProducidoController extends Controller
     return self::$instance;
   }
 
-  public function buscarTodo(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
-    return view('seccionProducidos' , ['plataformas' => $usuario->plataformas,'tipo_monedas' => TipoMoneda::all()]);
-  }
-
   private $query_diff_DP = 'SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
   ABS(dp.premio_bono     +dp.premio_efectivo   -dp.premio)             <> 0.00 as premio,
   ABS(dp.beneficio_bono  +dp.beneficio_efectivo-dp.beneficio)          <> 0.00 as beneficio,
@@ -54,6 +48,14 @@ class ProducidoController extends Controller
   LEFT JOIN juego j on (dp.cod_juego = j.cod_juego AND j.deleted_at IS NULL)
   LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
 
+  public function buscarTodo(){
+    DB::statement(sprintf("CREATE OR REPLACE VIEW detalle_producido_diferencias AS %s",$this->query_diff_DP));
+
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
+    return view('seccionProducidos' , ['plataformas' => $usuario->plataformas,'tipo_monedas' => TipoMoneda::all()]);
+  }
+
   public function buscarProducidos(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $plataformas = array();
@@ -71,21 +73,27 @@ class ProducidoController extends Controller
     $fecha_fin = date('Y-m-d');
     if(!empty($request->fecha_inicio)) $fecha_inicio = $request->fecha_inicio;
     if(!empty($request->fecha_fin))    $fecha_fin    = $request->fecha_fin;
-
-    $orden = $request->orden == 'asc'? 'asc':'desc';
-
-    DB::statement(sprintf("CREATE OR REPLACE VIEW detalle_producido_diferencias AS %s",$this->query_diff_DP));
-
-    $producidos = DB::table('producido')->whereIn('id_plataforma',$plataformas)->where($reglas)
+  
+    $resultados = DB::table('producido')->whereIn('id_plataforma',$plataformas)->where($reglas)
     ->whereBetween('fecha',[$fecha_inicio, $fecha_fin])
     ->selectRaw('producido.*, 
     SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias')
     ->join('detalle_producido_diferencias as diff','diff.id_producido','=','producido.id_producido')
     ->groupBy('producido.id_producido');
-    if($request->correcto == "1") $producidos = $producidos->having('diferencias','=','0');
-    if($request->correcto == "0") $producidos = $producidos->having('diferencias','>','0');
-    $producidos = $producidos->orderBy('fecha',$orden)->get();
-    return ['producidos' => $producidos];
+    if($request->correcto == "1") $resultados = $resultados->having('diferencias','=','0');
+    if($request->correcto == "0") $resultados = $resultados->having('diferencias','>','0');
+
+    $sort_by = ["columna" => "producido.fecha", "orden" => "desc"];
+    if(!empty($request->sort_by)){
+      $sort_by = $request->sort_by;
+    }
+
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    });
+
+    $resultados = $resultados->paginate($request->page_size);
+    return $resultados;
   }
   // eliminarProducido elimina el producido y los detalles producidos asociados
   public function eliminarProducido($id_producido){

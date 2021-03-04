@@ -57,13 +57,11 @@ class BeneficioController extends Controller
 
   public function buscarTodo(){
     DB::statement(sprintf("CREATE OR REPLACE VIEW beneficios_diferencias_dias AS %s",$this->diffs_view));
-    
+
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Beneficios' ,'beneficios');
     return view('seccionBeneficios',['plataformas' => $usuario->plataformas,'tipos_moneda' => TipoMoneda::all()]);
   }
-
-
 
   public function buscarBeneficios(Request $request){
     Validator::make($request->all(), [//Validar filtros para evitar SQL injection mas abajo

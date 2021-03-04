@@ -18,8 +18,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/zona-file-large.css">
-  <link rel="stylesheet" href="css/paginacion.css">
-  <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
+<link rel="stylesheet" href="css/paginacion.css">
+<link rel='stylesheet' href='/css/fullcalendar.min.css'/>
 @endsection
 
         <div class="row">

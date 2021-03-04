@@ -36,15 +36,36 @@ $(document).ready(function(){
   $('#btn-buscar').trigger('click');
 });
 
-$('#btn-buscar').on('click' , function () {
-  const orden = $('#tablaImportacionesProducidos th.activa').attr('estado');
+$('#btn-buscar').on('click' , function(e,pagina,page_size,columna,orden) {
+  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+
+  e.preventDefault();
+
+  let size = 10;
+  //Fix error cuando librería saca los selectores
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
+  }
+
+  page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  const sort_by = (columna != null) ?  
+    {columna: columna,orden: orden} : 
+    {columna: $('#tablaImportacionesProducidos .activa').attr('value'),orden: $('#tablaImportacionesProducidos .activa').attr('estado')};
+
+  if(sort_by == null){ // limpio las columnas
+    $('#tablaImportacionesProducidos th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
+  }
+  
   var busqueda = {
     id_plataforma : $('#selectPlataforma').val(),
     id_tipo_moneda : $('#selectMoneda').val(),
     fecha_inicio : $('#fecha_inicio').val(),
     fecha_fin : $('#fecha_fin').val() ,
     correcto : $('#selectCorrecto').val(),
-    orden: orden? orden: ''
+    page: page_number,
+    sort_by: sort_by,
+    page_size: page_size,
   }
 
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -54,19 +75,49 @@ $('#btn-buscar').on('click' , function () {
       data: busqueda,
       dataType: 'json',
       success: function (data) {
+        $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.total,clickIndice);
         $('#tablaImportacionesProducidos tbody').empty();
-        for (var i = 0; i < data.producidos.length; i++) {
-          agregarFilaTabla(data.producidos[i]);
+        for (var i = 0; i < data.data.length; i++) {
+          agregarFilaTabla(data.data[i]);
         }
+        $('#herramientasPaginacion').generarIndices(page_number,page_size,data.total,clickIndice);
       },
       error: function (data) {
         console.log('ERROR');
         console.log(data);
-
       },
   });
-
 })
+
+
+$(document).on('click','#tablaImportacionesProducidos thead tr th[value]',function(e){
+  $('#tablaBeneficios th').removeClass('activa');
+  if($(e.currentTarget).children('i').hasClass('fa-sort')){
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+  }
+  else{
+    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+    }
+    else{
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+    }
+  }
+  $('#tablaImportacionesProducidos th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+});
+
+/***** FUNCIONES *****/
+function clickIndice(e,pageNumber,tam){
+  if(e != null){
+    e.preventDefault();
+  }
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  const columna = $('#tablaImportacionesProducidos .activa').attr('value');
+  const orden = $('#tablaImportacionesProducidos .activa').attr('estado');
+  $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
+}
+
 
 //mostrar popover
 $(document).on('mouseenter','.popInfo',function(e){

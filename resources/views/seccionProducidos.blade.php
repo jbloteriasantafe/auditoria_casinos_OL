@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="/css/perfect-scrollbar.css">
+<link rel="stylesheet" href="css/paginacion.css">
 <!-- Mesaje de notificación -->
 <link rel="stylesheet" href="/css/mensajeExito.css">
 <link rel="stylesheet" href="/css/mensajeError.css">
@@ -108,6 +109,8 @@ use Illuminate\Http\Request;
               <tbody style="height: 350px;">
               </tbody>
             </table>
+            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -273,7 +276,7 @@ use Illuminate\Http\Request;
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" id="btn-salir" >SALIR</button>
+          <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal">SALIR</button>
         </div>
         <input type="hidden" id="id_producido" value="0">
       </div>
@@ -328,6 +331,7 @@ use Illuminate\Http\Request;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
+    <script src="js/paginacion.js" charset="utf-8"></script>
     <script src="js/seccionProducidos.js" charset="utf-8"></script>
 
     <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
