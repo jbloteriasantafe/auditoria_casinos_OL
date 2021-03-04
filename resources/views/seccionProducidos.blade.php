@@ -23,107 +23,111 @@ use Illuminate\Http\Request;
 <div class="row">
   <div class="col-xl-9"><!-- columna TABLA PLATAFORMAS -->
     <div class="row">
-      <div class="panel panel-default">
-        <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-          <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-        </div>
-        <div id="collapseFiltros" class="panel-collapse collapse">
-          <div class="panel-body">
-            <div class="row"> <!-- Primera fila -->
-              <div class="col-lg-3">
-                <h5>Plataforma</h5>
-                  <select class="form-control" id="selectPlataforma">
-                    <option value="" selected>- Seleccione una plataforma -</option>
-                    @foreach ($plataformas as $p)
-                    <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
-                    @endforeach
-                  </select>
-                </div>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+          </div>
+          <div id="collapseFiltros" class="panel-collapse collapse">
+            <div class="panel-body">
+              <div class="row"> <!-- Primera fila -->
                 <div class="col-lg-3">
-                <h5>Moneda</h5>
-                  <select class="form-control" id="selectMoneda">
-                    <option value="" selected>- Seleccione una moneda -</option>
-                    @foreach ($tipo_monedas as $tm)
-                    <option value="{{$tm->id_tipo_moneda}}">{{$tm->descripcion}}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha de inicio</h5>
-                  <div class="form-group">
-                    <div class='input-group date' id='dtpFechaInicio' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                      <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fas fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+                  <h5>Plataforma</h5>
+                    <select class="form-control" id="selectPlataforma">
+                      <option value="" selected>- Seleccione una plataforma -</option>
+                      @foreach ($plataformas as $p)
+                      <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                      @endforeach
+                    </select>
+                  </div>
+                  <div class="col-lg-3">
+                  <h5>Moneda</h5>
+                    <select class="form-control" id="selectMoneda">
+                      <option value="" selected>- Seleccione una moneda -</option>
+                      @foreach ($tipo_monedas as $tm)
+                      <option value="{{$tm->id_tipo_moneda}}">{{$tm->descripcion}}</option>
+                      @endforeach
+                    </select>
+                  </div>
+                  <div class="col-lg-3">
+                    <h5>Fecha de inicio</h5>
+                    <div class="form-group">
+                      <div class='input-group date' id='dtpFechaInicio' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                        <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fas fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+                      </div>
+                      <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
                     </div>
-                    <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
+                  </div>
+                  <div class="col-lg-3">
+                    <h5>Fecha de finalización</h5>
+                    <div class="form-group">
+                      <div class='input-group date' id='dtpFechaFin' data-link-field="fecha_fin" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                        <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin"/>
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+                      </div>
+                      <input class="form-control" type="hidden" id="fecha_fin" value=""/>
+                    </div>
+                  </div>
+                  <div class="col-lg-3">
+                    <h5>Correcto</h5>
+                    <select class="form-control" id="selectCorrecto">
+                      <option value="">- Todos - </option>
+                      <option value="1">Si</option>
+                      <option value="0">No</option>
+                    </select>
                   </div>
                 </div>
-                <div class="col-lg-3">
-                  <h5>Fecha de finalización</h5>
-                  <div class="form-group">
-                    <div class='input-group date' id='dtpFechaFin' data-link-field="fecha_fin" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                      <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                    </div>
-                    <input class="form-control" type="hidden" id="fecha_fin" value=""/>
+                <br>
+                <div class="row">
+                  <div class="col-md-12">
+                    <center><button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button></center>
                   </div>
                 </div>
-                <div class="col-lg-3">
-                  <h5>Correcto</h5>
-                  <select class="form-control" id="selectCorrecto">
-                    <option value="">- Todos - </option>
-                    <option value="1">Si</option>
-                    <option value="0">No</option>
-                  </select>
-                </div>
+                <br>
               </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12">
-                  <center><button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button></center>
-                </div>
-              </div>
-              <br>
             </div>
           </div>
         </div>
       </div>
       <div class="row">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4>Últimos Producidos</h4>
-          </div>
-          <div class="panel-body">
-            <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
-              <thead>
-                <tr>
-                  <th class="col-xs-3">PLATAFORMA</th>
-                  <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                  <th class="col-xs-2">MONEDA</th>
-                  <th class="col-xs-2">DIFERENCIAS</th>
-                  <th class="col-xs-2">ACCIÓN</th>
-                </tr>
-              </thead>
-              <tbody style="height: 350px;">
-              </tbody>
-            </table>
-            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4>Últimos Producidos</h4>
+            </div>
+            <div class="panel-body">
+              <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
+                <thead>
+                  <tr>
+                    <th class="col-xs-3">PLATAFORMA</th>
+                    <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2">MONEDA</th>
+                    <th class="col-xs-2">DIFERENCIAS</th>
+                    <th class="col-xs-2">ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody style="height: 350px;">
+                </tbody>
+              </table>
+              <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      <div class="col-lg-3">
+        <a href="importaciones" style="text-decoration:none;">
+          <div class="tarjetaSeccionMenor" align="center">
+            <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
+            <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
+            <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
+          </div>
+        </a>
+      </div>
     </div> <!-- / Tarjeta FILTROS -->
-    <div class="col-lg-3">
-      <a href="importaciones" style="text-decoration:none;">
-        <div class="tarjetaSeccionMenor" align="center">
-          <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
-          <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-          <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-        </div>
-      </a>
-    </div>
   </div>
 </div>
 <!--Modal nuevo para ajustes-->
