@@ -58,6 +58,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     </select>
                                   </div>
                                   <div class="col-md-3">
+                                    <h5>Sistema</h5>
+                                    <select id="buscadorSistema" class="form-control">
+                                      <option value="">Escritorio/Móvil</option>
+                                      <option value="1">Escritorio</option>
+                                      <option value="2">Móvil</option>
+                                      <option value="3">Escritorio y Móvil</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-md-3">
                                     <h5>Nombre del juego</h5>
                                     <input id="buscadorNombre" class="form-control" placeholder="Nombre del juego">
                                   </div>
@@ -73,9 +82,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     <h5>Código de certificado</h5>
                                     <input id="buscadorCodigo" class="form-control" placeholder="Código de identificación">
                                   </div>
-                                  <div class="col-md-3">
-                                    <h5 style="color:#ffffff;">Buscar</h5>
-                                    <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                                </div>
+                                <br>
+                                <div class="row">
+                                  <div class="col-md-1 col-md-offset-5">
+                                      <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                                   </div>
                                 </div>
                               </div>

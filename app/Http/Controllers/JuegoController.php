@@ -291,6 +291,13 @@ class JuegoController extends Controller
     if(!empty($request->id_categoria_juego)){
       $reglas[] = ['juego.id_categoria_juego','=',$request->id_categoria_juego];
     }
+    if(!empty($request->sistema)){
+      $escritorio = $request->sistema == "1";
+      $movil      = $request->sistema == "2";
+      $escritorio_y_movil = $request->sistema == "3";
+      $reglas[] = ['juego.escritorio','=',$escritorio || $escritorio_y_movil];
+      $reglas[] = ['juego.movil','=',$movil || $escritorio_y_movil];
+    }
 
     $sort_by = $request->sort_by;
 

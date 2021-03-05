@@ -164,6 +164,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     id_plataforma: $('#buscadorPlataforma').val(),
     id_categoria_juego: $('#buscadorCategoria').val(),
     id_estado_juego: $('#buscadorEstado').val(),
+    sistema: $('#buscadorSistema').val(),
     nombreJuego: $('#buscadorNombre').val(),
     cod_juego: $('#buscadorCodigoJuego').val(),
     certificado: $('#buscadorCodigo').val(),
