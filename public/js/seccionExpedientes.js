@@ -664,12 +664,10 @@ function generarFilaTabla(expediente){
               .addClass('col-xs-3')
               .text(fecha)
           )
-
           .append($('<td>')
               .addClass('col-xs-3')
-              .text(expediente.nombre)
+              .text(expediente.plataformas)
           )
-
           .append($('<td>')
               .addClass('col-xs-3')
               .append($('<button>')

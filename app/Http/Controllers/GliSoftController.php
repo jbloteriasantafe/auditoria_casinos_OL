@@ -303,6 +303,15 @@ class GliSoftController extends Controller
     if(isset($request->id_juego)){
       $reglas[]=['juego_glisoft.id_juego' , '=' , $request->id_juego];
     }
+    if(isset($request->nro_exp_org)){
+      $reglas[]=['expediente.nro_exp_org','like',$request->nro_exp_org.'%'];
+    }
+    if(isset($request->nro_exp_interno)){
+      $reglas[]=['expediente.nro_exp_org','like',$request->nro_exp_interno.'%'];
+    }
+    if(isset($request->nro_exp_control)){
+      $reglas[]=['expediente.nro_exp_control','=',$request->nro_exp_control];
+    }
     
     $sort_by = $request->sort_by;
     $resultados=DB::table('gli_soft')
@@ -310,6 +319,8 @@ class GliSoftController extends Controller
     ->leftJoin('archivo' , 'archivo.id_archivo' , '=' , 'gli_soft.id_archivo')
     ->leftJoin('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
     ->leftJoin('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
+    ->leftJoin('expediente_tiene_gli_sw','expediente_tiene_gli_sw.id_gli_soft','=','gli_soft.id_gli_soft')
+    ->leftJoin('expediente','expediente.id_expediente','=','expediente_tiene_gli_sw.id_Expediente')
     ->where($reglas);
     if($request->id_plataforma == 0){
       $resultados = $resultados->where(function ($q) use($plats_ids){

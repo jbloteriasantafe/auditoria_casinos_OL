@@ -97,14 +97,9 @@ $(document).on('click','.borrarJuego',function(){
 /* TODOS LOS EVENTOS DE BUSCAR EXPEDIENTES */
 $('#btn-agregarExpediente').click(function(e){
     const id_expediente = $('#inputExpediente').obtenerElementoSeleccionado();
-    const nro_expediente = $('#inputExpediente').val().split('-');
-    if(nro_expediente.length != 3 || id_expediente == 0) return;
-    agregarFilaExpediente({
-      id_expediente: id_expediente,
-      nro_exp_org: nro_expediente[0],
-      nro_exp_interno: nro_expediente[1],
-      nro_exp_control: nro_expediente[2],
-    });
+    const concatenacion = $('#inputExpediente').val();
+    if(concatenacion.split('-').length != 3 || id_expediente == 0) return;
+    agregarFilaExpediente({id_expediente: id_expediente,concatenacion: concatenacion});
     $('#inputExpediente').setearElementoSeleccionado(0, '');
 });
 
@@ -112,7 +107,7 @@ function agregarFilaExpediente(expediente) {
   var fila = $('<tr>').attr('id', expediente.id_expediente);
 
   fila.append($('<td>').addClass('col-xs-3')
-                       .text(expediente.nro_exp_org + '-' + expediente.nro_exp_interno + '-' + expediente.nro_exp_control)
+                       .text(expediente.concatenacion)
              );
   fila.append($('<td>').addClass('col-xs-3')
                        .append($('<button>').addClass('btn btn-danger borrarExpediente')

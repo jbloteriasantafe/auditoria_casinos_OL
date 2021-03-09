@@ -393,7 +393,8 @@ class ExpedienteController extends Controller
       $string_busqueda =  $sort_by['columna'] ." " . $sort_by['orden'];
     }
 
-    $resultados = DB::table('expediente')->select('expediente.*','plataforma.*')
+    $resultados = DB::table('expediente')
+    ->selectRaw('expediente.*,GROUP_CONCAT(distinct plataforma.codigo separator ", ") as plataformas')
     ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
     ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
     ->leftJoin('nota','nota.id_expediente','=','expediente.id_expediente')
@@ -409,7 +410,7 @@ class ExpedienteController extends Controller
     ->when($sort_by,function($query) use ($string_busqueda){
       return $query->orderByRaw($string_busqueda);
     })
-    ->paginate($request->page_size);
+    ->groupBy('expediente.id_expediente')->paginate($request->page_size);
 
     return ['expedientes' => $resultados];
   }
@@ -435,19 +436,19 @@ class ExpedienteController extends Controller
       $plataformas [] = $p->id_plataforma;
     }
 
-    $expedientes= DB::table('expediente')
-                      ->select('expediente.*')
+    $expedientes = DB::table('expediente')
+                      ->selectRaw('expediente.*,GROUP_CONCAT(distinct plataforma.codigo separator ", ") as plataformas')
                       ->join('expediente_tiene_plataforma','expediente_tiene_plataforma.id_expediente','=','expediente.id_expediente')
                       ->join('plataforma', 'expediente_tiene_plataforma.id_plataforma', '=', 'plataforma.id_plataforma')
                       ->where($reglas)
-                      ->whereIn('plataforma.id_plataforma' , $plataformas)->get();
+                      ->whereIn('plataforma.id_plataforma' , $plataformas)->groupBy('expediente.id_expediente')->get();
 
     $resultado = array();
 
     foreach ($expedientes as $expediente) {
       $auxiliar =  new \stdClass();
       $auxiliar->id_expediente = $expediente->id_expediente;
-      $auxiliar->concatenacion = $expediente->nro_exp_org . '-' . $expediente->nro_exp_interno .'-' . $expediente->nro_exp_control;
+      $auxiliar->concatenacion = $expediente->nro_exp_org . '-' . $expediente->nro_exp_interno .'-' . $expediente->nro_exp_control . ' # ' . $expediente->plataformas;
       $resultado[] = $auxiliar;
     }
 

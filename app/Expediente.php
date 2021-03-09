@@ -30,7 +30,10 @@ class Expediente extends Model
   }
 
   public function getConcatenacionAttribute(){
-    return $this->nro_exp_org . '-' . $this->nro_exp_interno . '-' . $this->nro_exp_control;
+    $plats = [];
+    foreach($this->plataformas as $p) $plats[] = $p->codigo;
+    $plats = implode(", ",$plats);
+    return $this->nro_exp_org . '-' . $this->nro_exp_interno . '-' . $this->nro_exp_control. ' # ' . $plats;
   }
 
   public static function boot(){
