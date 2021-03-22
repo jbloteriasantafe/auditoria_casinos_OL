@@ -51,6 +51,7 @@ class GliSoftController extends Controller
       //Hay juegos con el mismo nombre, los agrupo
       $juegosarr = [];
       //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
+      $en_map = [1 => "[M]",2 => "[D]",3 => "[M|D]"];
       foreach($query as $q){
         $j = Juego::find($q->id_juego);
         $lista = "";
@@ -59,7 +60,8 @@ class GliSoftController extends Controller
           if($idx!=0) $lista = $lista . ', ';
           $lista = $lista . $p->codigo;
         }
-        $nombre = $j->nombre_juego . ' ‣ ' . $lista;
+        $en = $en_map[$j->movil+2*$j->escritorio];
+        $nombre = $en." ".$j->nombre_juego.' ('.$j->cod_juego.') ‣ '.$lista;
         if(!isset($juegosarr[$nombre])){
           $juegosarr[$nombre] = [];
         }
