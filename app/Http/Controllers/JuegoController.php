@@ -37,12 +37,16 @@ class JuegoController extends Controller
     $uc->agregarSeccionReciente('Juegos','juegos');
     $usuario = $uc->quienSoy()['usuario'];
     $plataformas = $usuario->plataformas;
+    $proveedores = DB::table('juego')->select('proveedor')
+    ->whereNull('deleted_at')->distinct()
+    ->orderBy('proveedor','asc')->get()->pluck('proveedor')->toArray();
     return view('seccionJuegos' , 
     ['certificados' => GliSoftController::getInstancia()->gliSoftsPorPlataformas($plataformas),
      'monedas' => TipoMoneda::all(),
      'categoria_juego' => CategoriaJuego::all(),
      'estado_juego' => EstadoJuego::all(),
-     'plataformas' => $plataformas
+     'plataformas' => $plataformas,
+     'proveedores' => $proveedores
     ]);
   }
 

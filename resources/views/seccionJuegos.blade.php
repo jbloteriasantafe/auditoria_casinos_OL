@@ -19,6 +19,12 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 <option data-id="{{$cert->id_gli_soft}}">{{$cert->nro_archivo}}</option>
 @endforeach
 </datalist>
+<datalist id="datalistProveedores">
+@foreach($proveedores as $p)
+<option>{{$p}}</option>
+@endforeach
+</datalist>
+
               <div class="row">
                   <div class="col-lg-12 col-xl-9">
                     <div class="row"> <!-- fila de FILTROS -->
@@ -241,7 +247,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </div>
                       <div class="col-md-4">
                         <h5>Proveedor</h5>
-                        <input id="inputProveedor" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100"/>
+                        <input id="inputProveedor" class="form-control" type="text"  autocomplete="off" placeholder="-" maxlength="100" list="datalistProveedores"/>
                       </div>
                     </div>
                   </div>

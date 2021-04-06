@@ -441,6 +441,9 @@ $('#btn-guardar').click(function (e) {
             $('#mensajeExito h3').text('ÉXITO');
             $('#mensajeExito p').text(' ');
             $('#mensajeExito').show();
+            //Lo agrego a la lista de sugerencias si no esta
+            const ya_esta = $('#datalistProveedores option').filter(function(){return $(this).text() == formData.proveedor;}).length > 0;
+            if(!ya_esta) $('#datalistProveedores').append($('<option>').text(formData.proveedor));
         },
         error: function (data) {
             var response = JSON.parse(data.responseText);
