@@ -349,8 +349,8 @@ $id_usuario = session('id_usuario');
                                 <br> <span id="alertaArchivo" class="alertaSpan"></span>
                               </div>
                           </div>
+                    @include('includes.md5hash')
                   </div>
-                  @include('includes.md5hash')
 
                   <div id="datosProducido" class="row">
                     <div class="col-xs-5">
@@ -442,8 +442,9 @@ $id_usuario = session('id_usuario');
                                 <br> <span id="alertaArchivo" class="alertaSpan"></span>
                               </div>
                           </div>
+
+                    @include('includes.md5hash')
                   </div>
-                  @include('includes.md5hash')
 
                   <div id="datosBeneficio" class="row">
                     <div class="col-xs-5">

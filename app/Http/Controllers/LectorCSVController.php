@@ -44,6 +44,7 @@ class LectorCSVController extends Controller
     $producido->apuesta_efectivo   = 0;$producido->apuesta_bono   = 0;$producido->apuesta   = 0;
     $producido->premio_efectivo    = 0;$producido->premio_bono    = 0;$producido->premio    = 0;
     $producido->beneficio_efectivo = 0;$producido->beneficio_bono = 0;$producido->beneficio = 0;
+    $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $producido->save();
 
     $producidos_viejos = DB::table('producido')->where([
@@ -143,11 +144,6 @@ class LectorCSVController extends Controller
     ->groupBy('cod_juego')
     ->havingRaw('COUNT(distinct id_detalle_producido) > 1')->get()->count();
 
-    /*$inhabilitados_reportando = 999;
-    $habilitados_sin_reportar = 999;
-    $juego_faltante_en_bd = 999;
-    $juego_en_bd_sin_asignar_plataforma = 999;
-    $mal_categoria = 999;*/
     return ['id_producido' => $producido->id_producido,
     'fecha' => $producido->fecha,
     'plataforma' => $producido->plataforma->nombre,
@@ -168,6 +164,7 @@ class LectorCSVController extends Controller
     $benMensual->ajuste = 0;
     $benMensual->puntos_club_jugadores = 0;
     $benMensual->validado = false;
+    $benMensual->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $benMensual->save();
     
     //Verifico si ya existen con las mismas caracteristicas, differente ID y los borro
