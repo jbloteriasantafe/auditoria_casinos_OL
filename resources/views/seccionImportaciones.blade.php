@@ -350,6 +350,7 @@ $id_usuario = session('id_usuario');
                               </div>
                           </div>
                   </div>
+                  @include('includes.md5hash')
 
                   <div id="datosProducido" class="row">
                     <div class="col-xs-5">
@@ -442,6 +443,7 @@ $id_usuario = session('id_usuario');
                               </div>
                           </div>
                   </div>
+                  @include('includes.md5hash')
 
                   <div id="datosBeneficio" class="row">
                     <div class="col-xs-5">
@@ -557,6 +559,7 @@ $id_usuario = session('id_usuario');
     @section('scripts')
     <!-- JavaScript personalizado -->
     <script src="/js/seccionImportaciones.js" charset="utf-8"></script>
+    <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>

@@ -185,4 +185,12 @@ class ImportacionController extends Controller
     });
     return $ret;
   }
+
+  public function hashearArchivo(Request $request,$tipo){
+    if($tipo != 'md5') return 'SIN IMPLEMENTAR';
+    $file = $request->archivo->getRealPath();
+    $content = file_get_contents($file);
+    $resultado = DB::select(DB::raw('SELECT md5(?) as hash'),[$content]);
+    return $resultado[0]->hash;
+  }
 }

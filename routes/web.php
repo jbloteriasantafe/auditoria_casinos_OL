@@ -233,3 +233,5 @@ Route::group(['prefix' => 'informesJuegos'],function(){
 Route::get('calendario_eventos',function(){
     return view('calendar');
 });
+
+Route::post('hashearArchivo/{tipo}','ImportacionController@hashearArchivo');
