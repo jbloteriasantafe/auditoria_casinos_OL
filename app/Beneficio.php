@@ -32,6 +32,6 @@ class Beneficio extends Model
   }
 
   public function getDiferenciaAttribute(){
-    return $this->calculado - $this->beneficio + $this->ajuste;
+    return $this->calculado - ($this->beneficio + $this->ajuste);
   }
 }

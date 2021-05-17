@@ -120,13 +120,14 @@ class BeneficioController extends Controller
     return $resultados;
   }
 
+  //(IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0))
   public function obtenerBeneficios($id_beneficio_mensual){
     $resultados = DB::table('beneficio_mensual')->selectRaw(
       'beneficio.id_beneficio, beneficio.fecha,
       (IFNULL(producido.beneficio,0)) AS beneficio_calculado,
       (IFNULL(beneficio.beneficio,0)) as beneficio,
       (IFNULL(beneficio.ajuste,0)) as ajuste,
-      (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) + IFNULL(beneficio.ajuste,0)) AS diferencia,
+      (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0)) AS diferencia,
       producido.id_producido as id_producido,
       IFNULL(beneficio.observacion,"") as observacion'
     )
@@ -227,7 +228,7 @@ class BeneficioController extends Controller
                 IFNULL(producido.beneficio,0) AS beneficio_calculado,
                 IFNULL(beneficio.beneficio,0) as beneficio,
                 IFNULL(beneficio.ajuste,0) as ajuste,
-                (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) + IFNULL(beneficio.ajuste,0)) AS diferencia')
+                (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0)) AS diferencia')
     ->leftJoin('beneficio','beneficio.id_beneficio_mensual','=','beneficio_mensual.id_beneficio_mensual')
     ->leftJoin('producido',function ($leftJoin) use ($benMensual){
       $leftJoin->on('producido.fecha','=','beneficio.fecha')

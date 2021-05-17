@@ -81,10 +81,10 @@ class LectorCSVController extends Controller
                        Players = @Players,
                        TotalWagerCash = REPLACE(@TotalWagerCash,',','.'),
                        TotalWagerBonus = REPLACE(@TotalWagerBonus,',','.'),
-                       TotalWager = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
+                       TotalWager = REPLACE(@TotalWager,',','.'),
                        GrossRevenueCash = REPLACE(@GrossRevenueCash,',','.'),
                        GrossRevenueBonus = REPLACE(@GrossRevenueBonus,',','.'),
-                       GrossRevenue = REPLACE(REPLACE(REPLACE(REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.')
+                       GrossRevenue = REPLACE(@GrossRevenue,',','.')
                       ",$path,$producido->id_producido);
 
     $pdo->exec($query);
@@ -207,14 +207,14 @@ class LectorCSVController extends Controller
      Verified               = @Verified,
      TotalVerified          = @TotalVerified,
      Players                = @Players,
-     TotalDeposits          = IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(@TotalDeposits,'$',''),' ',''),'.',''),',','.'),0.00),
-     TotalWithdrawals       = IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(@TotalWithdrawals,'$',''),' ',''),'.',''),',','.'),0.00),
+     TotalDeposits          = IFNULL(REPLACE(@TotalDeposits,',','.'),0.00),
+     TotalWithdrawals       = IFNULL(REPLACE(@TotalWithdrawals,',','.'),0.00),
      TotalBonus             = REPLACE(@TotalBonus,',','.'),
      TotalManualAdjustments = REPLACE(@TotalManualAdjustments,',','.'),
      TotalVPoints           = REPLACE(@TotalVPoints,',','.'),
-     TotalWager             = REPLACE(REPLACE(REPLACE(REPLACE(@TotalWager,'$',''),' ',''),'.',''),',','.'),
+     TotalWager             = REPLACE(@TotalWager,',','.'),
      TotalOut               = REPLACE(@TotalOut,',','.'),
-     GrossRevenue           = REPLACE(REPLACE(REPLACE(REPLACE(@GrossRevenue,'$',''),' ',''),'.',''),',','.'),
+     GrossRevenue           = REPLACE(@GrossRevenue,',','.'),
      lastupdated            = @lastupdated",$path,$benMensual->id_beneficio_mensual);
     $pdo->exec($query);
 
@@ -241,7 +241,7 @@ class LectorCSVController extends Controller
     TotalWithdrawals as retiros,
     TotalWager       as apuesta,
     TotalOut         as premio,
-    (GrossRevenue-TotalManualAdjustments) as beneficio,
+    GrossRevenue     as beneficio,
     TotalManualAdjustments as ajuste,
     TotalVPoints     as puntos_club_jugadores,
     ''               as observacion
