@@ -174,6 +174,7 @@ $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
   $.get('producidos/datosDetalle/' + id_detalle, function(data){
     const d = data.detalle;
     const diff = data.diferencias;
+    console.log(diff);
     $('#btn-guardar').data('id-detalle', id_detalle);
     $('#btn-finalizar').data('id',id_detalle);
     $('#columnaDetalle').show();
@@ -195,7 +196,7 @@ $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
     $('#beneficio_efectivo').val(d.beneficio_efectivo).css('background-color',validar(diff.beneficio_efectivo));
     $('#beneficio_bono').val(d.beneficio_bono).css('background-color',validar(diff.beneficio_bono));
     $('#beneficio').val(d.beneficio).css('background-color',validar(diff.beneficio));
-    $('#categoria').val(d.categoria).css('background-color','');
+    $('#categoria').val(d.categoria).css('background-color',validar(diff.categoria));
     $('#jugadores').val(d.jugadores)
     const j = data.juego;
     const en_bd = j != null;

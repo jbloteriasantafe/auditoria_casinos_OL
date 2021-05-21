@@ -123,10 +123,9 @@ class ProducidoController extends Controller
   public function datosDetalle($id_detalle_producido){
     $d = DetalleProducido::find($id_detalle_producido);
     $j = Juego::where([['cod_juego','=',$d->cod_juego]])->whereNull('deleted_at')->first();
-
     return ['detalle' => $d,'juego' => $j,
       'categoria' => is_null($j) || is_null($j->categoria_juego)? '' : $j->categoria_juego->nombre,
-      'diferencias' => DB::table('detalle_producido_diferencias')->where('id_detalle_producido',$d->$id_detalle_producido)->get()
+      'diferencias' => DB::table('detalle_producido_diferencias')->where('id_detalle_producido',$id_detalle_producido)->get()->first()
     ];
   }
 
