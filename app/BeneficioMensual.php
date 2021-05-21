@@ -10,7 +10,7 @@ class BeneficioMensual extends Model
   protected $table = 'beneficio_mensual';
   protected $primaryKey = 'id_beneficio_mensual';
   protected $visible = array('id_beneficio_mensual','id_plataforma','id_tipo_moneda','fecha'
-  ,'jugadores','depositos','retiros'
+  ,'depositos','retiros'
   ,'apuesta','premio','beneficio'
   ,'ajuste','puntos_club_jugadores','validado','canon','md5');
   public $timestamps = false;

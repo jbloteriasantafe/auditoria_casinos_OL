@@ -45,7 +45,7 @@
         <th class="tablaInicio">JUEGO</th>
         <th class="tablaInicio">APUESTA</th>
         <th class="tablaInicio">PREMIO</th>
-        <th class="tablaInicio">DIFERENCIAS</th>
+        <th class="tablaInicio">BENEFICIO</th>
       </tr>
       @foreach ($detalles as $d)
       <tr>

@@ -9,7 +9,7 @@ class Producido extends Model
   protected $connection = 'mysql';
   protected $table = 'producido';
   protected $primaryKey = 'id_producido';
-  protected $visible = array('id_producido','fecha','id_plataforma','id_tipo_moneda','jugadores'
+  protected $visible = array('id_producido','fecha','id_plataforma','id_tipo_moneda'
   ,'apuesta_efectivo','apuesta_bono','apuesta'
   ,'premio_efectivo','premio_bono','premio'
   ,'beneficio_efectivo','beneficio_bono','beneficio','md5');

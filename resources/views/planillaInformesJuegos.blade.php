@@ -24,9 +24,9 @@ tr:nth-child(even) {
 }
 </style>
   <?php 
-  $widths = ["fecha" => "9","jugadores" => "12","apostado" => "24","premios" => "24", "beneficio" => "24","dev" => "7"];
+  $widths = ["fecha" => "9","jugadores" => "11","apostado" => "21","premios" => "21","ajuste" => "10", "beneficio" => "21","dev" => "7"];
   if($cotizacionDefecto != 1){
-    $widths = ["fecha" => "9","jugadores" => "12","apostado" => "19","premios" => "19", "cotizacion" => "15","beneficio" => "19","dev" => "7"];
+    $widths = ["fecha" => "9","jugadores" => "11","apostado" => "16","premios" => "16", "cotizacion" => "15","ajuste" => "10","beneficio" => "16","dev" => "7"];
   }
   ?>
   <head>
@@ -56,6 +56,7 @@ tr:nth-child(even) {
         <th class="tablaInicio" width="{{$widths['jugadores']}}%">JUGADORES</th>
         <th class="tablaInicio" width="{{$widths['apostado']}}%">APOSTADO</th>
         <th class="tablaInicio" width="{{$widths['premios']}}%">PREMIOS</th>
+        <th class="tablaInicio" width="{{$widths['ajuste']}}%">AJUSTES</th>
         @if($cotizacionDefecto != 1)
         <th class="tablaInicio" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
         @endif
@@ -72,6 +73,7 @@ tr:nth-child(even) {
         <td class="tablaCampos">{{$d->jugadores}}</td>
         <td class="tablaCampos">{{$d->apuesta}}</td>
         <td class="tablaCampos">{{$d->premio}}</td>
+        <td class="tablaCampos">{{$d->ajuste}}</td>
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos">{{$ultima_cotizacion}}</td>
         @endif
@@ -84,6 +86,7 @@ tr:nth-child(even) {
         <td class="tablaCampos total">{{$total->jugadores}}</td>
         <td class="tablaCampos total">{{$total->apuesta}}</td>
         <td class="tablaCampos total">{{$total->premio}}</td>
+        <td class="tablaCampos total">{{$total->ajuste}}</td>
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total">-</td>
         @endif

@@ -40,7 +40,6 @@ class LectorCSVController extends Controller
     $producido->id_plataforma = $plataforma;
     $producido->fecha = $fecha;
     $producido->id_tipo_moneda = $moneda;
-    $producido->jugadores = 0;
     $producido->apuesta_efectivo   = 0;$producido->apuesta_bono   = 0;$producido->apuesta   = 0;
     $producido->premio_efectivo    = 0;$producido->premio_bono    = 0;$producido->premio    = 0;
     $producido->beneficio_efectivo = 0;$producido->beneficio_bono = 0;$producido->beneficio = 0;
@@ -121,7 +120,7 @@ class LectorCSVController extends Controller
     $query = $pdo->prepare("UPDATE 
     producido p,
     (
-      SELECT SUM(dp.jugadores) as jugadores,
+      SELECT 
       SUM(dp.apuesta_efectivo)   as apuesta_efectivo  , SUM(dp.apuesta_bono)   as apuesta_bono  , SUM(dp.apuesta)   as apuesta,
       SUM(dp.premio_efectivo)    as premio_efectivo   , SUM(dp.premio_bono)    as premio_bono   , SUM(dp.premio)    as premio,
       SUM(dp.beneficio_efectivo) as beneficio_efectivo, SUM(dp.beneficio_bono) as beneficio_bono, SUM(dp.beneficio) as beneficio
@@ -129,7 +128,7 @@ class LectorCSVController extends Controller
       WHERE dp.id_producido = :id_producido1
       GROUP BY dp.id_producido
     ) total
-    SET p.jugadores = IFNULL(total.jugadores,0),
+    SET 
     p.apuesta_efectivo   = IFNULL(total.apuesta_efectivo,0)  , p.apuesta_bono   = IFNULL(total.apuesta_bono,0)  , p.apuesta   = IFNULL(total.apuesta,0),
     p.premio_efectivo    = IFNULL(total.premio_efectivo,0)   , p.premio_bono    = IFNULL(total.premio_bono,0)   , p.premio    = IFNULL(total.premio,0),
     p.beneficio_efectivo = IFNULL(total.beneficio_efectivo,0), p.beneficio_bono = IFNULL(total.beneficio_bono,0), p.beneficio = IFNULL(total.beneficio,0)
@@ -159,7 +158,7 @@ class LectorCSVController extends Controller
     $benMensual->id_tipo_moneda = $moneda;
     $fecha_aux = explode("-",$fecha);
     $benMensual->fecha = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
-    $benMensual->jugadores = 0;$benMensual->depositos = 0;$benMensual->retiros   = 0;
+    $benMensual->depositos = 0;$benMensual->retiros   = 0;
     $benMensual->apuesta   = 0;$benMensual->premio    = 0;$benMensual->beneficio = 0;
     $benMensual->ajuste = 0;
     $benMensual->puntos_club_jugadores = 0;
@@ -255,14 +254,14 @@ class LectorCSVController extends Controller
     //Lo updateo por SQL porque son DECIMAL y no se si hay error de casteo si lo hago en PHP (pasa a float?)
     $query = $pdo->prepare("UPDATE beneficio_mensual bm,
     (
-      SELECT SUM(b.jugadores) as jugadores, SUM(b.depositos) as depositos, SUM(b.retiros)   as retiros,
+      SELECT SUM(b.depositos) as depositos, SUM(b.retiros)   as retiros,
              SUM(b.apuesta)   as apuesta  , SUM(b.premio)    as premio   , SUM(b.beneficio) as beneficio,
              SUM(b.ajuste)    as ajuste   , SUM(b.puntos_club_jugadores) as puntos_club_jugadores
       FROM beneficio b
       WHERE b.id_beneficio_mensual = :id_beneficio_mensual1
       GROUP BY b.id_beneficio_mensual
     ) total
-    SET bm.jugadores = IFNULL(total.jugadores,0),bm.apuesta = IFNULL(total.apuesta,0),bm.premio = IFNULL(total.premio,0),
+    SET bm.apuesta = IFNULL(total.apuesta,0),bm.premio = IFNULL(total.premio,0),
         bm.beneficio = IFNULL(total.beneficio,0),bm.ajuste  = IFNULL(total.ajuste,0),
         bm.puntos_club_jugadores = IFNULL(total.puntos_club_jugadores,0)
     WHERE bm.id_beneficio_mensual = :id_beneficio_mensual2");

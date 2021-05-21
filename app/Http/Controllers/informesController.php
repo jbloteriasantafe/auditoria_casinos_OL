@@ -34,29 +34,24 @@ class informesController extends Controller
   }
 
   public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda){
-    $dias = DB::table('producido')->select(
-      DB::raw('CONCAT(LPAD(DAY(producido.fecha)  ,2,"00"),"-",
-                      LPAD(MONTH(producido.fecha),2,"00"),"-",
-                      YEAR(producido.fecha)) as fecha'),
-    'jugadores','apuesta','premio','producido.beneficio','cotizacion.valor as cotizacion')
+    $dias = DB::table('beneficio')->select(
+      DB::raw('CONCAT(LPAD(DAY(beneficio.fecha)  ,2,"00"),"-",
+                      LPAD(MONTH(beneficio.fecha),2,"00"),"-",
+                      YEAR(beneficio.fecha)) as fecha'),
+    'beneficio.jugadores','beneficio.apuesta','beneficio.premio','beneficio.ajuste','beneficio.beneficio','cotizacion.valor as cotizacion')
+    ->join('beneficio_mensual','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
     ->leftJoin('cotizacion',function($j){
-      return $j->on('cotizacion.fecha','=','producido.fecha')->on('cotizacion.id_tipo_moneda','=','producido.id_tipo_moneda');
+      return $j->on('cotizacion.fecha','=','beneficio.fecha')->on('cotizacion.id_tipo_moneda','=','beneficio_mensual.id_tipo_moneda');
     })
-    ->where([['producido.id_plataforma','=',$id_plataforma],['producido.id_tipo_moneda','=',$id_tipo_moneda]])
-    ->whereYear('producido.fecha','=',$anio)
-    ->whereMonth('producido.fecha','=',$mes)
-    ->orderBy('producido.fecha','asc')->get();
+    ->where([['beneficio_mensual.id_plataforma','=',$id_plataforma],['beneficio_mensual.id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('beneficio_mensual.fecha','=',$anio)
+    ->whereMonth('beneficio_mensual.fecha','=',$mes)
+    ->orderBy('beneficio.fecha','asc')->get();
 
-    $total = DB::table('producido')->select(
-      DB::raw('SUM(jugadores) as jugadores'),
-      DB::raw('SUM(apuesta)   as apuesta'),
-      DB::raw('SUM(premio)    as premio'),
-      DB::raw('SUM(beneficio)     as beneficio')
-    )
-    ->where([['producido.id_plataforma','=',$id_plataforma],['producido.id_tipo_moneda','=',$id_tipo_moneda]])
+    $total = DB::table('beneficio_mensual')->select(DB::raw('"" as jugadores'),'apuesta','premio','ajuste','beneficio')
+    ->where([['beneficio_mensual.id_plataforma','=',$id_plataforma],['beneficio_mensual.id_tipo_moneda','=',$id_tipo_moneda]])
     ->whereYear('fecha','=',$anio)
-    ->whereMonth('fecha','=',$mes)
-    ->groupBy('producido.id_plataforma','producido.id_tipo_moneda')->first();
+    ->whereMonth('fecha','=',$mes)->first();
 
     if(is_null($total)){
       $total = new \stdClass;
