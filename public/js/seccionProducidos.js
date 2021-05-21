@@ -174,7 +174,6 @@ $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
   $.get('producidos/datosDetalle/' + id_detalle, function(data){
     const d = data.detalle;
     const diff = data.diferencias;
-    console.log(diff);
     $('#btn-guardar').data('id-detalle', id_detalle);
     $('#btn-finalizar').data('id',id_detalle);
     $('#columnaDetalle').show();
