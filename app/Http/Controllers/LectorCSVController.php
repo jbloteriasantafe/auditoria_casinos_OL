@@ -6,17 +6,12 @@ use Illuminate\Support\Facades\DB;
 use DateTime;
 use PDO;
 use Validator;
-use App\Maquina;
-use App\Sector;
-use App\Isla;
-use App\ContadorHorario;
 use App\Producido;
+use App\ProducidoJugadores;
 use App\Beneficio;
 use App\BeneficioMensual;
-use App\DetalleContadorHorario;
 use App\DetalleProducido;
 use App\TipoMoneda;
-use App\Http\Controllers\ContadorController;
 use App\Http\Controllers\ProducidoController;
 use App\Http\Controllers\BeneficioMensualController;
 
@@ -64,7 +59,6 @@ class LectorCSVController extends Controller
     $path = $archivoCSV->getRealPath();
 
     //No se puede usar sentencia preparada LOAD DATA por lo que busque
-    //A totalwager y gross revenue le saco el $, le saco el punto de los miles y le cambio la coma decimal por un punto
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE producido_temporal
                       FIELDS TERMINATED BY ','
@@ -149,6 +143,116 @@ class LectorCSVController extends Controller
     'tipo_moneda' => $producido->tipo_moneda->descripcion,
     'cantidad_registros' => $producido->detalles()->count(),
     'juegos_multiples_reportes' => $duplicados];
+  }
+
+  public function importarProducidoJugadores($archivoCSV,$fecha,$plataforma,$moneda){
+    $producido = new ProducidoJugadores;
+    $producido->id_plataforma = $plataforma;
+    $producido->fecha = $fecha;
+    $producido->id_tipo_moneda = $moneda;
+    $producido->apuesta_efectivo   = 0;$producido->apuesta_bono   = 0;$producido->apuesta   = 0;
+    $producido->premio_efectivo    = 0;$producido->premio_bono    = 0;$producido->premio    = 0;
+    $producido->beneficio_efectivo = 0;$producido->beneficio_bono = 0;$producido->beneficio = 0;
+    $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $producido->save();
+
+    $producidos_viejos = DB::table('producido_jugadores')->where([
+      ['id_producido_jugadores','<>',$producido->id_producido_jugadores],['id_plataforma','=',$producido->id_plataforma],['fecha','=',$producido->fecha]]
+    )->get();
+
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
+    
+    $prodCont = ProducidoController::getInstancia();
+    if($producidos_viejos != null){
+      foreach($producidos_viejos as $prod){
+        $prodCont->eliminarProducidoJugadores($prod->id_producido_jugadores);
+      }
+    }
+
+    $path = $archivoCSV->getRealPath();
+
+    $query = sprintf("LOAD DATA local INFILE '%s'
+                      INTO TABLE producido_jugadores_temporal
+                      FIELDS TERMINATED BY ','
+                      OPTIONALLY ENCLOSED BY '\"'
+                      ESCAPED BY '\"'
+                      LINES TERMINATED BY '\\r\\n'
+                      IGNORE 1 LINES
+                      (@DateReport,@PlayerID,@Games,@TotalWagerCash,@TotalWagerBonus,@TotalWager,@GrossRevenueCash,@GrossRevenueBonus,@GrossRevenue)
+                       SET id_producido_jugadores = '%d',
+                       DateReport = @DateReport,
+                       PlayerID = @PlayerID,
+                       Games = @Games,
+                       TotalWagerCash = REPLACE(@TotalWagerCash,',','.'),
+                       TotalWagerBonus = REPLACE(@TotalWagerBonus,',','.'),
+                       TotalWager = REPLACE(@TotalWager,',','.'),
+                       GrossRevenueCash = REPLACE(@GrossRevenueCash,',','.'),
+                       GrossRevenueBonus = REPLACE(@GrossRevenueBonus,',','.'),
+                       GrossRevenue = REPLACE(@GrossRevenue,',','.')
+                      ",$path,$producido->id_producido_jugadores);
+
+    $pdo->exec($query);
+
+    $query = $pdo->prepare("INSERT INTO detalle_producido_jugadores
+    (id_producido_jugadores,
+    jugador,
+    juegos,
+    apuesta_efectivo  , apuesta_bono  , apuesta,
+    premio_efectivo   , premio_bono   , premio,
+    beneficio_efectivo, beneficio_bono, beneficio)
+    SELECT 
+    id_producido_jugadores,
+    PlayerID as jugador,
+    Games as juegos,
+    TotalWagerCash                         as apuesta_efectivo,
+    TotalWagerBonus                        as apuesta_bono,
+    (TotalWagerCash   + TotalWagerBonus)   as apuesta,
+    (TotalWagerCash   - GrossRevenueCash)  as premio_efectivo,
+    (TotalWagerBonus  - GrossRevenueBonus) as premio_bono,
+    ((TotalWagerCash  + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as premio,
+    GrossRevenueCash                       as beneficio_efectivo,
+    GrossRevenueBonus                      as beneficio_bono,
+    (GrossRevenueCash + GrossRevenueBonus) as beneficio
+    FROM producido_jugadores_temporal
+    WHERE producido_jugadores_temporal.id_producido_jugadores = :id_producido_jugadores");
+    $query->execute([":id_producido_jugadores" => $producido->id_producido_jugadores]);
+
+    $query = $pdo->prepare("DELETE FROM producido_jugadores_temporal WHERE id_producido_jugadores = :id_producido_jugadores");
+    $query->execute([":id_producido_jugadores" => $producido->id_producido_jugadores]);
+
+    $query = $pdo->prepare("UPDATE 
+    producido_jugadores p,
+    (
+      SELECT 
+      SUM(dp.apuesta_efectivo)   as apuesta_efectivo  , SUM(dp.apuesta_bono)   as apuesta_bono  , SUM(dp.apuesta)   as apuesta,
+      SUM(dp.premio_efectivo)    as premio_efectivo   , SUM(dp.premio_bono)    as premio_bono   , SUM(dp.premio)    as premio,
+      SUM(dp.beneficio_efectivo) as beneficio_efectivo, SUM(dp.beneficio_bono) as beneficio_bono, SUM(dp.beneficio) as beneficio
+      FROM detalle_producido_jugadores dp
+      WHERE dp.id_producido_jugadores = :id_producido_jugadores1
+      GROUP BY dp.id_producido_jugadores
+    ) total
+    SET 
+    p.apuesta_efectivo   = IFNULL(total.apuesta_efectivo,0)  , p.apuesta_bono   = IFNULL(total.apuesta_bono,0)  , p.apuesta   = IFNULL(total.apuesta,0),
+    p.premio_efectivo    = IFNULL(total.premio_efectivo,0)   , p.premio_bono    = IFNULL(total.premio_bono,0)   , p.premio    = IFNULL(total.premio,0),
+    p.beneficio_efectivo = IFNULL(total.beneficio_efectivo,0), p.beneficio_bono = IFNULL(total.beneficio_bono,0), p.beneficio = IFNULL(total.beneficio,0)
+    WHERE p.id_producido_jugadores = :id_producido_jugadores2");
+
+    $query->execute([":id_producido_jugadores1" => $producido->id_producido_jugadores,":id_producido_jugadores2" => $producido->id_producido_jugadores]);
+
+    DB::connection()->enableQueryLog();
+
+    $duplicados = DB::table('detalle_producido_jugadores')->select('jugador',DB::raw('COUNT(distinct id_detalle_producido_jugadores) as veces'))
+    ->where('id_producido_jugadores','=',$producido->id_producido_jugadores)
+    ->groupBy('jugador')
+    ->havingRaw('COUNT(distinct id_detalle_producido_jugadores) > 1')->get()->count();
+
+    return ['id_producido_jugadores' => $producido->id_producido_jugadores,
+    'fecha' => $producido->fecha,
+    'plataforma' => $producido->plataforma->nombre,
+    'tipo_moneda' => $producido->tipo_moneda->descripcion,
+    'cantidad_registros' => $producido->detalles()->count(),
+    'jugadores_multiples_reportes' => $duplicados];
   }
 
   public function importarBeneficio($archivoCSV,$fecha,$plataforma,$moneda){

@@ -167,10 +167,13 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::post('/buscar','ImportacionController@buscar');
   Route::get('/{id_plataforma}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDePlataforma');
   Route::post('/importarProducido','ImportacionController@importarProducido');
+  Route::post('/importarProducidoJugadores','ImportacionController@importarProducidoJugadores');
   Route::post('/importarBeneficio','ImportacionController@importarBeneficio');
-  Route::post('/previewBeneficios','ImportacionController@previewBeneficios');
-  Route::post('/previewProducidos','ImportacionController@previewProducidos');
+  Route::post('/previewBeneficio','ImportacionController@previewBeneficio');
+  Route::post('/previewProducido','ImportacionController@previewProducido');
+  Route::post('/previewProducidoJugadores','ImportacionController@previewProducidoJugadores');
   Route::delete('/eliminarProducido/{id}','ProducidoController@eliminarProducido');
+  Route::delete('/eliminarProducidoJugadores/{id}','ProducidoController@eliminarProducidoJugadores');
   Route::delete('/eliminarBeneficioMensual/{id}','BeneficioMensualController@eliminarBeneficioMensual');
 });
 

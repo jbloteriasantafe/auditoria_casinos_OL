@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Producido;
+use App\ProducidoJugadores;
 use App\BeneficioMensual;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
@@ -32,7 +33,7 @@ class ImportacionController extends Controller
     return view('seccionImportaciones', ['tipoMoneda' => TipoMoneda::all(), 'plataformas' => UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas]);
   }
 
-  public function previewBeneficios(Request $request){
+  public function previewBeneficio(Request $request){
     $benMensual = BeneficioMensual::find($request->id_beneficio_mensual);
     if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
     return ['beneficio_mensual' => $benMensual, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
@@ -42,7 +43,7 @@ class ImportacionController extends Controller
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
-  public function previewProducidos(Request $request){
+  public function previewProducido(Request $request){
     $producido = Producido::find($request->id_producido);
     if(is_null($producido)) return response()->json("No existe el producido",422);
     return ['producido' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
@@ -52,6 +53,15 @@ class ImportacionController extends Controller
     'apuesta_efectivo','apuesta_bono','apuesta',
     'premio_efectivo','premio_bono','premio',
     'beneficio_efectivo','beneficio_bono','beneficio')
+    ->skip($request->page*$request->size)->take($request->size)->get()];
+  }
+
+  public function previewProducidoJugadores(Request $request){
+    $producido = ProducidoJugadores::find($request->id_producido_jugadores);
+    if(is_null($producido)) return response()->json("No existe el producido",422);
+    return ['producido_jugadores' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+    'cant_detalles' => $producido->detalles()->count(),
+    'detalles_producido_jugadores'=> $producido->detalles()
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
@@ -72,19 +82,27 @@ class ImportacionController extends Controller
 
     $sort_by = $request->sort_by;
     $resultados = ["data" => [],"total" => 0];
-    if($request->tipo_archivo == 2){
+    if($request->tipo_archivo == "PRODUCIDO"){
       $resultados = DB::table('producido')->select('producido.id_producido as id','producido.fecha as fecha'
       ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
-    else if($request->tipo_archivo == 3){
+    else if($request->tipo_archivo == "PRODJUG"){
+      $resultados = DB::table('producido_jugadores')->select('producido_jugadores.id_producido_jugadores as id',
+      'producido_jugadores.fecha as fecha','plataforma.nombre as plataforma',
+      'tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
+      ->join('plataforma','producido_jugadores.id_plataforma','=','plataforma.id_plataforma')
+      ->join('tipo_moneda','producido_jugadores.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
+    }
+    else if($request->tipo_archivo == "BENEFICIO"){
       $resultados = DB::table('beneficio_mensual')->select('beneficio_mensual.id_beneficio_mensual as id','beneficio_mensual.fecha as fecha'
       ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','beneficio_mensual.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
     else return $resultados;
+
     $resultados = $resultados->where($reglas)
     ->whereIn('plataforma.id_plataforma' , $plataformas);
     if(!empty($request->fecha)){
@@ -126,12 +144,15 @@ class ImportacionController extends Controller
     $arreglo = [];
     while(date('m',strtotime($fecha)) == $mes){
       $producido = [];
+      $prod_jug = [];
       $beneficio = [];
       foreach($beneficiosMensuales as $idmon => $bMensual){
         $producido[$idmon] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
+        $prod_jug[$idmon]  = ProducidoJugadores::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $beneficio[$idmon] = !is_null($bMensual) && ($bMensual->beneficios()->where('fecha',$fecha)->count() >= 1);
       }
       $dia['producido'] = $producido;
+      $dia['prod_jug']  = $prod_jug;
       $dia['beneficio'] = $beneficio;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
@@ -169,6 +190,22 @@ class ImportacionController extends Controller
     });
     return $ret;
   }
+
+  public function importarProducidoJugadores(Request $request){
+    Validator::make($request->all(),[
+        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
+        'fecha' => 'nullable|date',
+        'archivo' => 'required|mimes:csv,txt',
+        'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
+    ], array(), self::$atributos)->after(function($validator){})->validate();
+
+    $ret = null;
+    DB::transaction(function() use ($request,&$ret){
+      $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+    });
+    return $ret;
+  }
+
 
   public function importarBeneficio(Request $request){
     Validator::make($request->all(),[

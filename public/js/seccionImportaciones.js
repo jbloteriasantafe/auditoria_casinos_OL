@@ -131,6 +131,7 @@ function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
           moldeFilaImportacion.removeAttr('id');
           moldeFilaImportacion.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
           moldeFilaImportacion.find('.producido').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
+          moldeFilaImportacion.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.beneficio').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
           tablaBody.append(moldeFilaImportacion);
           moldeFilaImportacion.show();
@@ -194,7 +195,8 @@ $(document).on('click','.planilla', function(){
   $('#modalPlanilla').attr('data-tipo',tipo_importacion);
   const head = $('#tablaVistaPrevia thead tr');
   head.children().remove();
-  if(tipo_importacion == 2){
+  $('#tablaVistaPrevia tbody tr').remove();
+  if(tipo_importacion == "PRODUCIDO"){
     head.append($('<th>').addClass('col-xs-1').append('JUEGO'));
     head.append($('<th>').addClass('col-xs-1').append('CATEGORIA'));
     head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
@@ -207,8 +209,23 @@ $(document).on('click','.planilla', function(){
     head.append($('<th>').addClass('col-xs-1').append('BENEFICIO (Ef)'));
     head.append($('<th>').addClass('col-xs-1').append('BENEFICIO (Bo)'));
     head.append($('<th>').addClass('col-xs-1').append('BENEFICIO'));
+    actualizarPreviewProducidos($(this).val(),0,30);
   }
-  else if(tipo_importacion == 3){
+  else if(tipo_importacion == "PRODJUG"){
+    head.append($('<th>').addClass('col-xs-2').append('JUGADOR'));
+    head.append($('<th>').addClass('col-xs-1').append('JUEGOS'));
+    head.append($('<th>').addClass('col-xs-1').append('APUESTA (Ef)'));
+    head.append($('<th>').addClass('col-xs-1').append('APUESTA (Bo)'));
+    head.append($('<th>').addClass('col-xs-1').append('APUESTA'));
+    head.append($('<th>').addClass('col-xs-1').append('PREMIO (Ef)'));
+    head.append($('<th>').addClass('col-xs-1').append('PREMIO (Bo)'));
+    head.append($('<th>').addClass('col-xs-1').append('PREMIO'));
+    head.append($('<th>').addClass('col-xs-1').append('BENEFICIO (Ef)'));
+    head.append($('<th>').addClass('col-xs-1').append('BENEFICIO (Bo)'));
+    head.append($('<th>').addClass('col-xs-1').append('BENEFICIO'));
+    actualizarPreviewProducidosJugadores($(this).val(),0,30);
+  }
+  else if(tipo_importacion == "BENEFICIO"){
     head.append($('<th>').addClass('col-xs-1').append('FECHA'));
     head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
     head.append($('<th>').addClass('col-xs-2').append('DEPOSITOS'));
@@ -216,14 +233,7 @@ $(document).on('click','.planilla', function(){
     head.append($('<th>').addClass('col-xs-2').append('APUESTA'));
     head.append($('<th>').addClass('col-xs-2').append('PREMIO'));
     head.append($('<th>').addClass('col-xs-2').append('BENEFICIO'));
-  }
-  $('#tablaVistaPrevia tbody tr').remove();
-
-  //Comprobar el tipo de importacion. BENEFICIO tiene una ruta diferente a PRODUCIDO
-  if (tipo_importacion == 3) {
     actualizarPreviewBeneficios($(this).val(),0,30)
-  }else if (tipo_importacion == 2) {
-    actualizarPreviewProducidos($(this).val(),0,30);
   }
 
   //Mostrar el modal de la vista previa
@@ -239,7 +249,7 @@ function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
   });
   $.ajax({
     type: 'POST',
-    url: 'importaciones/previewBeneficios',
+    url: 'importaciones/previewBeneficio',
     data: {id_beneficio_mensual: id_beneficio_mensual,page: page,size: size},
     dataType: 'json',
     success: function (data) {
@@ -270,7 +280,7 @@ function actualizarPreviewProducidos(id_producido,page,size){
   });
   $.ajax({
     type: 'POST',
-    url: 'importaciones/previewProducidos',
+    url: 'importaciones/previewProducido',
     data: {id_producido: id_producido,page: page,size: size},
     dataType: 'json',
     success: function (data) {
@@ -292,15 +302,48 @@ function actualizarPreviewProducidos(id_producido,page,size){
   });
 }
 
+function actualizarPreviewProducidosJugadores(id_producido_jugadores,page,size){
+  $('#prevPreview').attr('disabled',page == 0);
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  $.ajax({
+    type: 'POST',
+    url: 'importaciones/previewProducidoJugadores',
+    data: {id_producido_jugadores: id_producido_jugadores,page: page,size: size},
+    dataType: 'json',
+    success: function (data) {
+      $('#previewPage').text(page+1);
+      const totales = Math.ceil(data.cant_detalles/size);
+      $('#previewTotal').text(totales);
+      $('#nextPreview').attr('disabled',(page+1) >= totales);
+      $('#modalPlanilla #fecha').val(convertirDate(data.producido_jugadores.fecha));
+      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
+      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
+      $('#tablaVistaPrevia tbody tr').remove();
+      for (var i = 0; i < data.detalles_producido_jugadores.length; i++) {
+        agregarFilaDetalleProducidoJugadores(data.detalles_producido_jugadores[i]);
+      }
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
+}
+
+
 $('#prevPreview').click(function(){
   const id = parseInt($('#modalPlanilla').attr('data-id'));
   let page = parseInt($('#modalPlanilla').attr('data-page'));
   page = Math.max(page-1,0)
   $('#modalPlanilla').attr('data-page',page);
   const size = parseInt($('#modalPlanilla').attr('data-size'));
-  const tipo = parseInt($('#modalPlanilla').attr('data-tipo'));
-  if(tipo == 2) actualizarPreviewProducidos(id,page,size)
-  else if(tipo == 3) actualizarPreviewBeneficios(id,page,size);
+  const tipo = $('#modalPlanilla').attr('data-tipo');
+  if(tipo == "PRODUCIDO") actualizarPreviewProducidos(id,page,size)
+  if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
+  else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
 });
 
 $('#nextPreview').click(function(){
@@ -309,22 +352,22 @@ $('#nextPreview').click(function(){
   page++;
   $('#modalPlanilla').attr('data-page',page);
   const size = parseInt($('#modalPlanilla').attr('data-size'));
-  const tipo = parseInt($('#modalPlanilla').attr('data-tipo'));
-  console.log('Pagina',page);
-  if(tipo == 2) actualizarPreviewProducidos(id,page,size)
-  else if(tipo == 3) actualizarPreviewBeneficios(id,page,size);
+  const tipo = $('#modalPlanilla').attr('data-tipo');
+  if(tipo == "PRODUCIDO") actualizarPreviewProducidos(id,page,size)
+  else if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
+  else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
 });
 
-$(document).on('click','.borrar',function(){
-  const id_importacion = $(this).val();
-  //Mirar en la tabla los tipos de archivos listados (2:producidos;3:beneficios).
-  const tipo_archivo = $('#tipo_archivo').val();
-  const nombre_tipo_archivo = {2: 'PRODUCIDO',3: 'BENEFICIO'}[tipo_archivo];
+$('#tipo_archivo').change(function(){$('#btn-buscarImportaciones').click();});
+$('#plataforma_busqueda').change(function(){$('#btn-buscarImportaciones').click();});
+$('#fecha_busqueda_input').change(function(){$('#btn-buscarImportaciones').click();});
+$('#moneda_busqueda').change(function(){$('#btn-buscarImportaciones').click();});
 
+$(document).on('click','.borrar',function(){
   //Se muestra el modal de confirmación de eliminación
   //Se le pasa el tipo de archivo y el id del archivo
-  $('#btn-eliminarModal').val(id_importacion).attr('data-tipo',tipo_archivo);
-  $('#titulo-modal-eliminar').text('¿Seguro desea eliminar el '+ nombre_tipo_archivo + '?');
+  $('#btn-eliminarModal').val($(this).val()).attr('data-tipo',$('#tipo_archivo').val());
+  $('#titulo-modal-eliminar').text('¿Seguro desea eliminar el '+ $('#tipo_archivo option:selected').text() + '?');
   $('#modalEliminar').modal('show');
 });
 
@@ -339,12 +382,15 @@ $('#btn-eliminarModal').click(function (e) {
       }
   })
 
-  let = url = 'importaciones';
+  let url = 'importaciones';
   switch(tipo_archivo){
-    case '2':
+    case 'PRODUCIDO':
       url += "/eliminarProducido/" + id_importacion;
       break;
-    case '3':
+    case 'PRODJUG':
+      url += "/eliminarProducidoJugadores/" + id_importacion;
+      break;
+    case 'BENEFICIO':
       url += "/eliminarBeneficioMensual/" + id_importacion;
       break;
     default:
@@ -366,20 +412,35 @@ $('#btn-eliminarModal').click(function (e) {
 });
 
 /*********************** PRODUCIDOS *********************************/
-function agregarFilaDetalleProducido(producido) {
+function agregarFilaDetalleProducido(detprod) {
   var fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-1').append(producido.cod_juego));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.categoria));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.jugadores));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.apuesta_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.apuesta_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.apuesta));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.premio_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.premio_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.premio));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.beneficio_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.beneficio_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(producido.beneficio));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.cod_juego));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.categoria));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.jugadores));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio));
+  $('#tablaVistaPrevia tbody').append(fila);
+}
+function agregarFilaDetalleProducidoJugadores(detprodjug) {
+  var fila = $('<tr>');
+  fila.append($('<td>').addClass('col-xs-2').append(detprodjug.jugador));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.juegos));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio_efectivo));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio_bono));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio));
   $('#tablaVistaPrevia tbody').append(fila);
 }
 
@@ -423,10 +484,20 @@ function reiniciarModalImportarProducido(){
 
 $('#btn-importarProducidos').click(function(e){
   e.preventDefault();
+  $('#modalImportacionProducidos .modal-title').text("| IMPORTAR PRODUCIDO");
   $('#modalImportacionProducidos').find('.modal-footer').children().show();
   reiniciarModalImportarProducido();
   $('#mensajeExito').hide();
-  $('#modalImportacionProducidos').modal('show');
+  $('#modalImportacionProducidos').data('modo','juegos').modal('show');
+});
+
+$('#btn-importarProducidosJugadores').click(function(e){
+  e.preventDefault();
+  $('#modalImportacionProducidos .modal-title').text("| IMPORTAR PRODUCIDO JUEGOS");
+  $('#modalImportacionProducidos').find('.modal-footer').children().show();
+  reiniciarModalImportarProducido();
+  $('#mensajeExito').hide();
+  $('#modalImportacionProducidos').data('modo','jugadores').modal('show');
 });
 
 $('#btn-guardarProducido').on('click',function(e){
@@ -457,9 +528,10 @@ $('#btn-guardarProducido').on('click',function(e){
     formData.append('archivo' , $('#modalImportacionProducidos #archivo')[0].files[0]);
   }
 
+  const modo = $('#modalImportacionProducidos').data('modo') == "jugadores" ? "Jugadores" : "";
   $.ajax({
       type: "POST",
-      url: 'importaciones/importarProducido',
+      url: 'importaciones/importarProducido' + modo,
       data: formData,
       processData: false,
       contentType:false,
@@ -481,6 +553,7 @@ $('#btn-guardarProducido').on('click',function(e){
         $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN PRODUCIDO');
         text = data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados'
         if(data.juegos_multiples_reportes > 0) text += '<br>' + data.juegos_multiples_reportes + ' juego(s) reportaron multiples veces';
+        if(data.jugadores_multiples_reportes > 0) text += '<br>' + data.jugadores_multiples_reportes + ' jugador(es) reportaron multiples veces';
         $('#mensajeExito p').html(text);
         $('#mensajeExito').show();
       },
@@ -516,13 +589,14 @@ function procesarDatosProducidos(e) {
   const csv = e.target.result;
   //Limpio retorno de carro y saco las lineas sin nada.
   const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
+  const COLUMNASPROD = $('#modalImportacionProducidos').data('modo') == "jugadores"? 9 : 10;
   if(allTextLines.length > 0){
     const columnas = allTextLines[0].split(',');
-    if (columnas.length == 10) {
+    if (columnas.length == COLUMNASPROD) {
       //Si tiene filas, extraigo la fecha
       if (allTextLines.length > 1) {
         //Se obtiene la fecha del CSV para mostrarlo
-        const date = allTextLines[1].split(',')[0];
+        const date = allTextLines[1].split(',')[0].replaceAll('"','');//Saco las comillas
         $('#fechaProducido').data('datetimepicker').setDate(new Date(toIso(date)));
         $('#fechaProducido input').attr('disabled',true);
         $('#fechaProducido span').hide()
@@ -565,9 +639,9 @@ $('#modalImportacionProducidos #archivo').on('fileselect', function(event) {
   $('#modalImportacionProducidos #archivo').attr('data-borrado','false');
   // Se lee el archivo guardado en el input de tipo 'file'.
   // se valida la importación.
-  var reader = new FileReader();
-  reader.readAsText($('#modalImportacionProducidos #archivo')[0].files[0]);
+  let reader = new FileReader();
   reader.onload = procesarDatosProducidos;
+  reader.readAsText($('#modalImportacionProducidos #archivo')[0].files[0]);
 });
 
 $('#btn-reintentarProducido').click(function(e) {
@@ -714,7 +788,7 @@ function procesarDatosBeneficios(e) {
     if (columnas.length == 16) {
       //Si tiene filas, extraigo la fecha y moneda
       if (allTextLines.length > 2) {//2 porque tiene la cabezera y el total si o si (supongo)
-        const date = allTextLines[1].split(',')[1];
+        const date = allTextLines[1].split(',')[1].replaceAll('"','');//Saco las comillas
         $('#fechaBeneficio').data('datetimepicker').setDate(new Date(toIso(date)));
         $('#fechaBeneficio input').attr('disabled',true);
         $('#fechaBeneficio span').hide();
@@ -774,21 +848,20 @@ $('#btn-reintentarBeneficio').click(function(e) {
 
 /*****************PAGINACION******************/
 
-function agregarFilasImportaciones(data,tipo) {
+function agregarFilasImportaciones(data) {
   var fila = $('<tr>');
   fila.append($('<td>').addClass('col-xs-3').text("-"));
   fila.append($('<td>').addClass('col-xs-3').text(convertirDate(data.fecha)));
   fila.append($('<td>').addClass('col-xs-2').text(data.plataforma));
   fila.append($('<td>').addClass('col-xs-2').text(data.tipo_moneda));
   fila.append($('<td>').addClass('col-xs-2')
-                       .append($('<button>').addClass('btn btn-info planilla').val(data.id)
-                                            .append($('<i>').addClass('far fa-fw fa-file-alt'))
-                       )
-                       .append($('<button>').addClass('btn btn-danger borrar').val(data.id)
-                                            .append($('<i>').addClass('fa fa-fw fa-trash-alt'))
-
-                       )
-  )
+    .append($('<button>').addClass('btn btn-info planilla').val(data.id)
+      .append($('<i>').addClass('far fa-fw fa-file-alt'))
+    )
+    .append($('<button>').addClass('btn btn-danger borrar').val(data.id)
+      .append($('<i>').addClass('fa fa-fw fa-trash-alt'))
+    )
+  );
   $('#tablaImportaciones tbody').append(fila);
 }
 
@@ -844,7 +917,7 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
     $('#tablaImportaciones th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
-  var formData = {
+  const formData = {
     fecha: $('#fecha_busqueda_hidden').val(),
     id_plataforma: $('#plataforma_busqueda').val(),
     id_tipo_moneda: $('#moneda_busqueda').val(),
@@ -852,8 +925,7 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,
-  }
-  console.log('FormData de buscar: ', formData);
+  };
 
   $.ajax({
     type: "POST",
@@ -864,8 +936,8 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
       $('#tablaImportaciones tbody tr').remove();
       $('#tablaImportaciones').attr('data-tipo', formData.seleccion);
       $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-      for (var i = 0; i < resultados.data.length; i++) {
-        agregarFilasImportaciones(resultados.data[i],formData.seleccion);
+      for (let i = 0; i < resultados.data.length; i++) {
+        agregarFilasImportaciones(resultados.data[i]);
       }
       $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
     },

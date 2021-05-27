@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Producido;
 use App\DetalleProducido;
+use App\ProducidoJugadores;
+use App\DetalleProducidoJugadores;
 use App\Plataforma;
 use App\TipoMoneda;
 use App\Juego;
@@ -99,25 +101,25 @@ class ProducidoController extends Controller
   public function eliminarProducido($id_producido){
     Validator::make(['id_producido' => $id_producido]
                    ,['id_producido' => 'required|exists:producido,id_producido']
-                   , array(), self::$atributos)->after(function($validator){
-                   })->sometimes('id_producido','exists:producido,id_producido',function($input){
-                      $prod = Producido::find($input['id_producido']);
-                      return !$prod->validado;
-                   })->validate();
+                   , [], self::$atributos)->after(function($validator){})->validate();
 
-     $pdo = DB::connection('mysql')->getPdo();
+    DB::transaction(function() use ($id_producido){
+      $prod = Producido::find($id_producido);
+      foreach($prod->detalles as $d) $d->delete();
+      $prod->delete();
+    });
+  }
 
-     $query = sprintf(" DELETE FROM detalle_producido
-                        WHERE id_producido = '%d'
-                        ",$id_producido);
+  public function eliminarProducidoJugadores($id_producido_jugadores){
+    Validator::make(['id_producido_jugadores' => $id_producido_jugadores]
+                   ,['id_producido_jugadores' => 'required|exists:producido_jugadores,id_producido_jugadores']
+                   , [], self::$atributos)->after(function($validator){})->validate();
 
-     $pdo->exec($query);
-
-     $query = sprintf(" DELETE FROM producido
-                        WHERE id_producido = '%d'
-                        ",$id_producido);
-
-    $pdo->exec($query);
+    DB::transaction(function() use ($id_producido_jugadores){
+      $prod = ProducidoJugadores::find($id_producido_jugadores);
+      foreach($prod->detalles as $d) $d->delete();
+      $prod->delete();
+    });
   }
 
   public function datosDetalle($id_detalle_producido){

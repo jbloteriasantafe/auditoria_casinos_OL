@@ -41,6 +41,25 @@ $id_usuario = session('id_usuario');
                          </a>
                         </div>
                     </div> <!--    .row | IMPORTAR PRODUCIDOS -->
+                    <!-- IMPORTAR PRODUCIDOS JUGADORES -->
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-xl-12">
+                         <a href="" id="btn-importarProducidosJugadores" style="text-decoration: none;">
+                          <div class="panel panel-default panelBotonNuevo">
+                              <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+                              <div class="backgroundNuevo"></div>
+                              <div class="row">
+                                  <div class="col-xs-12">
+                                    <center>
+                                        <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+PJ</span></h5>
+                                        <h4 class="txtNuevo">IMPORTAR PRODUCIDOS JUGADORES</h4>
+                                    </center>
+                                  </div>
+                              </div>
+                          </div>
+                         </a>
+                        </div>
+                    </div> <!--    .row | IMPORTAR PRODUCIDOS -->
                     <!-- IMPORTAR BENEFICIOS -->
                     <div class="row">
                         <div class="col-sm-12 col-md-12 col-xl-12">
@@ -139,16 +158,18 @@ $id_usuario = session('id_usuario');
                                   <table id="infoImportaciones" class="table table-fixed tablesorter">
                                       <thead>
                                         <tr>
-                                          <th class="col-xs-4" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                                          <th class="col-xs-4" style="text-align:center;">PRODUCIDOS</th>
-                                          <th class="col-xs-4" style="text-align:center;">BENEFICIOS</th>
+                                          <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                                          <th class="col-xs-3" style="text-align:center;">PRODUCIDOS</th>
+                                          <th class="col-xs-3" style="text-align:center;">PROD. JUGADORES</th>
+                                          <th class="col-xs-3" style="text-align:center;">BENEFICIOS</th>
                                         </tr>
                                       </thead>
                                       <tbody style="text-align:center; max-height:440px;">
                                         <tr id="moldeFilaImportacion">
-                                          <td class="col-xs-4 fecha" style="text-align:left;">12 AGO 2018</td>
-                                          <td class="col-xs-4 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                                          <td class="col-xs-4 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                                          <td class="col-xs-3 fecha" style="text-align:left;">12 AGO 2018</td>
+                                          <td class="col-xs-3 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                                          <td class="col-xs-3 producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                                          <td class="col-xs-3 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
                                         </tr>
                                       </tbody>
                                   </table>
@@ -172,8 +193,9 @@ $id_usuario = session('id_usuario');
                               <div class="col-md-3">
                                   <h5>TIPO DE ARCHIVO</h5>
                                   <select id="tipo_archivo" class="form-control">
-                                          <option value="2">PRODUCIDOS</option>
-                                          <option value="3">BENEFICIOS</option>
+                                          <option value="PRODUCIDO">PRODUCIDO</option>
+                                          <option value="PRODJUG">PROD. JUGADORES</option>
+                                          <option value="BENEFICIO">BENEFICIO</option>
                                   </select>
                               </div>
                               <div class="col-md-2">
@@ -188,7 +210,7 @@ $id_usuario = session('id_usuario');
                               <div class="col-md-3">
                                   <h5>FECHA</h5>
                                   <div class='input-group date' id='fecha_busqueda' data-link-field="fecha_busqueda_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                      <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
+                                      <input id="fecha_busqueda_input" type='text' class="form-control" placeholder="Fecha de Inicio"/>
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
@@ -231,8 +253,8 @@ $id_usuario = session('id_usuario');
                             <table id="tablaImportaciones" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-3" value="contador_horario.fecha" estado="">FECHA PRODUCCIÓN<i class="fa fa-sort"></i></th>
-                                    <th id="tipo_fecha" class="col-xs-3 activa" value="contador_horario.fecha" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
+                                    <th class="col-xs-3" value="fecha" estado="">FECHA PRODUCCIÓN<i class="fa fa-sort"></i></th>
+                                    <th id="tipo_fecha" class="col-xs-3 activa" value="fecha" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
                                     <th class="col-xs-2" value="plataforma.nombre" estado="">PLATAFORMA <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2" value="tipo_moneda.descripcion" estado="">MONEDA <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2" value="" estado="">ACCIÓN</th>
