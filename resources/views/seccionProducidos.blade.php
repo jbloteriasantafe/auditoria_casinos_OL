@@ -122,8 +122,9 @@ use Illuminate\Http\Request;
                 <td class="tipo_moneda col-xs-2">MONEDA</td>
                 <td class="diferencias col-xs-2">DIFS</td>
                 <td class="accion col-xs-2">
-                  <button class="btn btn-info carga" title="VER PRODUCIDO"><i class="fa fa-fw fa-search-plus"></i></button>
+                  <button class="btn btn-info carga" title="VER PRODUCIDO"><i class="fa fa-fw fa-eye"></i></button>
                   <button class="btn btn-info planilla" title="PLANILLA"><i class="fa fa-fw fa-print"></i></button>
+                  <button class="btn btn-info carga_jugadores" title="VER PROD. JUGADORES"><i class="fa fa-fw fa-eye"></i></button>
                   <button class="btn btn-info planilla_jugadores" title="PLANILLA PROD. JUGADORES"><i class="fa fa-fw fa-print"></i></button>
                 </td>
               </tr>

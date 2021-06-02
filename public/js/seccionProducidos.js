@@ -261,8 +261,10 @@ function agregarFilaTabla(producido){
   tr.find('.diferencias').text(producido.diferencias);
   tr.find('button').val(producido.id_producido);
 
-  if(producido.id_producido_jugadores) tr.find('.planilla_jugadores').val(producido.id_producido_jugadores)
-  else tr.find('.planilla_jugadores').remove();
+  if(producido.id_producido_jugadores) tr.find('.planilla_jugadores,.carga_jugadores').val(producido.id_producido_jugadores)
+  else tr.find('.planilla_jugadores,.carga_jugadores').remove();
+
+  if(producido.diferencias) tr.find('.carga i').removeClass('fa-eye').addClass('fa-exclamation');
   
   $('#tablaImportacionesProducidos tbody').append(tr);
 }
