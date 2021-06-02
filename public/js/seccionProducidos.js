@@ -246,23 +246,24 @@ function generarFilaJuego(d){
 $(document).on('click','.planilla',function(){
   window.open('producidos/generarPlanilla/' + $(this).val(),'_blank');
 });
+$(document).on('click','.planilla_jugadores',function(){
+  window.open('producidos/generarPlanillaJugadores/' + $(this).val(),'_blank');
+});
 
 //función para generar el listado inicial
 function agregarFilaTabla(producido){
   const plat = $(`#selectPlataforma option[value=${producido.id_plataforma}]`).text();
   const moneda = $(`#selectMoneda option[value=${producido.id_tipo_moneda}]`).text();
-  const tr = $('<tr>')
-  .append($('<td>').addClass('col-xs-3 plataforma').text(plat))
-  .append($('<td>').addClass('col-xs-3 fecha_producido').text(producido.fecha))
-  .append($('<td>').addClass('col-xs-2 tipo_moneda').text(moneda))
-  .append($('<td>').addClass('col-xs-2 diferencias').text(producido.diferencias))
-  .append($('<td>').addClass('col-xs-2')
-    .append($('<button>').addClass('btn').addClass('btn-info').addClass('carga').attr('value',producido.id_producido)
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-search-plus')))
-    .append($('<button>').addClass('btn').addClass('btn-info').addClass('planilla').attr('value',producido.id_producido)
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-print'))
-    )
-  );
+  const tr = $('#moldeFilaTabla').clone().removeAttr('id');
+  tr.find('.plataforma').text(plat);
+  tr.find('.fecha_producido').text(producido.fecha);
+  tr.find('.tipo_moneda').text(moneda);
+  tr.find('.diferencias').text(producido.diferencias);
+  tr.find('button').val(producido.id_producido);
+
+  if(producido.id_producido_jugadores) tr.find('.planilla_jugadores').val(producido.id_producido_jugadores)
+  else tr.find('.planilla_jugadores').remove();
+  
   $('#tablaImportacionesProducidos tbody').append(tr);
 }
 

@@ -69,18 +69,24 @@ class ProducidoController extends Controller
     }
     
     $reglas = [];
-    if($request->id_tipo_moneda != "") $reglas[] = ['id_tipo_moneda','=',$request->id_tipo_moneda];
+    if($request->id_tipo_moneda != "") $reglas[] = ['producido.id_tipo_moneda','=',$request->id_tipo_moneda];
 
     $fecha_inicio = '2020-01-01';
     $fecha_fin = date('Y-m-d');
     if(!empty($request->fecha_inicio)) $fecha_inicio = $request->fecha_inicio;
     if(!empty($request->fecha_fin))    $fecha_fin    = $request->fecha_fin;
   
-    $resultados = DB::table('producido')->whereIn('id_plataforma',$plataformas)->where($reglas)
-    ->whereBetween('fecha',[$fecha_inicio, $fecha_fin])
+    $resultados = DB::table('producido')->whereIn('producido.id_plataforma',$plataformas)->where($reglas)
+    ->whereBetween('producido.fecha',[$fecha_inicio, $fecha_fin])
     ->selectRaw('producido.*, 
-    SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias')
+    SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias,
+    MAX(producido_jugadores.id_producido_jugadores) as id_producido_jugadores')
     ->join('detalle_producido_diferencias as diff','diff.id_producido','=','producido.id_producido')
+    ->leftJoin('producido_jugadores',function($j){
+      return $j->on('producido_jugadores.fecha','=','producido.fecha')
+               ->on('producido.id_tipo_moneda','=','producido_jugadores.id_tipo_moneda')
+               ->on('producido.id_plataforma','=','producido_jugadores.id_plataforma');
+    })
     ->groupBy('producido.id_producido');
     if($request->correcto == "1") $resultados = $resultados->having('diferencias','=','0');
     if($request->correcto == "0") $resultados = $resultados->having('diferencias','>','0');
@@ -168,16 +174,41 @@ class ProducidoController extends Controller
     
     $fecha = explode("-",$producido->fecha);
     $pro->fecha_prod = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
-
+    
     $view = View::make('planillaProducidos',compact('detalles','pro'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
-
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
 
+  public function generarPlanillaJugadores($id_producido_jugadores){
+    $producido = ProducidoJugadores::find($id_producido_jugadores);
+    $detalles = $producido->detalles()->orderBy('jugador','asc')->get();
+
+    $pro = new \stdClass();
+    $pro->plataforma = $producido->plataforma->nombre;
+    $pro->tipo_moneda = $producido->tipo_moneda->descripcion;
+    if($pro->tipo_moneda == 'ARS'){
+      $pro->tipo_moneda = 'Pesos';
+    }
+    else if ($pro->tipo_moneda == 'USD'){
+      $pro->tipo_moneda = 'Dólares';
+    }
+    
+    $fecha = explode("-",$producido->fecha);
+    $pro->fecha_prod = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
+
+    $view = View::make('planillaProducidosJugadores',compact('detalles','pro'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 }

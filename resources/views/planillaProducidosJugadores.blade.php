@@ -29,7 +29,7 @@
   <body>
     <div class="encabezadoImg">
       <img src="img/logos/banner_nuevo2_landscape.png" width="900">
-      <h2><span>RMTM09 | Producidos diarios por juegos en {{$pro->tipo_moneda}}</span></h2>
+      <h2><span>RMTM09 | Producidos diarios por jugadores en {{$pro->tipo_moneda}}</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy);?></span></div>
@@ -38,16 +38,14 @@
     <br>
     <table>
       <tr>
-        <th class="tablaInicio">BD</th>
-        <th class="tablaInicio">JUEGO</th>
+        <th class="tablaInicio">JUGADOR</th>
         <th class="tablaInicio">APUESTA</th>
         <th class="tablaInicio">PREMIO</th>
         <th class="tablaInicio">BENEFICIO</th>
       </tr>
       @foreach ($detalles as $d)
       <tr>
-        <td class="tablaCampos">{{$d->en_bd? 'SÍ' : 'NO'}}</td>
-        <td class="tablaCampos">{{$d->cod_juego}}</td>
+        <td class="tablaCampos">{{$d->jugador}}</td>
         <td class="tablaCampos">{{$d->apuesta}}</td>
         <td class="tablaCampos">{{$d->premio}}</td>
         <td class="tablaCampos">{{$d->beneficio}}</td>

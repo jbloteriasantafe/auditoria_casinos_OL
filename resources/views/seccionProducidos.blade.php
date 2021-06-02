@@ -115,6 +115,19 @@ use Illuminate\Http\Request;
               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
               </div>
             </div>
+            <table hidden>
+              <tr id="moldeFilaTabla">
+                <td class="plataforma col-xs-3">PLAT</td>
+                <td class="fecha_producido col-xs-3">FECHA</td>
+                <td class="tipo_moneda col-xs-2">MONEDA</td>
+                <td class="diferencias col-xs-2">DIFS</td>
+                <td class="accion col-xs-2">
+                  <button class="btn btn-info carga" title="VER PRODUCIDO"><i class="fa fa-fw fa-search-plus"></i></button>
+                  <button class="btn btn-info planilla" title="PLANILLA"><i class="fa fa-fw fa-print"></i></button>
+                  <button class="btn btn-info planilla_jugadores" title="PLANILLA PROD. JUGADORES"><i class="fa fa-fw fa-print"></i></button>
+                </td>
+              </tr>
+            </table>
           </div>
         </div>
       </div>
