@@ -170,6 +170,10 @@ use Illuminate\Http\Request;
             <h5 style="padding-left:15px">
               Detalles con diferencias: <span id="detalles_con_diferencias">---</span>
             </h5>
+            <div class="form-check">
+              <label class="form-check-label" for="verSoloDiferencias">Ver solo diferencias</lavel>
+              <input type="checkbox" class="form-check-input" id="verSoloDiferencias">
+            </div>
           </div>
           <div class="row" >
             <div class="col-md-3">

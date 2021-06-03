@@ -312,3 +312,7 @@ $(document).on('click', '#tablaImportacionesProducidos thead tr th[value]', func
   
   $('#btn-buscar').click();
 });
+
+$('#verSoloDiferencias').change(function(e){
+  $('#cuerpoTabla i.fa-eye').closest('tr').toggle(!$(this).prop('checked'));
+})
