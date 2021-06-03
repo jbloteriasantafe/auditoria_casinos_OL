@@ -124,39 +124,51 @@ $(document).on('mouseenter','.popInfo',function(e){
     $(this).popover('show');
 });
 
-//AJUSTAR PRODUCIDO, boton de la lista
-$(document).on('click','.carga',function(e){
-  e.preventDefault();
+function mostrarDetalles(plataforma,fecha,moneda,detalles,tipo){
   $('#columnaDetalle').hide();
   $('#mensajeExito').modal('hide');
-
   $('#modalCargaProducidos .mensajeSalida span').hide();
-  const tr_html = $(this).parent().parent();
-  const id_producido = $(this).val();
-  const moneda = tr_html.find('.tipo_moneda').text();
-  const fecha_prod = tr_html.find('.fecha_producido').text();
-  const plataforma = tr_html.find('.plataforma').text();
-  $('#descripcion_validacion').text(plataforma+' - '+fecha_prod+' - $'+moneda);
-  $('#juegos_con_diferencias').text('---');
-  $('#juegos_no_en_bd').text('---');
+  $('#descripcion_validacion').text(plataforma+' - '+fecha+' - $'+moneda);
   $('#cuerpoTabla').empty();
-  $('#modalCargaProducidos #id_producido').val(id_producido);
-  //ME TRAE LAS MÁQUINAS RELACIONADAS CON ESE PRODUCIDO, PRIMER TABLA DEL MODAL
-  $.get('producidos/detallesProducido/' + id_producido, function(data){
-    let diferencias = 0;
-    for (let i = 0; i < data.detalles.length; i++) {
-      const d = data.detalles[i];
-      const fila = generarFilaJuego(d);
-      diferencias+=d.diferencia;
-      $('#cuerpoTabla').append(fila);
-      $('#btn-salir-validado').hide();
-      $('#btn-salir').show();
-    }
-    $('#juegos_con_diferencias').text(diferencias);
-  });
-  $('#frmCargaProducidos').attr('data-tipoMoneda' ,tr_html.find('.tipo_moneda').attr('data-tipo'));
+
+  let diferencias = 0;
+  for (let i = 0; i < detalles.length; i++) {
+    const d = detalles[i];
+    const fila = generarFilaDetalle(d,tipo);
+    diferencias+=d.diferencia;
+    $('#cuerpoTabla').append(fila);
+    $('#btn-salir-validado').hide();
+    $('#btn-salir').show();
+  }
+  $('#detalles_con_diferencias').text(diferencias);
   $('#modalCargaProducidos').modal('show');
-  $('#').modal('hide');
+}
+
+//Lupa de mostrar el producido
+$(document).on('click','.carga',function(e){
+  e.preventDefault();
+  const id_producido = $(this).val();
+  const tr = $(this).closest('tr');
+  const moneda = tr.find('.tipo_moneda').text();
+  const fecha = tr.find('.fecha_producido').text();
+  const plataforma = tr.find('.plataforma').text();
+  $('#modalCargaProducidos .modal-title').text('Producidos');
+  $.get('producidos/detallesProducido/' + id_producido, function(data){
+    mostrarDetalles(plataforma,fecha,moneda,data.detalles,'juegos');
+  });
+});
+
+$(document).on('click','.carga_jugadores',function(e){
+  e.preventDefault();
+  const id_producido_jugadores = $(this).val();
+  const tr = $(this).closest('tr');
+  const moneda = tr.find('.tipo_moneda').text();
+  const fecha = tr.find('.fecha_producido').text();
+  const plataforma = tr.find('.plataforma').text();
+  $('#modalCargaProducidos .modal-title').text('Producidos de jugadores');
+  $.get('producidos/detallesProducidoJugadores/' + id_producido_jugadores, function(data){
+    mostrarDetalles(plataforma,fecha,moneda,data.detalles,'jugadores');
+  });
 });
 
 $('#btn-salir-validado').on('click', function(e){
@@ -164,14 +176,29 @@ $('#btn-salir-validado').on('click', function(e){
     $('#btn-buscar').trigger('click');
 })
 
-
 $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
   e.preventDefault();
   $('#cuerpoTabla tr .botones').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();
   const id_detalle = $(this).val();
-  $.get('producidos/datosDetalle/' + id_detalle, function(data){
+  const tipo = $(this).data('tipo');
+  let url = 'producidos/';
+  if(tipo == 'juegos'){
+    url += 'datosDetalle/';
+    $('.datosJuego').show();
+    $('.datosJugadores').hide();
+  } 
+  else if(tipo == 'jugadores'){
+    url += 'datosDetalleJugadores/';
+    $('.datosJuego').hide();
+    $('.datosJugadores').show();
+  }
+  else{
+    console.log('Tipo de detalle invalido '+id_detalle+' '+tipo);
+    return;
+  }
+  $.get(url + id_detalle, function(data){
     const d = data.detalle;
     const diff = data.diferencias;
     $('#btn-guardar').data('id-detalle', id_detalle);
@@ -187,16 +214,17 @@ $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
     $('#apuesta_bono').val(d.apuesta_bono);
     $('#apuesta').val(d.apuesta).css('background-color',validar(diff.apuesta));
     $('#premio_efectivo').val(d.premio_efectivo);
-    $('#efectivo_pdev').text(pdev(d.apuesta_efectivo,d.premio_efectivo)).css('color','');
+    $('#efectivo_pdev').text(pdev(d.apuesta_efectivo,d.premio_efectivo));
     $('#premio_bono').val(d.premio_bono);
-    $('#bono_pdev').text(pdev(d.apuesta_bono,d.premio_bono)).css('color','');
+    $('#bono_pdev').text(pdev(d.apuesta_bono,d.premio_bono));
     $('#premio').val(d.premio).css('background-color',validar(diff.premio));
-    $('#total_pdev').text(pdev(d.apuesta,d.premio)).css('color','');
+    $('#total_pdev').text(pdev(d.apuesta,d.premio));
     $('#beneficio_efectivo').val(d.beneficio_efectivo).css('background-color',validar(diff.beneficio_efectivo));
     $('#beneficio_bono').val(d.beneficio_bono).css('background-color',validar(diff.beneficio_bono));
     $('#beneficio').val(d.beneficio).css('background-color',validar(diff.beneficio));
     $('#categoria').val(d.categoria).css('background-color',validar(diff.categoria));
-    $('#jugadores').val(d.jugadores)
+    const agrupados = d.jugadores? d.jugadores : 0 + d.juegos? d.juegos : 0;
+    $('#agrupados').val(agrupados);
     const j = data.juego;
     const en_bd = j != null;
     const v_en_bd = validar(!en_bd);
@@ -212,30 +240,16 @@ $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
       $('#categoria_juego').val(data.categoria);
       $('#moneda_juego').val($(`#selectMoneda option[value=${j.id_tipo_moneda}]`).text()).css('background-color',validar(diff.moneda));
       $('#devolucion_juego').val(j.porcentaje_devolucion);
-      const interpolate = function(p){
-        if(p == null) return '';
-        p = Math.max(Math.min(p,2.0),0.0); //Clamp entre [0,2]
-        p = -p*p + 2*p; //Mapeo [0,2] -> [0,1], con maximo en p=1. Permite interpolar
-        const ip = 1.0-p;
-        const r = 227*ip + 140*p;
-        const g = 140*ip + 227*p;
-        const b = 140*ip + 184*p;
-        return 'rgb('+[r,g,b].join(',')+')';
-      };
-      $('#efectivo_pdev').css('color',interpolate(parseFloat(diff.efectivo_pdev)));
-      $('#bono_pdev').css('color',interpolate(parseFloat(diff.bono_pdev)));
-      $('#total_pdev').css('color',interpolate(parseFloat(diff.total_pdev)));
     }
   });
 }); 
 
 
-function generarFilaJuego(d){
+function generarFilaDetalle(d,tipo){
   var fila=$('#filaClon').clone();
   fila.removeAttr('id');
-  fila.attr('id',  d.id_detalle_producido);
-  fila.find('.cod_juego').text(d.cod_juego);
-  fila.find('button').val(d.id_detalle_producido);
+  fila.find('.codigo').text(d.codigo);
+  fila.find('button').val(d.id_detalle).data('tipo',tipo);
   if(d.diferencia) fila.find('i').removeClass('fa-eye').addClass('fa-exclamation');
   fila.css('display', 'block');
   return  fila;
@@ -261,10 +275,12 @@ function agregarFilaTabla(producido){
   tr.find('.diferencias').text(producido.diferencias);
   tr.find('button').val(producido.id_producido);
 
+  const warning = $('<i class="fa fa-fw fa-exclamation">').attr('style','color: #FFB74D !important;');
+  if(producido.diferencias) tr.find('.carga i').after(warning.clone());
+
   if(producido.id_producido_jugadores) tr.find('.planilla_jugadores,.carga_jugadores').val(producido.id_producido_jugadores)
   else tr.find('.planilla_jugadores,.carga_jugadores').remove();
 
-  if(producido.diferencias) tr.find('.carga i').removeClass('fa-eye').addClass('fa-exclamation');
   
   $('#tablaImportacionesProducidos tbody').append(tr);
 }

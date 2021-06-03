@@ -189,7 +189,9 @@ Route::group(['prefix' => 'producidos','middleware' =>'tiene_permiso:ver_seccion
   Route::get('/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
   Route::get('/generarPlanillaJugadores/{id_producido_jugadores}','ProducidoController@generarPlanillaJugadores');
   Route::get('/datosDetalle/{id_detalle_producido}','ProducidoController@datosDetalle');
+  Route::get('/datosDetalleJugadores/{id_detalle_producido_jugadores}','ProducidoController@datosDetalleJugadores');
   Route::get('/detallesProducido/{id_producido}','ProducidoController@detallesProducido');
+  Route::get('/detallesProducidoJugadores/{id_producido_jugadores}','ProducidoController@detallesProducidoJugadores');
 });
 
 /**********

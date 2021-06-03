@@ -122,9 +122,9 @@ use Illuminate\Http\Request;
                 <td class="tipo_moneda col-xs-2">MONEDA</td>
                 <td class="diferencias col-xs-2">DIFS</td>
                 <td class="accion col-xs-2">
-                  <button class="btn btn-info carga" title="VER PRODUCIDO"><i class="fa fa-fw fa-eye"></i></button>
+                  <button class="btn btn-info carga" title="VER PRODUCIDO"><i class="fa fa-fw fa-search-plus"></i></button>
                   <button class="btn btn-info planilla" title="PLANILLA"><i class="fa fa-fw fa-print"></i></button>
-                  <button class="btn btn-info carga_jugadores" title="VER PROD. JUGADORES"><i class="fa fa-fw fa-eye"></i></button>
+                  <button class="btn btn-info carga_jugadores" title="VER PROD. JUGADORES"><i class="fa fa-fw fa-search-plus"></i></button>
                   <button class="btn btn-info planilla_jugadores" title="PLANILLA PROD. JUGADORES"><i class="fa fa-fw fa-print"></i></button>
                 </td>
               </tr>
@@ -159,25 +159,25 @@ use Illuminate\Http\Request;
           <div class="row" >
             <h6 style="padding-left:15px" id="descripcion_validacion"></h6>
             <h5 style="padding-left:15px">
-              Juegos incompatibles: <span id="juegos_con_diferencias">---</span>
+              Detalles con diferencias: <span id="detalles_con_diferencias">---</span>
             </h5>
           </div>
           <div class="row" >
             <div class="col-md-3">
-              <h6><b>JUEGOS</b></h6>
-              <table id="tablaMaquinas" class="table table-fixed" style="display: block;">
+              <h6><b>Detalles</b></h6>
+              <table class="table table-fixed" style="display: block;">
                 <thead style="display: block;position: relative;">
                   <tr >
                     <th class="col-xs-8">CÓDIGO</th>
                     <th class="col-xs-4"></th>
                   </tr>
                 </thead>
-                <tbody id="cuerpoTabla"  style="display: block;overflow: auto;height: 700px;">
+                <tbody id="cuerpoTabla" style="display: block;overflow: auto;height: 700px;">
                 </tbody>
               </table>
               <table>
                 <tbody id="filaClon" style="display:none" class="filaCl" >
-                  <td class="col-xs-8 cod_juego" value=""> codigo</td>
+                  <td class="col-xs-8 codigo" value=""> codigo</td>
                   <td class="col-xs-4 botones" value="">
                     <button type="button" class="btn btn-info infoDetalle" value="">
                       <i class="fa fa-fw fa-eye"></i>
@@ -255,22 +255,23 @@ use Illuminate\Http\Request;
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-lg-4">
+                    <div class="col-lg-4 datosJuego">
                       <h5>CATEGORIA INFORMADA</h5>
                       <input id="categoria" type="text" class="form-control" disabled>
                     </div>
                     <div class="col-lg-4">
-                      <h5>JUGADORES</h5>
-                      <input id="jugadores" type="text" class="form-control" disabled>
-                    </div> 
-                    <div class="col-lg-4">
+                      <h5 class="datosJuego">JUGADORES</h5>
+                      <h5 class="datosJugadores">JUEGOS</h5>
+                      <input id="agrupados" type="text" class="form-control" disabled>
+                    </div>
+                    <div class="col-lg-4 datosJuego">
                       <h5>EN BASE DE DATOS</h5>
                       <input id="en_bd" type="text" class="form-control" disabled>
                     </div>
                   </div>
                   <hr>
-                  <h6>JUEGO</h6>
-                  <div class="row">
+                  <h6 class="datosJuego">JUEGO</h6>
+                  <div class="row datosJuego">
                     <div class="col-lg-3">
                       <h5>NOMBRE</h5>
                       <input id="nombre_juego" type="text" class="form-control" disabled>
@@ -296,7 +297,6 @@ use Illuminate\Http\Request;
         <div class="modal-footer">
           <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal">SALIR</button>
         </div>
-        <input type="hidden" id="id_producido" value="0">
       </div>
     </div>
   </div>
