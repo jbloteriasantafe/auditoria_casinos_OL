@@ -266,13 +266,16 @@ $(document).on('click','.planilla_jugadores',function(){
 
 //función para generar el listado inicial
 function agregarFilaTabla(producido){
+  const clearNull = function(x){ x? x : 0.00; }
   const plat = $(`#selectPlataforma option[value=${producido.id_plataforma}]`).text();
   const moneda = $(`#selectMoneda option[value=${producido.id_tipo_moneda}]`).text();
   const tr = $('#moldeFilaTabla').clone().removeAttr('id');
   tr.find('.plataforma').text(plat);
   tr.find('.fecha_producido').text(producido.fecha);
   tr.find('.tipo_moneda').text(moneda);
-  tr.find('.diferencias').text(producido.diferencias);
+  tr.find('.producido').text(producido.beneficio);
+  tr.find('.producido_jugadores').text(producido.beneficio_jugadores? producido.beneficio_jugadores : "----")
+  .css('color',producido.beneficio == producido.beneficio_jugadores? 'rgb(75, 230, 75)' : 'rgb(180, 75, 75)');
   tr.find('button').val(producido.id_producido);
 
   const warning = $('<i class="fa fa-fw fa-exclamation">').attr('style','color: #FFB74D !important;');

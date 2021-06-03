@@ -109,7 +109,7 @@ class ProducidoController extends Controller
                ->on('pdiff.id_tipo_moneda','=','pjdiff.id_tipo_moneda')
                ->on('pdiff.id_plataforma','=','pjdiff.id_plataforma');
     })
-    ->select('pdiff.*','pjdiff.id_producido_jugadores','pjdiff.diferencias as diferencias_jugadores');
+    ->select('pdiff.*','pjdiff.id_producido_jugadores','pjdiff.diferencias as diferencias_jugadores','pjdiff.beneficio as beneficio_jugadores');
 
     if($request->correcto == "1") $resultados = $resultados->whereRaw('(pdiff.diferencias + IFNULL(pdiff.diferencias,0)) = 0');
     if($request->correcto == "0") $resultados = $resultados->whereRaw('(pdiff.diferencias + IFNULL(pdiff.diferencias,0)) > 0');

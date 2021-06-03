@@ -18,6 +18,13 @@ use Illuminate\Http\Request;
 <!-- Mesaje de notificación -->
 <link rel="stylesheet" href="/css/mensajeExito.css">
 <link rel="stylesheet" href="/css/mensajeError.css">
+<style>
+.numerico {
+  text-align: right;
+  border-right: 1px solid rgb(221,221,221);
+  border-left: 1px solid rgb(221,221,221);
+}
+</style>
 @endsection
 
 <div class="row">
@@ -103,9 +110,10 @@ use Illuminate\Http\Request;
                 <thead>
                   <tr>
                     <th class="col-xs-3">PLATAFORMA</th>
-                    <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2">MONEDA</th>
-                    <th class="col-xs-2">DIFERENCIAS</th>
+                    <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-1">MONEDA</th>
+                    <th class="col-xs-2">PRODUCIDO</th>
+                    <th class="col-xs-2">PROD. JUGADORES</th>
                     <th class="col-xs-2">ACCIÓN</th>
                   </tr>
                 </thead>
@@ -118,9 +126,10 @@ use Illuminate\Http\Request;
             <table hidden>
               <tr id="moldeFilaTabla">
                 <td class="plataforma col-xs-3">PLAT</td>
-                <td class="fecha_producido col-xs-3">FECHA</td>
-                <td class="tipo_moneda col-xs-2">MONEDA</td>
-                <td class="diferencias col-xs-2">DIFS</td>
+                <td class="fecha_producido col-xs-2">FECHA</td>
+                <td class="tipo_moneda col-xs-1">MONEDA</td>
+                <td class="producido col-xs-2 numerico">99999</td>
+                <td class="producido_jugadores col-xs-2 numerico">99999</td>
                 <td class="accion col-xs-2">
                   <button class="btn btn-info carga" title="VER PRODUCIDO"><i class="fa fa-fw fa-search-plus"></i></button>
                   <button class="btn btn-info planilla" title="PLANILLA"><i class="fa fa-fw fa-print"></i></button>
