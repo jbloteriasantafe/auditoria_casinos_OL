@@ -141,6 +141,7 @@ function mostrarDetalles(plataforma,fecha,moneda,detalles,tipo){
     $('#btn-salir').show();
   }
   $('#detalles_con_diferencias').text(diferencias);
+  $('#verSoloDiferencias').prop('checked',true).change();
   $('#modalCargaProducidos').modal('show');
 }
 
