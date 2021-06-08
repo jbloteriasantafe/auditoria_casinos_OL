@@ -52,17 +52,39 @@ use Illuminate\Http\Request;
           <div class="row">
               <div class="col-md-12" style="border-right:1px solid #ccc;">
                 <div class="row" style="text-align:center; padding-bottom:25px;">
-                    <h5>JUEGOS DE LA PLATAFORMA</h5>
-                    <div id="graficos" class="col-md-12"></div>
+                  <h5>CLASIFICACIÓN DE JUEGOS</h5>
+                  <div id="graficos" class="col-md-12"></div>
+                </div>
+                <div class="row" style="text-align:center; padding-bottom: 25px;">
+                  <h5>PORCENTAJES DE DEVOLUCION</h5>
+                  <div id="tablas" class="col-md-12"></div>
                 </div>
               </div>
           </div>
         </div>
         <div class="modal-footer">
+          <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal">SALIR</button>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<div id="tablaModelo" class="col-md-4" hidden>
+  <table class="table table-fixed">
+    <thead>
+      <tr>
+        <th class="col-md-6 dato" style="text-align: center">DATO</th>
+        <th class="col-md-6" style="text-align: center">P. Devolución (Teórico)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="filaModelo">
+        <td class="col-md-6 fila">fila</td>
+        <td class="col-md-6 pdev" style="text-align: right">99.99998648%</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
     <meta name="_token" content="{!! csrf_token() !!}" />
