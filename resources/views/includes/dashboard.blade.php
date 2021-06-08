@@ -81,30 +81,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
             <nav>@section('headerLogo')
                  @show
               <h2 class="tituloSeccionPantalla"></h2>
-
-              <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" style=" width:70%;" hidden="true">
-                <li id="b_juego" ><a href="#pant_juegos"  style="font-family:Roboto-condensed;font-size:20px; ">Juegos</a></li>
-                <li id="b_sector"><a href="#pant_sectores"  style="font-family:Roboto-condensed;font-size:20px;">Sectores</a></li>
-              </ul>
-              <ul class="nav nav-tabs nav-justified cierreApertura" id="cierreApertura" style=" width:70%;" hidden="true">
-                <li id="b_apertura" ><a href="#pant_aperturas"  style="font-family:Roboto-condensed;font-size:20px; ">Aperturas</a></li>
-                <li id="b_cierre"><a href="#pant_cierres"  style="font-family:Roboto-condensed;font-size:20px;">Cierres</a></li>
-             </ul>
-              <ul class="nav nav-tabs nav-justified informesMes" id="informesMes" style=" width:70%;" hidden="true">
-                <li id="gestInformes" ><a href="#gestionInfoMes"  style="font-family:Roboto-condensed;font-size:20px; ">Informes Mensuales</a></li>
-                <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>
-              </ul>
-
-              <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:70%;" hidden="true">
-                <li id="canon1" ><a href="#pant_canon_pagos"  style="font-family:Roboto-condensed;font-size:20px; ">Detalles Canon y Pagos</a></li>
-                <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Actualización Valores</a></li>
-              </ul>
-
-             <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:70%;" hidden="true">
-               <li id="imp_diaria" ><a href="#pest_diaria"  style="font-family:Roboto-condensed;font-size:20px; ">Importaciones Diarias</a></li>
-               <li id="imp_mensual"><a href="#pest_mensual"  style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
-            </ul>
-
+              
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
               <ul class="opcionesBarraSuperior" style=" width:20%;float:right;">
 
@@ -373,7 +350,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                               @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
                               'ver_seccion_informecontable','ver_seccion_informesector']))
                               <li>
-                                <div class="opcionesHover" data-target="#informesMTM" data-toggle="collapse" href="#">
+                                <div class="opcionesHover" data-target="#informesJuegos" data-toggle="collapse" href="#">
                                   <span class="flechita">
                                     <i class="fa fa-angle-right"></i>
                                   </span>
@@ -381,15 +358,11 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                 </div>
 
                                 <!-- TERCER NIVEL -->
-                                <ul class="subMenu2 collapse" id="informesMTM">
+                                <ul class="subMenu2 collapse" id="informesJuegos">
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_estestadoparque'))
                                     <li>
-                                      <div id="opcInformeEstadoParque" class="opcionesHover" 
-                                      @if(false)
-                                      onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeEstadoParque'" href="#" style="cursor: pointer;"
-                                      @else
-                                      style="color: grey;"
-                                      @endif
+                                      <div id="opcInformePlataforma" class="opcionesHover" 
+                                      onclick="window.location = window.location.protocol + '//' + window.location.host + '/informePlataforma'" href="#" style="cursor: pointer;"
                                       >
                                         <span>Plataforma</span>
                                       </div>

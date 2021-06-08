@@ -135,76 +135,38 @@ class informesController extends Controller
       return view('seccionInformesJuegos',['resultados' => $resultados, 'plataformas' => $plataformas, 'monedas' => $monedas]);
   }
 
-  public function obtenerInformeEstadoParque(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
+  public function informePlataforma(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = array();
-    foreach($usuario->casinos as $casino){
-      $casinos [] = $casino;
-    }
-    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado de Parque','informeEstadoParque');
-
-    return view('seccionInformeEstadoParque' , ['casinos' => $casinos]);
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado de Plataforma','informePlataforma');
+    return view('seccionInformePlataforma' , ['plataformas' => $usuario->plataformas]);
   }
 
-  public function obtenerInformeEstadoParqueDeParque($id_casino){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
-    //funcion que devuelve cantidad de maquinas total del casino y a su vez maquinas separadas por sector . Tambien separadas en habilitadas y deshabilitadas
-    $casino = Casino::find($id_casino);
+  public function informePlataformaObtenerEstado($id_plataforma){
+    $plataforma = Plataforma::find($id_plataforma);
 
-    $estados_habilitados = EstadoMaquina::where('descripcion' , 'Ingreso')
-                                          ->orWhere('descripcion' , 'Reingreso')
-                                          ->orWhere('descripcion' , 'Eventualidad Observada')
-                                          ->get();
+    $case = 'CASE 
+              WHEN (juego.movil+juego.escritorio) = 2 THEN "Escritorio/Movil"
+              WHEN juego.movil = 1 THEN "Movil"
+              WHEN juego.escritorio = 1 THEN "Escritorio"
+              ELSE "(ERROR) Sin tipo asignado"
+             END as Tipo';
 
-    foreach ($estados_habilitados as $key => $estado) {
-      $estados_habilitados[$key] = $estado->id_estado_maquina;
-    }
+    $estadisticas = DB::table('plataforma')
+    ->join('plataforma_tiene_juego','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+    ->join('juego','juego.id_juego','=','plataforma_tiene_juego.id_juego')
+    ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
+    ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
+    ->selectRaw('estado_juego.nombre as Estado,
+                 '.$case.',
+                 categoria_juego.nombre as Categoria,
+                 AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.id_juego) as juegos')
+    ->groupBy('plataforma_tiene_juego.id_estado_juego','juego.movil','juego.escritorio','juego.id_categoria_juego')
+    ->where('plataforma.id_plataforma',$id_plataforma)
+    ->orderBy('estado_juego.nombre','asc')
+    ->orderBy(DB::raw('(juego.movil+juego.escritorio)'),'asc')
+    ->orderBy('categoria_juego.nombre','asc')->get();
 
-    $cantidad = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
-    
-                                              ->where('id_casino' , $casino->id_casino)
-                                              ->whereNull('maquina.deleted_at')
-                                              ->first();
-
-    $cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
-                                                  ->where('id_casino' , $casino->id_casino)->whereIn('id_estado_maquina', $estados_habilitados)
-                                                  ->whereNull('maquina.deleted_at')
-                                                  ->first();
-    $cantidad_deshabilitadas = $cantidad->cantidad - $cantidad_habilitadas->cantidad;
-    $maquina_no_asignadas = DB::table('maquina')
-                              ->select(DB::raw('count(*) as cantidad'))
-                              ->where('maquina.id_casino' , $casino->id_casino)
-                              ->whereNull('maquina.deleted_at')
-                              ->whereNull('maquina.id_isla')
-                              ->first();
-
-    $islas=DB::table("isla")
-                ->where("isla.id_casino","=",$id_casino)
-                ->join("sector","isla.id_sector","=","sector.id_sector")
-                ->whereNotNull("sector.deleted_at")
-                ->whereNull("isla.deleted_at")
-                ->get();
-    $islas_no_asignadas =0;
-    
-    foreach($islas as $i){
-      $isl=Isla::Find($i->id_isla);
-      if ($isl->cantidad_maquinas>0){
-        $islas_no_asignadas= $islas_no_asignadas+1;
-      }
-    }  
-    
-    $sectores = array();
-    foreach ($casino->sectores as $sector) {
-      //$aux = DB::table('maquina')->select(DB::raw('count(maquina.id_maquina) as cantidad'))->join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla' )->where([['maquina.id_casino' , $casino->id_casino] , ['isla.id_sector' , $sector->id_sector]])->first();
-      $sectores[] =  ['id_sector' =>  $sector->id_sector, 'descripcion' => $sector->descripcion, 'cantidad' => $sector->cantidad_maquinas];
-    }
-
-    return ['casino' => $casino ,'sectores' => $sectores, 'totales' =>['total_casino' => $cantidad->cantidad,
-                                                                      'total_no_asignadas' => $maquina_no_asignadas->cantidad,
-                                                                      'islas_no_asignadas' => $islas_no_asignadas,
-                                                                      'total_habilitadas'  => $cantidad_habilitadas->cantidad,
-                                                                      'total_deshabilitadas' => $cantidad_deshabilitadas]
-          ];
-
+    return ['estadisticas' => $estadisticas];
   }
 
   public function buscarTodoInformeContable(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes

@@ -157,8 +157,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="expedientes"><i class="fa fa-share fa-2x"></i>@svg('expedientes','iconoExpedientes')</a>
                                           @elseif($visitada->ruta == 'disposiciones')
                                             <a href="expedientes"><i class="fa fa-share fa-2x"></i>@svg('expedientes','iconoExpedientes')</a>
-                                          @elseif($visitada->ruta == 'informeEstadoParque')
-                                            <a href="informeEstadoParque"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
+                                          @elseif($visitada->ruta == 'informePlataforma')
+                                            <a href="informePlataforma"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'estadisticas_relevamientos')
                                             <a href="estadisticas_relevamientos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'informeContableMTM')

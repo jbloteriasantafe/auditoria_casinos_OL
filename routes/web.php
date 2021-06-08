@@ -221,14 +221,16 @@ Route::post('interanuales','BeneficioMensualController@cargaSeccionInteranual');
 /***********
 Informes
 ***********/
+//@TODO: Agregar y asignar privilegios para esta sección
+Route::group(['prefix' => 'informePlataforma'],function(){
+  Route::get('/' , 'informesController@informePlataforma');
+  Route::get('/obtenerEstado/{id_plataforma}','informesController@informePlataformaObtenerEstado');
+});
 
-Route::get('informeEstadoParque' , 'informesController@obtenerInformeEstadoParque');
-Route::get('informesMTM/obtenerEstadoParqueDeCasino/{id_casino}','informesController@obtenerInformeEstadoParqueDeParque');
-
+//@TODO: Reemplazar/Borrar, es lo que quedo de clonar el sistema fisico
 Route::get('informeContableMTM','informesController@buscarTodoInformeContable');//carga pagina
 Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@obtenerInformeContableDeMaquina');//informe ultimos 30 dias
 
-//seccion informes mtm (pestaña informes)
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informesJuegos'],function(){
   Route::get('/','informesController@obtenerBeneficiosPorPlataforma');
