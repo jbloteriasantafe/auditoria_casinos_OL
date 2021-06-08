@@ -162,6 +162,7 @@ class informesController extends Controller
                  AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.id_juego) as juegos')
     ->groupBy('plataforma_tiene_juego.id_estado_juego','juego.movil','juego.escritorio','juego.id_categoria_juego')
     ->where('plataforma.id_plataforma',$id_plataforma)
+    ->whereNull('juego.deleted_at')
     ->orderBy('estado_juego.nombre','asc')
     ->orderBy(DB::raw('(juego.movil+juego.escritorio)'),'asc')
     ->orderBy('categoria_juego.nombre','asc')->get();
