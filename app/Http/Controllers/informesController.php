@@ -156,9 +156,8 @@ class informesController extends Controller
                         detalle_producido.premio/detalle_producido.apuesta))';
 
     //Hay un problema si el juego reportado no coincide el codigo, plataforma (i.e. no esta cargado)
-    //No lo reportaria en las estadisticas. No estoy seguro como se haria por que no podrias
-    //Obtener estadisticas de estado y tipo (con la query empezando desde el producido en vez de los juegos)
-    //Tal vez asi sea lo correcto, obtener estadisticas de lo que esta bien seteado
+    //No se pueden obtener estadisticas de estado y tipo
+    //Tal vez asi sea lo correcto, obtener estadisticas de lo que esta bien seteado y lo otro aparte
     $query = DB::table('plataforma')
     ->join('plataforma_tiene_juego','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('juego','juego.id_juego','=','plataforma_tiene_juego.id_juego')
@@ -169,7 +168,8 @@ class informesController extends Controller
       return $j->on('producido.id_plataforma','=','plataforma.id_plataforma');//->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
     })
     ->leftJoin('detalle_producido',function($j){
-      return $j->on('detalle_producido.id_producido','=','producido.id_producido')->on('detalle_producido.cod_juego','=','juego.cod_juego');
+      return $j->on('detalle_producido.id_producido','=','producido.id_producido')->on('detalle_producido.cod_juego','=','juego.cod_juego')
+      ->whereRaw('juego.deleted_at IS NULL');//Si estuvo y esta borrado, queremos que haga un left join "nulo" (no lo considere en la BD)
     })
     ->selectRaw('AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.id_juego) as juegos,
                  '.$avg_producido.'as pdev_producido')
@@ -188,16 +188,20 @@ class informesController extends Controller
       $estadisticas[$k] = (clone $query)->selectRaw($sg[0])->groupBy(DB::raw($sg[1]))->get();
     }
 
+    //Hago una query invertida para obtener los detalles sin juegos asociados
+    //Si la plataforma no lo tiene lo considero como que no esta en BD
     $no_en_bd = DB::table('producido')
     ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
+    ->join('plataforma_tiene_juego','plataforma_tiene_juego.id_plataforma','=','producido.id_plataforma')
     ->leftJoin('juego',function($j){
-      return $j->on('detalle_producido.cod_juego','=','juego.cod_juego');//->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
+      //->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
+      return $j->on('plataforma_tiene_juego.id_juego','=','juego.id_juego')
+      ->on('detalle_producido.cod_juego','=','juego.cod_juego')->whereRaw('juego.deleted_at IS NULL');
     })
     ->selectRaw('"-" as pdev,COUNT(distinct detalle_producido.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
     ->selectRaw('detalle_producido.categoria as "Categoria Informada (NO EN BD)"')
     ->groupBy(DB::raw('detalle_producido.categoria'))
     ->where('producido.id_plataforma',$id_plataforma)
-    ->whereNull('juego.deleted_at')
     ->whereNull('juego.id_juego')->get();
 
     $estadisticas['Categoria Informada (NO EN BD)'] = $no_en_bd;
