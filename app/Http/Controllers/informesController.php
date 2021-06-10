@@ -188,6 +188,20 @@ class informesController extends Controller
       $estadisticas[$k] = (clone $query)->selectRaw($sg[0])->groupBy(DB::raw($sg[1]))->get();
     }
 
+    $no_en_bd = DB::table('producido')
+    ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
+    ->leftJoin('juego',function($j){
+      return $j->on('detalle_producido.cod_juego','=','juego.cod_juego');//->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
+    })
+    ->selectRaw('"-" as pdev,COUNT(distinct detalle_producido.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
+    ->selectRaw('detalle_producido.categoria as "Categoria Informada (NO EN BD)"')
+    ->groupBy(DB::raw('detalle_producido.categoria'))
+    ->where('producido.id_plataforma',$id_plataforma)
+    ->whereNull('juego.deleted_at')
+    ->whereNull('juego.id_juego')->get();
+
+    $estadisticas['Categoria Informada (NO EN BD)'] = $no_en_bd;
+
     return ['estadisticas' => $estadisticas];
   }
 
