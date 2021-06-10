@@ -160,7 +160,10 @@ class informesController extends Controller
     //Tal vez asi sea lo correcto, obtener estadisticas de lo que esta bien seteado y lo otro aparte
     $query = DB::table('plataforma')
     ->join('plataforma_tiene_juego','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
-    ->join('juego','juego.id_juego','=','plataforma_tiene_juego.id_juego')
+    ->join('juego',function($j){
+      //Si estuvo y esta borrado no lo consideramos en la BD
+      return $j->on('juego.id_juego','=','plataforma_tiene_juego.id_juego')->whereRaw('juego.deleted_at IS NULL');
+    })
     ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
     ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
     ->leftJoin('producido',function($j){
@@ -168,8 +171,7 @@ class informesController extends Controller
       return $j->on('producido.id_plataforma','=','plataforma.id_plataforma');//->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
     })
     ->leftJoin('detalle_producido',function($j){
-      return $j->on('detalle_producido.id_producido','=','producido.id_producido')->on('detalle_producido.cod_juego','=','juego.cod_juego')
-      ->whereRaw('juego.deleted_at IS NULL');//Si estuvo y esta borrado, queremos que haga un left join "nulo" (no lo considere en la BD)
+      return $j->on('detalle_producido.id_producido','=','producido.id_producido')->on('detalle_producido.cod_juego','=','juego.cod_juego');
     })
     ->selectRaw('AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.cod_juego) as juegos,
                  '.$avg_producido.'as pdev_producido')
