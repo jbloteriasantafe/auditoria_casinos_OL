@@ -23,47 +23,15 @@ $('#btn-buscar').click(function(e){
   $.get('/informePlataforma/obtenerEstado/' + id , function(data){
       if(data.estadisticas.length == 0) return;
 
-      const keys = Object.keys(data.estadisticas[0]);
-      let cantidades = [];
-      let pdevs = [];
-      for(const kidx in keys){
-        const k = keys[kidx];//k podria ser "Estado","Categoria", etc
-        if(k == "pdev" || k == "juegos") continue;
-        let cantidad = {};
-        let pdev = {};
-        let pdev_aux = {};
-        for(let i = 0;i<data.estadisticas.length;i++){
-          const est = data.estadisticas[i];
-          //est[k] podria ser por ejemplo "Activo","inactivo"
-          if(est[k] in cantidad){
-            cantidad[est[k]] += est.juegos;//Si ya estaba, lo sumo
-            pdev[est[k]]     += parseFloat(est.pdev);
-            pdev_aux[est[k]] += 1;
-          }
-          else{
-            cantidad[est[k]]  = est.juegos;//Sino, lo inicio
-            pdev[est[k]]      = parseFloat(est.pdev);
-            pdev_aux[est[k]]  = 1;
-          }
-        }
-
-        for(const fila in pdev){
-          pdev[fila]/=pdev_aux[fila];
-        }
-        
-        cantidades[k] = cantidad;
-        pdevs[k]      = pdev;
-      }
-
-      for(const nombre in pdevs){
-        generarTabla(nombre,pdevs[nombre]);
+      for(const clasificacion in data.estadisticas){
+        generarTabla(clasificacion,data.estadisticas[clasificacion]);
       }
 
       $('#modalPlataforma').modal('show');
 
-      for(const nombre in cantidades){
+      for(const clasificacion in data.estadisticas){
         setTimeout(function(){
-          generarGraficos(nombre,cantidades[nombre]);
+          generarGraficos(clasificacion,data.estadisticas[clasificacion]);
         },250);
       }
   });
@@ -76,24 +44,32 @@ $('#btn-minimizar').click(function(){
   $(this).data("minimizar",!minimizar);
 });
 
-function generarTabla(nombre,pdev){
+function generarTabla(nombre,valores){
+  function clearNaN(v){
+    return isNaN(v)? '-' : v;
+  }
   const table = $('#tablaModelo').clone().removeAttr('id').show();
   table.find('.dato').text(nombre);
   const filaModelo = table.find('.filaModelo');
-  for(const k in pdev){
+  for(const idx in valores){
+    const val = valores[idx];
     const f = filaModelo.clone().removeClass('filaModelo');
-    f.find('.fila').text(k);
-    f.find('.pdev').text(pdev[k].toFixed(2));
+    f.find('.fila').text(val[nombre]);
+    const pdev = parseFloat(val['pdev']).toFixed(2);
+    const pdev_producido = parseFloat(val['pdev_producido']).toFixed(2);
+    f.find('.pdev').text(clearNaN(pdev));
+    f.find('.pdev_producido').text(clearNaN(pdev_producido));
     table.find('tbody').append(f);
   }
   filaModelo.remove();
   $('#tablas').append(table);
 }
 
-function generarGraficos(nombre,cantidad){
+function generarGraficos(nombre,valores){
   const dataseries = [];
-  for(const k in cantidad){
-    dataseries.push([k,cantidad[k]]);
+  for(const idx in valores){
+    const val = valores[idx];
+    dataseries.push([val[nombre],val['juegos']]);
   }
   const grafico = $('<div>').addClass('grafico col-md-4');
   $('#graficos').append(grafico);

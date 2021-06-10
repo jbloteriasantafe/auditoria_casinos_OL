@@ -142,30 +142,51 @@ class informesController extends Controller
   }
 
   public function informePlataformaObtenerEstado($id_plataforma){
-    $plataforma = Plataforma::find($id_plataforma);
-
+    //Auxiliares para simplificar la query
     $case = 'CASE 
               WHEN (juego.movil+juego.escritorio) = 2 THEN "Escritorio/Movil"
               WHEN juego.movil = 1 THEN "Movil"
               WHEN juego.escritorio = 1 THEN "Escritorio"
               ELSE "(ERROR) Sin tipo asignado"
-             END as Tipo';
+            END';
 
-    $estadisticas = DB::table('plataforma')
+    //NULL es ignorado cuando MySQL hace AVG
+    $avg_producido = '100*AVG(IF(detalle_producido.apuesta = 0 or detalle_producido.apuesta IS NULL,
+                        NULL,
+                        detalle_producido.premio/detalle_producido.apuesta))';
+
+    //Hay un problema si el juego reportado no coincide el codigo, plataforma (i.e. no esta cargado)
+    //No lo reportaria en las estadisticas. No estoy seguro como se haria por que no podrias
+    //Obtener estadisticas de estado y tipo (con la query empezando desde el producido en vez de los juegos)
+    //Tal vez asi sea lo correcto, obtener estadisticas de lo que esta bien seteado
+    $query = DB::table('plataforma')
     ->join('plataforma_tiene_juego','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('juego','juego.id_juego','=','plataforma_tiene_juego.id_juego')
     ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
     ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
-    ->selectRaw('estado_juego.nombre as Estado,
-                 '.$case.',
-                 categoria_juego.nombre as Categoria,
-                 AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.id_juego) as juegos')
-    ->groupBy('plataforma_tiene_juego.id_estado_juego','juego.movil','juego.escritorio','juego.id_categoria_juego')
+    ->leftJoin('producido',function($j){
+      //Creo que hacer validaciones de si esta bien la moneda esta de mas porque solo nos interesa el pdev
+      return $j->on('producido.id_plataforma','=','plataforma.id_plataforma');//->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
+    })
+    ->leftJoin('detalle_producido',function($j){
+      return $j->on('detalle_producido.id_producido','=','producido.id_producido')->on('detalle_producido.cod_juego','=','juego.cod_juego');
+    })
+    ->selectRaw('AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.id_juego) as juegos,
+                 '.$avg_producido.'as pdev_producido')
     ->where('plataforma.id_plataforma',$id_plataforma)
-    ->whereNull('juego.deleted_at')
-    ->orderBy('estado_juego.nombre','asc')
-    ->orderBy(DB::raw('(juego.movil+juego.escritorio)'),'asc')
-    ->orderBy('categoria_juego.nombre','asc')->get();
+    ->whereNull('juego.deleted_at');
+
+    //Saco las cantidades y avg porcentaje devolución para cada una de estas clasificaciones
+    $select_groupby = [
+      'Estado'    => [ 'estado_juego.nombre as Estado'      , 'plataforma_tiene_juego.id_estado_juego'],
+      'Tipo'      => [ $case.' as Tipo'                     , 'juego.movil, juego.escritorio'         ],
+      'Categoria' => [ 'categoria_juego.nombre as Categoria', 'juego.id_categoria_juego'              ]
+    ];
+  
+    $estadisticas = [];
+    foreach($select_groupby as $k => $sg){
+      $estadisticas[$k] = (clone $query)->selectRaw($sg[0])->groupBy(DB::raw($sg[1]))->get();
+    }
 
     return ['estadisticas' => $estadisticas];
   }

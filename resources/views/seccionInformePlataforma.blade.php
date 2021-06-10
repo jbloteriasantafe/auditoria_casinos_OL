@@ -74,14 +74,16 @@ use Illuminate\Http\Request;
   <table class="table table-fixed">
     <thead>
       <tr>
-        <th class="col-md-6 dato" style="text-align: center">DATO</th>
-        <th class="col-md-6" style="text-align: center">P. Devolución (Teórico)</th>
+        <th class="col-md-4 dato" style="text-align: center">DATO</th>
+        <th class="col-md-4" style="text-align: center">% DEV (Teórico)</th>
+        <th class="col-md-4" style="text-align: center">% DEV (Prod.)</th>
       </tr>
     </thead>
     <tbody>
       <tr class="filaModelo">
-        <td class="col-md-6 fila">fila</td>
-        <td class="col-md-6 pdev" style="text-align: right">99.99998648%</td>
+        <td class="col-md-4 fila">fila</td>
+        <td class="col-md-4 pdev" style="text-align: right">99.99%</td>
+        <td class="col-md-4 pdev_producido" style="text-align: right">99.11%</td>
       </tr>
     </tbody>
   </table>
