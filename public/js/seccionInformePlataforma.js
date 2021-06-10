@@ -24,14 +24,16 @@ $('#btn-buscar').click(function(e){
       if(data.estadisticas.length == 0) return;
 
       for(const clasificacion in data.estadisticas){
-        generarTabla(clasificacion,data.estadisticas[clasificacion]);
+        if(data.estadisticas[clasificacion].length > 0)
+          generarTabla(clasificacion,data.estadisticas[clasificacion]);
       }
 
       $('#modalPlataforma').modal('show');
 
       for(const clasificacion in data.estadisticas){
         setTimeout(function(){
-          generarGraficos(clasificacion,data.estadisticas[clasificacion]);
+          if(data.estadisticas[clasificacion].length > 0)
+            generarGraficos(clasificacion,data.estadisticas[clasificacion]);
         },250);
       }
   });

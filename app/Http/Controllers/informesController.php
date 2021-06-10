@@ -171,10 +171,9 @@ class informesController extends Controller
       return $j->on('detalle_producido.id_producido','=','producido.id_producido')->on('detalle_producido.cod_juego','=','juego.cod_juego')
       ->whereRaw('juego.deleted_at IS NULL');//Si estuvo y esta borrado, queremos que haga un left join "nulo" (no lo considere en la BD)
     })
-    ->selectRaw('AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.id_juego) as juegos,
+    ->selectRaw('AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.cod_juego) as juegos,
                  '.$avg_producido.'as pdev_producido')
-    ->where('plataforma.id_plataforma',$id_plataforma)
-    ->whereNull('juego.deleted_at');
+    ->where('plataforma.id_plataforma',$id_plataforma);
 
     //Saco las cantidades y avg porcentaje devolución para cada una de estas clasificaciones
     $select_groupby = [
@@ -192,17 +191,18 @@ class informesController extends Controller
     //Si la plataforma no lo tiene lo considero como que no esta en BD
     $no_en_bd = DB::table('producido')
     ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
-    ->join('plataforma_tiene_juego','plataforma_tiene_juego.id_plataforma','=','producido.id_plataforma')
     ->leftJoin('juego',function($j){
       //->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
-      return $j->on('plataforma_tiene_juego.id_juego','=','juego.id_juego')
-      ->on('detalle_producido.cod_juego','=','juego.cod_juego')->whereRaw('juego.deleted_at IS NULL');
+      return $j->on('detalle_producido.cod_juego','=','juego.cod_juego')->whereRaw('juego.deleted_at IS NULL');
+    })
+    ->leftJoin('plataforma_tiene_juego',function($j){
+      return $j->on('plataforma_tiene_juego.id_juego','=','juego.id_juego')->on('plataforma_tiene_juego.id_plataforma','=','producido.id_plataforma');
     })
     ->selectRaw('"-" as pdev,COUNT(distinct detalle_producido.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
     ->selectRaw('detalle_producido.categoria as "Categoria Informada (NO EN BD)"')
     ->groupBy(DB::raw('detalle_producido.categoria'))
     ->where('producido.id_plataforma',$id_plataforma)
-    ->whereNull('juego.id_juego')->get();
+    ->whereNull('plataforma_tiene_juego.id_juego')->get();
 
     $estadisticas['Categoria Informada (NO EN BD)'] = $no_en_bd;
 
