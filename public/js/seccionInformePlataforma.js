@@ -58,8 +58,10 @@ function generarTabla(nombre,valores){
     const f = filaModelo.clone().removeClass('filaModelo');
     f.find('.fila').text(val[nombre]);
     const pdev = parseFloat(val['pdev']).toFixed(2);
+    const pdev_esperado = parseFloat(val['pdev_esperado']).toFixed(2);
     const pdev_producido = parseFloat(val['pdev_producido']).toFixed(2);
     f.find('.pdev').text(clearNaN(pdev));
+    f.find('.pdev_esperado').text(clearNaN(pdev_esperado));
     f.find('.pdev_producido').text(clearNaN(pdev_producido));
     table.find('tbody').append(f);
   }

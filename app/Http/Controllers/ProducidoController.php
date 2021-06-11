@@ -30,28 +30,39 @@ class ProducidoController extends Controller
     return self::$instance;
   }
 
+  //Asocia el detalle_producido con el juego (si lo tiene). Devuelve una tabla mas plana y facil de queryar
+  //@HACK: Tal vez haya que cambiarlo para verificar la fecha del deleted_at contra la fecha del producido
+  private static $view_DP_juego = "CREATE OR REPLACE VIEW detalle_producido_juego AS
+  SELECT producido.fecha,producido.id_plataforma,producido.id_tipo_moneda,detalle_producido.*,plataforma_tiene_juego.id_juego
+  FROM detalle_producido
+  JOIN producido on producido.id_producido = detalle_producido.id_producido
+  LEFT JOIN juego on detalle_producido.cod_juego = juego.cod_juego and juego.deleted_at IS NULL
+  LEFT JOIN plataforma_tiene_juego on plataforma_tiene_juego.id_juego = juego.id_juego and plataforma_tiene_juego.id_plataforma = producido.id_plataforma";
+
   //Muestra el detalle_producido con las diferencias (contra si mismo y contra la BD)
-  private $query_diff_DP = 'SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
+  private static $view_diff_DP = 'CREATE OR REPLACE VIEW detalle_producido_diferencias AS
+  SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
   ABS(dp.premio_bono     +dp.premio_efectivo   -dp.premio)             <> 0.00 as premio,
   ABS(dp.beneficio_bono  +dp.beneficio_efectivo-dp.beneficio)          <> 0.00 as beneficio,
   ABS(dp.apuesta_efectivo-dp.premio_efectivo   -dp.beneficio_efectivo) <> 0.00 as beneficio_efectivo,
   ABS(dp.apuesta_bono    -dp.premio_bono       -dp.beneficio_bono)     <> 0.00 as beneficio_bono,
   (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
-  (j.id_juego IS NULL) or (p.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
+  (j.id_juego IS NULL) or (dp.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
   dp.id_detalle_producido,
-  p.id_producido
-  FROM detalle_producido dp
-  JOIN producido p on (dp.id_producido = p.id_producido)
-  LEFT JOIN juego j on (dp.cod_juego = j.cod_juego AND j.deleted_at IS NULL)
+  dp.id_producido
+  FROM detalle_producido_juego dp
+  LEFT JOIN juego j on (dp.id_juego = j.id_juego)
   LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
 
-  private $query_diff_P = 'SELECT producido.*,
+  private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
+  SELECT producido.*,
   SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias
   FROM producido
   JOIN detalle_producido_diferencias as diff on (diff.id_producido = producido.id_producido)
   GROUP BY producido.id_producido';
 
-  private $query_diff_DPJ = 'SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
+  private static $view_diff_DPJ = 'CREATE OR REPLACE VIEW detalle_producido_jugadores_diferencias AS
+  SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
   ABS(dp.premio_bono     +dp.premio_efectivo   -dp.premio)             <> 0.00 as premio,
   ABS(dp.beneficio_bono  +dp.beneficio_efectivo-dp.beneficio)          <> 0.00 as beneficio,
   ABS(dp.apuesta_efectivo-dp.premio_efectivo   -dp.beneficio_efectivo) <> 0.00 as beneficio_efectivo,
@@ -61,25 +72,30 @@ class ProducidoController extends Controller
   FROM detalle_producido_jugadores dp
   JOIN producido_jugadores p on (dp.id_producido_jugadores = p.id_producido_jugadores)';
 
-  private $query_diff_PJ = 'SELECT producido_jugadores.*,
+  private static $view_diff_PJ = 'CREATE OR REPLACE VIEW producido_jugadores_diferencias AS 
+  SELECT producido_jugadores.*,
   SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono) as diferencias
   FROM producido_jugadores
   JOIN detalle_producido_jugadores_diferencias as diff on (diff.id_producido_jugadores = producido_jugadores.id_producido_jugadores)
   GROUP BY producido_jugadores.id_producido_jugadores';
 
-  public function buscarTodo(){
+  public static function inicializarVistas(){//Llamado tambien desde informesController
     DB::beginTransaction();
     try{
-      DB::statement(sprintf("CREATE OR REPLACE VIEW detalle_producido_diferencias AS %s",$this->query_diff_DP));
-      DB::statement(sprintf("CREATE OR REPLACE VIEW producido_diferencias AS %s",$this->query_diff_P));
-      DB::statement(sprintf("CREATE OR REPLACE VIEW detalle_producido_jugadores_diferencias AS %s",$this->query_diff_DPJ));
-      DB::statement(sprintf("CREATE OR REPLACE VIEW producido_jugadores_diferencias AS %s",$this->query_diff_PJ)); 
+      DB::statement(self::$view_DP_juego);
+      DB::statement(self::$view_diff_DP);
+      DB::statement(self::$view_diff_P);
+      DB::statement(self::$view_diff_DPJ);
+      DB::statement(self::$view_diff_PJ); 
     }
     catch(\Exception $e){
       DB::rollback();
       throw $e;
     } 
+  }
 
+  public function buscarTodo(){
+    self::inicializarVistas();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
     return view('seccionProducidos' , ['plataformas' => $usuario->plataformas,'tipo_monedas' => TipoMoneda::all()]);
@@ -153,10 +169,14 @@ class ProducidoController extends Controller
 
   public function datosDetalle($id_detalle_producido){
     $d = DetalleProducido::find($id_detalle_producido);
-    $j = Juego::where([['cod_juego','=',$d->cod_juego]])->whereNull('deleted_at')->first();
-    return ['detalle' => $d,'juego' => $j,
-      'categoria' => is_null($j) || is_null($j->categoria_juego)? '' : $j->categoria_juego->nombre,
-      'diferencias' => DB::table('detalle_producido_diferencias')->where('id_detalle_producido',$id_detalle_producido)->get()->first()
+    $diferencias = DB::table('detalle_producido_diferencias')->where('id_detalle_producido',$id_detalle_producido)->get()->first();
+    
+    $id_juego = DB::table('detalle_producido_juego')
+    ->where('id_detalle_producido',$id_detalle_producido)->select('id_juego')->get()->pluck('id_juego')->first();
+    $juego = is_null($id_juego)? null : Juego::find($id_juego);
+    return ['detalle' => $d,'juego' => $juego,
+      'categoria' => is_null($juego) || is_null($juego->categoria_juego)? '' : $juego->categoria_juego->nombre,
+      'diferencias' => $diferencias
     ];
   }
 

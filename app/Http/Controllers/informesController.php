@@ -151,13 +151,17 @@ class informesController extends Controller
             END';
 
     //NULL es ignorado cuando MySQL hace AVG
-    $avg_producido = '100*AVG(IF(detalle_producido.apuesta = 0 or detalle_producido.apuesta IS NULL,
-                        NULL,
-                        detalle_producido.premio/detalle_producido.apuesta))';
-
+    $avg_esperado =      'AVG(IF(dp.id_detalle_producido IS NULL,
+                                NULL,
+                                juego.porcentaje_devolucion))';
+    $avg_producido = '100*AVG(IF(dp.apuesta = 0 or dp.apuesta IS NULL,
+                                 NULL,
+                                 dp.premio/dp.apuesta))';
+  
     //Hay un problema si el juego reportado no coincide el codigo, plataforma (i.e. no esta cargado)
     //No se pueden obtener estadisticas de estado y tipo
     //Tal vez asi sea lo correcto, obtener estadisticas de lo que esta bien seteado y lo otro aparte
+
     $query = DB::table('plataforma')
     ->join('plataforma_tiene_juego','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('juego',function($j){
@@ -166,15 +170,26 @@ class informesController extends Controller
     })
     ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
     ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
-    ->leftJoin('producido',function($j){
-      //Creo que hacer validaciones de si esta bien la moneda esta de mas porque solo nos interesa el pdev
-      return $j->on('producido.id_plataforma','=','plataforma.id_plataforma');//->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
+    //El chiste esta en este join, no altera el AVG juego.porcentaje_devolucion porque multiplica todas las
+    //filas de los juegos por los producidos en igual forma i.e.
+    // JUEGO1    JUEGO1|PRODUCIDO1    JUEGO1|PRODUCIDO1|NULL
+    // JUEGO2 -> JUEGO2|PRODUCIDO1 -> JUEGO2|PRODUCIDO1|DP1
+    // JUEGO3 -> JUEGO3|PRODUCIDO1 -> JUEGO3|PRODUCIDO1|NULL
+    //        -> JUEGO1|PRODUCIDO2 -> JUEGO1|PRODUCIDO2|DP2
+    //        -> JUEGO2|PRODUCIDO2 -> JUEGO2|PRODUCIDO2|DP3
+    //           JUEGO3|PRODUCIDO2    JUEGO3|PRODUCIDO2|NULL
+    //Si hicieramos validaciones de id_tipo_moneda por ejemplo (que no interesan para el pdev), 
+    //habria un enlace juego<->producido que alteraria el promedio
+    ->leftJoin('producido','producido.id_plataforma','=','plataforma.id_plataforma')
+    ->leftJoin('detalle_producido as dp',function($j){
+      return $j->on('dp.id_producido','=','producido.id_producido')->on('dp.cod_juego','=','juego.cod_juego');
     })
-    ->leftJoin('detalle_producido',function($j){
-      return $j->on('detalle_producido.id_producido','=','producido.id_producido')->on('detalle_producido.cod_juego','=','juego.cod_juego');
-    })
+    //pdev           = Pdev Teorico si todos los juegos aparecerian de igual en forma en todos los producidos
+    //pdev_espeado   = Pdev esperado, ponderando por apariciónes en los producidos
+    //pdev_producido = Pdev real, calculado a partir de lo apostado y premiado
     ->selectRaw('AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.cod_juego) as juegos,
-                 '.$avg_producido.'as pdev_producido')
+                 '.$avg_esperado.'  as pdev_esperado,
+                 '.$avg_producido.' as pdev_producido')
     ->where('plataforma.id_plataforma',$id_plataforma);
 
     //Saco las cantidades y avg porcentaje devolución para cada una de estas clasificaciones
@@ -190,24 +205,19 @@ class informesController extends Controller
     }
 
     //Hago una query invertida para obtener los detalles sin juegos asociados
+    ProducidoController::inicializarVistas();
     //Si la plataforma no lo tiene lo considero como que no esta en BD
-    $no_en_bd = DB::table('producido')
-    ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
-    ->leftJoin('juego',function($j){
-      //->on('producido.id_tipo_moneda','=','juego.id_tipo_moneda');
-      return $j->on('detalle_producido.cod_juego','=','juego.cod_juego')->whereRaw('juego.deleted_at IS NULL');
-    })
-    ->leftJoin('plataforma_tiene_juego',function($j){
-      return $j->on('plataforma_tiene_juego.id_juego','=','juego.id_juego')->on('plataforma_tiene_juego.id_plataforma','=','producido.id_plataforma');
-    })
-    ->selectRaw('"-" as pdev,COUNT(distinct detalle_producido.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
-    ->selectRaw('detalle_producido.categoria as "Categoria Informada (NO EN BD)"')
-    ->groupBy(DB::raw('detalle_producido.categoria'))
-    ->where('producido.id_plataforma',$id_plataforma)
-    ->whereNull('plataforma_tiene_juego.id_juego')->get();
+    //Arriba no usamos detalle_producido_juego porque ponderaria mas a los juegos que tienen mas producidos
+    //(PREGUNTAR SI ES LO QUE SE QUIERE)
+    $no_en_bd = DB::table('detalle_producido_juego as dp')
+    ->selectRaw('"-" as pdev,"-" as pdev_esperado,COUNT(distinct dp.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
+    ->selectRaw('dp.categoria as "Categoria Informada (NO EN BD)"')
+    ->groupBy('dp.categoria')
+    ->where('dp.id_plataforma',$id_plataforma)
+    ->whereNull('dp.id_juego')->get();
 
     $estadisticas['Categoria Informada (NO EN BD)'] = $no_en_bd;
-
+    
     return ['estadisticas' => $estadisticas];
   }
 
