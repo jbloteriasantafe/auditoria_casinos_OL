@@ -169,6 +169,8 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     cod_juego: $('#buscadorCodigoJuego').val(),
     certificado: $('#buscadorCodigo').val(),
     proveedor: $('#buscadorProveedor').val(),
+    pdev_menor: $('#buscadorPdevMenor').val(),
+    pdev_mayor: $('#buscadorPdevMayor').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,

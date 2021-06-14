@@ -302,6 +302,12 @@ class JuegoController extends Controller
       $reglas[] = ['juego.escritorio','=',$escritorio || $escritorio_y_movil];
       $reglas[] = ['juego.movil','=',$movil || $escritorio_y_movil];
     }
+    if(!is_null($request->pdev_menor)){
+      $reglas[] = ['juego.porcentaje_devolucion','>=',$request->pdev_menor];
+    }
+    if(!is_null($request->pdev_mayor)){
+      $reglas[] = ['juego.porcentaje_devolucion','<=',$request->pdev_mayor];
+    }
 
     $sort_by = $request->sort_by;
 

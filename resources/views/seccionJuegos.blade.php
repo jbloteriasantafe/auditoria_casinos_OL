@@ -88,6 +88,14 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     <h5>Código de certificado</h5>
                                     <input id="buscadorCodigo" class="form-control" placeholder="Código de identificación">
                                   </div>
+                                  <div class="col-md-3">
+                                    <h5>Porcentaje Devolución</h5>
+                                    <div class="input-group" style="width: 10em;">
+                                      <input id="buscadorPdevMenor" class="form-control" type="text" placeholder="0"   style="width: 4em;text-align: center;">
+                                      <span class="input-group-addon" style="width: 100%;">-</span>
+                                      <input id="buscadorPdevMayor" class="form-control" type="text" placeholder="100" style="width: 4em;text-align: center;">
+                                    </div>
+                                  </div>
                                 </div>
                                 <br>
                                 <div class="row">
