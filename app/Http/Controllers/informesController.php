@@ -210,7 +210,7 @@ class informesController extends Controller
     //Arriba no usamos detalle_producido_juego porque ponderaria mas a los juegos que tienen mas producidos
     //(PREGUNTAR SI ES LO QUE SE QUIERE)
     $no_en_bd = DB::table('detalle_producido_juego as dp')
-    ->selectRaw('"-" as pdev,"-" as pdev_esperado,COUNT(distinct dp.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
+    ->selectRaw('NULL as pdev,NULL as pdev_esperado,COUNT(distinct dp.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
     ->selectRaw('dp.categoria as "Categoria Informada (NO EN BD)"')
     ->groupBy('dp.categoria')
     ->where('dp.id_plataforma',$id_plataforma)
