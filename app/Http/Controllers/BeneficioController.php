@@ -39,20 +39,12 @@ class BeneficioController extends Controller
     Beneficio::destroy($id_beneficio);
   }
 
-  private $diffs_view = "SELECT diff_bm.id_beneficio_mensual, 
-  SUM(CASE 
-        WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NOT NULL) THEN 1
-        WHEN (diff_p.beneficio IS NOT NULL AND diff_b.beneficio IS NULL)     THEN 0
-        WHEN (diff_p.beneficio IS NULL     AND diff_b.beneficio IS NULL)     THEN 0
-        WHEN (diff_p.beneficio - diff_b.beneficio) <> 0                      THEN 1
-        ELSE 0
-      END) as diferencias,
-  COUNT(diff_p.id_producido) as dias_p,
-  COUNT(diff_b.id_beneficio) as dias_b
+  private $diffs_view = "SELECT diff_bm.id_beneficio_mensual,
+  SUM((diff_p.beneficio IS NULL AND diff_b.beneficio IS NOT NULL) 
+      OR (diff_p.beneficio <> (diff_b.beneficio+diff_b.ajuste))) as diferencias
   FROM beneficio_mensual diff_bm
   LEFT JOIN beneficio diff_b ON diff_b.id_beneficio_mensual = diff_bm.id_beneficio_mensual
-  LEFT JOIN producido diff_p ON 
-    (diff_p.id_plataforma = diff_bm.id_plataforma AND diff_p.id_tipo_moneda = diff_bm.id_tipo_moneda AND diff_p.fecha = diff_b.fecha)
+  LEFT JOIN producido diff_p ON (diff_p.id_plataforma = diff_bm.id_plataforma AND diff_p.id_tipo_moneda = diff_bm.id_tipo_moneda AND diff_p.fecha = diff_b.fecha)
   GROUP BY diff_bm.id_beneficio_mensual";
 
   public function buscarTodo(){
@@ -100,7 +92,7 @@ class BeneficioController extends Controller
     $resultados = DB::table('beneficio_mensual as bm')
     ->selectRaw('MONTH(bm.fecha) as mes, YEAR(bm.fecha) as anio, p.id_plataforma, p.nombre as plataforma,
      tm.id_tipo_moneda, tm.descripcion as tipo_moneda, diff.diferencias as diferencias_mes,
-     bm.id_beneficio_mensual,diff.dias_p,diff.dias_b, bm.validado')
+     bm.id_beneficio_mensual, bm.validado')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','bm.id_tipo_moneda')
     ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
     ->join('beneficios_diferencias_dias as diff','diff.id_beneficio_mensual','=','bm.id_beneficio_mensual')
