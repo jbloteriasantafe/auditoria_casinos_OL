@@ -112,7 +112,6 @@ class BeneficioController extends Controller
     return $resultados;
   }
 
-  //(IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0))
   public function obtenerBeneficios($id_beneficio_mensual){
     $resultados = DB::table('beneficio_mensual')->selectRaw(
       'beneficio.id_beneficio, beneficio.fecha,
