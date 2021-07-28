@@ -186,6 +186,9 @@ class ImportacionController extends Controller
 
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
+      $viejos = Producido::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
+      $prodCont = ProducidoController::getInstancia();
+      foreach($viejos as $p) $prodCont->eliminarProducido($p->id_producido);
       $ret = LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
     });
     return $ret;
@@ -201,6 +204,9 @@ class ImportacionController extends Controller
 
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
+      $viejos = ProducidoJugadores::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
+      $prodCont = ProducidoController::getInstancia();
+      foreach($viejos as $p) $prodCont->eliminarProducidoJugadores($p->id_producido_jugadores);
       $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
     });
     return $ret;
