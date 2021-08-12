@@ -57,6 +57,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     class="btn btn-info planilla detalle" type="button">
                                   <i class="fa fa-fw fa-print"></i>
                             </button>
+                            <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
+                                    data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
+                                    class="btn btn-info planilla2 detalle" type="button">
+                              <i class="fa fa-fw fa-dollar-sign"></i>
+                            </button>
                             @if(!$b->existe)
                             <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                               <i class="fa fa-exclamation" style="color: #FFA726;"></i>

@@ -17,6 +17,14 @@ $(document).on('click','.planilla',function(){
   window.open(`informesJuegos/generarPlanilla/${anio}/${mes}/${plataforma}/${moneda}`,'_blank');
 });
 
+$(document).on('click','.planilla2',function(){
+  const anio = $(this).attr('data-anio');
+  const mes = $(this).attr('data-mes');
+  const plataforma = $(this).attr('data-plataforma');
+  const moneda = $(this).attr('data-moneda');
+  window.open(`informesJuegos/generarPlanilla/${anio}/${mes}/${plataforma}/${moneda}/1`,'_blank');
+});
+
 $('.selectMoneda').change(function(){
   const moneda = $(this).val();
   const plataforma = $(this).attr('data-plataforma');

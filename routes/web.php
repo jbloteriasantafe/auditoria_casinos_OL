@@ -234,7 +234,7 @@ Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@ob
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informesJuegos'],function(){
   Route::get('/','informesController@obtenerBeneficiosPorPlataforma');
-  Route::get('/generarPlanilla/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@generarPlanilla');
+  Route::get('/generarPlanilla/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}/{simplificado?}','informesController@generarPlanilla');
 });
 
 /*calendario*/

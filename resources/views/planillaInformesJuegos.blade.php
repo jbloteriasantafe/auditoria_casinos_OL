@@ -22,6 +22,14 @@ tr:nth-child(even) {
 .total {
   border-top: 2px double black;
 }
+
+.center {
+  text-align: center;
+}
+.right {
+  text-align: right;
+}
+
 </style>
   <?php 
   $widths = ["fecha" => "9","jugadores" => "11","apostado" => "21","premios" => "21","ajuste" => "10", "beneficio" => "21","dev" => "7"];
@@ -40,7 +48,7 @@ tr:nth-child(even) {
   <body>
     <div class="encabezadoImg">
       <img src="img/logos/banner_nuevo2_portrait.png" width="900">
-      <h2 style="left:35%;"><span>MTM | Informe de beneficios ({{$total->moneda}})</span></h2>
+      <h2 style="left:35%;"><span>Juegos Online | Informe de beneficios ({{$total->moneda}})</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></span></div>
@@ -52,16 +60,20 @@ tr:nth-child(even) {
     <br>
     <table style="table-layout: fixed;">
       <tr>
-        <th class="tablaInicio" width="{{$widths['fecha']}}%">FECHA</th>
-        <th class="tablaInicio" width="{{$widths['jugadores']}}%">JUGADORES</th>
-        <th class="tablaInicio" width="{{$widths['apostado']}}%">APOSTADO</th>
-        <th class="tablaInicio" width="{{$widths['premios']}}%">PREMIOS</th>
-        <th class="tablaInicio" width="{{$widths['ajuste']}}%">AJUSTES</th>
-        @if($cotizacionDefecto != 1)
-        <th class="tablaInicio" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
+        <th class="tablaInicio center" width="{{$widths['fecha']}}%">FECHA</th>
+        <th class="tablaInicio center" width="{{$widths['jugadores']}}%">JUGADORES</th>
+        <th class="tablaInicio center" width="{{$widths['apostado']}}%">APOSTADO</th>
+        <th class="tablaInicio center" width="{{$widths['premios']}}%">PREMIOS</th>
+        @if(!$simplificado)
+        <th class="tablaInicio center" width="{{$widths['ajuste']}}%">AJUSTES</th>
         @endif
-        <th class="tablaInicio" width="{{$widths['beneficio']}}%">BENEFICIO</th>
-        <th class="tablaInicio" width="{{$widths['dev']}}%">% DEV</th>
+        @if($cotizacionDefecto != 1)
+        <th class="tablaInicio center" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
+        @endif
+        <th class="tablaInicio center" width="{{$widths['beneficio']}}%">BENEFICIO</th>
+        @if(!$simplificado)
+        <th class="tablaInicio center" width="{{$widths['dev']}}%">% DEV</th>
+        @endif
       </tr>
       <?php $ultima_cotizacion = $cotizacionDefecto;?>
       @foreach ($dias as $d)
@@ -69,29 +81,37 @@ tr:nth-child(even) {
         $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion; 
       ?>
       <tr>
-        <td class="tablaCampos">{{$d->fecha}}</td>
-        <td class="tablaCampos">{{$d->jugadores}}</td>
-        <td class="tablaCampos">{{$d->apuesta}}</td>
-        <td class="tablaCampos">{{$d->premio}}</td>
-        <td class="tablaCampos">{{$d->ajuste}}</td>
-        @if($cotizacionDefecto != 1)
-        <td class="tablaCampos">{{$ultima_cotizacion}}</td>
+        <td class="tablaCampos center">{{$d->fecha}}</td>
+        <td class="tablaCampos center ">{{$d->jugadores}}</td>
+        <td class="tablaCampos right">{{$d->apuesta}}</td>
+        <td class="tablaCampos right">{{$d->premio + ($simplificado? $d->ajuste : 0)}}</td>
+        @if(!$simplificado)
+        <td class="tablaCampos right">{{$d->ajuste}}</td>
         @endif
-        <td class="tablaCampos">{{$d->beneficio*$ultima_cotizacion}}</td>
-        <td class="tablaCampos">{{$d->apuesta != 0.0? round(100*$d->premio/$d->apuesta,2) : '-'}}</td>
+        @if($cotizacionDefecto != 1)
+        <td class="tablaCampos right">{{$ultima_cotizacion}}</td>
+        @endif
+        <td class="tablaCampos right">{{$d->beneficio*$ultima_cotizacion}}</td>
+        @if(!$simplificado)
+        <td class="tablaCampos right">{{$d->apuesta != 0.0? round(100*$d->premio/$d->apuesta,2) : '-'}}</td>
+        @endif
       </tr>
       @endforeach
       <tr class="total">
-        <td class="tablaCampos total">{{$total->fecha}}</td>
-        <td class="tablaCampos total">{{$total->jugadores}}</td>
-        <td class="tablaCampos total">{{$total->apuesta}}</td>
-        <td class="tablaCampos total">{{$total->premio}}</td>
-        <td class="tablaCampos total">{{$total->ajuste}}</td>
-        @if($cotizacionDefecto != 1)
-        <td class="tablaCampos total">-</td>
+        <td class="tablaCampos total center">{{$total->fecha}}</td>
+        <td class="tablaCampos total center">{{$total->jugadores}}</td>
+        <td class="tablaCampos total right">{{$total->apuesta}}</td>
+        <td class="tablaCampos total right">{{$total->premio + ($simplificado? $total->ajuste : 0)}}</td>
+        @if(!$simplificado)
+        <td class="tablaCampos total right">{{$total->ajuste}}</td>
         @endif
-        <td class="tablaCampos total">{{$total_beneficio}}</td>
-        <td class="tablaCampos total">{{$total->apuesta != 0.0? round(100*$total->premio/$total->apuesta,2) : '-'}}</td>
+        @if($cotizacionDefecto != 1)
+        <td class="tablaCampos total right">-</td>
+        @endif
+        <td class="tablaCampos total right">{{$total_beneficio}}</td>
+        @if(!$simplificado)
+        <td class="tablaCampos total right">{{$total->apuesta != 0.0? round(100*$total->premio/$total->apuesta,2) : '-'}}</td>
+        @endif
       </tr>
     </table>
     @if($cotizacionDefecto != 1)

@@ -33,7 +33,7 @@ class informesController extends Controller
     return $mes_map[intval($mes_num)-1];
   }
 
-  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda){
+  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado = 0){
     $dias = DB::table('beneficio')->select(
       DB::raw('CONCAT(LPAD(DAY(beneficio.fecha)  ,2,"00"),"-",
                       LPAD(MONTH(beneficio.fecha),2,"00"),"-",
@@ -58,6 +58,7 @@ class informesController extends Controller
       $total->jugadores = 0;
       $total->apuesta = 0;
       $total->premio = 0;
+      $total->ajuste = 0;
       $total->beneficio = 0;
     }
     $total->fecha = '##-'.str_pad($mes,2,"0",STR_PAD_LEFT).'-'.$anio;
@@ -78,7 +79,7 @@ class informesController extends Controller
     }
 
     $mesTexto = $this->obtenerMes($mes);
-    $view = View::make('planillaInformesJuegos',compact('mesTexto','dias','cotizacionDefecto','total_beneficio','total'));
+    $view = View::make('planillaInformesJuegos',compact('mesTexto','dias','cotizacionDefecto','total_beneficio','total','simplificado'));
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
