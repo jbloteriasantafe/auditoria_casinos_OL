@@ -254,4 +254,80 @@ class BeneficioController extends Controller
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
+
+  public function informeCompleto($id_beneficio_mensual){
+    $pdev = function($num,$div,$nombre){
+      $division = "IFNULL(".$num.",0)/".$div;
+      return sprintf("IF((%s) = 0,'',(%s)) as %s",$div,$division,$nombre);
+    };
+    $dias = DB::table('beneficio_mensual as bm')
+    ->select('b.fecha as Fecha','b.jugadores as Usuarios','b.depositos as Depositos','b.retiros as Retiros',
+             'p.apuesta_efectivo as MontosJugadosEfectivo','p.apuesta_bono as MontosJugadosBono','p.apuesta as MontosJugados',
+             'p.premio_efectivo as PremioEfectivo','p.premio_bono as PremioBono','p.premio as Premio',
+             DB::raw($pdev('p.premio_efectivo','p.apuesta_efectivo','PdevEfectivo')),
+             DB::raw($pdev('p.premio_bono','p.apuesta_bono','PdevBono')),
+             DB::raw($pdev('p.premio','p.apuesta','Pdev')),
+             'p.beneficio_efectivo as ResultadoEfectivo','p.beneficio_bono as ResultadoBono','p.beneficio as Resultado',
+             'b.beneficio as ResultadoFinal','b.ajuste as AjustesInformados')
+    ->leftJoin('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
+    ->leftJoin('producido as p',function ($leftJoin){
+      $leftJoin->on('p.fecha','=','b.fecha')->on('p.id_plataforma','=','bm.id_plataforma')->on('p.id_tipo_moneda','=','bm.id_tipo_moneda');
+    })
+    ->where('bm.id_beneficio_mensual',$id_beneficio_mensual)
+    ->orderBy('b.fecha','asc')->get()->toArray();
+
+
+    $total = DB::table('beneficio_mensual as bm')
+    ->selectRaw('"Totales" as Fecha,
+                SUM(b.jugadores) as Usuarios,
+                bm.depositos as Depositos,
+                bm.retiros   as Retiros,
+                SUM(p.apuesta_efectivo) as MontosJugadosEfectivo,
+                SUM(p.apuesta_bono)     as MontosJugadosBono,
+                bm.apuesta              as MontosJugados,
+                SUM(p.premio_efectivo)  as PremioEfectivo,
+                SUM(p.premio_bono)      as PremioBono,
+                bm.premio               as Premio,
+                "" as PdevEfectivo,"" as PdevBono,"" as Pdev,
+                SUM(p.beneficio_efectivo) as ResultadoEfectivo,
+                SUM(p.beneficio_bono)     as ResultadoBono,
+                SUM(p.beneficio)          as Resultado,
+                bm.beneficio as ResultadoFinal,
+                bm.ajuste    as AjustesInformados')
+    ->leftJoin('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
+    ->leftJoin('producido as p',function ($leftJoin){
+      $leftJoin->on('p.fecha','=','b.fecha')->on('p.id_plataforma','=','bm.id_plataforma')->on('p.id_tipo_moneda','=','bm.id_tipo_moneda');
+    })
+    ->where('bm.id_beneficio_mensual',$id_beneficio_mensual)
+    ->groupBy('bm.id_beneficio_mensual')->get()->toArray();
+
+    if(count($dias) == 0) return "SIN DATOS";
+    $columnas = array_keys(get_object_vars($dias[0]));
+
+    array_unshift($dias,$columnas);
+    array_push($dias,$total[0]);
+
+    $csv = $this->array2csv(json_decode(json_encode($dias),true));
+
+    header("Content-Type: text/csv");
+
+    $bm = BeneficioMensual::find($id_beneficio_mensual);
+    $plat = $bm->plataforma->codigo;
+    $bm_fecha = explode("-",$bm->fecha);
+    $filename = "beneficio_mensual_".$plat."_".$bm_fecha[0].$bm_fecha[1].".csv";
+    header('Content-Disposition: attachment; filename="'.$filename.'"');
+
+    header("Content-Length: ".strlen($csv));
+    return $csv;
+  }
+
+  private function array2csv($data, $delimiter = ',', $enclosure = '"', $escape_char = "\\")
+  {//https://stackoverflow.com/questions/13108157/php-array-to-csv
+      $f = fopen('php://memory', 'r+');
+      foreach ($data as $item) {
+        fputcsv($f, $item, $delimiter, $enclosure, $escape_char);
+      }
+      rewind($f);
+      return stream_get_contents($f);
+  }
 }

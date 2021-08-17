@@ -45,7 +45,6 @@ $(document).on('mouseenter','.popInfo',function(e){
 //Popup para ajustara las diferencias de los beneficios
 $(document).on('click','.pop',function(e){
     e.preventDefault();
-    $('.pop').not(this).popover('hide');
     $(this).popover('show');
 });
 
@@ -199,6 +198,19 @@ function generarContentAjuste(ajuste,id_beneficio){
   return formulario;
 }
 
+function generarBotonAjuste(diferencia,id_beneficio){
+  return $('<button>')
+  .addClass('btn btn-success pop boton_ajuste')
+  .attr('tabindex', 0)
+  .attr('data-trigger','manual')
+  .attr('data-toggle','popover')
+  .attr('data-html','true')
+  .attr('title','AJUSTE')
+  .attr('data-content',generarContentAjuste(diferencia,id_beneficio))
+  .attr('disabled',(diferencia == 0))
+  .append($('<i>').addClass('fa fa-fw fa-wrench'));
+}
+
 //Generar las filas de los beneficios por cada día del mes para el modal
 function generarFilaModal(beneficio){
   const fila = $('<tr>');
@@ -208,19 +220,7 @@ function generarFilaModal(beneficio){
     .append($('<td>').text(beneficio.beneficio).addClass('importado'))
     .append($('<td>').text(beneficio.ajuste).addClass('ajuste'))
     .append($('<td>').text(beneficio.diferencia).addClass('diferencia'))
-    .append($('<td>')
-        .append($('<button>')
-            .addClass('btn btn-success pop boton_ajuste')
-            .attr('tabindex', 0)
-            .attr('data-trigger','manual')
-            .attr('data-toggle','popover')
-            .attr('data-html','true')
-            .attr('title','AJUSTE')
-            .attr('data-content',generarContentAjuste(-beneficio.diferencia,beneficio.id_beneficio))
-            .attr('disabled',(beneficio.diferencia == 0))
-            .append($('<i>').addClass('fa fa-fw fa-wrench'))
-        )
-    )
+    .append($('<td>').append(generarBotonAjuste(beneficio.diferencia,beneficio.id_beneficio)))
     .append($('<td>').append($('<textarea>').addClass('form-control').css('resize','vertical').text(beneficio.observacion)))
     .append($('<td>').append($('<button>')
       .append($('<i>')
@@ -255,27 +255,22 @@ function generarFilaTabla(beneficio){
   .append($('<td>').addClass('col-xs-3 diferencias').text(beneficio.diferencias_mes))
 
   const acciones = $('<td>');
-  acciones.append($('<button>')
-    .addClass('btn btn-success ver')
-    .attr('title','VER')
-    .val(beneficio.id_beneficio_mensual)
-    .append($('<i>').addClass('fa fa-fw fa-search-plus'))
+  acciones.append($('<button>').addClass('btn btn-success ver')
+    .attr('title','VER').append($('<i>').addClass('fa fa-fw fa-search-plus'))
   );
   if(beneficio.validado == 0){
-    acciones.append($('<button>')
-      .addClass('btn btn-success validar')
-      .attr('title','VALIDAR')
-      .val(beneficio.id_beneficio_mensual)
-      .append($('<i>').addClass('fa fa-fw fa-check'))
+    acciones.append($('<button>').addClass('btn btn-success validar')
+      .attr('title','VALIDAR').append($('<i>').addClass('fa fa-fw fa-check'))
     );
   }
-  acciones.append($('<button>')
-    .addClass('btn btn-info planilla')
-    .attr('title','IMPRIMIR')
-    .val(beneficio.id_beneficio_mensual)
-    .append($('<i>').addClass('fa fa-fw fa-print'))
+  acciones.append($('<button>').addClass('btn btn-info planilla')
+    .attr('title','IMPRIMIR').append($('<i>').addClass('fa fa-fw fa-print'))
+  );
+  acciones.append($('<button>').addClass('btn btn-info informe_completo')
+    .attr('title','INFORME COMPLETO').append('<div style="color: black;font-size: 95%">.csv</div>')
   );
   fila.append(acciones);
+  fila.find('button').val(beneficio.id_beneficio_mensual);
   return fila;
 }
 
@@ -284,7 +279,7 @@ $(document).on('click','.ajustar',function(e){
 
   e.preventDefault();
 
-  var formData = {
+  const formData = {
     id_beneficio: $(this).attr('id'),
     valor: $(this).parent().find('.valorAjuste').val().replace(/,/g,"."),
   }
@@ -295,15 +290,15 @@ $(document).on('click','.ajustar',function(e){
       data: formData,
       dataType: 'json',
       success: function (data) {
-        $('#id' + formData.id_beneficio).find('.ajuste').text(data.ajuste.toFixed(2));
+        const fila = $('#id' + formData.id_beneficio);
+        fila.find('.ajuste').text(data.ajuste.toFixed(2));
         const dif = data.diferencia.toFixed(2);
-        $('#id' + formData.id_beneficio).find('.diferencia').text(dif);
-        $('#id' + formData.id_beneficio).find('.boton_ajuste').attr('disabled',(dif == 0))
-        .attr('data-content',generarContentAjuste(-dif,formData.id_beneficio))
-        $('.pop').popover('hide');
+        fila.find('.diferencia').text(dif);
+        fila.find('.boton_ajuste').popover('destroy');
+        fila.find('.boton_ajuste').parent().empty().append(generarBotonAjuste(data.diferencia,formData.id_beneficio));
       },
       error: function (data) {
-          console.log('Error:', data);
+        console.log('Error:', data);
       }
     });
 });
@@ -384,10 +379,12 @@ $(document).on('click','#btn-validar-si',function(e){
   validarBeneficios($(this).val(),0);
 });
 
-//MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
-    $('#alertaArchivo').hide();
-    window.open('beneficios/generarPlanilla/' + $(this).val(),'_blank');
+  window.open('beneficios/generarPlanilla/' + $(this).val(),'_blank');
+});
+
+$(document).on('click','.informe_completo',function(){
+  window.open('beneficios/informeCompleto/' + $(this).val(),'_blank');
 });
 
 //Opacidad del modal al minimizar

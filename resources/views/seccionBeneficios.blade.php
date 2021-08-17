@@ -157,7 +157,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
           <div class="modal-dialog modal-lg" style="width:80%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FFB74D;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">BENEFICIOS</h3>

@@ -204,6 +204,7 @@ Route::group(['prefix' => 'beneficios','middleware' =>'tiene_permiso:ver_seccion
   Route::post('/ajustarBeneficio','BeneficioController@ajustarBeneficio');
   Route::post('/validarBeneficios','BeneficioController@validarBeneficios');
   Route::get('/generarPlanilla/{id_beneficio_mensual}','BeneficioController@generarPlanilla');
+  Route::get('/informeCompleto/{id_beneficio_mensual}','BeneficioController@informeCompleto');
 });
 
 
