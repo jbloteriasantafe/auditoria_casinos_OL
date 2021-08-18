@@ -261,14 +261,24 @@ class BeneficioController extends Controller
       return sprintf("IF((%s) = 0,'',(%s)) as %s",$div,$division,$nombre);
     };
     $dias = DB::table('beneficio_mensual as bm')
-    ->select('b.fecha as Fecha','b.jugadores as Usuarios','b.depositos as Depositos','b.retiros as Retiros',
-             'p.apuesta_efectivo as MontosJugadosEfectivo','p.apuesta_bono as MontosJugadosBono','p.apuesta as MontosJugados',
-             'p.premio_efectivo as PremioEfectivo','p.premio_bono as PremioBono','p.premio as Premio',
-             DB::raw($pdev('p.premio_efectivo','p.apuesta_efectivo','PdevEfectivo')),
-             DB::raw($pdev('p.premio_bono','p.apuesta_bono','PdevBono')),
-             DB::raw($pdev('p.premio','p.apuesta','Pdev')),
-             'p.beneficio_efectivo as ResultadoEfectivo','p.beneficio_bono as ResultadoBono','p.beneficio as Resultado',
-             'b.beneficio as ResultadoFinal','b.ajuste as AjustesInformados')
+    ->selectRaw('b.fecha              as Fecha,
+                 b.jugadores          as Usuarios,
+                 b.depositos          as Depositos,
+                 b.retiros            as Retiros, 
+                 p.apuesta_efectivo   as MontosJugadosEfectivo,
+                 p.apuesta_bono       as MontosJugadosBonos,
+                 p.apuesta            as MontosJugados, 
+                 p.premio_efectivo    as PremioEfectivo,
+                 p.premio_bono        as PremioBonos,
+                 p.premio             as Premio,'
+                 .$pdev('p.premio_efectivo','p.apuesta_efectivo','PdevEfectivo').','
+                 .$pdev('p.premio_bono'    ,'p.apuesta_bono'    ,'PdevBonos').','
+                 .$pdev('p.premio'         ,'p.apuesta'         ,'Pdev').',
+                 p.beneficio_efectivo as ResultadoEfectivo,
+                 p.beneficio_bono     as ResultadoBonos,
+                 p.beneficio          as Resultado, 
+                 b.beneficio          as ResultadoFinal,
+                 b.ajuste             as AjustesInformados')
     ->leftJoin('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
     ->leftJoin('producido as p',function ($leftJoin){
       $leftJoin->on('p.fecha','=','b.fecha')->on('p.id_plataforma','=','bm.id_plataforma')->on('p.id_tipo_moneda','=','bm.id_tipo_moneda');
@@ -278,22 +288,24 @@ class BeneficioController extends Controller
 
 
     $total = DB::table('beneficio_mensual as bm')
-    ->selectRaw('"Totales" as Fecha,
-                SUM(b.jugadores) as Usuarios,
-                bm.depositos as Depositos,
-                bm.retiros   as Retiros,
-                SUM(p.apuesta_efectivo) as MontosJugadosEfectivo,
-                SUM(p.apuesta_bono)     as MontosJugadosBono,
-                bm.apuesta              as MontosJugados,
-                SUM(p.premio_efectivo)  as PremioEfectivo,
-                SUM(p.premio_bono)      as PremioBono,
-                bm.premio               as Premio,
-                "" as PdevEfectivo,"" as PdevBono,"" as Pdev,
+    ->selectRaw('"Totales"                as Fecha,
+                SUM(b.jugadores)          as Usuarios,
+                bm.depositos              as Depositos,
+                bm.retiros                as Retiros,
+                SUM(p.apuesta_efectivo)   as MontosJugadosEfectivo,
+                SUM(p.apuesta_bono)       as MontosJugadosBonos,
+                bm.apuesta                as MontosJugados,
+                SUM(p.premio_efectivo)    as PremioEfectivo,
+                SUM(p.premio_bono)        as PremioBonos,
+                bm.premio                 as Premio,
+                '.$pdev('SUM(p.premio_efectivo)','SUM(p.apuesta_efectivo)','PdevEfectivo').',
+                '.$pdev('SUM(p.premio_bono)'    ,'SUM(p.apuesta_bono)'    ,'PdevBonos').',
+                '.$pdev('SUM(p.premio)'         ,'SUM(p.apuesta)'         ,'Pdev').',
                 SUM(p.beneficio_efectivo) as ResultadoEfectivo,
-                SUM(p.beneficio_bono)     as ResultadoBono,
+                SUM(p.beneficio_bono)     as ResultadoBonos,
                 SUM(p.beneficio)          as Resultado,
-                bm.beneficio as ResultadoFinal,
-                bm.ajuste    as AjustesInformados')
+                bm.beneficio              as ResultadoFinal,
+                bm.ajuste                 as AjustesInformados')
     ->leftJoin('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
     ->leftJoin('producido as p',function ($leftJoin){
       $leftJoin->on('p.fecha','=','b.fecha')->on('p.id_plataforma','=','bm.id_plataforma')->on('p.id_tipo_moneda','=','bm.id_tipo_moneda');
@@ -304,8 +316,25 @@ class BeneficioController extends Controller
     if(count($dias) == 0) return "SIN DATOS";
     $columnas = array_keys(get_object_vars($dias[0]));
 
+    //Agrego espacios
+    foreach($columnas as &$campo){
+      $new_campo = "";
+      foreach(str_split($campo) as $idx => $c){
+        if($idx > 0 && $c === strtoupper($c)){
+          $new_campo .= ' ';
+        }
+        $new_campo .= $c;
+      }
+      $campo = $new_campo;
+    }
+
     array_unshift($dias,$columnas);
     array_push($dias,$total[0]);
+
+    //Cambio punto por coma
+    foreach($dias as $d) foreach($d as &$campo){
+      if(is_numeric($campo)) $campo = str_replace('.',',',$campo);
+    }
 
     $csv = $this->array2csv(json_decode(json_encode($dias),true));
 
