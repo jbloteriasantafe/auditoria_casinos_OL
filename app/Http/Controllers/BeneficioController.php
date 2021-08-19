@@ -255,7 +255,17 @@ class BeneficioController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
-  public function informeCompleto($id_beneficio_mensual){
+  private function array2csv($data, $delimiter = ',', $enclosure = '"', $escape_char = "\\")
+  {//https://stackoverflow.com/questions/13108157/php-array-to-csv
+      $f = fopen('php://memory', 'r+');
+      foreach ($data as $item) {
+        fputcsv($f, $item, $delimiter, $enclosure, $escape_char);
+      }
+      rewind($f);
+      return stream_get_contents($f);
+  }
+
+  public function arrayInformeCompleto($id_beneficio_mensual){
     $pdev = function($num,$div,$nombre){
       $division = "IFNULL(".$num.",0)/".$div;
       return sprintf("IF((%s) = 0,'',(%s)) as %s",$div,$division,$nombre);
@@ -336,27 +346,20 @@ class BeneficioController extends Controller
       if(is_numeric($campo)) $campo = str_replace('.',',',$campo);
     }
 
-    $csv = $this->array2csv(json_decode(json_encode($dias),true));
+    return json_decode(json_encode($dias),true);
+  }
 
-    header("Content-Type: text/csv");
+  public function informeCompleto($id_beneficio_mensual){
+    $csv = $this->array2csv($this->arrayInformeCompleto($id_beneficio_mensual));
 
     $bm = BeneficioMensual::find($id_beneficio_mensual);
     $plat = $bm->plataforma->codigo;
     $bm_fecha = explode("-",$bm->fecha);
     $filename = "beneficio_mensual_".$plat."_".$bm_fecha[0].$bm_fecha[1].".csv";
-    header('Content-Disposition: attachment; filename="'.$filename.'"');
 
+    header("Content-Type: text/csv");
+    header('Content-Disposition: attachment; filename="'.$filename.'"');
     header("Content-Length: ".strlen($csv));
     return $csv;
-  }
-
-  private function array2csv($data, $delimiter = ',', $enclosure = '"', $escape_char = "\\")
-  {//https://stackoverflow.com/questions/13108157/php-array-to-csv
-      $f = fopen('php://memory', 'r+');
-      foreach ($data as $item) {
-        fputcsv($f, $item, $delimiter, $enclosure, $escape_char);
-      }
-      rewind($f);
-      return stream_get_contents($f);
   }
 }

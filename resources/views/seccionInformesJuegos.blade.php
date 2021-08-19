@@ -54,13 +54,18 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           <td class="col-xs-3">
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
-                                    class="btn btn-info planilla detalle" type="button">
+                                    class="btn btn-info planilla" type="button">
                                   <i class="fa fa-fw fa-print"></i>
                             </button>
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
-                                    class="btn btn-info planilla2 detalle" type="button">
+                                    class="btn btn-info planilla2" type="button">
                               <i class="fa fa-fw fa-dollar-sign"></i>
+                            </button>
+                            <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
+                                    data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
+                                    class="btn btn-info informe_completo" type="button">
+                              <i class="fa fa-fw fa-search-plus"></i>
                             </button>
                             @if(!$b->existe)
                             <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">

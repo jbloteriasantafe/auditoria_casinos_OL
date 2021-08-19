@@ -33,7 +33,7 @@ class informesController extends Controller
     return $mes_map[intval($mes_num)-1];
   }
 
-  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado = 0){
+  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado){
     $dias = DB::table('beneficio')->select(
       DB::raw('CONCAT(LPAD(DAY(beneficio.fecha)  ,2,"00"),"-",
                       LPAD(MONTH(beneficio.fecha),2,"00"),"-",
@@ -90,6 +90,32 @@ class informesController extends Controller
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
+
+  public function informeCompleto($anio,$mes,$id_plataforma,$id_tipo_moneda){
+    $bm = BeneficioMensual::where([['id_plataforma','=',$id_plataforma],['id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('fecha','=',$anio)->whereMonth('fecha','=',$mes)->orderBy('id_beneficio_mensual','desc')->first();
+    if(is_null($bm)) return "SIN BENEFICIO MENSUAL";
+
+    $data = BeneficioController::getInstancia()->arrayInformeCompleto($bm->id_beneficio_mensual);
+
+    $plataforma = $bm->plataforma->codigo;
+    $moneda = $bm->tipo_moneda->descripcion;
+    $f = explode('-',$bm->fecha);
+    $fecha = $f[0].'-'.$f[1];
+    $header = $data[0];
+    $dias = array_slice($data,1,count($data)-2);
+    $total = $data[count($data)-1];
+
+    $view = View::make('planillaCompletaInformesJuegos',compact('fecha','plataforma','moneda','header','dias','total'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'landscape');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    return $dompdf->stream("beneficio_mensual_".$plataforma."_".$f[0].$f[1].".pdf", Array('Attachment'=>0));
   }
 
   public function obtenerBeneficiosPorPlataforma(){
