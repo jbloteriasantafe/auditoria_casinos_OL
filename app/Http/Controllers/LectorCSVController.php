@@ -360,7 +360,7 @@ class LectorCSVController extends Controller
     (
       SELECT SUM(b.depositos) as depositos, SUM(b.retiros)   as retiros,
              SUM(b.apuesta)   as apuesta  , SUM(b.premio)    as premio   , SUM(b.beneficio) as beneficio,
-             SUM(b.ajuste)    as ajuste   , SUM(b.puntos_club_jugadorges) as puntos_club_jugadores
+             SUM(b.ajuste)    as ajuste   , SUM(b.puntos_club_jugadores) as puntos_club_jugadores
       FROM beneficio b
       WHERE b.id_beneficio_mensual = :id_beneficio_mensual1
       GROUP BY b.id_beneficio_mensual
