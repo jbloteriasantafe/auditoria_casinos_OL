@@ -253,7 +253,7 @@ class ProducidoController extends Controller
     $detalles = DB::table('producido_jugadores as pj')
     ->selectRaw('dpj.jugador,dpj.apuesta,dpj.premio,dpj.beneficio')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
-    ->where('pj.id_producido_jugadores')->orderBy('dpj.jugador','asc')->get();
+    ->where('pj.id_producido_jugadores',$id_producido_jugadores)->orderBy('dpj.jugador','asc')->get();
 
     $pro = new \stdClass();
     $pro->plataforma = $producido->plataforma->nombre;
