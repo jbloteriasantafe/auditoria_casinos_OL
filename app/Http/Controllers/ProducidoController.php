@@ -48,13 +48,13 @@ class ProducidoController extends Controller
   (dp.beneficio_bono  +dp.beneficio_efectivo)<> dp.beneficio as beneficio,
   (dp.apuesta_efectivo-dp.premio_efectivo   )<> dp.beneficio_efectivo as beneficio_efectivo,
   (dp.apuesta_bono    -dp.premio_bono       )<> dp.beneficio_bono as beneficio_bono,
-  (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) as categoria,
+  (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
   (j.id_juego IS NULL) or (dp.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
   dp.id_detalle_producido,
   dp.id_producido
   FROM detalle_producido_juego dp
   LEFT JOIN juego j on (dp.id_juego = j.id_juego)
-  LEFT JOIN categoria_juego cj on (LOWER(cj.nombre) = LOWER(dp.categoria))';
+  LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
 
   private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
   SELECT producido.*,
