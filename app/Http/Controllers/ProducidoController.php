@@ -235,7 +235,7 @@ class ProducidoController extends Controller
     
     $fecha = explode("-",$producido->fecha);
     $pro->fecha_prod = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
-    
+
     $view = View::make('planillaProducidos',compact('detalles','pro'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
@@ -248,7 +248,10 @@ class ProducidoController extends Controller
 
   public function generarPlanillaJugadores($id_producido_jugadores){
     $producido = ProducidoJugadores::find($id_producido_jugadores);
-    $detalles = $producido->detalles()->orderBy('jugador','asc')->get();
+    //Me quedo solo con los campos necesarios y lo paso a array para que elimine todos los atributos de objetos
+    //Aca habia un problema de memoria para los jugadores de CCO, eran muchos y superaba el limite
+    $detalles = $producido->detalles()->orderBy('jugador','asc')
+    ->select('jugador','apuesta','premio','beneficio')->get()->toArray();
 
     $pro = new \stdClass();
     $pro->plataforma = $producido->plataforma->nombre;
