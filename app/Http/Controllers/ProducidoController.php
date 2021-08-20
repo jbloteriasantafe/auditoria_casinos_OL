@@ -31,21 +31,23 @@ class ProducidoController extends Controller
   }
 
   //Asocia el detalle_producido con el juego (si lo tiene). Devuelve una tabla mas plana y facil de queryar
-  //@HACK: Tal vez haya que cambiarlo para verificar la fecha del deleted_at contra la fecha del producido
   private static $view_DP_juego = "CREATE OR REPLACE VIEW detalle_producido_juego AS
   SELECT producido.fecha,producido.id_plataforma,producido.id_tipo_moneda,detalle_producido.*,plataforma_tiene_juego.id_juego
   FROM detalle_producido
   JOIN producido on producido.id_producido = detalle_producido.id_producido
-  LEFT JOIN juego on detalle_producido.cod_juego = juego.cod_juego and juego.deleted_at IS NULL
+  LEFT JOIN juego on (detalle_producido.cod_juego = juego.cod_juego 
+    AND juego.created_at <= producido.fecha 
+    AND (juego.deleted_at >= producido.fecha OR juego.deleted_at IS NULL))
   LEFT JOIN plataforma_tiene_juego on plataforma_tiene_juego.id_juego = juego.id_juego and plataforma_tiene_juego.id_plataforma = producido.id_plataforma";
 
   //Muestra el detalle_producido con las diferencias (contra si mismo y contra la BD)
   private static $view_diff_DP = 'CREATE OR REPLACE VIEW detalle_producido_diferencias AS
-  SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
-  ABS(dp.premio_bono     +dp.premio_efectivo   -dp.premio)             <> 0.00 as premio,
-  ABS(dp.beneficio_bono  +dp.beneficio_efectivo-dp.beneficio)          <> 0.00 as beneficio,
-  ABS(dp.apuesta_efectivo-dp.premio_efectivo   -dp.beneficio_efectivo) <> 0.00 as beneficio_efectivo,
-  ABS(dp.apuesta_bono    -dp.premio_bono       -dp.beneficio_bono)     <> 0.00 as beneficio_bono,
+  SELECT
+  (dp.apuesta_bono    +dp.apuesta_efectivo  )<> dp.apuesta as apuesta,
+  (dp.premio_bono     +dp.premio_efectivo   )<> dp.premio  as premio,
+  (dp.beneficio_bono  +dp.beneficio_efectivo)<> dp.beneficio as beneficio,
+  (dp.apuesta_efectivo-dp.premio_efectivo   )<> dp.beneficio_efectivo as beneficio_efectivo,
+  (dp.apuesta_bono    -dp.premio_bono       )<> dp.beneficio_bono as beneficio_bono,
   (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
   (j.id_juego IS NULL) or (dp.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
   dp.id_detalle_producido,
@@ -56,17 +58,18 @@ class ProducidoController extends Controller
 
   private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
   SELECT producido.*,
-  SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias
+  BIT_OR(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias
   FROM producido
   JOIN detalle_producido_diferencias as diff on (diff.id_producido = producido.id_producido)
   GROUP BY producido.id_producido';
 
   private static $view_diff_DPJ = 'CREATE OR REPLACE VIEW detalle_producido_jugadores_diferencias AS
-  SELECT ABS(dp.apuesta_bono    +dp.apuesta_efectivo  -dp.apuesta) <> 0.00 as apuesta,
-  ABS(dp.premio_bono     +dp.premio_efectivo   -dp.premio)             <> 0.00 as premio,
-  ABS(dp.beneficio_bono  +dp.beneficio_efectivo-dp.beneficio)          <> 0.00 as beneficio,
-  ABS(dp.apuesta_efectivo-dp.premio_efectivo   -dp.beneficio_efectivo) <> 0.00 as beneficio_efectivo,
-  ABS(dp.apuesta_bono    -dp.premio_bono       -dp.beneficio_bono)     <> 0.00 as beneficio_bono,
+  SELECT 
+  (dp.apuesta_bono    +dp.apuesta_efectivo  )<> dp.apuesta as apuesta,
+  (dp.premio_bono     +dp.premio_efectivo   )<> dp.premio as premio,
+  (dp.beneficio_bono  +dp.beneficio_efectivo)<> dp.beneficio as beneficio,
+  (dp.apuesta_efectivo-dp.premio_efectivo   )<> dp.beneficio_efectivo as beneficio_efectivo,
+  (dp.apuesta_bono    -dp.premio_bono       )<> dp.beneficio_bono as beneficio_bono,
   dp.id_detalle_producido_jugadores,
   p.id_producido_jugadores
   FROM detalle_producido_jugadores dp
@@ -74,7 +77,7 @@ class ProducidoController extends Controller
 
   private static $view_diff_PJ = 'CREATE OR REPLACE VIEW producido_jugadores_diferencias AS 
   SELECT producido_jugadores.*,
-  SUM(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono) as diferencias
+  BIT_OR(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono) as diferencias
   FROM producido_jugadores
   JOIN detalle_producido_jugadores_diferencias as diff on (diff.id_producido_jugadores = producido_jugadores.id_producido_jugadores)
   GROUP BY producido_jugadores.id_producido_jugadores';
