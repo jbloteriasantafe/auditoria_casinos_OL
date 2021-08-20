@@ -1,5 +1,18 @@
 <!DOCTYPE html>
 
+<?php
+  $cols_x_pag = 3;
+  $ancho_tabla = (100.0/$cols_x_pag);
+  $filas_por_col = 33.0;
+  $posicion = [
+    0 =>  'position: absolute;top: 120px;left: -5%;',
+    1 =>  'position: absolute;top: 120px;left: 30.5%;',
+    2 =>  'position: absolute;top: 120px;left: 66%;',
+  ];
+  $filas_por_pag = $filas_por_col*$cols_x_pag;
+  $paginas = ceil(count($detalles)/$filas_por_pag);
+?>
+
 <html>
   <style>
   table {
@@ -20,9 +33,11 @@
 
   .center {
     text-align: center;
+    font-size: 6 !important;
   }
   .right {
     text-align: right;
+    font-size: 6 !important;
   }
   </style>
   <head>
@@ -43,21 +58,39 @@
     <div class="camposInfo" style="top:88px; left: 0%;"><b>Fecha de producido:</b> {{$pro->fecha_prod}}</div>
     <div class="camposInfo" style="top:88px; left: 25%;"><b>Plataforma:</b> {{$pro->plataforma}}</div>
     <br>
-    <table>
+    @for($p = 0;$p < $paginas;$p++)
+    @if($p != 0)
+    <div style="page-break-after:always;"></div>
+    @endif
+    <?php
+      $startidxpag = $p*$filas_por_pag;
+      $endidxpag   = ($p+1)*$filas_por_pag;
+    ?>
+    @for($col=0;$col<$cols_x_pag;$col++)
+    <?php 
+        $start = $startidxpag+$filas_por_col*$col;
+        $end   = min($startidxpag+$filas_por_col*($col+1),count($detalles));
+    ?>
+    @if($start<$end)
+    <table style="table-layout:fixed;width: {{$ancho_tabla}}%;{{$posicion[$col%$cols_x_pag]}}">
       <tr>
         <th class="tablaInicio center">JUGADOR</th>
         <th class="tablaInicio center">APUESTA</th>
         <th class="tablaInicio center">PREMIO</th>
         <th class="tablaInicio center">BENEFICIO</th>
       </tr>
-      @foreach ($detalles as $d)
+      @for($i=$start;$i<$end;$i++)
+      <?php $d = $detalles[$i] ?>
       <tr>
         <td class="tablaCampos center">{{$d['jugador']}}</td>
         <td class="tablaCampos right">{{$d['apuesta']}}</td>
         <td class="tablaCampos right">{{$d['premio']}}</td>
         <td class="tablaCampos right">{{$d['beneficio']}}</td>
       </tr>
-      @endforeach
+      @endfor
     </table>
+    @endif
+    @endfor
+    @endfor
   </body>
 </html>
