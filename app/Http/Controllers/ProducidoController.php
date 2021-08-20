@@ -15,7 +15,7 @@ use App\Juego;
 use View;
 use Dompdf\Dompdf;
 use App\Http\Controllers\FormatoController;
-
+use App\PdfParalelo;
 
 class ProducidoController extends Controller
 {
@@ -211,6 +211,20 @@ class ProducidoController extends Controller
   // generarPlanilla crea la planilla del producido total del dia
   public function generarPlanilla($id_producido){
     $producido = Producido::find($id_producido);
+
+    $pro = new \stdClass();
+    $pro->plataforma = $producido->plataforma->nombre;
+    $pro->tipo_moneda = $producido->tipo_moneda->descripcion;
+    if($pro->tipo_moneda == 'ARS'){
+      $pro->tipo_moneda = 'Pesos';
+    }
+    else if ($pro->tipo_moneda == 'USD'){
+      $pro->tipo_moneda = 'Dólares';
+    }
+    
+    $fecha = explode("-",$producido->fecha);
+    $pro->fecha_prod = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
+
     $detalles = DB::table('producido')
     ->selectRaw('detalle_producido.cod_juego, detalle_producido.apuesta, detalle_producido.premio, detalle_producido.beneficio, juego.id_juego IS NOT NULL AS en_bd')
     ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
@@ -223,6 +237,12 @@ class ProducidoController extends Controller
     ->orderBy('detalle_producido.cod_juego','asc')->get();
     //Para debuggear ->orderBy('detalle_producido.id_detalle_producido','asc') es mejor porque ordena segun el orden de insercion del CSV
 
+    return $this->generarPlanillaParalelo($pro,$detalles->toArray(),'planillaProducidos');
+  }
+
+  public function generarPlanillaJugadores($id_producido_jugadores){
+    $producido = ProducidoJugadores::find($id_producido_jugadores);
+
     $pro = new \stdClass();
     $pro->plataforma = $producido->plataforma->nombre;
     $pro->tipo_moneda = $producido->tipo_moneda->descripcion;
@@ -236,45 +256,32 @@ class ProducidoController extends Controller
     $fecha = explode("-",$producido->fecha);
     $pro->fecha_prod = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
 
-    $view = View::make('planillaProducidos',compact('detalles','pro'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-  }
-
-  public function generarPlanillaJugadores($id_producido_jugadores){
-    $producido = ProducidoJugadores::find($id_producido_jugadores);
-    //Hago una query y me quedo solo con los campos necesario, si hago un $producido->jugadores le agrega un monton de cosas al objeto y 
-    //y para CCO, excede el limite de memoria de PHP (no quiero subirlo)
     $detalles = DB::table('producido_jugadores as pj')
     ->selectRaw('dpj.jugador,dpj.apuesta,dpj.premio,dpj.beneficio')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
     ->where('pj.id_producido_jugadores',$id_producido_jugadores)->orderBy('dpj.jugador','asc')->get();
 
-    $pro = new \stdClass();
-    $pro->plataforma = $producido->plataforma->nombre;
-    $pro->tipo_moneda = $producido->tipo_moneda->descripcion;
-    if($pro->tipo_moneda == 'ARS'){
-      $pro->tipo_moneda = 'Pesos';
-    }
-    else if ($pro->tipo_moneda == 'USD'){
-      $pro->tipo_moneda = 'Dólares';
-    }
-    
-    $fecha = explode("-",$producido->fecha);
-    $pro->fecha_prod = $fecha[2].'-'.$fecha[1].'-'.$fecha[0];
+    return $this->generarPlanillaParalelo($pro,$detalles->toArray(),'planillaProducidosJugadores');
+  }
 
-    $view = View::make('planillaProducidosJugadores',compact('detalles','pro'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  //Refactorizo a hacerlo en paralelo porque CCO tiene un monton de jugadores.
+  //No andaba ni aumentandole el limite de memoria (excedia tiempo limite de dompdf...)
+  private function generarPlanillaParalelo($pro,array $todos_los_detalles,string $view){
+    $detalles_por_pagina = 99;// [det/pag]
+    $paginas_por_pdf = 5;// [pag/pdf]
+    $detalles_por_pdf = $paginas_por_pdf*$detalles_por_pagina;// [det/pdf] = [pag/pdf] * [det/pag]
+
+    $chunked_detalles = array_chunk($todos_los_detalles,$detalles_por_pdf);
+    $chunked_compacts = [];
+    foreach($chunked_detalles as $chunk){
+      $detalles = $chunk;
+      $chunked_compacts[] = compact('pro','detalles');
+    }
+
+    $paginas_totales = ceil(count($todos_los_detalles) / $detalles_por_pagina);// [pag] = [det]/[det/pag]
+    $salida = PdfParalelo::generarPdf($view,$chunked_compacts,"",$paginas_por_pdf,$paginas_totales);
+
+    if($salida['error'] == 0) return response()->file($salida['value'])->deleteFileAfterSend(true);
+    return 'Error codigo: '.$salida['error'].'<br>'.implode('<br>',$salida['value']);
   }
 }
