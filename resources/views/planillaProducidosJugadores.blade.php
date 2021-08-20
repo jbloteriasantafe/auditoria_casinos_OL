@@ -82,10 +82,10 @@
       @for($i=$start;$i<$end;$i++)
       <?php $d = $detalles[$i] ?>
       <tr>
-        <td class="tablaCampos center">{{$d['jugador']}}</td>
-        <td class="tablaCampos right">{{$d['apuesta']}}</td>
-        <td class="tablaCampos right">{{$d['premio']}}</td>
-        <td class="tablaCampos right">{{$d['beneficio']}}</td>
+        <td class="tablaCampos center">{{$d->jugador}}</td>
+        <td class="tablaCampos right">{{$d->apuesta}}</td>
+        <td class="tablaCampos right">{{$d->premio}}</td>
+        <td class="tablaCampos right">{{$d->beneficio}}</td>
       </tr>
       @endfor
     </table>

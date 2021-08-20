@@ -248,10 +248,12 @@ class ProducidoController extends Controller
 
   public function generarPlanillaJugadores($id_producido_jugadores){
     $producido = ProducidoJugadores::find($id_producido_jugadores);
-    //Me quedo solo con los campos necesarios y lo paso a array para que elimine todos los atributos de objetos
-    //Aca habia un problema de memoria para los jugadores de CCO, eran muchos y superaba el limite
-    $detalles = $producido->detalles()->orderBy('jugador','asc')
-    ->select('jugador','apuesta','premio','beneficio')->get()->toArray();
+    //Hago una query y me quedo solo con los campos necesario, si hago un $producido->jugadores le agrega un monton de cosas al objeto y 
+    //y para CCO, excede el limite de memoria de PHP (no quiero subirlo)
+    $detalles = DB::table('producido_jugadores as pj')
+    ->selectRaw('dpj.jugador,dpj.apuesta,dpj.premio,dpj.beneficio')
+    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+    ->where('pj.id_producido_jugadores')->orderBy('dpj.jugador','asc')->get();
 
     $pro = new \stdClass();
     $pro->plataforma = $producido->plataforma->nombre;
