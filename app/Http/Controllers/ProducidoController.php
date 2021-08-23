@@ -69,17 +69,12 @@ class ProducidoController extends Controller
   LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)
   GROUP BY p.id_producido';
 
-  private static $view_diff_PJ = 'CREATE OR REPLACE VIEW producido_jugadores_diferencias AS 
-  SELECT pj.*,pj.diferencia_montos as diferencias
-  FROM producido_jugadores pj';
-
   public static function inicializarVistas(){//Llamado tambien desde informesController
     DB::beginTransaction();
     try{
       DB::statement(self::$view_DP_juego);
       DB::statement(self::$view_diff_DP);
       DB::statement(self::$view_diff_P);
-      DB::statement(self::$view_diff_PJ); 
     }
     catch(\Exception $e){
       DB::rollback();
@@ -113,16 +108,15 @@ class ProducidoController extends Controller
     
     $resultados = DB::table('producido_diferencias as pdiff')->whereIn('pdiff.id_plataforma',$plataformas)->where($reglas)
     ->whereBetween('pdiff.fecha',[$fecha_inicio, $fecha_fin])
-    ->leftJoin('producido_jugadores_diferencias as pjdiff',function($j){
-      return $j->on('pdiff.fecha','=','pjdiff.fecha')
-               ->on('pdiff.id_tipo_moneda','=','pjdiff.id_tipo_moneda')
-               ->on('pdiff.id_plataforma','=','pjdiff.id_plataforma');
+    ->leftJoin('producido_jugadores as pj',function($j){
+      return $j->on('pdiff.fecha','=','pj.fecha')
+               ->on('pdiff.id_tipo_moneda','=','pj.id_tipo_moneda')
+               ->on('pdiff.id_plataforma','=','pj.id_plataforma');
     })
-    ->select('pdiff.*','pjdiff.id_producido_jugadores','pjdiff.diferencias as diferencias_jugadores','pjdiff.beneficio as beneficio_jugadores');
+    ->select('pdiff.*','pj.id_producido_jugadores','pj.diferencia_montos as diferencias_jugadores','pj.beneficio as beneficio_jugadores');
 
-
-    if($request->correcto == "1") $resultados = $resultados->whereRaw('NOT pdiff.diferencias AND NOT IFNULL(pdiff.diferencias,0)');
-    if($request->correcto == "0") $resultados = $resultados->whereRaw('    pdiff.diferencias  OR     IFNULL(pdiff.diferencias,0)');
+    if($request->correcto == "1") $resultados = $resultados->whereRaw('NOT pdiff.diferencias AND NOT pj.diferencia_montos');
+    if($request->correcto == "0") $resultados = $resultados->whereRaw('    pdiff.diferencias  OR     pj.diferencia_montos');
     
     $sort_by = ["columna" => "fecha", "orden" => "desc"];
     if(!empty($request->sort_by)){
