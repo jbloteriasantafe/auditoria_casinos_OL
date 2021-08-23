@@ -68,18 +68,6 @@ class ProducidoController extends Controller
   LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)
   GROUP BY p.id_producido';
 
-  private static $view_diff_DPJ = 'CREATE OR REPLACE VIEW detalle_producido_jugadores_diferencias AS
-  SELECT 
-  (dp.apuesta_bono    +dp.apuesta_efectivo  )<> dp.apuesta as apuesta,
-  (dp.premio_bono     +dp.premio_efectivo   )<> dp.premio as premio,
-  (dp.beneficio_bono  +dp.beneficio_efectivo)<> dp.beneficio as beneficio,
-  (dp.apuesta_efectivo-dp.premio_efectivo   )<> dp.beneficio_efectivo as beneficio_efectivo,
-  (dp.apuesta_bono    -dp.premio_bono       )<> dp.beneficio_bono as beneficio_bono,
-  dp.id_detalle_producido_jugadores,
-  p.id_producido_jugadores
-  FROM detalle_producido_jugadores dp
-  JOIN producido_jugadores p on (dp.id_producido_jugadores = p.id_producido_jugadores)';
-
   private static $view_diff_PJ = 'CREATE OR REPLACE VIEW producido_jugadores_diferencias AS 
   SELECT pj.*,
   BIT_OR(dpj.diferencia_montos) as diferencias
@@ -190,17 +178,23 @@ class ProducidoController extends Controller
   }
 
   public function datosDetalleJugadores($id_detalle_producido_jugadores){
-    $d = DetalleProducidoJugadores::find($id_detalle_producido_jugadores);
-    return ['detalle' => $d,'juego' => '',
-      'categoria' => '',
-      'diferencias' => DB::table('detalle_producido_jugadores_diferencias')->where('id_detalle_producido_jugadores',$id_detalle_producido_jugadores)->get()->first()
-    ];
+    $diferencias = DB::table('detalle_producido_jugadores as dp')
+    ->selectRaw('(apuesta_bono    + apuesta_efectivo  )<> apuesta as apuesta,
+                 (premio_bono     + premio_efectivo   )<> premio  as premio,
+                 (beneficio_bono  + beneficio_efectivo)<> beneficio as beneficio,
+                 (apuesta_efectivo- premio_efectivo   )<> beneficio_efectivo as beneficio_efectivo,
+                 (apuesta_bono    - premio_bono       )<> beneficio_bono as beneficio_bono')
+    ->where('id_detalle_producido_jugadores','=',$id_detalle_producido_jugadores)->get()->first();
+    return ['detalle'     => DetalleProducidoJugadores::find($id_detalle_producido_jugadores),
+            'juego'       => '',
+            'categoria'   => '',
+            'diferencias' => $diferencias];
   }
 
   public function detallesProducido($id_producido){
     $detalles = DB::table('detalle_producido as det')
     ->selectRaw('det.cod_juego as codigo, diff.id_detalle_producido as id_detalle, 
-    (diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencia')
+    (det.diferencia_montos OR diff.categoria OR diff.moneda) as diferencia')
     ->join('detalle_producido_diferencias as diff','diff.id_detalle_producido','=','det.id_detalle_producido')
     ->where('det.id_producido',$id_producido)
     ->orderBy('det.cod_juego','asc')->get();
@@ -209,9 +203,7 @@ class ProducidoController extends Controller
 
   public function detallesProducidoJugadores($id_producido_jugadores){
     $detalles = DB::table('detalle_producido_jugadores as det')
-    ->selectRaw('det.jugador as codigo, diff.id_detalle_producido_jugadores as id_detalle, 
-    (diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono) as diferencia')
-    ->join('detalle_producido_jugadores_diferencias as diff','diff.id_detalle_producido_jugadores','=','det.id_detalle_producido_jugadores')
+    ->selectRaw('det.jugador as codigo, det.id_detalle_producido_jugadores as id_detalle,det.diferencia_montos as diferencia')
     ->where('det.id_producido_jugadores',$id_producido_jugadores)
     ->orderBy('det.jugador','asc')->get();
     return ['detalles' => $detalles];
