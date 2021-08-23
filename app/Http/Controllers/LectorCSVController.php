@@ -39,6 +39,7 @@ class LectorCSVController extends Controller
     $producido->premio_efectivo    = 0;$producido->premio_bono    = 0;$producido->premio    = 0;
     $producido->beneficio_efectivo = 0;$producido->beneficio_bono = 0;$producido->beneficio = 0;
     $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $producido->diferencia_montos  = 0;
     $producido->save();
 
     $producidos_viejos = DB::table('producido')->where([
