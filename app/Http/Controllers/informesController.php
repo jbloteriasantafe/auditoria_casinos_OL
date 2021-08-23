@@ -188,39 +188,31 @@ class informesController extends Controller
       return $j->on('juego.id_juego','=','plataforma_tiene_juego.id_juego')->whereRaw('juego.deleted_at IS NULL');
     })->where('plataforma.id_plataforma',$id_plataforma);
 
-    //Junta las 3 querys en un arreglo asociado 
-    function juntar($clasificador,$cantidad_juegos,$avg_pdev,$producido_pdevs){
-      $ret = [];
+    //Devuelve las estadisticas como son esperadas en el frontend
+    function estadisticas($clasificador,$cantidad_juegos,$avg_pdev,$producido_pdevs){
+      //Junto las 3 querys en un arreglo asociado 
+      $juntas = [];
       foreach($cantidad_juegos as $c){
         $K = $c->{$clasificador};
-        if(!array_key_exists($K,$ret)) $ret[$K] = [];
-        $ret[$K][$clasificador] = $K;
-        $ret[$K]['juegos']      = $c->juegos;
+        if(!array_key_exists($K,$juntas)) $juntas[$K] = [];
+        $juntas[$K][$clasificador] = $K;
+        $juntas[$K]['juegos']      = $c->juegos;
       }
       foreach($avg_pdev as $c){
         $K = $c->{$clasificador};
-        if(!array_key_exists($K,$ret)) $ret[$K] = [];
-        $ret[$K][$clasificador] = $K;
-        $ret[$K]['pdev']        = $c->pdev;
+        if(!array_key_exists($K,$juntas)) $juntas[$K] = [];
+        $juntas[$K][$clasificador] = $K;
+        $juntas[$K]['pdev']        = $c->pdev;
       }
       foreach($producido_pdevs as $c){
         $K = $c->{$clasificador};
-        if(!array_key_exists($K,$ret)) $ret[$K] = [];
-        $ret[$K][$clasificador]    = $K;
-        $ret[$K]['pdev_esperado']  = $c->pdev_esperado;
-        $ret[$K]['pdev_producido'] = $c->pdev_producido;
+        if(!array_key_exists($K,$juntas)) $juntas[$K] = [];
+        $juntas[$K][$clasificador]    = $K;
+        $juntas[$K]['pdev_esperado']  = $c->pdev_esperado;
+        $juntas[$K]['pdev_producido'] = $c->pdev_producido;
       }
-      return $ret;
-    }
-
-    //Devuelve las estadisticas como son esperadas en el frontend
-    function estadisticas($clasificador,$cantidad_juegos,$avg_pdev,$producido_pdevs){
-      $juntos = juntar($clasificador,$cantidad_juegos,$avg_pdev,$producido_pdevs);
-      $ret = [];
-      foreach($juntos as $fila){
-        $ret[] = $fila;
-      }
-      return $ret;
+      //Retorno los valores, sin las llaves, porque asi lo espera el frontend
+      return array_values($juntas);
     }
 
     $estadisticas = [];
