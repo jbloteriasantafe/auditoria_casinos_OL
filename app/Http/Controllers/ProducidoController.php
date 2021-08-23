@@ -35,9 +35,7 @@ class ProducidoController extends Controller
   SELECT producido.fecha,producido.id_plataforma,producido.id_tipo_moneda,detalle_producido.*,plataforma_tiene_juego.id_juego
   FROM detalle_producido
   JOIN producido on producido.id_producido = detalle_producido.id_producido
-  LEFT JOIN juego on (detalle_producido.cod_juego = juego.cod_juego 
-    AND juego.created_at <= producido.fecha 
-    AND (juego.deleted_at >= producido.fecha OR juego.deleted_at IS NULL))
+  LEFT JOIN juego on (detalle_producido.cod_juego = juego.cod_juego AND juego.deleted_at IS NULL)
   LEFT JOIN plataforma_tiene_juego on plataforma_tiene_juego.id_juego = juego.id_juego and plataforma_tiene_juego.id_plataforma = producido.id_plataforma";
 
   //Muestra el detalle_producido con las diferencias (contra si mismo y contra la BD)
@@ -57,11 +55,18 @@ class ProducidoController extends Controller
   LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
 
   private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
-  SELECT producido.*,
-  BIT_OR(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono OR diff.categoria OR diff.moneda) as diferencias
-  FROM producido
-  JOIN detalle_producido_diferencias as diff on (diff.id_producido = producido.id_producido)
-  GROUP BY producido.id_producido';
+  SELECT p.*,
+  BIT_OR(dp.diferencia_montos 
+      OR (j.id_juego IS NULL) 
+      OR (j.id_categoria_juego IS NULL) 
+      OR (dp.id_tipo_moneda <> j.id_tipo_moneda)
+      OR (LOWER(cj.nombre) <> LOWER(dp.categoria))
+  ) as diferencias
+  FROM producido p
+  JOIN detalle_producido_juego dp on (dp.id_producido = p.id_producido)
+  LEFT JOIN juego j on (dp.id_juego = j.id_juego)
+  LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)
+  GROUP BY p.id_producido';
 
   private static $view_diff_DPJ = 'CREATE OR REPLACE VIEW detalle_producido_jugadores_diferencias AS
   SELECT 
@@ -76,11 +81,11 @@ class ProducidoController extends Controller
   JOIN producido_jugadores p on (dp.id_producido_jugadores = p.id_producido_jugadores)';
 
   private static $view_diff_PJ = 'CREATE OR REPLACE VIEW producido_jugadores_diferencias AS 
-  SELECT producido_jugadores.*,
-  BIT_OR(diff.apuesta OR diff.premio OR diff.beneficio OR diff.beneficio_efectivo OR diff.beneficio_bono) as diferencias
-  FROM producido_jugadores
-  JOIN detalle_producido_jugadores_diferencias as diff on (diff.id_producido_jugadores = producido_jugadores.id_producido_jugadores)
-  GROUP BY producido_jugadores.id_producido_jugadores';
+  SELECT pj.*,
+  BIT_OR(dpj.diferencia_montos) as diferencias
+  FROM producido_jugadores pj
+  JOIN detalle_producido_jugadores as dpj on (dpj.id_producido_jugadores = pj.id_producido_jugadores)
+  GROUP BY pj.id_producido_jugadores';
 
   public static function inicializarVistas(){//Llamado tambien desde informesController
     DB::beginTransaction();
@@ -120,7 +125,7 @@ class ProducidoController extends Controller
     $fecha_fin = date('Y-m-d');
     if(!empty($request->fecha_inicio)) $fecha_inicio = $request->fecha_inicio;
     if(!empty($request->fecha_fin))    $fecha_fin    = $request->fecha_fin;
-  
+    
     $resultados = DB::table('producido_diferencias as pdiff')->whereIn('pdiff.id_plataforma',$plataformas)->where($reglas)
     ->whereBetween('pdiff.fecha',[$fecha_inicio, $fecha_fin])
     ->leftJoin('producido_jugadores_diferencias as pjdiff',function($j){
@@ -130,8 +135,9 @@ class ProducidoController extends Controller
     })
     ->select('pdiff.*','pjdiff.id_producido_jugadores','pjdiff.diferencias as diferencias_jugadores','pjdiff.beneficio as beneficio_jugadores');
 
-    if($request->correcto == "1") $resultados = $resultados->whereRaw('(pdiff.diferencias + IFNULL(pdiff.diferencias,0)) = 0');
-    if($request->correcto == "0") $resultados = $resultados->whereRaw('(pdiff.diferencias + IFNULL(pdiff.diferencias,0)) > 0');
+
+    if($request->correcto == "1") $resultados = $resultados->whereRaw('NOT pdiff.diferencias AND NOT IFNULL(pdiff.diferencias,0)');
+    if($request->correcto == "0") $resultados = $resultados->whereRaw('    pdiff.diferencias  OR     IFNULL(pdiff.diferencias,0)');
     
     $sort_by = ["columna" => "fecha", "orden" => "desc"];
     if(!empty($request->sort_by)){

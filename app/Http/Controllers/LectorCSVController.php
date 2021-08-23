@@ -89,7 +89,8 @@ class LectorCSVController extends Controller
     jugadores,
     apuesta_efectivo  , apuesta_bono  , apuesta,
     premio_efectivo   , premio_bono   , premio,
-    beneficio_efectivo, beneficio_bono, beneficio)
+    beneficio_efectivo, beneficio_bono, beneficio,
+    diferencia_montos)
     SELECT 
     id_producido,
     GameCode as cod_juego,
@@ -103,12 +104,26 @@ class LectorCSVController extends Controller
     ((TotalWagerCash  + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as premio,
     GrossRevenueCash                       as beneficio_efectivo,
     GrossRevenueBonus                      as beneficio_bono,
-    (GrossRevenueCash + GrossRevenueBonus) as beneficio
+    (GrossRevenueCash + GrossRevenueBonus) as beneficio,
+    0                                      as diferencia_montos
     FROM producido_temporal
     WHERE producido_temporal.id_producido = :id_producido");
     $query->execute([":id_producido" => $producido->id_producido]);
 
     $query = $pdo->prepare("DELETE FROM producido_temporal WHERE id_producido = :id_producido");
+    $query->execute([":id_producido" => $producido->id_producido]);
+
+    //Precalculo si tiene errores en los montos porque demoraba en la pantalla de Producidos
+    $query = $pdo->prepare("UPDATE detalle_producido dp
+      SET diferencia_montos = (   
+                                  ((apuesta_bono     + apuesta_efectivo  ) <> apuesta)
+                              OR ((premio_bono      + premio_efectivo   ) <> premio)
+                              OR ((beneficio_bono   + beneficio_efectivo) <> beneficio)
+                              OR ((apuesta_efectivo - premio_efectivo   ) <> beneficio_efectivo)
+                              OR ((apuesta_bono     - premio_bono       ) <> beneficio_bono)
+                              )
+      WHERE id_producido = :id_producido
+    ");
     $query->execute([":id_producido" => $producido->id_producido]);
 
     $query = $pdo->prepare("UPDATE 
@@ -200,7 +215,8 @@ class LectorCSVController extends Controller
     juegos,
     apuesta_efectivo  , apuesta_bono  , apuesta,
     premio_efectivo   , premio_bono   , premio,
-    beneficio_efectivo, beneficio_bono, beneficio)
+    beneficio_efectivo, beneficio_bono, beneficio,
+    diferencia_montos)
     SELECT 
     id_producido_jugadores,
     PlayerID as jugador,
@@ -214,11 +230,24 @@ class LectorCSVController extends Controller
     GrossRevenueCash                       as beneficio_efectivo,
     GrossRevenueBonus                      as beneficio_bono,
     (GrossRevenueCash + GrossRevenueBonus) as beneficio
+    0                                      as diferencia_montos
     FROM producido_jugadores_temporal
     WHERE producido_jugadores_temporal.id_producido_jugadores = :id_producido_jugadores");
     $query->execute([":id_producido_jugadores" => $producido->id_producido_jugadores]);
 
     $query = $pdo->prepare("DELETE FROM producido_jugadores_temporal WHERE id_producido_jugadores = :id_producido_jugadores");
+    $query->execute([":id_producido_jugadores" => $producido->id_producido_jugadores]);
+
+    //Precalculo si tiene errores en los montos porque demoraba en la pantalla de Producidos
+    $query = $pdo->prepare("UPDATE detalle_producido_jugadores dp
+      SET diferencia_montos = (   
+                                 ((apuesta_bono     + apuesta_efectivo  ) <> apuesta)
+                              OR ((premio_bono      + premio_efectivo   ) <> premio)
+                              OR ((beneficio_bono   + beneficio_efectivo) <> beneficio)
+                              OR ((apuesta_efectivo - premio_efectivo   ) <> beneficio_efectivo)
+                              OR ((apuesta_bono     - premio_bono       ) <> beneficio_bono)
+                              )
+      WHERE id_producido_jugadores = :id_producido_jugadores");
     $query->execute([":id_producido_jugadores" => $producido->id_producido_jugadores]);
 
     $query = $pdo->prepare("UPDATE 

@@ -12,7 +12,7 @@ class DetalleProducido extends Model
   protected $visible = array('id_detalle_producido','id_producido','cod_juego','categoria','jugadores'
   ,'apuesta_efectivo','apuesta_bono','apuesta'
   ,'premio_efectivo','premio_bono','premio'
-  ,'beneficio_efectivo','beneficio_bono','beneficio');
+  ,'beneficio_efectivo','beneficio_bono','beneficio','diferencia_montos');
   public $timestamps = false;
 
   public function producido(){
