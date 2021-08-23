@@ -204,6 +204,7 @@ class informesController extends Controller
         $ret[$K]['pdev']        = $c->pdev;
       }
       foreach($producido_pdevs as $c){
+        $K = $c->{$clasificador};
         if(!array_key_exists($K,$ret)) $ret[$K] = [];
         $ret[$K][$clasificador]    = $K;
         $ret[$K]['pdev_esperado']  = $c->pdev_esperado;
