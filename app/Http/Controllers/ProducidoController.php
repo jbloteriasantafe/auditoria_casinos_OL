@@ -32,11 +32,14 @@ class ProducidoController extends Controller
 
   //Asocia el detalle_producido con el juego (si lo tiene). Devuelve una tabla mas plana y facil de queryar
   private static $view_DP_juego = "CREATE OR REPLACE VIEW detalle_producido_juego AS
-  SELECT producido.fecha,producido.id_plataforma,producido.id_tipo_moneda,detalle_producido.*,plataforma_tiene_juego.id_juego
-  FROM detalle_producido
-  JOIN producido on producido.id_producido = detalle_producido.id_producido
-  LEFT JOIN juego on (detalle_producido.cod_juego = juego.cod_juego AND juego.deleted_at IS NULL)
-  LEFT JOIN plataforma_tiene_juego on plataforma_tiene_juego.id_juego = juego.id_juego and plataforma_tiene_juego.id_plataforma = producido.id_plataforma";
+  SELECT p.fecha,p.id_plataforma,p.id_tipo_moneda,dp.*,j.id_juego,j.id_categoria_juego
+  FROM detalle_producido dp
+  JOIN producido p on p.id_producido = dp.id_producido
+  LEFT JOIN juego j on (j.id_tipo_moneda = p.id_tipo_moneda and j.cod_juego = dp.cod_juego and j.deleted_at IS NULL AND j.id_juego IN (
+    SELECT pj.id_juego
+    FROM plataforma_tiene_juego pj
+    WHERE pj.id_plataforma = p.id_plataforma
+  ))";
 
   //Muestra el detalle_producido con las diferencias (contra si mismo y contra la BD)
   private static $view_diff_DP = 'CREATE OR REPLACE VIEW detalle_producido_diferencias AS
@@ -57,15 +60,13 @@ class ProducidoController extends Controller
   private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
   SELECT p.*,
   p.diferencia_montos OR BIT_OR( 
-      (j.id_juego IS NULL) 
-      OR (j.id_categoria_juego IS NULL) 
-      OR (dp.id_tipo_moneda <> j.id_tipo_moneda)
+         (dp.id_juego IS NULL) 
+      OR (cj.id_categoria_juego IS NULL) 
       OR (LOWER(cj.nombre) <> LOWER(dp.categoria))
   ) as diferencias
   FROM producido p
-  JOIN detalle_producido_juego dp on (dp.id_producido = p.id_producido)
-  LEFT JOIN juego j on (dp.id_juego = j.id_juego)
-  LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)
+  LEFT JOIN detalle_producido_juego dp on (dp.id_producido = p.id_producido)
+  LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)
   GROUP BY p.id_producido';
 
   private static $view_diff_PJ = 'CREATE OR REPLACE VIEW producido_jugadores_diferencias AS 
