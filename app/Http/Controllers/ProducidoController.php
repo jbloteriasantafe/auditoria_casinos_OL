@@ -81,7 +81,6 @@ class ProducidoController extends Controller
       DB::statement(self::$view_DP_juego);
       DB::statement(self::$view_diff_DP);
       DB::statement(self::$view_diff_P);
-      DB::statement(self::$view_diff_DPJ);
       DB::statement(self::$view_diff_PJ); 
     }
     catch(\Exception $e){
