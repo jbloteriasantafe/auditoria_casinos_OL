@@ -300,25 +300,22 @@ class informesController extends Controller
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_juegos,$avg_pdev,$producido_pdevs);
     }
 
-    {//Categoria Informada, esta es mas simple con 1 sola query
+    {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
       $clasificador = 'Categoria Informada (NO EN BD)';
 
-      $todo = DB::table('detalle_producido_juego as dp')
-      ->selectRaw('dp.categoria as "'.$clasificador.'", NULL as pdev,NULL as pdev_esperado,
-                   COUNT(distinct dp.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
-      ->groupBy('dp.categoria')
-      ->where('dp.id_plataforma',$id_plataforma)
-      ->whereNull('dp.id_juego')->get();
+      $cantidad_juegos = DB::table('detalle_producido_juego as dp')
+      ->selectRaw('dp.categoria as "'.$clasificador.'", COUNT(distinct dp.cod_juego) as juegos')
+      ->groupBy('dp.categoria')->where('dp.id_plataforma',$id_plataforma)->whereNull('dp.id_juego')->get();
 
-      foreach($todo as $c){
-        $fila = [];
-        $fila[$clasificador]    = $c->{$clasificador};
-        $fila['juegos']         = $c->juegos;
-        $fila['pdev']           = $c->pdev;
-        $fila['pdev_esperado']  = $c->pdev_esperado;
-        $fila['pdev_producido'] = $c->pdev_producido;
-        $estadisticas[$clasificador][] = $fila;
-      }
+      $avg_pdev = DB::table('detalle_producido_juego as dp')
+      ->selectRaw('dp.categoria as "'.$clasificador.'", NULL as pdev')
+      ->groupBy('dp.categoria')->where('dp.id_plataforma',$id_plataforma)->whereNull('dp.id_juego')->get();
+
+      $producido_pdevs = DB::table('detalle_producido_juego as dp')
+      ->selectRaw('dp.categoria as "'.$clasificador.'", NULL as pdev_esperado,'.$avg_producido.'as pdev_producido')
+      ->groupBy('dp.categoria')->where('dp.id_plataforma',$id_plataforma)->whereNull('dp.id_juego')->get();
+
+      $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_juegos,$avg_pdev,$producido_pdevs);
     }
 
     return ['estadisticas' => $estadisticas];
