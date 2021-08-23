@@ -239,7 +239,7 @@ class LectorCSVController extends Controller
     ((TotalWagerCash  + TotalWagerBonus) - (GrossRevenueCash + GrossRevenueBonus)) as premio,
     GrossRevenueCash                       as beneficio_efectivo,
     GrossRevenueBonus                      as beneficio_bono,
-    (GrossRevenueCash + GrossRevenueBonus) as beneficio
+    (GrossRevenueCash + GrossRevenueBonus) as beneficio,
     0                                      as diferencia_montos
     FROM producido_jugadores_temporal
     WHERE producido_jugadores_temporal.id_producido_jugadores = :id_producido_jugadores");
