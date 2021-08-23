@@ -12,7 +12,7 @@ class ProducidoJugadores extends Model
   protected $visible = array('id_producido_jugadores','fecha','id_plataforma','id_tipo_moneda'
   ,'apuesta_efectivo','apuesta_bono','apuesta'
   ,'premio_efectivo','premio_bono','premio'
-  ,'beneficio_efectivo','beneficio_bono','beneficio','md5');
+  ,'beneficio_efectivo','beneficio_bono','beneficio','diferencia_montos','md5');
   public $timestamps = false;
   protected $appends = array('beneficio_calculado');
 

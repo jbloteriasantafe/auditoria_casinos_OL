@@ -115,15 +115,23 @@ class LectorCSVController extends Controller
 
     //Precalculo si tiene errores en los montos porque demoraba en la pantalla de Producidos
     $query = $pdo->prepare("UPDATE detalle_producido dp
-      SET diferencia_montos = (   
-                                  ((apuesta_bono     + apuesta_efectivo  ) <> apuesta)
-                              OR ((premio_bono      + premio_efectivo   ) <> premio)
-                              OR ((beneficio_bono   + beneficio_efectivo) <> beneficio)
-                              OR ((apuesta_efectivo - premio_efectivo   ) <> beneficio_efectivo)
-                              OR ((apuesta_bono     - premio_bono       ) <> beneficio_bono)
-                              )
-      WHERE id_producido = :id_producido
-    ");
+    SET diferencia_montos = (   
+                                ((apuesta_bono     + apuesta_efectivo  ) <> apuesta)
+                            OR ((premio_bono      + premio_efectivo   ) <> premio)
+                            OR ((beneficio_bono   + beneficio_efectivo) <> beneficio)
+                            OR ((apuesta_efectivo - premio_efectivo   ) <> beneficio_efectivo)
+                            OR ((apuesta_bono     - premio_bono       ) <> beneficio_bono)
+    )
+    WHERE id_producido = :id_producido");
+    $query->execute([":id_producido" => $producido->id_producido]);
+
+    $query = $pdo->prepare("UPDATE producido p
+    SET p.diferencia_montos = (
+      SELECT BIT_OR(dp.diferencia_montos)
+      FROM detalle_producido dp
+      WHERE dp.id_producido = p.id_producido
+    )
+    WHERE id_producido = :id_producido");
     $query->execute([":id_producido" => $producido->id_producido]);
 
     $query = $pdo->prepare("UPDATE 
@@ -168,6 +176,7 @@ class LectorCSVController extends Controller
     $producido->apuesta_efectivo   = 0;$producido->apuesta_bono   = 0;$producido->apuesta   = 0;
     $producido->premio_efectivo    = 0;$producido->premio_bono    = 0;$producido->premio    = 0;
     $producido->beneficio_efectivo = 0;$producido->beneficio_bono = 0;$producido->beneficio = 0;
+    $producido->diferencia_montos  = 0;
     $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $producido->save();
 
@@ -240,15 +249,25 @@ class LectorCSVController extends Controller
 
     //Precalculo si tiene errores en los montos porque demoraba en la pantalla de Producidos
     $query = $pdo->prepare("UPDATE detalle_producido_jugadores dp
-      SET diferencia_montos = (   
-                                 ((apuesta_bono     + apuesta_efectivo  ) <> apuesta)
-                              OR ((premio_bono      + premio_efectivo   ) <> premio)
-                              OR ((beneficio_bono   + beneficio_efectivo) <> beneficio)
-                              OR ((apuesta_efectivo - premio_efectivo   ) <> beneficio_efectivo)
-                              OR ((apuesta_bono     - premio_bono       ) <> beneficio_bono)
-                              )
-      WHERE id_producido_jugadores = :id_producido_jugadores");
+    SET diferencia_montos = (   
+                                ((apuesta_bono     + apuesta_efectivo  ) <> apuesta)
+                            OR ((premio_bono      + premio_efectivo   ) <> premio)
+                            OR ((beneficio_bono   + beneficio_efectivo) <> beneficio)
+                            OR ((apuesta_efectivo - premio_efectivo   ) <> beneficio_efectivo)
+                            OR ((apuesta_bono     - premio_bono       ) <> beneficio_bono)
+    )
+    WHERE id_producido_jugadores = :id_producido_jugadores");
+
     $query->execute([":id_producido_jugadores" => $producido->id_producido_jugadores]);
+    $query = $pdo->prepare("UPDATE producido_jugadores pj
+    SET pj.diferencia_montos = (
+      SELECT BIT_OR(dpj.diferencia_montos)
+      FROM detalle_producido_jugadores dpj
+      WHERE dpj.id_producido_jugadores = pj.id_producido_jugadores
+    )
+    WHERE id_producido_jugadores = :id_producido_jugadores");
+    $query->execute([":id_producido_jugadores" => $producido->id_producido_jugadores]);
+
 
     $query = $pdo->prepare("UPDATE 
     producido_jugadores p,

@@ -56,8 +56,8 @@ class ProducidoController extends Controller
 
   private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
   SELECT p.*,
-  BIT_OR(dp.diferencia_montos 
-      OR (j.id_juego IS NULL) 
+  p.diferencia_montos OR BIT_OR( 
+      (j.id_juego IS NULL) 
       OR (j.id_categoria_juego IS NULL) 
       OR (dp.id_tipo_moneda <> j.id_tipo_moneda)
       OR (LOWER(cj.nombre) <> LOWER(dp.categoria))
@@ -69,11 +69,8 @@ class ProducidoController extends Controller
   GROUP BY p.id_producido';
 
   private static $view_diff_PJ = 'CREATE OR REPLACE VIEW producido_jugadores_diferencias AS 
-  SELECT pj.*,
-  BIT_OR(dpj.diferencia_montos) as diferencias
-  FROM producido_jugadores pj
-  JOIN detalle_producido_jugadores as dpj on (dpj.id_producido_jugadores = pj.id_producido_jugadores)
-  GROUP BY pj.id_producido_jugadores';
+  SELECT pj.*,pj.diferencia_montos as diferencias
+  FROM producido_jugadores pj';
 
   public static function inicializarVistas(){//Llamado tambien desde informesController
     DB::beginTransaction();
