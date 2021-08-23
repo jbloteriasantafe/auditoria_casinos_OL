@@ -169,14 +169,8 @@ class informesController extends Controller
   }
 
   public function informePlataformaObtenerEstado($id_plataforma){
+    ProducidoController::inicializarVistas();
     //Auxiliares para simplificar la query
-    $case = 'CASE 
-              WHEN (juego.movil+juego.escritorio) = 2 THEN "Escritorio/Movil"
-              WHEN juego.movil = 1 THEN "Movil"
-              WHEN juego.escritorio = 1 THEN "Escritorio"
-              ELSE "(ERROR) Sin tipo asignado"
-            END';
-
     //NULL es ignorado cuando MySQL hace AVG
     $avg_esperado =      'AVG(IF(dp.id_detalle_producido IS NULL,
                                 NULL,
@@ -185,66 +179,181 @@ class informesController extends Controller
                                  NULL,
                                  dp.premio/dp.apuesta))';
   
+    $select_pdev = $avg_esperado.'  as pdev_esperado,'.$avg_producido.' as pdev_producido';
+
     //Hay un problema si el juego reportado no coincide el codigo, plataforma (i.e. no esta cargado)
     //No se pueden obtener estadisticas de estado y tipo
     //Tal vez asi sea lo correcto, obtener estadisticas de lo que esta bien seteado y lo otro aparte
 
-    $query = DB::table('plataforma')
+    $juegos_plataforma = DB::table('plataforma')
     ->join('plataforma_tiene_juego','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('juego',function($j){
       //Si estuvo y esta borrado no lo consideramos en la BD
       return $j->on('juego.id_juego','=','plataforma_tiene_juego.id_juego')->whereRaw('juego.deleted_at IS NULL');
-    })
-    ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
-    ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
-    //El chiste esta en este join, no altera el AVG juego.porcentaje_devolucion porque multiplica todas las
-    //filas de los juegos por los producidos en igual forma i.e.
-    // JUEGO1    JUEGO1|PRODUCIDO1    JUEGO1|PRODUCIDO1|NULL
-    // JUEGO2 -> JUEGO2|PRODUCIDO1 -> JUEGO2|PRODUCIDO1|DP1
-    // JUEGO3 -> JUEGO3|PRODUCIDO1 -> JUEGO3|PRODUCIDO1|NULL
-    //        -> JUEGO1|PRODUCIDO2 -> JUEGO1|PRODUCIDO2|DP2
-    //        -> JUEGO2|PRODUCIDO2 -> JUEGO2|PRODUCIDO2|DP3
-    //           JUEGO3|PRODUCIDO2    JUEGO3|PRODUCIDO2|NULL
-    //Si hicieramos validaciones de id_tipo_moneda por ejemplo (que no interesan para el pdev), 
-    //habria un enlace juego<->producido que alteraria el promedio
-    ->leftJoin('producido','producido.id_plataforma','=','plataforma.id_plataforma')
-    ->leftJoin('detalle_producido as dp',function($j){
-      return $j->on('dp.id_producido','=','producido.id_producido')->on('dp.cod_juego','=','juego.cod_juego');
-    })
-    //pdev           = Pdev Teorico si todos los juegos aparecerian de igual en forma en todos los producidos
-    //pdev_espeado   = Pdev esperado, ponderando por apariciónes en los producidos
-    //pdev_producido = Pdev real, calculado a partir de lo apostado y premiado
-    ->selectRaw('AVG(juego.porcentaje_devolucion) as pdev,COUNT(distinct juego.cod_juego) as juegos,
-                 '.$avg_esperado.'  as pdev_esperado,
-                 '.$avg_producido.' as pdev_producido')
-    ->where('plataforma.id_plataforma',$id_plataforma);
+    })->where('plataforma.id_plataforma',$id_plataforma);
 
-    //Saco las cantidades y avg porcentaje devolución para cada una de estas clasificaciones
-    $select_groupby = [
-      'Estado'    => [ 'estado_juego.nombre as Estado'      , 'plataforma_tiene_juego.id_estado_juego'],
-      'Tipo'      => [ $case.' as Tipo'                     , 'juego.movil, juego.escritorio'         ],
-      'Categoria' => [ 'categoria_juego.nombre as Categoria', 'juego.id_categoria_juego'              ]
-    ];
-  
     $estadisticas = [];
-    foreach($select_groupby as $k => $sg){
-      $estadisticas[$k] = (clone $query)->selectRaw($sg[0])->groupBy(DB::raw($sg[1]))->get();
+
+    {//ESTADO
+      $cantidad_juegos = (clone $juegos_plataforma)->selectRaw('estado_juego.nombre as Estado, COUNT(distinct juego.cod_juego) as juegos')
+      ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
+      ->groupBy('plataforma_tiene_juego.id_estado_juego')->get();
+
+      $avg_pdev = (clone $juegos_plataforma)->selectRaw('estado_juego.nombre as Estado, AVG(juego.porcentaje_devolucion) as pdev')
+      ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
+      ->groupBy('plataforma_tiene_juego.id_estado_juego')->get();
+
+      $producido_pdevs = DB::table('producido as p')
+      ->selectRaw('estado_juego.nombre as Estado, '.$select_pdev)
+      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
+      ->join('juego','juego.id_juego','=','dp.id_juego')
+      ->join('plataforma_tiene_juego',function($j) use ($id_plataforma){
+        return $j->on('plataforma_tiene_juego.id_juego','=','juego.id_juego')->where('plataforma_tiene_juego.id_plataforma','=',$id_plataforma);
+      })
+      ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
+      ->groupBy('plataforma_tiene_juego.id_estado_juego')->get();
+
+      $por_estado = [];
+      foreach($cantidad_juegos as $c){
+        if(!array_key_exists($c->{'Estado'},$por_estado)) $por_estado[$c->{'Estado'}] = [];
+        $por_estado[$c->{'Estado'}]['Estado'] = $c->{'Estado'};
+        $por_estado[$c->{'Estado'}]['juegos'] = $c->juegos;
+      }
+      foreach($avg_pdev as $c){
+        if(!array_key_exists($c->{'Estado'},$por_estado)) $por_estado[$c->{'Estado'}] = [];
+        $por_estado[$c->{'Estado'}]['Estado'] = $c->{'Estado'};
+        $por_estado[$c->{'Estado'}]['pdev']   = $c->pdev;
+      }
+      foreach($producido_pdevs as $c){
+        if(!array_key_exists($c->{'Estado'},$por_estado)) $por_estado[$c->{'Estado'}] = [];
+        $por_estado[$c->{'Estado'}]['Estado']         = $c->{'Estado'};
+        $por_estado[$c->{'Estado'}]['pdev_esperado']  = $c->pdev_esperado;
+        $por_estado[$c->{'Estado'}]['pdev_producido'] = $c->pdev_producido;
+      }
+
+      $estadisticas['Estado'] = [];
+      foreach($por_estado as $estado => $est){
+        $estadisticas['Estado'][] = $est;
+      }
     }
 
-    //Hago una query invertida para obtener los detalles sin juegos asociados
-    ProducidoController::inicializarVistas();
-    //Si la plataforma no lo tiene lo considero como que no esta en BD
-    //Arriba no usamos detalle_producido_juego porque ponderaria mas a los juegos que tienen mas producidos
-    //(PREGUNTAR SI ES LO QUE SE QUIERE)
-    $no_en_bd = DB::table('detalle_producido_juego as dp')
-    ->selectRaw('NULL as pdev,NULL as pdev_esperado,COUNT(distinct dp.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
-    ->selectRaw('dp.categoria as "Categoria Informada (NO EN BD)"')
-    ->groupBy('dp.categoria')
-    ->where('dp.id_plataforma',$id_plataforma)
-    ->whereNull('dp.id_juego')->get();
+    {//TIPO
+      $tipo = '(CASE 
+        WHEN (juego.movil+juego.escritorio) = 2 THEN "Escritorio/Movil"
+        WHEN juego.movil = 1 THEN "Movil"
+        WHEN juego.escritorio = 1 THEN "Escritorio"
+        ELSE "(ERROR) Sin tipo asignado"
+      END) as Tipo';
+      
+      $cantidad_juegos = (clone $juegos_plataforma)->selectRaw($tipo.', COUNT(distinct juego.cod_juego) as juegos')
+      ->groupBy(DB::raw('juego.movil, juego.escritorio'))->get();
 
-    $estadisticas['Categoria Informada (NO EN BD)'] = $no_en_bd;
-    
+      $avg_pdev = (clone $juegos_plataforma)->selectRaw($tipo.', AVG(juego.porcentaje_devolucion) as pdev')
+      ->groupBy(DB::raw('juego.movil, juego.escritorio'))->get();
+
+      $select_pdev = $avg_esperado.'  as pdev_esperado,'.$avg_producido.' as pdev_producido';
+      $producido_pdevs = DB::table('producido as p')
+      ->selectRaw($tipo.','.$select_pdev)
+      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
+      ->join('juego','juego.id_juego','=','dp.id_juego')
+      ->join('plataforma_tiene_juego',function($j) use ($id_plataforma){
+        return $j->on('plataforma_tiene_juego.id_juego','=','juego.id_juego')->where('plataforma_tiene_juego.id_plataforma','=',$id_plataforma);
+      })
+      ->groupBy(DB::raw('juego.movil, juego.escritorio'))->get();
+
+      $por_tipo = [];
+      foreach($cantidad_juegos as $c){
+        if(!array_key_exists($c->{'Tipo'},$por_tipo)) $por_tipo[$c->{'Tipo'}] = [];
+        $por_tipo[$c->{'Tipo'}]['Tipo']   = $c->{'Tipo'};
+        $por_tipo[$c->{'Tipo'}]['juegos'] = $c->juegos;
+      }
+      foreach($avg_pdev as $c){
+        if(!array_key_exists($c->{'Tipo'},$por_tipo)) $por_tipo[$c->{'Tipo'}] = [];
+        $por_tipo[$c->{'Tipo'}]['Tipo'] = $c->{'Tipo'};
+        $por_tipo[$c->{'Tipo'}]['pdev'] = $c->pdev;
+      }
+      foreach($producido_pdevs as $c){
+        if(!array_key_exists($c->{'Tipo'},$por_tipo)) $por_tipo[$c->{'Tipo'}] = [];
+        $por_tipo[$c->{'Tipo'}]['Tipo']           = $c->{'Tipo'};
+        $por_tipo[$c->{'Tipo'}]['pdev_esperado']  = $c->pdev_esperado;
+        $por_tipo[$c->{'Tipo'}]['pdev_producido'] = $c->pdev_producido;
+      }
+
+      $estadisticas['Tipo'] = [];
+      foreach($por_tipo as $tipo => $est){
+        $estadisticas['Tipo'][] = $est;
+      }
+    }
+
+    {//CATEGORIA
+      $cantidad_juegos = (clone $juegos_plataforma)->selectRaw('categoria_juego.nombre as Categoria, COUNT(distinct juego.cod_juego) as juegos')
+      ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
+      ->groupBy('juego.id_categoria_juego')->get();
+
+      $avg_pdev = (clone $juegos_plataforma)->selectRaw('categoria_juego.nombre as Categoria, AVG(juego.porcentaje_devolucion) as pdev')
+      ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
+      ->groupBy('juego.id_categoria_juego')->get();
+
+      $producido_pdevs = DB::table('producido as p')
+      ->selectRaw('categoria_juego.nombre as Categoria, '.$select_pdev)
+      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
+      ->join('juego','juego.id_juego','=','dp.id_juego')
+      ->join('plataforma_tiene_juego',function($j) use ($id_plataforma){
+        return $j->on('plataforma_tiene_juego.id_juego','=','juego.id_juego')->where('plataforma_tiene_juego.id_plataforma','=',$id_plataforma);
+      })
+      ->join('categoria_juego','categoria_juego.id_categoria_juego','=','juego.id_categoria_juego')
+      ->groupBy('juego.id_categoria_juego')->get();
+
+      $por_categoria = [];
+      foreach($cantidad_juegos as $c){
+        if(!array_key_exists($c->{'Categoria'},$por_categoria)) $por_categoria[$c->{'Categoria'}] = [];
+        $por_categoria[$c->{'Categoria'}]['Categoria'] = $c->{'Categoria'};
+        $por_categoria[$c->{'Categoria'}]['juegos']    = $c->juegos;
+      }
+      foreach($avg_pdev as $c){
+        if(!array_key_exists($c->{'Categoria'},$por_categoria)) $por_categoria[$c->{'Categoria'}] = [];
+        $por_categoria[$c->{'Categoria'}]['Categoria'] = $c->{'Categoria'};
+        $por_categoria[$c->{'Categoria'}]['pdev']      = $c->pdev;
+      }
+      foreach($producido_pdevs as $c){
+        if(!array_key_exists($c->{'Categoria'},$por_categoria)) $por_categoria[$c->{'Categoria'}] = [];
+        $por_categoria[$c->{'Categoria'}]['Categoria']      = $c->{'Categoria'};
+        $por_categoria[$c->{'Categoria'}]['pdev_esperado']  = $c->pdev_esperado;
+        $por_categoria[$c->{'Categoria'}]['pdev_producido'] = $c->pdev_producido;
+      }
+
+      $estadisticas['Categoria'] = [];
+      foreach($por_categoria as $estado => $est){
+        $estadisticas['Categoria'][] = $est;
+      }
+    }
+
+    {//Categoria Informada
+      $clasificador = '"Categoria Informada (NO EN BD)"';
+      $no_en_bd = DB::table('detalle_producido_juego as dp')
+      ->selectRaw('dp.categoria as '.$clasificador.', NULL as pdev,NULL as pdev_esperado,
+                   COUNT(distinct dp.cod_juego) as juegos,'.$avg_producido.'as pdev_producido')
+      ->groupBy('dp.categoria')
+      ->where('dp.id_plataforma',$id_plataforma)
+      ->whereNull('dp.id_juego')->get();
+
+      $clasificador = 'Categoria Informada (NO EN BD)';
+      $por_categoria_informada = [];
+      foreach($no_en_bd as $c){
+        if(!array_key_exists($c->{$clasificador},$por_categoria_informada)) $por_categoria_informada[$c->{$clasificador}] = [];
+        $por_categoria_informada[$c->{$clasificador}][$clasificador]    = $c->{$clasificador};
+        $por_categoria_informada[$c->{$clasificador}]['juegos']         = $c->juegos;
+        $por_categoria_informada[$c->{$clasificador}]['pdev']           = $c->pdev;
+        $por_categoria_informada[$c->{$clasificador}]['pdev_esperado']  = $c->pdev_esperado;
+        $por_categoria_informada[$c->{$clasificador}]['pdev_producido'] = $c->pdev_producido;
+      }
+
+      $estadisticas['Categoria Informada (NO EN BD)'] = [];
+      foreach($por_categoria_informada as $est){
+        $estadisticas['Categoria Informada (NO EN BD)'][] = $est;
+      }
+    }
+
     return ['estadisticas' => $estadisticas];
   }
 
