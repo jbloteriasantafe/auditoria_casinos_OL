@@ -41,40 +41,10 @@ class ProducidoController extends Controller
     WHERE pj.id_plataforma = p.id_plataforma
   ))";
 
-  //Muestra el detalle_producido con las diferencias (contra si mismo y contra la BD)
-  private static $view_diff_DP = 'CREATE OR REPLACE VIEW detalle_producido_diferencias AS
-  SELECT
-  (dp.apuesta_bono    +dp.apuesta_efectivo  )<> dp.apuesta as apuesta,
-  (dp.premio_bono     +dp.premio_efectivo   )<> dp.premio  as premio,
-  (dp.beneficio_bono  +dp.beneficio_efectivo)<> dp.beneficio as beneficio,
-  (dp.apuesta_efectivo-dp.premio_efectivo   )<> dp.beneficio_efectivo as beneficio_efectivo,
-  (dp.apuesta_bono    -dp.premio_bono       )<> dp.beneficio_bono as beneficio_bono,
-  (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
-  (j.id_juego IS NULL) or (dp.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
-  dp.id_detalle_producido,
-  dp.id_producido
-  FROM detalle_producido_juego dp
-  LEFT JOIN juego j on (dp.id_juego = j.id_juego)
-  LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
-
-  private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
-  SELECT p.*,
-  p.diferencia_montos OR BIT_OR( 
-         (dp.id_juego IS NULL) 
-      OR (cj.id_categoria_juego IS NULL) 
-      OR (LOWER(cj.nombre) <> LOWER(dp.categoria))
-  ) as diferencias
-  FROM producido p
-  LEFT JOIN detalle_producido_juego dp on (dp.id_producido = p.id_producido)
-  LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)
-  GROUP BY p.id_producido';
-
   public static function inicializarVistas(){//Llamado tambien desde informesController
     DB::beginTransaction();
     try{
       DB::statement(self::$view_DP_juego);
-      DB::statement(self::$view_diff_DP);
-      DB::statement(self::$view_diff_P);
     }
     catch(\Exception $e){
       DB::rollback();
@@ -105,28 +75,36 @@ class ProducidoController extends Controller
     $fecha_fin = date('Y-m-d');
     if(!empty($request->fecha_inicio)) $fecha_inicio = $request->fecha_inicio;
     if(!empty($request->fecha_fin))    $fecha_fin    = $request->fecha_fin;
-    
-    $resultados = DB::table('producido_diferencias as pdiff')->whereIn('pdiff.id_plataforma',$plataformas)->where($reglas)
-    ->whereBetween('pdiff.fecha',[$fecha_inicio, $fecha_fin])
+   
+    $diferencia_producido = 'BIT_OR(p.diferencia_montos OR 
+    (dp.id_juego IS NULL) OR (cj.id_categoria_juego IS NULL) OR (LOWER(cj.nombre) <> LOWER(dp.categoria)))';
+    $diferencia_general   = 'BIT_OR(p.diferencia_montos OR pj.diferencia_montos OR 
+    (dp.id_juego IS NULL) OR (cj.id_categoria_juego IS NULL) OR (LOWER(cj.nombre) <> LOWER(dp.categoria)))';
+  
+    $resultados = DB::table('producido as p')
+    ->selectRaw('p.*,'.$diferencia_producido.'as diferencias,
+    pj.id_producido_jugadores,pj.diferencia_montos as diferencias_jugadores,pj.beneficio as beneficio_jugadores')
+    ->leftJoin('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
+    ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','dp.id_categoria_juego')
     ->leftJoin('producido_jugadores as pj',function($j){
-      return $j->on('pdiff.fecha','=','pj.fecha')
-               ->on('pdiff.id_tipo_moneda','=','pj.id_tipo_moneda')
-               ->on('pdiff.id_plataforma','=','pj.id_plataforma');
+      return $j->on('p.fecha','=','pj.fecha')
+               ->on('p.id_tipo_moneda','=','pj.id_tipo_moneda')
+               ->on('p.id_plataforma','=','pj.id_plataforma');
     })
-    ->select('pdiff.*','pj.id_producido_jugadores','pj.diferencia_montos as diferencias_jugadores','pj.beneficio as beneficio_jugadores');
+    ->whereBetween('p.fecha',[$fecha_inicio, $fecha_fin])
+    ->groupBy('p.id_producido','pj.id_producido_jugadores');
 
-    if($request->correcto == "1") $resultados = $resultados->whereRaw('NOT pdiff.diferencias AND NOT pj.diferencia_montos');
-    if($request->correcto == "0") $resultados = $resultados->whereRaw('    pdiff.diferencias  OR     pj.diferencia_montos');
+    if($request->correcto == "1") $resultados = $resultados
+    ->havingRaw('NOT '.$diferencia_general.'');
+
+    if($request->correcto == "0") $resultados = $resultados
+    ->havingRaw($diferencia_general);
     
-    $sort_by = ["columna" => "fecha", "orden" => "desc"];
+    $sort_by = ["columna" => "p.fecha", "orden" => "desc"];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }
-
-    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
-      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-    });
-
+    $resultados = $resultados->orderBy($sort_by['columna'],$sort_by['orden']);
     $resultados = $resultados->paginate($request->page_size);
     return $resultados;
   }
@@ -156,16 +134,26 @@ class ProducidoController extends Controller
   }
 
   public function datosDetalle($id_detalle_producido){
-    $d = DetalleProducido::find($id_detalle_producido);
-    $diferencias = DB::table('detalle_producido_diferencias')->where('id_detalle_producido',$id_detalle_producido)->get()->first();
+    $diferencias = DB::table('detalle_producido_juego as dp')
+    ->selectRaw('(apuesta_bono    + apuesta_efectivo  )<> apuesta as apuesta,
+                 (premio_bono     + premio_efectivo   )<> premio  as premio,
+                 (beneficio_bono  + beneficio_efectivo)<> beneficio as beneficio,
+                 (apuesta_efectivo- premio_efectivo   )<> beneficio_efectivo as beneficio_efectivo,
+                 (apuesta_bono    - premio_bono       )<> beneficio_bono as beneficio_bono,
+                 (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
+                 (j.id_juego IS NULL) or (dp.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
+                 j.id_juego')
+    ->leftJoin('juego as j','dp.id_juego','=','j.id_juego')
+    ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+    ->where('id_detalle_producido','=',$id_detalle_producido)->get()->first();
     
-    $id_juego = DB::table('detalle_producido_juego')
-    ->where('id_detalle_producido',$id_detalle_producido)->select('id_juego')->get()->pluck('id_juego')->first();
-    $juego = is_null($id_juego)? null : Juego::find($id_juego);
-    return ['detalle' => $d,'juego' => $juego,
-      'categoria' => is_null($juego) || is_null($juego->categoria_juego)? '' : $juego->categoria_juego->nombre,
-      'diferencias' => $diferencias
-    ];
+    $id_juego = is_null($diferencias)? null : $diferencias->id_juego;
+    $juego    = is_null($id_juego)?    null : Juego::find($id_juego);
+
+    return ['detalle' => DetalleProducido::find($id_detalle_producido),
+            'juego' => $juego,
+            'categoria' => is_null($juego) || is_null($juego->categoria_juego)? '' : $juego->categoria_juego->nombre,
+            'diferencias' => $diferencias];
   }
 
   public function datosDetalleJugadores($id_detalle_producido_jugadores){
@@ -183,12 +171,17 @@ class ProducidoController extends Controller
   }
 
   public function detallesProducido($id_producido){
-    $detalles = DB::table('detalle_producido as det')
-    ->selectRaw('det.cod_juego as codigo, diff.id_detalle_producido as id_detalle, 
-    (det.diferencia_montos OR diff.categoria OR diff.moneda) as diferencia')
-    ->join('detalle_producido_diferencias as diff','diff.id_detalle_producido','=','det.id_detalle_producido')
-    ->where('det.id_producido',$id_producido)
-    ->orderBy('det.cod_juego','asc')->get();
+    $detalles = DB::table('detalle_producido_juego as dp')
+    ->selectRaw('dp.cod_juego as codigo, dp.id_detalle_producido as id_detalle,
+    (   dp.diferencia_montos 
+    OR (dp.id_juego IS NULL) 
+    OR (dp.id_categoria_juego IS NULL) 
+    OR (LOWER(cj.nombre) <> LOWER(dp.categoria))
+    OR (dp.id_tipo_moneda <> j.id_tipo_moneda)) as diferencia')
+    ->leftJoin('juego as j','dp.id_juego','=','j.id_juego')
+    ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+    ->where('dp.id_producido',$id_producido)
+    ->orderBy('dp.cod_juego','asc')->get();
     return ['detalles' => $detalles];
   }
 
