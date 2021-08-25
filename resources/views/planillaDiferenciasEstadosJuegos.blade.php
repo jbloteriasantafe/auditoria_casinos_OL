@@ -1,4 +1,22 @@
 <!DOCTYPE html>
+<?php
+  $cols_x_pag = 2;
+  $ancho_tabla = (104.0/$cols_x_pag);
+  $filas_por_col = 69.0;
+  $posicion = [
+    0 =>  'position: absolute;top: 100px;left: -5%;',
+    1 =>  'position: absolute;top: 100px;right: -5%;',
+  ];
+  $filas_por_pag = $filas_por_col*$cols_x_pag;
+  $paginas_por_estado = [];
+  foreach($resultado as $e => $detalles){
+    $paginas_por_estado[$e] = ceil(count($detalles)/$filas_por_pag);
+  }
+  $hoy = date('j-m-y / h:i');
+
+  $primer_estado = '';//Usado para NO insertar el salto de pagina en la primer pagina
+  if(count($resultado) > 0) $primer_estado = array_keys($resultado)[0];
+?>
 
 <html>
 
@@ -19,8 +37,17 @@ tr:nth-child(even) {
   background-color: #dddddd;
 }
 
-.total {
-  border-top: 2px double black;
+.center {
+  text-align: center;
+}
+.small {
+  font-size: 7.5 !important;
+  padding: 0 !important;
+}
+.elipses {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
 
@@ -33,34 +60,63 @@ tr:nth-child(even) {
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
+    @foreach($paginas_por_estado as $e => $pags)
+    @for($p = 0;$p < $pags;$p++)
+
+    @if($e != $primer_estado || $p > 0)
+    <div style="page-break-after:always;"></div>
+    @endif
+
     <div class="encabezadoImg">
       <img src="img/logos/banner_nuevo2_portrait.png" width="900">
-      <h2 style="left:35%;"><span>Informe de diferencias de estados</span></h2>
+      <h2 style="text-align: center;">
+        <span>Informe de diferencias de estados ({{$plataforma}})</span>
+        <br style="margin: 0;">
+        <span>Estado esperado: {{$e}}</span>
+      </h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
-    <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></span></div>
-    <div class="primerEncabezado">
-      Se realizaron los procedimientos de control correspondientes y se encontraron las siguientes diferencias
-    </div>
-    @foreach($resultado as $e => $detalles)
-    @if(count($detalles) > 0)
+    <div class="camposInfo" style="right:0px;"><span>{{$hoy}}</span></div>
     <br>
-    <div class="primerEncabezado" style="text-align: center;">Estado esperado: {{$e}}</div>
-    <table>
+    
+    <?php
+      $detalles = $resultado[$e];
+      $startidxpag = $p*$filas_por_pag;
+      $endidxpag   = ($p+1)*$filas_por_pag;
+    ?>
+
+    @for($col=0;$col<$cols_x_pag;$col++)
+
+    <?php 
+        $start = $startidxpag+$filas_por_col*$col;
+        $end   = min($startidxpag+$filas_por_col*($col+1),count($detalles));
+    ?>
+
+    @if($start<$end)
+    <table style="table-layout:fixed;width: {{$ancho_tabla}}%;{{$posicion[$col%$cols_x_pag]}}">
       <tr>
-        <th class="tablaInicio" width="25%">CÓDIGO</th>
-        <th class="tablaInicio" width="50%">JUEGO</th>
-        <th class="tablaInicio" width="25%">ESTADO RECIBIDO</th>
+        <th class="tablaInicio center small" width="25%">CÓDIGO</th>
+        <th class="tablaInicio center small" width="50%">JUEGO</th>
+        <th class="tablaInicio center small" width="25%">ESTADO RECIBIDO</th>
       </tr>
-      @foreach($detalles as $d)
+      @for($i=$start;$i<$end;$i++)
+      <?php $d = $detalles[$i] ?>
       <tr>
-        <td class="tablaCampos">{{$d["codigo"]}}</td>
-        <td class="tablaCampos">{{$d["juego"]}}</td>
-        <td class="tablaCampos">{{$d["estado_recibido"]}}</td>
+        <td class="tablaCampos center small">{{$d["codigo"]}}</td>
+        <td class="tablaCampos elipses small">{{$d["juego"]}}</td>
+        <td class="tablaCampos center small">{{$d["estado_recibido"]}}</td>
       </tr>
-      @endforeach
+      @endfor
     </table>
     @endif
+
+    @endfor
+    <!-- for $cols -->
+
+    @endfor
+    <!-- for $pags  -->
+
     @endforeach
+    <!-- foreach $paginas_por_estado -->
   </body>
 </html>

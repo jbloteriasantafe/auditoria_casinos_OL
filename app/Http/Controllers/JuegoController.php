@@ -470,8 +470,8 @@ class JuegoController extends Controller
         $cod_juego = $datos[$codigo_idx];
         $r["codigo"] = $cod_juego;
         $estado   = strtoupper($datos[$estado_idx]);
-        $estado_t = $estado == "TRUE";
-        $estado_f = $estado == "FALSE";
+        $estado_t = $estado == "TRUE"  || $estado == "HABILITADO-ACTIVO";
+        $estado_f = $estado == "FALSE" || $estado == "HABILITADO-INACTIVO";
         $r["estado_recibido"] = $estado_t? "Activo": ($estado_f? "Inactivo" : $estado);
         $estado_esperado = (clone $query)->where('juego.cod_juego','=',$cod_juego)->first();
         if(is_null($estado_esperado)) $estado_esperado = "Ausente";
@@ -486,7 +486,8 @@ class JuegoController extends Controller
         return strnatcmp($a["juego"],$b["juego"])?? strnatcmp($a["codigo"],$b["codigo"]);
       });
     }
-    $view = View::make('planillaDiferenciasEstadosJuegos',compact('resultado','estados'));
+    $plataforma = Plataforma::find($request->id_plataforma)->codigo;
+    $view = View::make('planillaDiferenciasEstadosJuegos',compact('resultado','plataforma'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
