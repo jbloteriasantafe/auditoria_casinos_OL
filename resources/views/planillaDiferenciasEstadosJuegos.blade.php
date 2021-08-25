@@ -66,21 +66,23 @@ tr:nth-child(even) {
     @if($e != $primer_estado || $p > 0)
     <div style="page-break-after:always;"></div>
     @endif
-
+    <?php
+      $detalles = $resultado[$e];
+      $cantidad = count($detalles);
+    ?>
     <div class="encabezadoImg">
       <img src="img/logos/banner_nuevo2_portrait.png" width="900">
       <h2 style="text-align: center;">
         <span>Informe de diferencias de estados ({{$plataforma}})</span>
         <br style="margin: 0;">
-        <span>Estado esperado: {{$e}}</span>
+        <span>Estado en sistema: {{$e}} ({{$cantidad}} juego{{$cantidad > 1? 's' : ''}})</span>
       </h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span>{{$hoy}}</span></div>
     <br>
-    
+
     <?php
-      $detalles = $resultado[$e];
       $startidxpag = $p*$filas_por_pag;
       $endidxpag   = ($p+1)*$filas_por_pag;
     ?>

@@ -447,7 +447,7 @@ class JuegoController extends Controller
     ->where('plataforma_tiene_juego.id_plataforma','=',$request->id_plataforma);
 
     //Los que esperaba que estaban activos, inactivos, ausentes(-1)
-    $resultado = ["Ausente" => []];
+    $resultado = ["No existe" => []];
     foreach(EstadoJuego::all() as $e){
       $resultado[$e->nombre] = [];
     }
@@ -474,7 +474,7 @@ class JuegoController extends Controller
         $estado_f = $estado == "FALSE" || $estado == "HABILITADO-INACTIVO";
         $r["estado_recibido"] = $estado_t? "Activo": ($estado_f? "Inactivo" : $estado);
         $estado_esperado = (clone $query)->where('juego.cod_juego','=',$cod_juego)->first();
-        if(is_null($estado_esperado)) $estado_esperado = "Ausente";
+        if(is_null($estado_esperado)) $estado_esperado = "No existe";
         else $estado_esperado = $estado_esperado->nombre;
         if($estado_esperado != $r["estado_recibido"])
           $resultado[$estado_esperado][] = $r;
