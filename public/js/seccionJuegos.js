@@ -679,6 +679,7 @@ function reiniciarModalVerificarEstados(){
   });
   $('#plataformaVerificarEstado').val("");
   $('#btn-verificarEstados').hide();
+  $('#animacionGenerando').empty().append('&nbsp;').hide();
   $('#resultado_diferencias').attr('href','#').removeAttr('download').hide();
 }
 
@@ -706,9 +707,19 @@ $('#btn-verificarEstados').click(function(){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   let formData = new FormData();
   formData.append('id_plataforma', $('#plataformaVerificarEstado').val());
+  const codigo_plat = $('#plataformaVerificarEstado option:selected').attr('data-codigo');
   if($('#modalVerificarEstados #archivo').attr('data-borrado') == 'false' && $('#modalVerificarEstados #archivo')[0].files[0] != null){
     formData.append('archivo' , $('#modalVerificarEstados #archivo')[0].files[0]);
   }
+
+  let progress = 0;
+  $('#animacionGenerando').show();
+  const loading = setInterval(function(){
+      const message = ['―','/','|','\\'];
+      $('#animacionGenerando').text(message[progress]);
+      progress = (progress + 1)%4;
+  },100);
+
   $.ajax({
     type: "POST",
     url: "/juegos/generarDiferenciasEstadosJuegos",
@@ -717,7 +728,9 @@ $('#btn-verificarEstados').click(function(){
     contentType:false,
     cache:false,
     responseType: "blob",
-    success: function (data) {//Robado de https://stackoverflow.com/questions/2805330/opening-pdf-string-in-new-window-with-javascript
+    success: function (data) {//https://stackoverflow.com/questions/2805330/opening-pdf-string-in-new-window-with-javascript
+      clearInterval(loading);
+      $('#animacionGenerando').empty().append('&nbsp;').hide();
       const byteCharacters = atob(data);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -732,16 +745,19 @@ $('#btn-verificarEstados').click(function(){
       const lPad = function(s){
         return s.length == 1? '0'+s : s;
       };
-      const mm = lPad(ahora.getMonth()+1);
-      const dd = lPad(ahora.getDate());
-      const hh = lPad(ahora.getHours());
-      const mi = lPad(ahora.getMinutes());
-      const ss = lPad(ahora.getSeconds());
-      $('#resultado_diferencias').attr('download',`Diferencias-Estados-${yyyy}-${mm}-${dd}-${hh}-${mi}-${ss}.pdf`);
+      const mm = lPad(ahora.getMonth()+1+'');//Lo convierto a str sumandole ''
+      const dd = lPad(ahora.getDate()+'');
+      const hh = lPad(ahora.getHours()+'');
+      const mi = lPad(ahora.getMinutes()+'');
+      const ss = lPad(ahora.getSeconds()+'');
+      $('#resultado_diferencias').attr('download',`Diferencias-Estados-${codigo_plat}-${yyyy}-${mm}-${dd}-${hh}-${mi}-${ss}.pdf`);
       $('#resultado_diferencias').show();
+      $('#resultado_diferencias_span').click();//El evento click sobre el <a> no hace nada
     },
     error: function (data) {
       console.log(data);
+      clearInterval(loading);
+      $('#animacionGenerando').text('ERROR');
       mensajeError(data.responseJSON["errores"]);
     }
   });

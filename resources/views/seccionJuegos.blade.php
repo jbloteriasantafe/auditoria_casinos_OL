@@ -432,15 +432,18 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                   <div class="row"><select id="plataformaVerificarEstado" class="form-control">
                     <option value="">Seleccione</option>
                     @foreach ($plataformas as $plataforma)
-                    <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+                    <option value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
                     @endforeach
                   </select>
                   </div>
                 </div>
               </div>
+              <div class="row" id="animacionGenerando" style="text-align: center;" hidden>&nbsp;</div>
               <div class="row" style="text-align: center;">
                 <a href="#" target="_blank"  id="resultado_diferencias"
-                class="btn" type="button" style="font-weight: bold;">Descargar PDF</a>
+                class="btn" type="button" style="font-weight: bold;">
+                  <span id="resultado_diferencias_span">Descargar PDF</span><!-- Necesito un span para triggerear el click -->
+                </a>
               </div>
             </div>
             <div class="modal-footer">
