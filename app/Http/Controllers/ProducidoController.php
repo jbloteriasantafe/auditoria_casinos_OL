@@ -54,23 +54,11 @@ class ProducidoController extends Controller
   FROM detalle_producido_juego dp
   LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)';
 
-  private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
-  SELECT p.*,
-  p.diferencia_montos OR BIT_OR(
-       (dp.id_juego IS NULL) 
-    OR (p.id_tipo_moneda <> dp.id_tipo_moneda_juego)
-    OR (cj.nombre_lower <> LOWER(dp.categoria))) as diferencias
-  FROM producido p
-  LEFT JOIN detalle_producido_juego dp on (dp.id_producido = p.id_producido)
-  LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)
-  GROUP BY p.id_producido';
-
   public static function inicializarVistas(){//Llamado tambien desde informesController
     DB::beginTransaction();
     try{
       DB::statement(self::$view_DP_juego);
       DB::statement(self::$view_diff_DP);
-      DB::statement(self::$view_diff_P);
     }
     catch(\Exception $e){
       DB::rollback();
@@ -102,29 +90,40 @@ class ProducidoController extends Controller
     if(!empty($request->fecha_inicio)) $fecha_inicio = $request->fecha_inicio;
     if(!empty($request->fecha_fin))    $fecha_fin    = $request->fecha_fin;
     
-    $resultados = DB::table('producido_diferencias as pdiff')->whereIn('pdiff.id_plataforma',$plataformas)->where($reglas)
-    ->whereBetween('pdiff.fecha',[$fecha_inicio, $fecha_fin])
-    ->leftJoin('producido_jugadores as pj',function($j){
-      return $j->on('pdiff.fecha','=','pj.fecha')
-               ->on('pdiff.id_tipo_moneda','=','pj.id_tipo_moneda')
-               ->on('pdiff.id_plataforma','=','pj.id_plataforma');
-    })
-    ->select('pdiff.*','pj.id_producido_jugadores','pj.diferencia_montos as diferencias_jugadores','pj.beneficio as beneficio_jugadores');
+    //Si creamos una vista con un group by adentro, MYSQL usa el algoritmo de temptable al queryearla (10x mas lento). 
+    //Por eso lo dejo como una query media rara https://stackoverflow.com/questions/17681449/mysql-view-super-slow 
+    //En principio debe haber 1 solo producido_jugadores por producido, el MAX es meramente para colapsar en 1 fila
+    $diferencias = 'BIT_OR(
+      (dp.id_juego IS NULL) OR (p.id_tipo_moneda <> dp.id_tipo_moneda_juego) OR (cj.nombre_lower <> LOWER(dp.categoria))
+    )';
 
-    if($request->correcto == "1") $resultados = $resultados->whereRaw('NOT pdiff.diferencias AND NOT pj.diferencia_montos');
-    if($request->correcto == "0") $resultados = $resultados->whereRaw('    pdiff.diferencias  OR     pj.diferencia_montos');
+    $resultados = DB::table('producido as p')
+    ->selectRaw('p.*,
+      MAX(pj.id_producido_jugadores) as id_producido_jugadores,MAX(pj.diferencia_montos) as diferencias_jugadores,MAX(pj.beneficio) as beneficio_jugadores,
+      p.diferencia_montos OR '.$diferencias.'as diferencias')
+    ->leftJoin('producido_jugadores as pj',function($j){
+      return $j->on('pj.fecha','=','p.fecha')->on('pj.id_tipo_moneda','=','p.id_tipo_moneda')->on('pj.id_plataforma','=','p.id_plataforma');
+    })
+    ->leftJoin('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
+    ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','dp.id_categoria_juego')
+    ->whereBetween('p.fecha',[$fecha_inicio, $fecha_fin])
+    ->groupBy('p.id_producido');
+
+    if($request->correcto == "1"){
+      $resultados = $resultados->havingRaw('NOT ('.$diferencias.') AND NOT MAX(pj.diferencia_montos)');
+    }
+    else if($request->correcto == "0"){
+      $resultados = $resultados->havingRaw('('.$diferencias.') OR MAX(pj.diferencia_montos)');
+    }
     
-    $sort_by = ["columna" => "fecha", "orden" => "desc"];
+    //@TODO: Lo ordeno por id_producido por defecto por que es mas rapido ... si usamos la fecha hace filesort (lento)
+    //Revisar si hay alguna forma de agrupar por fecha y asi poder ordenar por fecha
+    $sort_by = ["columna" => "p.id_producido", "orden" => "desc"];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }
-
-    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
-      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-    });
-
-    $resultados = $resultados->paginate($request->page_size);
-    return $resultados;
+    
+    return $resultados->orderBy($sort_by['columna'],$sort_by['orden'])->paginate($request->page_size);
   }
   // eliminarProducido elimina el producido y los detalles producidos asociados
   public function eliminarProducido($id_producido){
