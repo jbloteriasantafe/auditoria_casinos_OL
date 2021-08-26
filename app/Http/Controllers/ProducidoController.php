@@ -92,22 +92,26 @@ class ProducidoController extends Controller
     
     //Si creamos una vista con un group by adentro, MYSQL usa el algoritmo de temptable al queryearla (10x mas lento). 
     //Por eso lo dejo como una query media rara https://stackoverflow.com/questions/17681449/mysql-view-super-slow 
-    //En principio debe haber 1 solo producido_jugadores por producido, el MAX es meramente para colapsar en 1 fila
-    $diferencias = 'BIT_OR(
+    //En principio debe haber 1 solo producido y producido_jugadores por (fecha,plataforma,moneda)
+    //El MAX es meramente para colapsar en 1 fila el join
+
+    $diferencias = 'BIT_OR(p.diferencia_montos OR
       (dp.id_juego IS NULL) OR (p.id_tipo_moneda <> dp.id_tipo_moneda_juego) OR (cj.nombre_lower <> LOWER(dp.categoria))
     )';
 
-    $resultados = DB::table('producido as p')
-    ->selectRaw('p.*,
+    //El orden fecha-producido-moneda-plataforma es a proposito (cardinalidad mayor a menor, considernado tambien el orderBy deseado).
+    //Le fuerzo a usar el indice por las dudas
+    $resultados = DB::table(DB::raw('producido as p FORCE INDEX(uniq_fecha_producido_plataforma_moneda)'))
+    ->selectRaw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda,p.beneficio,
       MAX(pj.id_producido_jugadores) as id_producido_jugadores,MAX(pj.diferencia_montos) as diferencias_jugadores,MAX(pj.beneficio) as beneficio_jugadores,
-      p.diferencia_montos OR '.$diferencias.'as diferencias')
+      '.$diferencias.'as diferencias')
     ->leftJoin('producido_jugadores as pj',function($j){
       return $j->on('pj.fecha','=','p.fecha')->on('pj.id_tipo_moneda','=','p.id_tipo_moneda')->on('pj.id_plataforma','=','p.id_plataforma');
     })
     ->leftJoin('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
     ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','dp.id_categoria_juego')
     ->whereBetween('p.fecha',[$fecha_inicio, $fecha_fin])
-    ->groupBy('p.id_producido');
+    ->groupBy(DB::raw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda'));
 
     if($request->correcto == "1"){
       $resultados = $resultados->havingRaw('NOT ('.$diferencias.') AND NOT MAX(pj.diferencia_montos)');
@@ -115,15 +119,16 @@ class ProducidoController extends Controller
     else if($request->correcto == "0"){
       $resultados = $resultados->havingRaw('('.$diferencias.') OR MAX(pj.diferencia_montos)');
     }
-    
-    //@TODO: Lo ordeno por id_producido por defecto por que es mas rapido ... si usamos la fecha hace filesort (lento)
-    //Revisar si hay alguna forma de agrupar por fecha y asi poder ordenar por fecha
-    $sort_by = ["columna" => "p.id_producido", "orden" => "desc"];
-    if(!empty($request->sort_by)){
-      $sort_by = $request->sort_by;
+  
+    if(empty($request->sort_by)){
+      $resultados = $resultados->orderByRaw('p.fecha desc,p.id_producido desc,p.id_plataforma desc,p.id_tipo_moneda desc');
     }
-
-    return $resultados->orderBy($sort_by['columna'],$sort_by['orden'])->paginate($request->page_size);
+    else{
+      $sort_by = $request->sort_by;
+      $resultados = $resultados->orderBy($sort_by['columna'],$sort_by['orden']);
+    }
+    $resultados = $resultados->paginate($request->page_size);
+    return $resultados;
   }
   // eliminarProducido elimina el producido y los detalles producidos asociados
   public function eliminarProducido($id_producido){
