@@ -9,7 +9,7 @@ class CategoriaJuego extends Model
   protected $connection = 'mysql';
   protected $table = 'categoria_juego';
   protected $primaryKey = 'id_categoria_juego';
-  protected $visible = array('id_categoria_juego','nombre');
+  protected $visible = array('id_categoria_juego','nombre','nombre_lower');
   public $timestamps = false;
 
   public function juegos(){

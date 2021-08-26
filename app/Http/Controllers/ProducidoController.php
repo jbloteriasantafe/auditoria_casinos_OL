@@ -32,38 +32,34 @@ class ProducidoController extends Controller
 
   //Asocia el detalle_producido con el juego (si lo tiene). Devuelve una tabla mas plana y facil de queryar
   private static $view_DP_juego = "CREATE OR REPLACE VIEW detalle_producido_juego AS
-  SELECT p.fecha,p.id_plataforma,p.id_tipo_moneda,dp.*,j.id_juego,j.id_categoria_juego
-  FROM detalle_producido dp
-  JOIN producido p on p.id_producido = dp.id_producido
-  LEFT JOIN juego j on (j.id_tipo_moneda = p.id_tipo_moneda and j.cod_juego = dp.cod_juego and j.deleted_at IS NULL AND j.id_juego IN (
-    SELECT pj.id_juego
-    FROM plataforma_tiene_juego pj
-    WHERE pj.id_plataforma = p.id_plataforma
-  ))";
+  SELECT p.fecha,p.id_plataforma,p.id_tipo_moneda,dp.*,pj.id_juego,
+  IF(pj.id_juego IS NULL,NULL,j.id_categoria_juego) as id_categoria_juego,
+  IF(pj.id_juego IS NULL,NULL,j.id_tipo_moneda) as id_tipo_moneda_juego
+  FROM producido p 
+  JOIN detalle_producido dp on dp.id_producido = p.id_producido
+  LEFT JOIN juego j on (j.cod_juego = dp.cod_juego and j.deleted_at IS NULL)
+  LEFT JOIN plataforma_tiene_juego pj on (pj.id_plataforma = p.id_plataforma AND pj.id_juego = j.id_juego)";
 
   //Muestra el detalle_producido con las diferencias (contra si mismo y contra la BD)
   private static $view_diff_DP = 'CREATE OR REPLACE VIEW detalle_producido_diferencias AS
   SELECT
-  (dp.apuesta_bono    +dp.apuesta_efectivo  )<> dp.apuesta as apuesta,
-  (dp.premio_bono     +dp.premio_efectivo   )<> dp.premio  as premio,
-  (dp.beneficio_bono  +dp.beneficio_efectivo)<> dp.beneficio as beneficio,
-  (dp.apuesta_efectivo-dp.premio_efectivo   )<> dp.beneficio_efectivo as beneficio_efectivo,
-  (dp.apuesta_bono    -dp.premio_bono       )<> dp.beneficio_bono as beneficio_bono,
-  (j.id_juego IS NULL) or (j.id_categoria_juego IS NULL) or (LOWER(cj.nombre) <> LOWER(dp.categoria)) as categoria,
-  (j.id_juego IS NULL) or (dp.id_tipo_moneda <> j.id_tipo_moneda) as moneda,
-  dp.id_detalle_producido,
-  dp.id_producido
+  id_producido,id_detalle_producido,
+  (apuesta_bono    +apuesta_efectivo  )<> apuesta as apuesta,
+  (premio_bono     +premio_efectivo   )<> premio  as premio,
+  (beneficio_bono  +beneficio_efectivo)<> beneficio as beneficio,
+  (apuesta_efectivo-premio_efectivo   )<> beneficio_efectivo as beneficio_efectivo,
+  (apuesta_bono    -premio_bono       )<> beneficio_bono as beneficio_bono,
+  (id_juego IS NULL) or (id_tipo_moneda <> id_tipo_moneda_juego) as moneda,
+  (id_juego IS NULL) or (cj.nombre_lower <> LOWER(dp.categoria)) as categoria
   FROM detalle_producido_juego dp
-  LEFT JOIN juego j on (dp.id_juego = j.id_juego)
-  LEFT JOIN categoria_juego cj on (j.id_categoria_juego = cj.id_categoria_juego)';
+  LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)';
 
   private static $view_diff_P = 'CREATE OR REPLACE VIEW producido_diferencias AS
   SELECT p.*,
-  p.diferencia_montos OR BIT_OR( 
-         (dp.id_juego IS NULL) 
-      OR (cj.id_categoria_juego IS NULL) 
-      OR (LOWER(cj.nombre) <> LOWER(dp.categoria))
-  ) as diferencias
+  p.diferencia_montos OR BIT_OR(
+       (dp.id_juego IS NULL) 
+    OR (p.id_tipo_moneda <> dp.id_tipo_moneda_juego)
+    OR (cj.nombre_lower <> LOWER(dp.categoria))) as diferencias
   FROM producido p
   LEFT JOIN detalle_producido_juego dp on (dp.id_producido = p.id_producido)
   LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)
