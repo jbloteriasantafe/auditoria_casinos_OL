@@ -109,11 +109,11 @@ use Illuminate\Http\Request;
               <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-3" value="pdiff.id_plataforma">PLATAFORMA<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="pdfif.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-1" value="pdiff.id_tipo_moneda">MONEDA<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="pdiff.beneficio">PRODUCIDO<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="pjdiff.beneficio">PROD. JUGADORES<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3" value="p.id_plataforma">PLATAFORMA<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="p.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-1" value="p.id_tipo_moneda">MONEDA<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="p.beneficio">PRODUCIDO<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="beneficio_jugadores">PROD. JUGADORES<i class="fa fa-sort"></i></th>
                     <th class="col-xs-2">ACCIÓN</th>
                   </tr>
                 </thead>

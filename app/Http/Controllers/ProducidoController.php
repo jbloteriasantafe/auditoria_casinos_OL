@@ -82,8 +82,8 @@ class ProducidoController extends Controller
     }
     
     $reglas = [];
-    if($request->id_tipo_moneda != "")  $reglas[] = ['pdiff.id_tipo_moneda','=',$request->id_tipo_moneda];
-    if(!empty($request->id_plataforma)) $reglas[] = ['pdiff.id_plataforma','=',$request->id_plataforma];   
+    if($request->id_tipo_moneda != "")  $reglas[] = ['p.id_tipo_moneda','=',$request->id_tipo_moneda];
+    if(!empty($request->id_plataforma)) $reglas[] = ['p.id_plataforma','=',$request->id_plataforma];   
 
     $fecha_inicio = '2020-01-01';
     $fecha_fin = date('Y-m-d');
@@ -122,7 +122,7 @@ class ProducidoController extends Controller
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }
-    
+
     return $resultados->orderBy($sort_by['columna'],$sort_by['orden'])->paginate($request->page_size);
   }
   // eliminarProducido elimina el producido y los detalles producidos asociados
