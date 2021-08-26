@@ -110,7 +110,7 @@ class ProducidoController extends Controller
     })
     ->leftJoin('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
     ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','dp.id_categoria_juego')
-    ->whereBetween('p.fecha',[$fecha_inicio, $fecha_fin])
+    ->whereBetween('p.fecha',[$fecha_inicio, $fecha_fin])->where($reglas)
     ->groupBy(DB::raw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda'));
 
     if($request->correcto == "1"){
