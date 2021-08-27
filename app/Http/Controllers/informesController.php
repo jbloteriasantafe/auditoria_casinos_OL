@@ -169,15 +169,26 @@ class informesController extends Controller
   }
 
   public function informePlataformaObtenerEstado($id_plataforma){
+    /*
+    LO QUE ESTABA HACIENDO ANTES -> AVG_categoriaX(A/B)
+    LO QUE QUIERO A LO QUE LO CAMBIE -> SUM_categoriaX(A)/SUM_categoriaX(B)
+      (QUE ES LO MISMO QUE) -> AVG_categoriaX(A)/AVG_categoriaX(B)
+      AVG(A)/AVG(B) = ((A1+A2+A3)/3) / ((B1+B2+B3)/3) = (A1+A2+A3)/(B1+B2+B3) = SUM(A) / SUM (B)
+
+    Esto daba distinto porque lo que queremos en realidad
+    es el comportamiento del juego a largo plazo y no el comportamiendo promedio caso x caso... (creo)
+    El porcentaje devolucion es el cociente premio_accum/apuesta_accum de que alguien juegue por mucho tiempo.
+    Osea si es de 94%, a la larga voy a perder 6%
+    Entonces pdev_teorico no tiene sentido estadistico la verdad... habria que sacarlo.
+    */
+
     ProducidoController::inicializarVistas();
     //Auxiliares para simplificar la query
     //NULL es ignorado cuando MySQL hace AVG
-    $avg_esperado =  'AVG(IF(dp.id_detalle_producido IS NULL,
-                                NULL,
-                                juego.porcentaje_devolucion))';
-    $avg_producido = '100*AVG(IF(dp.apuesta = 0 or dp.apuesta IS NULL,
-                                 NULL,
-                                 dp.premio/dp.apuesta))';
+
+    //El esperado no lo tengo que multiplicar por 100 porque el porcentaje_devolucion esta en 0-100 en vez de 0-1
+    $avg_esperado = 'AVG(juego.porcentaje_devolucion*dp.apuesta)/AVG(dp.apuesta)';
+    $avg_producido = '100*AVG(dp.premio)/AVG(dp.apuesta)';
   
     $select_pdev = $avg_esperado.'  as pdev_esperado,'.$avg_producido.' as pdev_producido';
 
