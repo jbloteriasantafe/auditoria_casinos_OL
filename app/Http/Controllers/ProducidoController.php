@@ -229,7 +229,7 @@ class ProducidoController extends Controller
     ->orderBy('detalle_producido.cod_juego','asc')->get();
     //Para debuggear ->orderBy('detalle_producido.id_detalle_producido','asc') es mejor porque ordena segun el orden de insercion del CSV
 
-    return $this->generarPlanillaParalelo($pro,$detalles->toArray(),'planillaProducidos');
+    return $this->generarPlanillaParalelo($pro,$detalles->toArray(),'juegos');
   }
 
   public function generarPlanillaJugadores($id_producido_jugadores){
@@ -253,25 +253,30 @@ class ProducidoController extends Controller
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
     ->where('pj.id_producido_jugadores',$id_producido_jugadores)->orderBy('dpj.jugador','asc')->get();
 
-    return $this->generarPlanillaParalelo($pro,$detalles->toArray(),'planillaProducidosJugadores');
+    return $this->generarPlanillaParalelo($pro,$detalles->toArray(),'jugadores');
   }
 
   //Refactorizo a hacerlo en paralelo porque CCO tiene un monton de jugadores.
   //No andaba ni aumentandole el limite de memoria (excedia tiempo limite de dompdf...)
-  private function generarPlanillaParalelo($pro,array $todos_los_detalles,string $view){
-    $detalles_por_pagina = 99;// [det/pag]
-    $paginas_por_pdf = 5;// [pag/pdf]
-    $detalles_por_pdf = $paginas_por_pdf*$detalles_por_pagina;// [det/pdf] = [pag/pdf] * [det/pag]
+  private function generarPlanillaParalelo($pro,array $todos_los_detalles,$tipo){
+    $cols_x_pag = 3;
+    $filas_por_col = 68;
+
+    $detalles_por_pagina = $cols_x_pag * $filas_por_col;
+    $paginas_por_pdf = 5;
+    $detalles_por_pdf = $paginas_por_pdf*$detalles_por_pagina;
+
+    $cantidad_totales = count($todos_los_detalles);
 
     $chunked_detalles = array_chunk($todos_los_detalles,$detalles_por_pdf);
     $chunked_compacts = [];
     foreach($chunked_detalles as $chunk){
       $detalles = $chunk;
-      $chunked_compacts[] = compact('pro','detalles');
+      $chunked_compacts[] = compact('pro','detalles','tipo','cantidad_totales','cols_x_pag','filas_por_col');
     }
 
-    $paginas_totales = ceil(count($todos_los_detalles) / $detalles_por_pagina);// [pag] = [det]/[det/pag]
-    $salida = PdfParalelo::generarPdf($view,$chunked_compacts,"",$paginas_por_pdf,$paginas_totales);
+    $paginas = ceil($cantidad_totales / $detalles_por_pagina);
+    $salida = PdfParalelo::generarPdf('planillaProducidos',$chunked_compacts,"",$paginas_por_pdf,$paginas);
 
     if($salida['error'] == 0) return response()->file($salida['value'])->deleteFileAfterSend(true);
     return 'Error codigo: '.$salida['error'].'<br>'.implode('<br>',$salida['value']);
