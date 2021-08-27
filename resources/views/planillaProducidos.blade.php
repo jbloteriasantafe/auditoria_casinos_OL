@@ -86,7 +86,7 @@
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span>{{$hoy}}</span></div>
-    <div style="position: absolute; top: 100px">
+    <div style="position: absolute; top: 90px">
       <div class="helvetica" style="position: absolute;left:  0%;width: 25%;text-align: center;"><b>Fecha de producido:</b> {{$pro->fecha_prod}}</div>
       <div class="helvetica" style="position: absolute;left: 25%;width: 25%;text-align: center;"><b>Plataforma:</b> {{$pro->plataforma}}</div>
       <div class="helvetica" style="position: absolute;left: 50%;width: 25%;text-align: center;"><b>Moneda:</b> {{$pro->tipo_moneda}}</div>
