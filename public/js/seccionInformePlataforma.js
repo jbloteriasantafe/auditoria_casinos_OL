@@ -33,7 +33,7 @@ $('#btn-buscar').click(function(e){
         const j = data.juegos_faltantes[jidx];
         const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
         for(const k in j){
-          fila.find('.'+k).text(j[k]).attr(j[k]);
+          fila.find('.'+k).text(j[k]).attr('title',j[k]);
         }
         $('#juegosFaltantesConMovimientos tbody').append(fila);
       }
