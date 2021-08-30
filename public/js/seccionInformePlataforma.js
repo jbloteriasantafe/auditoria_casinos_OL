@@ -32,7 +32,7 @@ $('#btn-buscar').click(function(e){
 
       for(const clasificacion in data.estadisticas){
         setTimeout(function(){
-          if(data.estadisticas[clasificacion].length > 0)
+          if(data.estadisticas[clasificacion].length > 0 && clasificacion != 'Total')
             generarGraficos(clasificacion,data.estadisticas[clasificacion]);
         },250);
       }

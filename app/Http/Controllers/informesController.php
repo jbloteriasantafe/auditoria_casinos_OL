@@ -313,6 +313,23 @@ class informesController extends Controller
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
     }
 
+    {//El PDEV total
+      $clasificador = 'Total';
+
+      $cantidad_y_pdev = (clone $juegos_plataforma)
+      ->selectRaw('"Total" as '.$clasificador.', COUNT(distinct j.cod_juego) as juegos, AVG(j.porcentaje_devolucion) as pdev')
+      ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
+
+      $producido_pdevs = DB::table('producido as p')
+      ->selectRaw('"Total" as '.$clasificador.', '.$select_pdev)
+      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
+      ->join('juego as j','j.id_juego','=','dp.id_juego')
+      ->where('p.id_plataforma',$id_plataforma)
+      ->groupBy(DB::raw('"constant"'))->get();
+
+      $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
+    }
+
     return ['estadisticas' => $estadisticas];
   }
 
