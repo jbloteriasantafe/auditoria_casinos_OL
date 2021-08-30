@@ -23,11 +23,11 @@ use Illuminate\Http\Request;
   color: white !important;
 }
 
-#juegosFaltantesConMovimientos > th {
+#juegosFaltantesConMovimientos >table > thead > tr > th {
   text-align: center;
 }
 
-#juegosFaltantesConMovimientos > td {
+#juegosFaltantesConMovimientos > table > tbody > tr > td {
   text-align: right;
 }
 </style>
