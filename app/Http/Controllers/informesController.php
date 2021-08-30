@@ -320,17 +320,24 @@ class informesController extends Controller
       ->selectRaw('"Total" as '.$clasificador.', COUNT(distinct j.cod_juego) as juegos, AVG(j.porcentaje_devolucion) as pdev')
       ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
 
-      $producido_pdevs = DB::table('producido as p')
+      $producido_pdevs = DB::table('detalle_producido_juego as dp')
       ->selectRaw('"Total" as '.$clasificador.', '.$select_pdev)
-      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
       ->join('juego as j','j.id_juego','=','dp.id_juego')
-      ->where('p.id_plataforma',$id_plataforma)
+      ->where('dp.id_plataforma',$id_plataforma)
       ->groupBy(DB::raw('"constant"'))->get();
 
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
     }
 
-    return ['estadisticas' => $estadisticas];
+    $juegos_faltantes = DB::table('detalle_producido_juego as dp')
+    ->selectRaw('dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,AVG(dp.premio)/AVG(dp.apuesta) as pdev,
+    SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
+    SUM(dp.premio_efectivo)    as premio_efectivo,   SUM(dp.premio_bono)   as premio_bono,    SUM(dp.premio) as premio,
+    SUM(dp.beneficio_efectivo) as beneficio_efectivo,SUM(dp.beneficio_bono) as beneficio_bono,SUM(dp.beneficio) as beneficio')
+    ->whereNull('dp.id_juego')->where('dp.id_plataforma',$id_plataforma)
+    ->groupBy('dp.cod_juego')->orderBy('dp.cod_juego')->get();
+
+    return ['estadisticas' => $estadisticas,'juegos_faltantes' => $juegos_faltantes];
   }
 
   public function buscarTodoInformeContable(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes

@@ -28,6 +28,16 @@ $('#btn-buscar').click(function(e){
           generarTabla(clasificacion,data.estadisticas[clasificacion]);
       }
 
+      $('#juegosFaltantesConMovimientos tbody').empty();
+      for(const jidx in data.juegos_faltantes){
+        const j = data.juegos_faltantes[jidx];
+        const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
+        for(const k in j){
+          fila.find('.'+k).text(j[k]).attr(j[k]);
+        }
+        $('#juegosFaltantesConMovimientos tbody').append(fila);
+      }
+
       $('#modalPlataforma').modal('show');
       $('.tabContent').hide();
       $('.tab').eq(0).click();
@@ -57,13 +67,13 @@ function generarTabla(nombre,valores){
   for(const idx in valores){
     const val = valores[idx];
     const f = filaModelo.clone().removeClass('filaModelo');
-    f.find('.fila').text(val[nombre]);
-    const pdev = parseFloat(val['pdev']).toFixed(2);
-    const pdev_esperado = parseFloat(val['pdev_esperado']).toFixed(2);
-    const pdev_producido = parseFloat(val['pdev_producido']).toFixed(2);
-    f.find('.pdev').text(clearNaN(pdev));
-    f.find('.pdev_esperado').text(clearNaN(pdev_esperado));
-    f.find('.pdev_producido').text(clearNaN(pdev_producido));
+    f.find('.fila').text(val[nombre]).attr('title',val[nombre]);
+    const pdev = clearNaN(parseFloat(val['pdev']).toFixed(2));
+    const pdev_esperado = clearNaN(parseFloat(val['pdev_esperado']).toFixed(2));
+    const pdev_producido = clearNaN(parseFloat(val['pdev_producido']).toFixed(2));
+    f.find('.pdev').text(pdev).attr('title',pdev);
+    f.find('.pdev_esperado').text(pdev_esperado).attr('title',pdev_esperado);
+    f.find('.pdev_producido').text(pdev_producido).attr('title',pdev_producido);
     table.find('tbody').append(f);
   }
   filaModelo.remove();
@@ -76,7 +86,7 @@ function generarGraficos(nombre,valores){
     const val = valores[idx];
     dataseries.push([val[nombre],val['juegos']]);
   }
-  const grafico = $('<div>').addClass('grafico col-md-4');
+  const grafico = $('<div>').addClass('grafico col-md-4').css('padding-top','50px');
   $('#graficos').append(grafico);
   Highcharts.chart(grafico[0], {
     chart: {
@@ -93,7 +103,12 @@ function generarGraficos(nombre,valores){
         beta: 0
       },
     },
-    title: { text: nombre},
+    title: { 
+      text: nombre, 
+      style: {
+        fontWeight: 'bold'
+      }
+    },
     legend: {
       labelFormatter: function () {
         return this.name + " " + this.percentage.toFixed(2) + " %";

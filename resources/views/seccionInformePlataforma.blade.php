@@ -9,8 +9,9 @@ use Illuminate\Http\Request;
 .tab {
   display: inline-block;
   font-family: Roboto-BoldCondensed;
-  color: #1C2B80;
+  color: rgba(0, 0, 0, 0.4);
   text-align: center !important;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
 }
 
 .tab > h4 {
@@ -20,6 +21,14 @@ use Illuminate\Http\Request;
 .tab[activa]{
   border-bottom: 6px solid white !important;
   color: white !important;
+}
+
+#juegosFaltantesConMovimientos > th {
+  text-align: center;
+}
+
+#juegosFaltantesConMovimientos > td {
+  text-align: right;
 }
 </style>
 @endsection
@@ -57,7 +66,7 @@ use Illuminate\Http\Request;
 </div>
 
 <div class="modal fade" id="modalPlataforma" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width:70%;">
+  <div class="modal-dialog" style="width:90%;">
     <div class="modal-content">
       <div class="modal-header" style="background:#304FFE; padding-bottom: 1px;">
           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -69,6 +78,9 @@ use Illuminate\Http\Request;
             </div>
             <div class="tab" style="width: 10%;" div-asociado="#divTablas">
               <h4>% DEVS</h4>
+            </div>
+            <div class="tab" style="width: 15%;" div-asociado="#divJuegosFaltantesConMovimientos">
+              <h4>JUEGOS FALTANTES C/ MOV</h4>
             </div>
           </div>
       </div>
@@ -84,6 +96,31 @@ use Illuminate\Http\Request;
                     <h5>PORCENTAJES DE DEVOLUCION</h5>
                     <div id="tablas" class="col-md-12"></div>
                 </div>
+                <div id="divJuegosFaltantesConMovimientos" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                    <h5>PORCENTAJES DE DEVOLUCION</h5>
+                    <div id="juegosFaltantesConMovimientos" class="col-md-12">
+                      <table class="col-md-12 table table-fixed">
+                        <thead>
+                          <tr>
+                            <th class="col-md-1">JUEGO</th>
+                            <th class="col-md-1">CATEGORIA</th>
+                            <th class="col-md-1">APOSTADO EFEC.</th>
+                            <th class="col-md-1">APOSTADO BO.</th>
+                            <th class="col-md-1">APOSTADO</th>
+                            <th class="col-md-1">PREMIO EFEC.</th>
+                            <th class="col-md-1">PREMIO BO.</th>
+                            <th class="col-md-1">PREMIO</th>
+                            <th class="col-md-1">BENEFICIO EFEC:</th>
+                            <th class="col-md-1">BENEFICIO BO.</th>
+                            <th class="col-md-1">BENEFICIO</th>
+                            <th class="col-md-1">%DEV</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                      </table>
+                    </div>
+                </div>
               </div>
           </div>
         </div>
@@ -94,6 +131,24 @@ use Illuminate\Http\Request;
     </div>
   </div>
 </div>
+
+
+<table hidden>
+  <tr id="filaEjemploJuegosFaltantesConMovimientos">
+    <td class="col-md-1 cod_juego" style="text-align: center;">JUEGO123</td>
+    <td class="col-md-1 categoria" style="text-align: center;">CAT321</td>
+    <td class="col-md-1 apuesta_efectivo">1111.11</td>
+    <td class="col-md-1 apuesta_bono">2222.22</td>
+    <td class="col-md-1 apuesta">3333.33</td>
+    <td class="col-md-1 premio_efectivo">4444.44</td>
+    <td class="col-md-1 premio_bono">5555.55</td>
+    <td class="col-md-1 premio">6666.66</td>
+    <td class="col-md-1 beneficio_efectivo">7777.77</td>
+    <td class="col-md-1 beneficio_bono">8888.88</td>
+    <td class="col-md-1 beneficio">9999.99</td>
+    <td class="col-md-1 pdev">99.123456%</td>
+  </tr>
+</table>
 
 <div id="tablaModelo" class="col-md-4" hidden>
   <table class="table table-fixed">
