@@ -29,7 +29,8 @@ $('#btn-buscar').click(function(e){
       }
 
       $('#modalPlataforma').modal('show');
-
+      $('.tabContent').hide();
+      $('.tab').eq(0).click();
       for(const clasificacion in data.estadisticas){
         setTimeout(function(){
           if(data.estadisticas[clasificacion].length > 0 && clasificacion != 'Total')
@@ -124,3 +125,10 @@ function generarGraficos(nombre,valores){
     }]
   });
 }
+
+$('.tab').click(function(){
+  $('.tabContent').hide();
+  $('.tab[activa]').removeAttr('activa');
+  $(this).attr('activa','activa');
+  $($(this).attr('div-asociado')).show();
+});

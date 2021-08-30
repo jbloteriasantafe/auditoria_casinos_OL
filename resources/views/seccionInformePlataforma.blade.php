@@ -4,7 +4,24 @@ use Illuminate\Http\Request;
 ?>
 
 @section('estilos')
+<style>
 
+.tab {
+  display: inline-block;
+  font-family: Roboto-BoldCondensed;
+  color: #1C2B80;
+  text-align: center !important;
+}
+
+.tab > h4 {
+  display: inline;
+}
+
+.tab[activa]{
+  border-bottom: 6px solid white !important;
+  color: white !important;
+}
+</style>
 @endsection
 
 @section('headerLogo')
@@ -42,22 +59,30 @@ use Illuminate\Http\Request;
 <div class="modal fade" id="modalPlataforma" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width:70%;">
     <div class="modal-content">
-      <div class="modal-header" style="background:#304FFE;">
+      <div class="modal-header" style="background:#304FFE; padding-bottom: 1px;">
           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
           <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
           <h3 class="modal-title" style="color: #fff; text-align:center">ESTADO DE PLATAFORMA</h3>
+          <div style="text-align: center; margin: 0px;">
+            <div class="tab" activa="activa" style="width: 10%;" div-asociado="#divGraficos">
+              <h4>CLASIFICACIÓN</h4>
+            </div>
+            <div class="tab" style="width: 10%;" div-asociado="#divTablas">
+              <h4>% DEVS</h4>
+            </div>
+          </div>
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body">
-          <div class="row">
+          <div class="row" style="overflow-y: scroll;max-height: 650px;">
               <div class="col-md-12" style="border-right:1px solid #ccc;">
-                <div class="row" style="text-align:center; padding-bottom:25px;">
-                  <h5>CLASIFICACIÓN DE JUEGOS</h5>
-                  <div id="graficos" class="col-md-12"></div>
+                <div id="divGraficos" class="row tabContent" style="text-align:center; padding-bottom:25px;">
+                    <h5>CLASIFICACIÓN DE JUEGOS</h5>
+                    <div id="graficos" class="col-md-12"></div>
                 </div>
-                <div class="row" style="text-align:center; padding-bottom: 25px;">
-                  <h5>PORCENTAJES DE DEVOLUCION</h5>
-                  <div id="tablas" class="col-md-12"></div>
+                <div id="divTablas" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                    <h5>PORCENTAJES DE DEVOLUCION</h5>
+                    <div id="tablas" class="col-md-12"></div>
                 </div>
               </div>
           </div>
