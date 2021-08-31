@@ -11,7 +11,7 @@ $rutaImagen = $ruta.$varImg;
     <meta charset="utf-8">
 
     <link rel="icon" type="image/png" sizes="32x32" href="img/logos/favicon.png">
-    <title>CAS - Lotería de Santa Fe</title>
+    <title>CASOnline - Lotería de Santa Fe</title>
 
 
     <link href="css/bootstrap.min.css" rel="stylesheet">

@@ -16,7 +16,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <meta name="_token" content="{!! csrf_token() !!}"/>
 
     <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.png">
-    <title>CAS - Lotería de Santa Fe</title>
+    <title>CASOnline - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -370,12 +370,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                   @endif
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informecontable'))
                                     <li>
-                                      <div id="opcInformesContableMTM" class="opcionesHover" 
-                                      @if(false)
-                                      onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeContableMTM'" href="#" style="cursor: pointer;"
-                                      @else
-                                      style="color: grey;"
-                                      @endif
+                                      <div id="opcInformesContableJuego" class="opcionesHover" 
+                                      onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeContableJuego'" href="#" style="cursor: pointer;"
                                       >
                                         <span>Juegos</span>
                                       </div>

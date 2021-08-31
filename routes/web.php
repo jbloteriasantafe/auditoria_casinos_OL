@@ -143,7 +143,6 @@ Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
 //Estos por si las moscas lo pongo ... Son todos GET por lo menos
 //Es muy posible que usuarios que no tienen el permiso ver_seccion_maquinas las use
 Route::get('maquinas/obtenerMTM/{id}', 'MTMController@obtenerMTM');
-Route::get('maquinas/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
 
 /******
 CALENDARIO
@@ -228,9 +227,12 @@ Route::group(['prefix' => 'informePlataforma'],function(){
   Route::get('/obtenerEstado/{id_plataforma}','informesController@informePlataformaObtenerEstado');
 });
 
-//@TODO: Reemplazar/Borrar, es lo que quedo de clonar el sistema fisico
-Route::get('informeContableMTM','informesController@buscarTodoInformeContable');//carga pagina
-Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@obtenerInformeContableDeMaquina');//informe ultimos 30 dias
+Route::group(['prefix' => 'informeContableJuego'],function(){
+  Route::get('/','informesController@buscarTodoInformeContable');
+  Route::get('obtenerJuegoPlataforma/{id_plataforma}/{cod_juego?}', 'informesController@obtenerJuegoPlataforma');
+  Route::get('obtenerInformeDeJuego/{id_juego}','informesController@obtenerInformeDeJuego');
+  Route::get('obtenerProducidosDeJuego/{id_plataforma}/{cod_juego}/{offset?}/{size}','informesController@obtenerProducidosDeJuego');
+});
 
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informesJuegos'],function(){

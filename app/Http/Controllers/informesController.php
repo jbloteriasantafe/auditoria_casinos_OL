@@ -350,159 +350,70 @@ class informesController extends Controller
     return ['estadisticas' => $estadisticas,'juegos_faltantes' => $juegos_faltantes->get()];
   }
 
-  public function buscarTodoInformeContable(){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
+  public function buscarTodoInformeContable(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = array();
-    foreach($usuario->casinos as $casino){
-      $casinos [] = $casino;
-    }
-    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Contable MTM' , 'informeContableMTM');
-
-    return view('contable_mtm', ['casinos' => $casinos]);
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Contable Juegos' , 'informeContableJuegos');
+    return view('informe_juego', ['plataformas' => $usuario->plataformas]);
   }
 
-  public function obtenerInformeContableDeMaquina($id_maquina){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
-    //modficar para que tome ultimos dias con datos, no solo los ultimos dias
-    Validator::make([
-         'id_maquina' => $id_maquina,
-       ],
-       [
-         'id_maquina' => 'required|exists:maquina,id_maquina' ,
-       ] , array(), self::$atributos)->after(function ($validator){
+  public function obtenerJuegoPlataforma($id_plataforma,$cod_juego=""){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $plats = [];
+    foreach($usuario->plataformas as $p) $plats[] = $p->id_plataforma;
 
-    })->validate();
+    $q = DB::table('plataforma_tiene_juego as pj')
+    ->select('j.id_juego','j.cod_juego')
+    ->join('juego as j','j.id_juego','=','pj.id_juego')
+    ->whereIn('pj.id_plataforma',$plats)
+    ->where('j.cod_juego','LIKE',$cod_juego.'%');
 
-    $maquina = Maquina::find($id_maquina);
-    $sector = isset($maquina->isla->sector) ? $sector = $maquina->isla->sector->descripcion : $sector = "-";
-    $fecha= date('Y-m-d');//hoy
-    //No tiene sentido mostrar el producido del dia de hoy porque siempre se carga
-    //Con un delay de un dia, empezamos desde ayer.
-    $fecha=date('Y-m-d' , strtotime($fecha . ' - 1 days')); 
-    $fin = true;
-    $i= 0;
-    $suma = 0;
-    $datos = $arreglo = array();
-    
-    //Hay logs repetidos con ids distintos por algun motivo...
-    //Los agrupamos, para eso necesitamos cada campo, menos el id_log_maquina
-    //Antes se hacia asi y  retornaba duplicados! no cambiar 
-    //Sin saber esto
-    /*$logs = LogMaquina::join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_maquina.id_tipo_movimiento')
-    ->where('id_maquina' , $id_maquina)->orderBy('fecha', 'desc')->get();*/
-    
-    $columnas_str = "";
-    $columnas = Schema::getColumnListing('log_maquina');
-    foreach($columnas as $col){
-      if($col != "id_log_maquina"){
-        $columnas_str .= ", l.".$col;
-      }
-    }
-    $columnas = Schema::getColumnListing('tipo_movimiento');
-    foreach($columnas as $col){
-      $columnas_str .= ", t.".$col;
-    }
+    if($id_plataforma != "0") $q = $q->where('pj.id_plataforma',$id_plataforma);
 
-    $query="SELECT 
-    GROUP_CONCAT(DISTINCT(l.id_log_maquina) separator '/') as ids_logs_maquinas
-    "
-    .
-    $columnas_str
-    .
-    "
-    from log_maquina l
-    join tipo_movimiento t on (l.id_tipo_movimiento = t.id_tipo_movimiento)
-    where l.id_maquina = :id_maquina
-    GROUP BY
-    " 
-    .
-    substr($columnas_str,1)//saco la coma
-    ."
-    order by l.fecha desc";
-        
-    $parametros = ['id_maquina' => $id_maquina];
-    $logs = DB::select(DB::raw($query),$parametros);
-    usort($logs,function($a,$b){
-      //Comparo primero por fecha y si son iguales por el id mas chico.
-      //Se simplificaria si tuviera hora minuto segundo...
-      $fecha_a = strtotime($a->fecha);
-      $fecha_b = strtotime($a->fecha);
-      if($fecha_a < $fecha_b) return 1;
-      else if($fecha_a > $fecha_b) return -1;
-
-      $ids_a = explode('/',$a->ids_logs_maquinas);
-      $ids_b = explode('/',$b->ids_logs_maquinas);
-      $smallest_a = $ids_a[0];
-      $smallest_b = $ids_b[0];
-      foreach($ids_a as $ida){
-        if($ida < $smallest_a) $smallest_a = $ida;
-      }
-      foreach($ids_b as $idb){
-        if($idb < $smallest_b) $smallest_b = $idb;
-      }
-      if($smallest_a < $smallest_b) return 1;
-      else if($smallest_a > $smallest_b) return -1;
-      return 0;
-    });
-
-    while($fin){
-      $estado = $this->checkEstadoMaquina($fecha, $maquina->id_maquina);
-      $aux= new \stdClass();
-      $valor = 0;
-      if($estado['estado_producido']['detalle']!= null) $valor = $estado['estado_producido']['detalle']->valor;
-      $suma+= $valor;
-      $datos[] = ['valor' => $valor, 'fecha' => strftime('%d %b %y' ,  strtotime($fecha))];
-      $arreglo[] = $estado;//suma total
-      $fecha=date('Y-m-d' , strtotime($fecha . ' - 1 days'));
-
-      //condiciones finalizacion
-      $i++;
-      if($i == 15) $fin = false;
-    }
-    $fechax = Carbon::now()->format('Y-m-d');
-    $detalles_5 = DB::table('detalle_relevamiento')
-    ->select('detalle_relevamiento.*','maquina.nro_admin','relevamiento.*')
-    ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
-    ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
-    ->where('maquina.id_maquina','=',$id_maquina)
-    ->where('relevamiento.fecha_carga','<>',$fechax)//$fechax->year().'-'.$fechax->month().'-'.$fechax->day())
-    ->orderBy('relevamiento.fecha_carga','desc')
-    ->take(5)->get();
-
-    $juego = $maquina->juego_activo;
-    return ['arreglo' => array_reverse($arreglo),
-            'datos' => array_reverse($datos),
-            'nro_admin' => $maquina->nro_admin  ,
-            'marca' => $maquina->marca,
-            'casino' => $maquina->casino->nombre,
-            'moneda' => $maquina->tipoMoneda,
-            'isla' => 
-            [
-              'nro_isla' =>  (is_null($maquina->isla))? null: $maquina->isla->nro_isla , 
-              'codigo' => (is_null($maquina->isla))? null: $maquina->isla->codigo
-            ],
-            'sector' => $sector,
-            'juego' => $juego->nombre_juego,
-            'producido' => $suma,
-            'movimientos' => $logs,
-            'denominacion_juego' => $maquina->obtenerDenominacion(),
-            'porcentaje_devolucion' => $maquina->obtenerPorcentajeDevolucion(),
-            'relevamientos' => $detalles_5,
-            'tipos_causa_no_toma' => TipoCausaNoToma::all()
-            ];
+    return ['juegos' => $q->get()];
   }
 
-  public function checkEstadoMaquina($fecha , $id_maquina){//@TODO: Esto se va a cambiar cuando se refactorizen los informes
-      //checkeo el estado de la maquina para un dia determinado
-      //CERRADO(PRODUCIDO AJUSTADO/VALIDADO), VALIDADO(RELEVACION VALIDADA) Y RELEVADO(TUVO RELEVAMIENTO PARA DICHO DIA)
-      $estado_contadores = ContadorController::getInstancia()->estaCerradoMaquina($fecha,$id_maquina);
+  public function obtenerInformeDeJuego($id_juego){
+    $juego = Juego::find($id_juego);
 
-      $estado_producido = ProducidoController::getInstancia()->estaValidadoMaquina($fecha,$id_maquina);
+    $estados = DB::table('plataforma_tiene_juego as pj')
+    ->select('pj.id_plataforma','p.codigo as plataforma','ej.nombre as estado')
+    ->join('plataforma as p','p.id_plataforma','=','pj.id_plataforma')
+    ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
+    ->where('pj.id_juego',$id_juego)->get();
 
-      $estado_relevamiento = RelevamientoController::getInstancia()->estaRelevadoMaquina($fecha,$id_maquina);
+    $historial = DB::table('log_juego')
+    ->selectRaw('fecha,json->>"$.motivo" as motivo')
+    ->where('id_juego',$id_juego)
+    ->orderBy('fecha','desc')->get();
 
-      return ['estado_contadores' => $estado_contadores,
-              'estado_relevamiento' => $estado_relevamiento,
-              'estado_producido' => $estado_producido];
-      //contador SE MUESTRA POR PANTALLA YA QUE NO SIEMPRE EXISTE RELEVAMIENTO PARA ESA MAQUINA EN ESA FECHA
+    return ['juego' => $juego, 'categoria' => $juego->categoria_juego, 'moneda' => $juego->tipo_moneda, 'estados' => $estados, 'historial' => $historial];
+  }
+
+  public function obtenerProducidosDeJuego($id_plataforma,$cod_juego,$offset=0,$size=30){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $plats = [];
+    foreach($usuario->plataformas as $p) $plats[] = $p->id_plataforma;
+
+    $q = DB::table('detalle_producido as dp')
+    ->join('producido as p','p.id_producido','=','dp.id_producido')
+    ->join('tipo_moneda as m','m.id_tipo_moneda','=','p.id_tipo_moneda')
+    ->where('p.id_plataforma',$id_plataforma)
+    ->whereIn('p.id_plataforma',$plats)
+    ->where('dp.cod_juego',$cod_juego);
+
+    $producidos = (clone $q)
+    ->select('p.fecha','m.descripcion as moneda','dp.categoria',
+      'dp.apuesta_efectivo',  'dp.apuesta_bono',  'dp.apuesta',
+       'dp.premio_efectivo',   'dp.premio_bono',   'dp.premio',
+    'dp.beneficio_efectivo','dp.beneficio_bono','dp.beneficio')
+    ->skip($offset)->take($size)
+    ->orderBy('p.fecha','desc')->get();
+
+    $total = (clone $q)->selectRaw('SUM(dp.beneficio) as total')->groupBy('dp.cod_juego')->get()->first();
+    $count = (clone $q)->selectRaw('COUNT(p.fecha) as count')->groupBy('dp.cod_juego')->get()->first();
+
+    return ['producidos' => $producidos, 
+    'total' => is_null($total)? 0.0 : $total->total,
+    'count' => is_null($count)? 0 : $count->count];
   }
 }
