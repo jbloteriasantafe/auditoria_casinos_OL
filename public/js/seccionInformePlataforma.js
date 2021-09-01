@@ -4,7 +4,7 @@ $(document).ready(function(){
   $('#informesJuegos').removeClass().addClass('subMenu2 collapse in');
 
   $('.tituloSeccionPantalla').text('Informe de Plataforma');
-  $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
+  $('#gestionarJuegos').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcInformePlataforma').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcInformePlataforma').addClass('opcionesSeleccionado');
 });
