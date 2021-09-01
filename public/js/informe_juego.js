@@ -70,7 +70,8 @@ $('#btn-buscarJuego').click(function(e) {
     const id_plataforma = $('#selectPlataforma').val();
     const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
     $('.clonado').remove();
-    $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#estado,#tipo').text('-');
+    $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#tipo').text('-');
+    $('#estado').text('Produciendo (NO EN BD)');
     $('#codigo').text(cod_juego);
     $('#plataforma').text(cod_plat);
 
