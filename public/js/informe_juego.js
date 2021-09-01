@@ -70,7 +70,7 @@ $('#btn-buscarJuego').click(function(e) {
     const id_plataforma = $('#selectPlataforma').val();
     const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
     $('.clonado').remove();
-    $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#tipo').text('-');
+    $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#tipo,#producidoEsperado').text('-');
     $('#estado').text('Produciendo (NO EN BD)');
     $('#codigo').text(cod_juego);
     $('#plataforma').text(cod_plat);
@@ -130,7 +130,10 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
         $('#producido').text(data.total);
         $('#tablaProducidos tbody').empty();
         const fechas = [];
-        const beneficios = [];
+        const producidos = [];
+        const producidos_esperados = [];
+        const pdev = parseFloat($('#devolucion').text())/100;
+        let prod_esp_total = 0;
         data.producidos.forEach(function(p) {
             const fila = $('#filaEjemploProducido').clone().removeAttr('id');
             fila.find('.fecha').text(p.fecha);
@@ -149,8 +152,12 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
             $('#tablaProducidos tbody').append(fila);
 
             fechas.push(p.fecha);
-            beneficios.push(parseFloat(p.beneficio));
+            producidos.push(parseFloat(p.beneficio));
+            const prod_esp = parseFloat(p.apuesta)*(1-pdev);
+            producidos_esperados.push(parseFloat(prod_esp.toFixed(2)));
+            prod_esp_total+= prod_esp;
         });
+        if(!isNaN(prod_esp_total)) $('#producidoEsperado').text(prod_esp_total.toFixed(2));
         $('#previewPage').text(pagina);
         $('#previewTotal').text(Math.ceil(data.count/page_size));
         if(page_size <= 0) $('#previewTotal').text(1);
@@ -158,7 +165,7 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
         after();
 
         setTimeout(function(){
-            generarGraficoJuego(fechas,beneficios);
+            generarGraficoJuego(fechas,producidos,producidos_esperados);
         },500);
     });
 }
@@ -195,7 +202,7 @@ $('#verTodosProducidos').change(function(e){
     cargarProducidos($('#selectPlataforma').val(),$('#inputJuego').val(),1,$(this).prop('checked')? -1 : default_page_size);
 })
 
-function generarGraficoJuego(fechas, data) {
+function generarGraficoJuego(fechas,producidos,producidos_esperados) {
     Highcharts.chart('graficoSeguimientoProducido', {
         chart: {
             backgroundColor: "#fff",
@@ -242,11 +249,18 @@ function generarGraficoJuego(fechas, data) {
                 fillOpacity: 0.4
             }
         },
-        series: [{
-            name: 'Beneficio',
-            data: data,
-            color: '#00E676',
-        }]
+        series: [
+            {
+                name: 'Producido diario',
+                data: producidos,
+                color: $('#producido').css('color'),
+            },
+            {
+                name: 'Prod. esp. diario',
+                data: producidos_esperados,
+                color: $('#producidoEsperado').css('color'),
+            },
+        ]
     });
 
 }

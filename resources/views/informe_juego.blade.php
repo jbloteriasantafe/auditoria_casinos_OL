@@ -33,6 +33,11 @@
     font-size:46px;
     color: #00E676;
   }
+  #producidoEsperado {
+    display: inline;
+    font-size:46px;
+    color: #E6C200;
+  }
   .filaHistorial {
     padding: 20px 10px 10px 10px;
     margin-left: 10px;
@@ -163,10 +168,15 @@
                     <div class="row" style="border-top: 1px solid #ddd;padding:10px 0px 15px 0px;">
                         <div class="col-md-9" style="text-align:center; border-right: 1px solid #ccc;">
                           <div class="row">
-                            <h5>PRODUCIDO ACUMULADO TOTAL</h5>
-                              <div class="col-md-12">
+                              <div class="col-md-6">
+                                  <h5>PROD. ACUMULADO TOTAL</h5>
                                   <span id="monedaProducido" class="infoResaltada" style="display:inline;position:relative;top:-8px;font-size:20px;">$</span>
                                   <span id="producido" class="infoResaltada">123445</span>
+                              </div>
+                              <div class="col-md-6">
+                                  <h5>PROD. ACUMULADO TOTAL (Esperado)</h5>
+                                  <span id="monedaProducidoEsperado" class="infoResaltada" style="display:inline;position:relative;top:-8px;font-size:20px;">$</span>
+                                  <span id="producidoEsperado" class="infoResaltada">123456</span>
                               </div>
                               <div class="col-md-12">
                                   <div id="graficoSeguimientoProducido"></div>
