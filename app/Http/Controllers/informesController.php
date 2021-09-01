@@ -410,7 +410,7 @@ class informesController extends Controller
     ->where('dp.cod_juego',$cod_juego);
 
     $producidos = (clone $q)
-    ->select('p.fecha','m.descripcion as moneda','dp.categoria',
+    ->select('p.fecha','m.descripcion as moneda','dp.categoria','dp.jugadores',
       'dp.apuesta_efectivo',  'dp.apuesta_bono',  'dp.apuesta',
        'dp.premio_efectivo',   'dp.premio_bono',   'dp.premio',
     'dp.beneficio_efectivo','dp.beneficio_bono','dp.beneficio')
