@@ -96,7 +96,7 @@
                           <select id="selectPlataforma" class="form-control" name="">
                               <option value="" style="text-align: center;">- Seleccione la plataforma -</option>
                               @foreach($plataformas as $p)
-                              <option value="{{$p->id_plataforma}}" style="text-align: center;">{{$p->nombre}}</option>
+                              <option value="{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}" style="text-align: center;">{{$p->nombre}}</option>
                               @endforeach
                           </select>
                           <br>

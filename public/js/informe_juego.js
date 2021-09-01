@@ -1,6 +1,3 @@
-var fechas = [];
-var datos = [];
-var estado;
 $(document).ready(function() {
     //Resetear componentes
     $('#selectPlataforma').val("").change();
@@ -68,14 +65,28 @@ function limpiarNull(str, c = '-') {
 const default_page_size = 30;
 
 $('#btn-buscarJuego').click(function(e) {
-    const id_plataforma = $('#selectPlataforma').val();
     const id_juego = $('#inputJuego').obtenerElementoSeleccionado();
+    const cod_juego = $('#inputJuego').val();
+    const id_plataforma = $('#selectPlataforma').val();
+    const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
+    $('.clonado').remove();
+    $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#estado,#tipo').text('-');
+    $('#codigo').text(cod_juego);
+    $('#plataforma').text(cod_plat);
+
+    const cargaprod = function (){
+        cargarProducidos(id_plataforma,$('#inputJuego').val(),1,default_page_size,function(){
+            $('#prevPreview').click();//Actualizar estados de las flechas
+            $('#modalJuegoContable').modal('show');
+        });
+    }
+
+    if(id_juego == -1){
+        cargaprod();
+        return;
+    }
 
     $.get("informeContableJuego/obtenerInformeDeJuego/" + id_juego, function(data) {
-        fechas = [];
-        datos = [];
-        estado = null;
-
         $('#codigo').text(limpiarNull(data.juego.cod_juego));
         $('#proveedor').text(limpiarNull(data.juego.proveedor));
         $('#denominacion').text(limpiarNull(data.juego.denominacion_juego));
@@ -91,18 +102,14 @@ $('#btn-buscarJuego').click(function(e) {
             else       $('#tipo').text('ERROR S/ TIPO');
         }
 
-        $('#plataforma').text("---");
-        $('#estado').text("---");
         for(const pidx in data.estados){
             const e = data.estados[pidx];
             if(e.id_plataforma == id_plataforma){
-                $('#plataforma').text(e.plataforma);
                 $('#estado').text(e.estado);
                 break;
             }
         }
 
-        $('.clonado').remove();
         if (data.historial.length) {
             data.historial.forEach(h =>{
                 const fila = $('#hist').clone().addClass('clonado').show();
@@ -112,12 +119,9 @@ $('#btn-buscarJuego').click(function(e) {
             });
         }
 
-        cargarProducidos(id_plataforma,$('#inputJuego').val(),1,default_page_size,function(){
-            $('#prevPreview').click();//Actualizar estados de las flechas
-            $('#modalJuegoContable').modal('show');
-        });
+        cargaprod();
         return;
-    })
+    });
 });
 
 function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = function(){}){
@@ -238,7 +242,7 @@ function generarGraficoJuego(fechas, data) {
             }
         },
         series: [{
-            name: 'Juego',
+            name: 'Beneficio',
             data: data,
             color: '#00E676',
         }]

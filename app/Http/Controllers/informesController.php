@@ -361,15 +361,23 @@ class informesController extends Controller
     $plats = [];
     foreach($usuario->plataformas as $p) $plats[] = $p->id_plataforma;
 
-    $q = DB::table('plataforma_tiene_juego as pj')
+    $j = DB::table('plataforma_tiene_juego as pj')
     ->select('j.id_juego','j.cod_juego')
     ->join('juego as j','j.id_juego','=','pj.id_juego')
     ->whereIn('pj.id_plataforma',$plats)
     ->where('j.cod_juego','LIKE',$cod_juego.'%');
 
-    if($id_plataforma != "0") $q = $q->where('pj.id_plataforma',$id_plataforma);
+    if($id_plataforma != "0") $j = $j->where('pj.id_plataforma',$id_plataforma);
 
-    return ['juegos' => $q->get()];
+    $j_no_en_bd = DB::table('detalle_producido_juego as dp')
+    ->selectRaw('-1 as id_juego, dp.cod_juego ')->distinct()
+    ->whereNull('dp.id_juego')
+    ->whereIn('dp.id_plataforma',$plats)
+    ->where('dp.cod_juego','LIKE',$cod_juego.'%');
+
+    if($id_plataforma != "0") $j_no_en_bd = $j_no_en_bd->where('dp.id_plataforma',$id_plataforma);
+
+    return ['juegos' => $j->union($j_no_en_bd)->get()];
   }
 
   public function obtenerInformeDeJuego($id_juego){
