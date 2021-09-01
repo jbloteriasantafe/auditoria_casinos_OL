@@ -162,7 +162,7 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
             producidos_esperados.push(parseFloat(prod_esp.toFixed(2)));
         });
         $('#previewPage').text(pagina);
-        const cantidad = data.total? 0 : data.total.cantidad;
+        const cantidad = data.total? data.total.cantidad : 0;
         $('#previewTotal').text(Math.ceil(cantidad/page_size));
         if(page_size <= 0) $('#previewTotal').text(1);
 
