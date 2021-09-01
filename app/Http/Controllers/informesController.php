@@ -406,13 +406,14 @@ class informesController extends Controller
       'dp.apuesta_efectivo',  'dp.apuesta_bono',  'dp.apuesta',
        'dp.premio_efectivo',   'dp.premio_bono',   'dp.premio',
     'dp.beneficio_efectivo','dp.beneficio_bono','dp.beneficio')
-    ->skip($offset)->take($size)
-    ->orderBy('p.fecha','desc')->get();
+    ->orderBy('p.fecha','desc');
 
+    if($size > 0) $producidos = $producidos->skip($offset)->take($size);
+ 
     $total = (clone $q)->selectRaw('SUM(dp.beneficio) as total')->groupBy('dp.cod_juego')->get()->first();
     $count = (clone $q)->selectRaw('COUNT(p.fecha) as count')->groupBy('dp.cod_juego')->get()->first();
 
-    return ['producidos' => $producidos, 
+    return ['producidos' => $producidos->get(), 
     'total' => is_null($total)? 0.0 : $total->total,
     'count' => is_null($count)? 0 : $count->count];
   }

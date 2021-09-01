@@ -184,7 +184,13 @@
                     </div>
                     <div class="row">
                       <button id="prevPreview" type="button" class="btn btn-link col-md-1" disabled="disabled"><i class="fas fa-arrow-left"></i></button>
-                      <div class="col-md-offset-5 col-md-1">P <span id="previewPage">1</span>/<span id="previewTotal">15</span></div>
+                      <div class="col-md-offset-5 col-md-1">
+                        P <span id="previewPage">9</span>/<span id="previewTotal">99</span>
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" id="verTodosProducidos">
+                          <label class="form-check-label" for="verTodosProducidos">Ver todos</label>
+                        </div>
+                      </div>
                       <button id="nextPreview" type="button" class="btn btn-link col-md-offset-4 col-md-1"><i class="fas fa-arrow-right"></i></button>
                       <div class="col-md-12">
                         <table id="tablaProducidos" class="table">

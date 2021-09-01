@@ -66,6 +66,8 @@ function limpiarNull(str, c = '-') {
     return str === null ? c : str;
 }
 
+const default_page_size = 30;
+
 $('#btn-buscarJuego').click(function(e) {
     const id_plataforma = $('#selectPlataforma').val();
     const id_juego = $('#inputJuego').obtenerElementoSeleccionado();
@@ -111,7 +113,7 @@ $('#btn-buscarJuego').click(function(e) {
             });
         }
 
-        cargarProducidos(id_plataforma,$('#inputJuego').val(),1,function(){
+        cargarProducidos(id_plataforma,$('#inputJuego').val(),1,default_page_size,function(){
             $('#prevPreview').click();//Actualizar estados de las flechas
             $('#modalJuegoContable').modal('show');
         });
@@ -119,8 +121,7 @@ $('#btn-buscarJuego').click(function(e) {
     })
 });
 
-function cargarProducidos(id_plataforma,cod_juego,pagina,after = function(){}){
-    const page_size = 30;
+function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = function(){}){
     $.get(`informeContableJuego/obtenerProducidosDeJuego/${id_plataforma}/${cod_juego}/${(pagina-1)*page_size}/${page_size}`,function(data){
         $('#producido').text(data.total);
         $('#tablaProducidos tbody').empty();
@@ -148,6 +149,8 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,after = function(){}){
         });
         $('#previewPage').text(pagina);
         $('#previewTotal').text(Math.ceil(data.count/page_size));
+        if(page_size <= 0) $('#previewTotal').text(1);
+
         after();
 
         setTimeout(function(){
@@ -155,6 +158,7 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,after = function(){}){
         },500);
     });
 }
+
 
 function cambiarPagina(sumar){
     const pag_actual    = parseInt($('#previewPage').text());
@@ -166,7 +170,7 @@ function cambiarPagina(sumar){
 
     const cod_juego     = $('#codigo').text();
     const id_plataforma = $('#selectPlataforma').val();
-    cargarProducidos(id_plataforma,cod_juego,pag_actual+sumar);
+    cargarProducidos(id_plataforma,cod_juego,pag_actual+sumar,default_page_size);
 
     $('#prevPreview').attr('disabled',(pag_actual+sumar) <= 1);
     $('#nextPreview').attr('disabled',(pag_actual+sumar) >= max_pag);
@@ -181,6 +185,11 @@ $('#nextPreview').click(function(e){
     e.preventDefault();
     cambiarPagina(+1);
 });
+
+$('#verTodosProducidos').change(function(e){
+    e.preventDefault();
+    cargarProducidos($('#selectPlataforma').val(),$('#inputJuego').val(),1,$(this).prop('checked')? -1 : default_page_size);
+})
 
 function generarGraficoJuego(fechas, data) {
     Highcharts.chart('graficoSeguimientoProducido', {
