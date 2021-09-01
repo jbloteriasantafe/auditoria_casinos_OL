@@ -137,7 +137,6 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
 
         const fechas = [];
         const producidos = [];
-        const producidos_esperados = [];
         $('#tablaProducidos tbody').empty();
         data.producidos.forEach(function(p) {
             const fila = $('#filaEjemploProducido').clone().removeAttr('id');
@@ -158,8 +157,6 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
 
             fechas.push(p.fecha);
             producidos.push(parseFloat(p.beneficio));
-            const prod_esp = parseFloat(p.apuesta)*(1-pdev);
-            producidos_esperados.push(parseFloat(prod_esp.toFixed(2)));
         });
         $('#previewPage').text(pagina);
         const cantidad = data.total? data.total.cantidad : 0;
@@ -169,7 +166,7 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
         after();
 
         setTimeout(function(){
-            generarGraficoJuego(fechas,producidos,producidos_esperados);
+            generarGraficoJuego(fechas,producidos);
         },500);
     });
 }
@@ -206,7 +203,7 @@ $('#verTodosProducidos').change(function(e){
     cargarProducidos($('#selectPlataforma').val(),$('#inputJuego').val(),1,$(this).prop('checked')? -1 : default_page_size);
 })
 
-function generarGraficoJuego(fechas,producidos,producidos_esperados) {
+function generarGraficoJuego(fechas,producidos) {
     Highcharts.chart('graficoSeguimientoProducido', {
         chart: {
             backgroundColor: "#fff",
@@ -258,11 +255,6 @@ function generarGraficoJuego(fechas,producidos,producidos_esperados) {
                 name: 'Producido diario',
                 data: producidos,
                 color: $('#producido').css('color'),
-            },
-            {
-                name: 'Prod. esp. diario',
-                data: producidos_esperados,
-                color: $('#producidoEsperado').css('color'),
             },
         ]
     });
