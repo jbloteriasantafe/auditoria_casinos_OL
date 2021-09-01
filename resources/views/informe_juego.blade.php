@@ -30,16 +30,13 @@
   }
   #apuesta,#premio,#pdev {
     display: inline;
-    font-size:32px;
   }
   #producido {
     display: inline;
-    font-size:32px;
     color: #00E676;
   }
   #producidoEsperado {
     display: inline;
-    font-size:32px;
     color: #E6C200;
   }
   .filaHistorial {
