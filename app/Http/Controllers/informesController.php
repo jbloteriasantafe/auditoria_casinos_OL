@@ -352,7 +352,7 @@ class informesController extends Controller
 
   public function buscarTodoInformeContable(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Contable Juegos' , 'informeContableJuegos');
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Contable Juegos' , 'informeContableJuego');
     return view('informe_juego', ['plataformas' => $usuario->plataformas]);
   }
 

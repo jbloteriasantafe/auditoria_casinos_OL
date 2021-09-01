@@ -74,6 +74,10 @@
   #tablaProducidos > tbody > tr > td {
     text-align: right;
   }
+  .filaResaltada {
+    font-weight: bold;
+    background-color: lightgreen;
+  }
   </style>
 @endsection
 

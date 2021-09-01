@@ -120,7 +120,7 @@ $('#btn-buscarJuego').click(function(e) {
 });
 
 function cargarProducidos(id_plataforma,cod_juego,pagina,after = function(){}){
-    const page_size = 4;
+    const page_size = 30;
     $.get(`informeContableJuego/obtenerProducidosDeJuego/${id_plataforma}/${cod_juego}/${(pagina-1)*page_size}/${page_size}`,function(data){
         $('#producido').text(data.total);
         $('#tablaProducidos tbody').empty();
@@ -221,16 +221,8 @@ function generarGraficoJuego(fechas, data) {
                 point: {
                     events: {
                         click: function(e) {
-                            //Setear fecha y dinero
-                            $('#fechaEstado').text(this.category);
-                            $('#producidoEstado').text('$ ' + this.y);
-
-                            console.log(this.category, this.y, this.x);
-                            mostrarEstado(this.x);
-
-                            //Scrollear hasta la posición de la información
-                            var pos = $('.detalleEstados:first').offset().top;
-                            $("#modalJuegoContable").animate({ scrollTop: pos }, "slow");
+                            $('#tablaProducidos tbody tr.filaResaltada').removeClass('filaResaltada');
+                            $('#tablaProducidos tbody tr').eq(this.index).addClass('filaResaltada');
                         }
                     }
                 },
