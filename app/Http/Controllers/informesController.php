@@ -330,7 +330,7 @@ class informesController extends Controller
     }
 
     $juegos_faltantes = DB::table('detalle_producido_juego as dp')
-    ->selectRaw('dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,AVG(dp.premio)/AVG(dp.apuesta) as pdev,
+    ->selectRaw('dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
     SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
     SUM(dp.premio_efectivo)    as premio_efectivo,   SUM(dp.premio_bono)   as premio_bono,    SUM(dp.premio) as premio,
     SUM(dp.beneficio_efectivo) as beneficio_efectivo,SUM(dp.beneficio_bono) as beneficio_bono,SUM(dp.beneficio) as beneficio')
@@ -338,7 +338,7 @@ class informesController extends Controller
     ->groupBy('dp.cod_juego')->orderBy('dp.cod_juego');
 
     $total = DB::table('detalle_producido_juego as dp')
-    ->selectRaw('"-TOTAL-" as cod_juego,COUNT(distinct dp.cod_juego) as categoria,AVG(dp.premio)/AVG(dp.apuesta) as pdev,
+    ->selectRaw('"-TOTAL-" as cod_juego,COUNT(distinct dp.cod_juego) as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
     SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
     SUM(dp.premio_efectivo)    as premio_efectivo,   SUM(dp.premio_bono)   as premio_bono,    SUM(dp.premio) as premio,
     SUM(dp.beneficio_efectivo) as beneficio_efectivo,SUM(dp.beneficio_bono) as beneficio_bono,SUM(dp.beneficio) as beneficio')
