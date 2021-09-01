@@ -418,11 +418,11 @@ class informesController extends Controller
 
     if($size > 0) $producidos = $producidos->skip($offset)->take($size);
  
-    $total = (clone $q)->selectRaw('SUM(dp.beneficio) as total')->groupBy('dp.cod_juego')->get()->first();
-    $count = (clone $q)->selectRaw('COUNT(p.fecha) as count')->groupBy('dp.cod_juego')->get()->first();
+    $total = (clone $q)
+    ->selectRaw('COUNT(p.fecha) as cantidad,SUM(dp.apuesta) as apuesta,SUM(dp.premio) as premio,
+    SUM(dp.beneficio) as beneficio,AVG(dp.premio)/AVG(dp.apuesta) as pdev')
+    ->groupBy('dp.cod_juego')->get()->first();
 
-    return ['producidos' => $producidos->get(), 
-    'total' => is_null($total)? 0.0 : $total->total,
-    'count' => is_null($count)? 0 : $count->count];
+    return ['producidos' => $producidos->get(), 'total' => $total];
   }
 }

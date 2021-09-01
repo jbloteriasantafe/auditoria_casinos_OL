@@ -74,6 +74,7 @@ $('#btn-buscarJuego').click(function(e) {
     $('#estado').text('Produciendo (NO EN BD)');
     $('#codigo').text(cod_juego);
     $('#plataforma').text(cod_plat);
+    $('#verTodosProducidos').prop('checked',false);
 
     const cargaprod = function (){
         cargarProducidos(id_plataforma,$('#inputJuego').val(),1,default_page_size,function(){
@@ -127,13 +128,17 @@ $('#btn-buscarJuego').click(function(e) {
 
 function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = function(){}){
     $.get(`informeContableJuego/obtenerProducidosDeJuego/${id_plataforma}/${cod_juego}/${(pagina-1)*page_size}/${page_size}`,function(data){
-        $('#producido').text(data.total);
-        $('#tablaProducidos tbody').empty();
+        $('#apuesta').text(data.total? data.total.apuesta : '-');
+        $('#premio').text(data.total? data.total.premio : '-');
+        $('#producido').text(data.total? data.total.beneficio : '-');
+        $('#pdev').text(data.total? (100*data.total.pdev).toFixed(3) : '-');
+        const pdev = parseFloat($('#devolucion').text())/100;
+        $('#producidoEsperado').text(data.total && !isNaN(pdev)? (data.total.apuesta*(1-pdev)).toFixed(2) : '-');
+
         const fechas = [];
         const producidos = [];
         const producidos_esperados = [];
-        const pdev = parseFloat($('#devolucion').text())/100;
-        let prod_esp_total = 0;
+        $('#tablaProducidos tbody').empty();
         data.producidos.forEach(function(p) {
             const fila = $('#filaEjemploProducido').clone().removeAttr('id');
             fila.find('.fecha').text(p.fecha);
@@ -155,11 +160,10 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
             producidos.push(parseFloat(p.beneficio));
             const prod_esp = parseFloat(p.apuesta)*(1-pdev);
             producidos_esperados.push(parseFloat(prod_esp.toFixed(2)));
-            prod_esp_total+= prod_esp;
         });
-        if(!isNaN(prod_esp_total)) $('#producidoEsperado').text(prod_esp_total.toFixed(2));
         $('#previewPage').text(pagina);
-        $('#previewTotal').text(Math.ceil(data.count/page_size));
+        const cantidad = data.total? 0 : data.total.cantidad;
+        $('#previewTotal').text(Math.ceil(cantidad/page_size));
         if(page_size <= 0) $('#previewTotal').text(1);
 
         after();
