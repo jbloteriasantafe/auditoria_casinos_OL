@@ -136,7 +136,7 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
 
         const fechas = [];
         const producidos = [];
-        $('#tablaProducidos tbody').empty();
+        $('#tablaBodyProducidos tbody').empty();
         data.producidos.forEach(function(p) {
             const fila = $('#filaEjemploProducido').clone().removeAttr('id');
             fila.find('.fecha').text(p.fecha);
@@ -152,7 +152,7 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
             fila.find('.beneficio_efectivo').text(p.beneficio_efectivo);
             fila.find('.beneficio_bono').text(p.beneficio_bono);
             fila.find('.beneficio').text(p.beneficio);
-            $('#tablaProducidos tbody').append(fila);
+            $('#tablaBodyProducidos tbody').append(fila);
 
             fechas.push(p.fecha);
             producidos.push(parseFloat(p.beneficio));
@@ -169,7 +169,8 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
         after();
 
         setTimeout(function(){
-            generarGraficoJuego(fechas,producidos);
+            //Para el grafico lo queremos de orden mas viejo a mas nuevo
+            generarGraficoJuego(fechas.reverse(),producidos.reverse());
         },500);
     });
 }
@@ -243,8 +244,8 @@ function generarGraficoJuego(fechas,producidos) {
                 point: {
                     events: {
                         click: function(e) {
-                            $('#tablaProducidos tbody tr.filaResaltada').removeClass('filaResaltada');
-                            $('#tablaProducidos tbody tr').eq(this.index).addClass('filaResaltada');
+                            $('#tablaBodyProducidos tbody tr.filaResaltada').removeClass('filaResaltada');
+                            $('#tablaBodyProducidos tbody tr').eq(fechas.length - this.index - 1).addClass('filaResaltada').get(0).scrollIntoView();
                         }
                     }
                 },

@@ -74,11 +74,17 @@
     text-align: justify !important;
     text-justify: inter-word !important;
   }
-  #tablaProducidos > thead > tr > th {
-    text-align: center;
+
+  th.fecha,td.fecha,th.moneda,td.moneda,th.jugadores,td.jugadores {
+    width: 7% !important;
   }
-  #tablaProducidos > tbody > tr > td {
+  #tablaHeadProducidos > thead > tr > th {
+    text-align: center;
+    width: 7.9%;
+  }
+  #tablaBodyProducidos > tbody > tr > td {
     text-align: right;
+    width: 7.9%;
   }
   .filaResaltada {
     font-weight: bold;
@@ -214,27 +220,31 @@
                       </div>
                       <button id="nextPreview" type="button" class="btn btn-link col-md-offset-4 col-md-1"><i class="fas fa-arrow-right"></i></button>
                       <div class="col-md-12">
-                        <table id="tablaProducidos" class="table">
+                        <table id="tablaHeadProducidos" class="table" style="margin-bottom: 0px;">
                           <thead>
                             <tr>
-                              <th>FECHA</th>
-                              <th>MONEDA</th>
-                              <th>CATEGORÍA INFORMADA</th>
-                              <th>JUGADORES</th>
-                              <th>APUESTA (Ef)</th>
-                              <th>APUESTA (Bo)</th>
-                              <th>APUESTA</th>
-                              <th>PREMIO (Ef)</th>
-                              <th>PREMIO (Bo)</th>
-                              <th>PREMIO</th>
-                              <th>BENEFICIO (Ef)</th>
-                              <th>BENEFICIO (Bo)</th>
-                              <th>BENEFICIO</th>
+                              <th class="fecha">FECHA</th>
+                              <th class="moneda">MONEDA</th>
+                              <th class="categoria">CATEGORÍA INFORMADA</th>
+                              <th class="jugadores">JUGADORES</th>
+                              <th class="apuesta_efectivo">APUESTA (Ef)</th>
+                              <th class="apuesta_bono">APUESTA (Bo)</th>
+                              <th class="apuesta">APUESTA</th>
+                              <th class="premio_efectivo">PREMIO (Ef)</th>
+                              <th class="premio_bono">PREMIO (Bo)</th>
+                              <th class="premio">PREMIO</th>
+                              <th class="beneficio_efectivo">BENEFICIO (Ef)</th>
+                              <th class="beneficio_bono">BENEFICIO (Bo)</th>
+                              <th class="beneficio">BENEFICIO</th>
                             </tr>
                           </thead>
-                          <tbody>
-                          </tbody>
                         </table>
+                        <div style="max-height: 300px;overflow-y: scroll;">
+                          <table id="tablaBodyProducidos" class="table" > 
+                            <tbody>
+                            </tbody>
+                          </table>
+                        </div>
                         <table hidden>
                           <tr id="filaEjemploProducido">
                             <td class="fecha" style="text-align: center;">9999-88-77</td>
