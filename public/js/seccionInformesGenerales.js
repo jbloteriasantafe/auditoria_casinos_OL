@@ -134,10 +134,11 @@ function generarGraficoBarras(div,titulo,valores,nombrey,nombrex,labels){//viene
     },
     plotOptions: {
       column: {
-          stacking: 'normal',
-          dataLabels: {
-              enabled: true
-          }
+        stacking: 'normal',
+        dataLabels: {
+            enabled: true,
+            formatter: function(){return format$(this.y);}
+        },
       }
     },
     title: { 
