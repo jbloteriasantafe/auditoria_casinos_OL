@@ -546,6 +546,13 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                   <span>Juegos</span>
                                 </div>
                               </li>
+                              <li>
+                                <div id="opcInformesGenerales" class="opcionesHover" 
+                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesGenerales'" href="#" style="cursor: pointer;"
+                                >
+                                  <span>Generales</span>
+                                </div>
+                              </li>
                             </ul>
                         </li>
                         @endif

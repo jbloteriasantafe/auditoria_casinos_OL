@@ -462,4 +462,13 @@ class informesController extends Controller
 
     return ['producidos' => $producidos->get(), 'total' => $total];
   }
+
+  public function informesGenerales(){
+    $beneficios_mensuales = DB::table('beneficio_mensual as bm')
+    ->selectRaw('p.nombre as plataforma,YEAR(fecha) as año, MONTH(fecha) as mes, beneficio')
+    ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
+    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')->orderBy('fecha','asc')
+    ->get();
+    return view('seccionInformesGenerales',['beneficios_mensuales' => $beneficios_mensuales,]);
+  }
 }

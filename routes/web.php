@@ -243,6 +243,10 @@ Route::group(['prefix' => 'informesJuegos'],function(){
   Route::get('/informeCompleto/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@informeCompleto');
 });
 
+Route::group(['prefix' => 'informesGenerales'],function(){
+  Route::get('/','informesController@informesGenerales');
+});
+
 /*calendario*/
 Route::get('calendario_eventos',function(){
     return view('calendar');
