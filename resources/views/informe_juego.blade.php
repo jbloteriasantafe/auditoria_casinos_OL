@@ -136,42 +136,42 @@
                     <div class="row" style="padding-bottom:12px;">
                         <div class="col-md-3" style="text-align:center; border-right: 1px solid #ccc;">
                             <span id="codigo" class="infoResaltada">CODIGO</span>
-                            <img src="/img/logos/tragaperras_blue.png" alt="" width="140px;" style="position:relative;left:10px;top:-14px;">
+                            <img src="/img/logos/tragaperras_blue.png" alt="" width="90px;" style="position:relative;left:10px;top:-14px;">
                             <span id="proveedor" class="infoResaltada">PROVEEDOR</span>
                             <span id="tipo" class="infoResaltada">ESCRITORIO/MÓVIL</span>
                         </div>
                         <div class="col-md-9" style="text-align:center;">
-                            <div class="row" style="padding-top:10px;padding-bottom:10px;border-bottom: 1px solid #ccc;">
-                              <div class="col-md-4">
-                                <h5>PLATAFORMA</h5>
-                                <span id="plataforma" class="infoResaltada">PLATAFORMA</span>
-                              </div>
-                              <div class="col-md-4">
-                                <h5>ESTADO</h5>
-                                <span id="estado" class="infoResaltada">ESTADO</span>
-                              </div>
-                              <div class="col-md-4">
-                                <h5>CATEGORÍA</h5>
-                                <span id="categoria" class="infoResaltada">CATEGORÍA</span>
-                              </div>
+                          <div class="row">
+                            <div class="col-md-4">
+                              <h5>PLATAFORMA</h5>
+                              <span id="plataforma" class="infoResaltada">PLATAFORMA</span>
                             </div>
-                            <div class="row" style="padding-top:20px;">
-                              <div class="col-md-4">
-                                  <h5>DENOMINACIÓN</h5>
-                                  <span id="denominacion" class="infoResaltada">DENOMINACIÓN</span>
-                              </div>
-                              <div class="col-md-4">
-                                  <h5>MONEDA</h5>
-                                  <span id="moneda" class="infoResaltada">MONEDA</span>
-                              </div>
-                              <div class="col-md-4">
-                                  <h5>% DEVOLUCIÓN</h5>
-                                  <span id="devolucion" class="infoResaltada">PDEV%</span>
-                              </div>
+                            <div class="col-md-4">
+                              <h5>ESTADO</h5>
+                              <span id="estado" class="infoResaltada">ESTADO</span>
                             </div>
+                            <div class="col-md-4">
+                              <h5>CATEGORÍA</h5>
+                              <span id="categoria" class="infoResaltada">CATEGORÍA</span>
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row">
+                            <div class="col-md-4">
+                                <h5>DENOMINACIÓN</h5>
+                                <span id="denominacion" class="infoResaltada">DENOMINACIÓN</span>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>MONEDA</h5>
+                                <span id="moneda" class="infoResaltada">MONEDA</span>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>% DEVOLUCIÓN</h5>
+                                <span id="devolucion" class="infoResaltada">PDEV%</span>
+                            </div>
+                          </div>
                         </div>
                     </div>
-
                     <div class="row" style="border-top: 1px solid #ddd;padding:10px 0px 15px 0px;">
                       <div class="col-md-12" style="text-align:center; border-right: 1px solid #ccc;">
                         <div class="row">
@@ -183,8 +183,8 @@
                               <h5>PREMIO TOTAL</h5>
                               <span id="premio" class="infoResaltada">99999</span>
                             </div>
-                            <div class="col-md-2">
-                              <h5>BENEF. TOTAL</h5>
+                            <div class="col-md-3">
+                              <h5>BENEFICIO TOTAL</h5>
                               <span id="producido" class="infoResaltada">99999</span>
                             </div>
                             <div class="col-md-2">
@@ -192,7 +192,7 @@
                               <span id="pdev" class="infoResaltada">99.999</span>
                             </div>
                             <div class="col-md-3">
-                              <h5>BENEF. (esp.)</h5>
+                              <h5>BENEFICIO ESPERADO</h5>
                               <span id="producidoEsperado" class="infoResaltada">99999</span>
                             </div>
                             <div class="col-md-12">
