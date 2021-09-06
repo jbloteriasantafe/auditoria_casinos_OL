@@ -377,6 +377,7 @@ class informesController extends Controller
     ->select('j.id_juego as id','j.cod_juego as codigo')
     ->join('juego as j','j.id_juego','=','pj.id_juego')
     ->whereIn('pj.id_plataforma',$plats)
+    ->whereNull('j.deleted_at')
     ->where('j.cod_juego','LIKE',$cod_juego.'%')->orderBy('codigo','asc');
 
     if($id_plataforma != "0") $j = $j->where('pj.id_plataforma',$id_plataforma);
