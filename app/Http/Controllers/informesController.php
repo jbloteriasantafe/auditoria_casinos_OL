@@ -389,12 +389,7 @@ class informesController extends Controller
     ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
     ->where('pj.id_juego',$id_juego)->get();
 
-    $historial = DB::table('log_juego')
-    ->selectRaw('fecha,json->>"$.motivo" as motivo')
-    ->where('id_juego',$id_juego)
-    ->orderBy('fecha','desc')->get();
-
-    return ['juego' => $juego, 'categoria' => $juego->categoria_juego, 'moneda' => $juego->tipo_moneda, 'estados' => $estados, 'historial' => $historial];
+    return ['juego' => $juego, 'categoria' => $juego->categoria_juego, 'moneda' => $juego->tipo_moneda, 'estados' => $estados];
   }
 
   public function obtenerProducidosDeJuego($id_plataforma,$cod_juego,$offset=0,$size=30){

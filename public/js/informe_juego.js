@@ -111,15 +111,6 @@ $('#btn-buscarJuego').click(function(e) {
             }
         }
 
-        if (data.historial.length) {
-            data.historial.forEach(h =>{
-                const fila = $('#hist').clone().addClass('clonado').show();
-                fila.find('.fecha').text(limpiarNull(h.fecha));
-                fila.find('.motivo').empty().append((h.motivo == "null"? "" : h.motivo).split('\n').join('<br />'));
-                $('#listaHistorial').append(fila);
-            });
-        }
-
         cargaprod();
         return;
     });
@@ -227,7 +218,8 @@ function generarGraficoJuego(fechas,producidos) {
             tickmarkPlacement: 'on',
             title: {
                 enabled: false
-            }
+            },
+            visible: false,
         },
         yAxis: {
             title: {

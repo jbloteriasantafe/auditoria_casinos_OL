@@ -173,41 +173,33 @@
                     </div>
 
                     <div class="row" style="border-top: 1px solid #ddd;padding:10px 0px 15px 0px;">
-                        <div class="col-md-9" style="text-align:center; border-right: 1px solid #ccc;">
-                          <div class="row">
-                              <div class="col-md-2">
-                                <h5>APUESTA TOTAL</h5>
-                                <span id="apuesta" class="infoResaltada">9999</span>
-                              </div>
-                              <div class="col-md-2">
-                                <h5>PREMIO TOTAL</h5>
-                                <span id="premio" class="infoResaltada">99999</span>
-                              </div>
-                              <div class="col-md-2">
-                                <h5>BENEF. TOTAL</h5>
-                                <span id="producido" class="infoResaltada">99999</span>
-                              </div>
-                              <div class="col-md-2">
-                                <h5>% DEV</h5>
-                                <span id="pdev" class="infoResaltada">99.999</span>
-                              </div>
-                              <div class="col-md-3">
-                                <h5>BENEF. (esp.)</h5>
-                                <span id="producidoEsperado" class="infoResaltada">99999</span>
-                              </div>
-                              <div class="col-md-12">
-                                  <div id="graficoSeguimientoProducido"></div>
-                              </div>
-                          </div>
-                        </div>
-                        <h5 style="text-align: center;">HISTORIAL</h5>
-                        <div id="listaHistorial" class="col-md-3" style="text-align:left;height: 250px;overflow-y: scroll;">
-                            <div id="hist" class="filaHistorial" hidden>
-                                <div class="circuloTiempo"></div>
-                                <span class="fecha">88-ABC-9999</span>
-                                <span class="motivo infoResaltada">RAZÓN CAMBIO</span>
+                      <div class="col-md-12" style="text-align:center; border-right: 1px solid #ccc;">
+                        <div class="row">
+                            <div class="col-md-2">
+                              <h5>APUESTA TOTAL</h5>
+                              <span id="apuesta" class="infoResaltada">9999</span>
+                            </div>
+                            <div class="col-md-2">
+                              <h5>PREMIO TOTAL</h5>
+                              <span id="premio" class="infoResaltada">99999</span>
+                            </div>
+                            <div class="col-md-2">
+                              <h5>BENEF. TOTAL</h5>
+                              <span id="producido" class="infoResaltada">99999</span>
+                            </div>
+                            <div class="col-md-2">
+                              <h5>% DEV</h5>
+                              <span id="pdev" class="infoResaltada">99.999</span>
+                            </div>
+                            <div class="col-md-3">
+                              <h5>BENEF. (esp.)</h5>
+                              <span id="producidoEsperado" class="infoResaltada">99999</span>
+                            </div>
+                            <div class="col-md-12">
+                                <div id="graficoSeguimientoProducido"></div>
                             </div>
                         </div>
+                      </div>
                     </div>
                     <div class="row">
                       <button id="prevPreview" type="button" class="btn btn-link col-md-1" disabled="disabled"><i class="fas fa-arrow-left"></i></button>
