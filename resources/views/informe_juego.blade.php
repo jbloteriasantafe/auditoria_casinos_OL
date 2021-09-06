@@ -10,9 +10,9 @@
     margin-bottom: 0px;
   }
   .infoResaltada {
-  padding-left: 12px;
-  font-family:Roboto-Condensed;
-  display:block;
+    padding-left: 12px;
+    font-family:Roboto-Condensed;
+    display:block;
   }
   #codigo {
     font-size: 40px;
@@ -98,23 +98,25 @@
     <div class="row">
         <div class="col-md-12">
             <div class="panel panel-default" style="height:650px; padding-top:100px;">
-                <div class="panel-heading" style="text-align:center;">
-                    <h4>¿QUÉ JUEGO DESEA VER?</h4>
-                </div>
                 <div class="panel-body" style="text-align:center;">
                     <img src="/img/logos/tragaperras.png" alt="" width="250px" style="margin-bottom:40px; margin-top:20px;">
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
                           <select id="selectPlataforma" class="form-control" name="">
-                              <option value="" style="text-align: center;">- Seleccione la plataforma -</option>
-                              @foreach($plataformas as $p)
-                              <option value="{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}" style="text-align: center;">{{$p->nombre}}</option>
-                              @endforeach
+                            <option value="" style="text-align: center;">- Seleccione la plataforma -</option>
+                            @foreach($plataformas as $p)
+                            <option value="{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}" style="text-align: center;">{{$p->nombre}}</option>
+                            @endforeach
                           </select>
                           <br>
-                          <input id="inputJuego" class="form-control" type="text" placeholder="CÓDIGO DEL JUEGO" style="text-align: center;" disabled>
+                          <select id="selectTipoCodigo" class="form-control">
+                            <option value="juego" style="text-align: center;">JUEGO</option>
+                            <option value="jugador" style="text-align: center;">JUGADOR</option>
+                          </select>
                           <br>
-                          <button id="btn-buscarJuego" class="btn btn-infoBuscar" type="button" style="width:100%;">VER DETALLES</button>
+                          <input id="inputCodigo" class="form-control" type="text" placeholder="CÓDIGO" style="text-align: center;" disabled>
+                          <br>
+                          <button id="btn-verDetalles" class="btn btn-infoBuscar" type="button" style="width:100%;">VER DETALLES</button>
                         </div>
                     </div>
                     <br>
@@ -129,7 +131,7 @@
                   <div class="modal-header" style="background:#304FFE;">
                       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                       <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                      <h3 class="modal-title" style="color: #fff; text-align:center">DETALLES CONTABLES DEL JUEGO</h3>
+                      <h3 class="modal-title" style="color: #fff; text-align:center">DETALLES CONTABLES</h3>
                   </div>
                 <div id="colapsado" class="collapse in">
                   <div class="modal-body" style="height: 750px;overflow-y: scroll;">
@@ -217,8 +219,9 @@
                             <tr>
                               <th class="fecha">FECHA</th>
                               <th class="moneda">MONEDA</th>
-                              <th class="categoria">CATEGORÍA INFORMADA</th>
-                              <th class="jugadores">JUGADORES</th>
+                              <th class="categoria de_juego">CATEGORÍA INFORMADA</th>
+                              <th class="jugadores de_juego">JUGADORES</th>
+                              <th class="jugadores de_jugador">JUGADORES</th>
                               <th class="apuesta_efectivo">APUESTA (Ef)</th>
                               <th class="apuesta_bono">APUESTA (Bo)</th>
                               <th class="apuesta">APUESTA</th>
@@ -241,8 +244,9 @@
                           <tr id="filaEjemploProducido">
                             <td class="fecha" style="text-align: center;">9999-88-77</td>
                             <td class="moneda" style="text-align: center;">MON</td>
-                            <td class="categoria" style="text-align: center;">CATEGORIA</td>
-                            <td class="jugadores" style="text-align: center;">987</td>
+                            <td class="categoria de_juego" style="text-align: center;">CATEGORIA</td>
+                            <td class="jugadores de_juego" style="text-align: center;">987</td>
+                            <td class="juegos de_jugador" style="text-align: center;">9999</td>
                             <td class="apuesta_efectivo">123</td>
                             <td class="apuesta_bono">456</td>
                             <td class="apuesta">789</td>
@@ -267,12 +271,12 @@
 
 <!-- Comienza modal de ayuda -->
 @section('tituloDeAyuda')
-<h3 class="modal-title" style="color: #fff;">| INFORME DE JUEGO</h3>
+<h3 class="modal-title" style="color: #fff;">| INFORME CONTABLE</h3>
 @endsection
 @section('contenidoAyuda')
 <div class="col-md-12">
   <p>
-      Detalle de información contable de un juego. Son visibles los datos caracteristicos, estado y sus últimos movimientos.
+      Detalle de información contable de un juego o un jugador. Son visibles los datos caracteristicos, estado y sus últimos movimientos.
   </p>
 </div>
 @endsection

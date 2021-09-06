@@ -373,7 +373,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                       <div id="opcInformesContableJuego" class="opcionesHover" 
                                       onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeContableJuego'" href="#" style="cursor: pointer;"
                                       >
-                                        <span>Juegos</span>
+                                        <span>Juegos/Jugadores</span>
                                       </div>
                                     </li>
                                   @endif

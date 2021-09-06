@@ -7,7 +7,7 @@ $(document).ready(function() {
     $('#informesJuegos').removeClass();
     $('#informesJuegos').addClass('subMenu2 collapse in');
 
-    $('.tituloSeccionPantalla').text('Informe de Juego');
+    $('.tituloSeccionPantalla').text('Informe Contable');
     $('#gestionarJuegos').attr('style', 'border-left: 6px solid #3F51B5;');
     $('#opcInformesContableJuego').attr('style', 'border-left: 6px solid #25306b; background-color: #131836;');
     $('#opcInformesContableJuego').addClass('opcionesSeleccionado');
@@ -28,34 +28,44 @@ $('#selectPlataforma').change(function(e) {
     const id_plat = $(this).val();
 
     if (id_plat != "") {
-        $('#inputJuego').borrarDataList();
-        $('#inputJuego').generarDataList("informeContableJuego/obtenerJuegoPlataforma/" + id_plat, 'juegos', 'id_juego', 'cod_juego', 1);
-        $('#inputJuego').setearElementoSeleccionado(0, '');
-        $('#btn-buscarJuego').prop('disabled', false);
-        $('#inputJuego').prop('disabled', false);
+        $('#inputCodigo').borrarDataList();
+
+        let url = 'informeContableJuego/';
+        const tipo = $('#selectTipoCodigo').val(); 
+        if(tipo == 'juego') url += 'obtenerJuegoPlataforma/';
+        else if(tipo == 'jugador') url += 'obtenerJugadorPlataforma/';
+
+        $('#inputCodigo').generarDataList(url + id_plat, 'busqueda', 'id', 'codigo', 1);
+        $('#inputCodigo').setearElementoSeleccionado(0, '');
+        $('#btn-verDetalles').prop('disabled', false);
+        $('#inputCodigo').prop('disabled', false);
     } else {
-        $('#btn-buscarJuego').prop('disabled', true);
-        $('#inputJuego').prop('disabled', true);
+        $('#btn-verDetalles').prop('disabled', true);
+        $('#inputCodigo').prop('disabled', true);
     }
-    $('#inputJuego').change();
+    $('#inputCodigo').change();
 });
 
-$('#inputJuego').change(function(e){
+$('#selectTipoCodigo').change(function(e){
+    e.preventDefault();
+    $('#selectPlataforma').change();
+})
+
+$('#inputCodigo').change(function(e){
     e.preventDefault();
     habilitarBotonDetalle($(this).obtenerElementoSeleccionado() != 0)
 });
 
-/* CONTROLAR SELECCIÓN DE MÁQUINA */
-$('#inputJuego').on('seleccionado', function() {
+$('#inputCodigo').on('seleccionado', function() {
     habilitarBotonDetalle(true);
 });
 
-$('#inputJuego').on('deseleccionado', function() {
+$('#inputCodigo').on('deseleccionado', function() {
     habilitarBotonDetalle(false);
 });
 
 function habilitarBotonDetalle(valor) {
-    $('#btn-buscarJuego').prop('disabled', !valor);
+    $('#btn-verDetalles').prop('disabled', !valor);
 }
 
 function limpiarNull(str, c = '-') {
@@ -64,29 +74,7 @@ function limpiarNull(str, c = '-') {
 
 const default_page_size = 30;
 
-$('#btn-buscarJuego').click(function(e) {
-    const id_juego = $('#inputJuego').obtenerElementoSeleccionado();
-    const cod_juego = $('#inputJuego').val();
-    const id_plataforma = $('#selectPlataforma').val();
-    const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
-    $('.clonado').remove();
-    $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#tipo,#producidoEsperado').text('-');
-    $('#estado').text('Produciendo (NO EN BD)');
-    $('#codigo').text(cod_juego);
-    $('#plataforma').text(cod_plat);
-    $('#verTodosProducidos').prop('checked',false);
-
-    const cargaprod = function (){
-        cargarProducidos(id_plataforma,$('#inputJuego').val(),1,default_page_size,function(){
-            $('#modalJuegoContable').modal('show');
-        });
-    }
-
-    if(id_juego == -1){
-        cargaprod();
-        return;
-    }
-
+function verJuego(id_juego,id_plataforma){
     $.get("informeContableJuego/obtenerInformeDeJuego/" + id_juego, function(data) {
         $('#codigo').text(limpiarNull(data.juego.cod_juego));
         $('#proveedor').text(limpiarNull(data.juego.proveedor));
@@ -111,13 +99,50 @@ $('#btn-buscarJuego').click(function(e) {
             }
         }
 
-        cargaprod();
-        return;
+        $('#modalJuegoContable').modal('show');
     });
+}
+
+$('#btn-verDetalles').click(function(e) {
+    $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#tipo,#producidoEsperado').text('-');
+    const codigo = $('#inputCodigo').val();
+    $('#codigo').text(codigo);
+    const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
+    $('#plataforma').text(cod_plat);
+    $('#verTodosProducidos').prop('checked',false);
+
+    const id_plataforma = $('#selectPlataforma').val();
+    const tipo = $('#selectTipoCodigo').val(); 
+    if(tipo == 'juego'){
+        $('.de_juego').show();
+        $('.de_jugador').hide();
+        $('#estado').text('Produciendo (NO EN BD)');
+        const id_juego = $('#inputCodigo').obtenerElementoSeleccionado();
+        cargarProducidos(id_plataforma,codigo,1,default_page_size,function(){
+            if(id_juego == -1){
+                $('#modalJuegoContable').modal('show');
+                return;
+            }
+            verJuego(id_juego,id_plataforma);
+        });
+    }
+    else if(tipo == 'jugador'){
+        $('.de_juego').hide();
+        $('.de_jugador').show();
+        $('#estado').text('-');
+        cargarProducidos(id_plataforma,codigo,1,default_page_size,function(){
+            $('#modalJuegoContable').modal('show');
+        });
+    }
 });
 
-function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = function(){}){
-    $.get(`informeContableJuego/obtenerProducidosDeJuego/${id_plataforma}/${cod_juego}/${(pagina-1)*page_size}/${page_size}`,function(data){
+function cargarProducidos(id_plataforma,codigo,pagina,page_size,after = function(){}){
+    let url = 'informeContableJuego/';
+    const tipo = $('#selectTipoCodigo').val(); 
+    if(tipo == 'juego') url += 'obtenerProducidosDeJuego';
+    else if(tipo == 'jugador') url += 'obtenerProducidosDeJugador';
+
+    $.get(`${url}/${id_plataforma}/${codigo}/${(pagina-1)*page_size}/${page_size}`,function(data){
         $('#apuesta').text(data.total? data.total.apuesta : '-');
         $('#premio').text(data.total? data.total.premio : '-');
         $('#producido').text(data.total? data.total.beneficio : '-');
@@ -134,6 +159,7 @@ function cargarProducidos(id_plataforma,cod_juego,pagina,page_size,after = funct
             fila.find('.moneda').text(p.moneda);
             fila.find('.categoria').text(p.categoria);
             fila.find('.jugadores').text(p.jugadores);
+            fila.find('.juegos').text(p.juegos);
             fila.find('.apuesta_efectivo').text(p.apuesta_efectivo);
             fila.find('.apuesta_bono').text(p.apuesta_bono);
             fila.find('.apuesta').text(p.apuesta);
@@ -193,7 +219,7 @@ $('#nextPreview').click(function(e){
 $('#verTodosProducidos').change(function(e){
     e.preventDefault();
     const checked = $(this).prop('checked');
-    cargarProducidos($('#selectPlataforma').val(),$('#inputJuego').val(),1,checked? -1 : default_page_size);
+    cargarProducidos($('#selectPlataforma').val(),$('#inputCodigo').val(),1,checked? -1 : default_page_size);
 })
 
 function generarGraficoJuego(fechas,producidos) {
