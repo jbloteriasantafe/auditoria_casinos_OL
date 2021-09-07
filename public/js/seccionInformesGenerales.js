@@ -38,7 +38,7 @@ $(document).ready(function(){
       const op = $(`#estadoDia option[value="${dateToIso(dia)}"]`);
       if(op.length == 0) return celda;
       const estado = parseFloat(op.text());
-      const color = lerpColor(estado,[255.,255.,255.],[0.,255.,0.]);
+      const color = lerpColor(estado,[255.,255.,255.],[0.,180.,180.]);
       return celda.css('background-color','rgb('+color.join(',')+')').attr('title',(estado*100)+'%');
     }
   );
