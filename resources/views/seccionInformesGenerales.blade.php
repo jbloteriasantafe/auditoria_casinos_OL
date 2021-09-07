@@ -78,7 +78,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
 <datalist id="estadoDia">
   @foreach($estado_dia as $d => $e)
-  <option value="{{$d}}">{{$e}}</option>
+  <option fecha="{{$d}}"
+    @foreach($e as $attr => $val)
+    data-{{$attr}}="{{$val}}"
+    @endforeach
+  >{{$e['TOTAL']}}</option>
   @endforeach
 </datalist>
 

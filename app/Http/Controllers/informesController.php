@@ -476,34 +476,32 @@ class informesController extends Controller
       $fecha_mas_vieja_pj = DB::table('producido_jugadores')->select('fecha')->orderBy('fecha','asc')->take(1)->pluck('fecha')->first();
       $f = min($fecha_mas_vieja_b?: date('Y-m-d'),$fecha_mas_vieja_p?: date('Y-m-d'),$fecha_mas_vieja_pj?: date('Y-m-d'));
       $fecha_actual = date('Y-m-d');
-      $plat_count = DB::table('plataforma')->count();
-      function estado_dia($f){
-        $ret = DB::table('producido')
+      function estado_dia($f){//@HACK: generalizar a multiples monedas si alguna vez se utiliza otra que no sea pesos
+        $plat_count = DB::table('plataforma')->count();
+        $p = DB::table('producido')
         ->join('plataforma as plat','plat.id_plataforma','=','producido.id_plataforma')
         ->where('fecha',date('Y-m-d',strtotime($f)))
-        ->where('id_tipo_moneda',1)//@HACK: generalizar a multiples monedas
-        ->count();
-        $ret += DB::table('beneficio')
+        ->where('id_tipo_moneda',1)
+        ->count()/$plat_count;
+        $pj = DB::table('producido_jugadores')
+        ->join('plataforma as plat','plat.id_plataforma','=','producido_jugadores.id_plataforma')
+        ->where('fecha',date('Y-m-d',strtotime($f)))
+        ->where('id_tipo_moneda',1)
+        ->count()/$plat_count;
+        $b = DB::table('beneficio')
         ->join('beneficio_mensual','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
         ->join('plataforma as plat','plat.id_plataforma','=','beneficio_mensual.id_plataforma')
         ->where('beneficio.fecha',date('Y-m-d',strtotime($f)))
-        ->where('id_tipo_moneda',1)//@HACK: generalizar a multiples monedas
-        ->count();
-        return $ret;
+        ->where('id_tipo_moneda',1)
+        ->count()/$plat_count;
+        return ['CONTROL-JUEGOS' => $p,'CONTROL-JUGADORES' => $pj,
+                'BENEFICIOS' => $b    ,'TOTAL' => ($p+$pj+$b)/3];
       }
       while($f != $fecha_actual){
-        //0 -> NADA subido
-        //+1 por producido subido y +1 por beneficio subido
-        //Lo normalizo dividiendo por (plats*2) porque son 2 archivos (producido y beneficio)
-        //1.0 -> Todo subido
         $estado_dia[$f] = estado_dia($f);
-        $estado_dia[$f] /= $plat_count*2; 
         $f = date('Y-m-d',strtotime($f.' +1 day'));
       }
-      $estado_dia[$f] = DB::table('producido as prod')
-      ->join('plataforma as plat','plat.id_plataforma','=','prod.id_plataforma')
-      ->where('fecha',date('Y-m-d',strtotime($f)))
-      ->count();
+      $estado_dia[$f] = estado_dia($f);
     }
     return view('seccionInformesGenerales',['beneficios_mensuales' => $beneficios_mensuales,'estado_dia' => $estado_dia]);
   }

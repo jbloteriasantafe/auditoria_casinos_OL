@@ -32,18 +32,28 @@ $(document).ready(function(){
   generarGraficoTorta('#divBeneficiosMensuales','BENEFICIOS TOTALES (ULTIMO AÑO)',total_por_plataforma);
   generarGraficoBarras('#divBeneficiosMensualesEnMeses','BENEFICIOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Pesos','Mes',Object.keys(añomeses));
   generarCalendario('#divCalendarioActividadesCompletadas','ESTADO AUDITORIA DIARIO',
-    $('#estadoDia option').first().val(),
-    $('#estadoDia option').last().val(),
+    $('#estadoDia option').first().attr('fecha'),
+    $('#estadoDia option').last().attr('fecha'),
     function(dia,celda){
-      const op = $(`#estadoDia option[value="${dateToIso(dia)}"]`);
+      const op = $(`#estadoDia option[fecha="${dateToIso(dia)}"]`);
       if(op.length == 0) return celda;
       const estado = parseFloat(op.text());
       const color = lerpColor(estado,[255.,255.,255.],[0.,180.,180.]);
-      return celda.css('background-color','rgb('+color.join(',')+')').attr('title',(estado*100)+'%');
+      const title = [];
+      for(let idx=0;idx<op[0].attributes.length;idx++){
+        const attr = op[0].attributes[idx];
+        if(attr.name.substr(0,5)=='data-'){
+          title.push(attr.name.substr(5).toUpperCase()+': '+toPje(attr.nodeValue))
+        }
+      }
+      return celda.css('background-color','rgb('+color.join(',')+')').attr('title',title.join(' | '));
     }
   );
 });
 
+function toPje(s){
+  return Math.round(parseFloat(s)*10000)/100+'%';
+}
 function format(f){
   return Highcharts.numberFormat(f,2,',','.');
 }
