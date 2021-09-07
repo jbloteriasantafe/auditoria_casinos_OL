@@ -1,7 +1,4 @@
 
-function concatAñomes(año,mes){
-  return año+(mes < 10? '-0' : '-') + mes;
-}
 
 $(document).ready(function(){
   $('#barraInformes').attr('aria-expanded','true');
@@ -28,12 +25,23 @@ $(document).ready(function(){
 
     const año = op.attr('data-año');
     const mes = op.attr('data-mes');
-    const añomes = concatAñomes(año,mes);
+    const añomes = año_mes(año,mes);
     total_por_plataforma_por_mes[plat][añomes] = beneficio;    
     añomeses[añomes] = 1;//Evito duplicados agregandolo en un diccionario
   });
   generarGraficoTorta('#divBeneficiosMensuales','BENEFICIOS TOTALES (ULTIMO AÑO)',total_por_plataforma);
-  generarGraficoBarras('#divBeneficiosMensualesEnMeses','BENEFICIOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Pesos','Año-mes',Object.keys(añomeses));
+  generarGraficoBarras('#divBeneficiosMensualesEnMeses','BENEFICIOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Pesos','Mes',Object.keys(añomeses));
+  generarCalendario('#divCalendarioActividadesCompletadas','ESTADO AUDITORIA DIARIO',
+    $('#estadoDia option').first().val(),
+    $('#estadoDia option').last().val(),
+    function(dia,celda){
+      const op = $(`#estadoDia option[value="${dateToIso(dia)}"]`);
+      if(op.length == 0) return celda;
+      const estado = parseFloat(op.text());
+      const color = lerpColor(estado,[255.,255.,255.],[0.,255.,0.]);
+      return celda.css('background-color','rgb('+color.join(',')+')').attr('title',(estado*100)+'%');
+    }
+  );
 });
 
 function format(f){
@@ -156,4 +164,60 @@ function generarGraficoBarras(div,titulo,valores,nombrey,nombrex,labels){//viene
       categories: labels,
     },
   });
+}
+
+function isoToDate(f){
+  return new Date(f+'T00:00:00');
+}
+function dateToIso(f){
+  const y = f.getFullYear();
+  const m = f.getMonth()+1;
+  const d = f.getDate();
+  return y+(m<10?'-0':'-')+m+(d<10?'-0':'-')+d;
+}
+function lerpF(t,x0,x1){//(t=0,x0),(t=1,x1)
+  return (1-t)*x0+t*x1;
+}
+function lerpColor(t,c0,c1){
+  return [lerpF(t,c0[0],c1[0]),lerpF(t,c0[1],c1[1]),lerpF(t,c0[2],c1[2])]
+}
+
+function generarCalendario(div,titulo,desde,hasta,estado_dia = function(dia,celda){return celda}){
+  let d   = isoToDate(desde);
+  const h = isoToDate(hasta);
+  const dias_por_mes = {};
+  while(d.getTime() < h.getTime()){
+    const mes = año_mes(d.getFullYear(),d.getMonth()+1);
+    if(!(mes in dias_por_mes)) dias_por_mes[mes] = [];
+    dias_por_mes[mes].push(new Date(d));
+    d.setDate(d.getDate()+1);
+  }
+  $(div).append($('<div>').addClass('titulo_ala_highchart').text(titulo));
+  const contenido = $('<div>').addClass('row contenido').css('overflow-y','scroll').css('max-height','300px');
+  for(const mes in dias_por_mes){
+    const tabla = $('#moldeMes').clone().removeAttr('id').css('display','inline-block').css('float','left');
+    tabla.find('.mesTitulo').text(mes);
+    const dias = dias_por_mes[mes];
+    for(const didx in dias){
+      const dia = dias[didx];
+      const d = dia.getDate();
+      const celda = estado_dia(dia,$('<div>').addClass('celda').text(d));
+      tabla.append(celda);
+    }
+    {//Completo 31 celdas si el mes esta incompleto
+      const dias_agregados = tabla.find('div').not('.mesTitulo').length;
+      if(dias_agregados < 31){
+        for(let i=0;i<(31-dias_agregados);i++){
+          tabla.append($('<div>').addClass('celda').append('&nbsp;'));
+        }
+      }
+    }
+    contenido.append(tabla);
+  }
+  $(div).append(contenido);
+}
+
+function año_mes(año,mes){
+  const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DEC'];
+  return meses[mes-1]+' '+año;
 }
