@@ -36,31 +36,40 @@ $(document).ready(function(){
     generarLeyendaCalendario,setearCeldaCalendario);
 });
 
-//Uso YUV porque se puede interpolar de "frio" a "caliente" mas facil
-const lowColor_YUV  = [0.7,-0.5,0.5];
-const highColor_YUV = [0.7,0.5,-0.5];
+function color_func(t){
+  //Uso YUV porque se puede interpolar de "frio" a "caliente" mas facil
+  const lowColor_YUV  = [0.7,-0.2,0.2];
+  const highColor_YUV = [0.7,-0.2,-0.2];
+  function lerpColor(t,c0,c1){
+    function lerpF(t,x0,x1){//(t=0,x0),(t=1,x1)
+      return (1-t)*x0+t*x1;
+    }
+    return [lerpF(t,c0[0],c1[0]),lerpF(t,c0[1],c1[1]),lerpF(t,c0[2],c1[2])]
+  }  
+  const c = lerpColor(t,lowColor_YUV,highColor_YUV);
 
-function YUVtoRGB(yuv){
-  const Wr = 0.299;
-  const Wb = 0.114;
-  const Wg = 1 - Wr - Wb;
-  const Umax = 0.436;
-  const Vmax = 0.615;
-  const Y = yuv[0];
-  const U = yuv[1];
-  const V = yuv[2];
-  const r = Y + V*(1-Wr)/Vmax;
-  const g = Y - U*Wb*(1-Wb)/(Umax*Wg) - V*Wr*(1-Wr)/(Vmax*Wg);
-  const b = Y + U*(1-Wb)/Umax;
-  return [256*r,256*g,256*b];
+  function YUVtoRGB(yuv){
+    const Wr = 0.299;
+    const Wb = 0.114;
+    const Wg = 1 - Wr - Wb;
+    const Umax = 0.436;
+    const Vmax = 0.615;
+    const Y = yuv[0];
+    const U = yuv[1];
+    const V = yuv[2];
+    const r = Y + V*(1-Wr)/Vmax;
+    const g = Y - U*Wb*(1-Wb)/(Umax*Wg) - V*Wr*(1-Wr)/(Vmax*Wg);
+    const b = Y + U*(1-Wb)/Umax;
+    return [r,g,b];
+  }
+  return YUVtoRGB([256*(c[0]),256*(c[1]),256*(c[2])]);
 }
 
 function setearCeldaCalendario(dia,celda){
   const op = $(`#estadoDia option[fecha="${dateToIso(dia)}"]`);
   if(op.length == 0) return celda;
   const estado = parseFloat(op.text());
-  const color = YUVtoRGB(lerpColor(estado,lowColor_YUV,highColor_YUV));
-  console.log(color);
+  const color = color_func(estado);
   const title = [];
   for(let idx=0;idx<op[0].attributes.length;idx++){
     const attr = op[0].attributes[idx];
@@ -74,7 +83,7 @@ function generarLeyendaCalendario(){
   const leyenda = $('<div>').css('text-align','center').css('display','flex').css('flex-flow','row nowrap').css('justify-content','center');
   const gradients = 4;
   for(let i=0;i<=gradients;i++){
-    const color = 'rgb('+YUVtoRGB(lerpColor(i/gradients,lowColor_YUV,highColor_YUV)).join(',')+')';
+    const color = 'rgb('+color_func(i/gradients).join(',')+')';
     const celda = $('<div>').append(Math.round(100*i/gradients)+'%').css('width','5%').css('background-color',color);
     leyenda.append(celda);
   }
@@ -216,12 +225,6 @@ function dateToIso(f){
   const m = f.getMonth()+1;
   const d = f.getDate();
   return y+(m<10?'-0':'-')+m+(d<10?'-0':'-')+d;
-}
-function lerpF(t,x0,x1){//(t=0,x0),(t=1,x1)
-  return (1-t)*x0+t*x1;
-}
-function lerpColor(t,c0,c1){
-  return [lerpF(t,c0[0],c1[0]),lerpF(t,c0[1],c1[1]),lerpF(t,c0[2],c1[2])]
 }
 
 function generarCalendario(div,titulo,desde,hasta,leyenda = function(){return $('<div>');},setear_celda = function(dia,celda){return celda}){
