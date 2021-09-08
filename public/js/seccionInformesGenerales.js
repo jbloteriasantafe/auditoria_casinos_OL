@@ -36,13 +36,31 @@ $(document).ready(function(){
     generarLeyendaCalendario,setearCeldaCalendario);
 });
 
-const lowColor = [255.,255.,255.];
-const highColor = [0.,180.,180.];
+//Uso YUV porque se puede interpolar de "frio" a "caliente" mas facil
+const lowColor_YUV  = [0.7,-0.5,0.5];
+const highColor_YUV = [0.7,0.5,-0.5];
+
+function YUVtoRGB(yuv){
+  const Wr = 0.299;
+  const Wb = 0.114;
+  const Wg = 1 - Wr - Wb;
+  const Umax = 0.436;
+  const Vmax = 0.615;
+  const Y = yuv[0];
+  const U = yuv[1];
+  const V = yuv[2];
+  const r = Y + V*(1-Wr)/Vmax;
+  const g = Y - U*Wb*(1-Wb)/(Umax*Wg) - V*Wr*(1-Wr)/(Vmax*Wg);
+  const b = Y + U*(1-Wb)/Umax;
+  return [256*r,256*g,256*b];
+}
+
 function setearCeldaCalendario(dia,celda){
   const op = $(`#estadoDia option[fecha="${dateToIso(dia)}"]`);
   if(op.length == 0) return celda;
   const estado = parseFloat(op.text());
-  const color = lerpColor(estado,lowColor,highColor);
+  const color = YUVtoRGB(lerpColor(estado,lowColor_YUV,highColor_YUV));
+  console.log(color);
   const title = [];
   for(let idx=0;idx<op[0].attributes.length;idx++){
     const attr = op[0].attributes[idx];
@@ -56,7 +74,7 @@ function generarLeyendaCalendario(){
   const leyenda = $('<div>').css('text-align','center').css('display','flex').css('flex-flow','row nowrap').css('justify-content','center');
   const gradients = 4;
   for(let i=0;i<=gradients;i++){
-    const color = 'rgb('+lerpColor(i/gradients,lowColor,highColor).join(',')+')';
+    const color = 'rgb('+YUVtoRGB(lerpColor(i/gradients,lowColor_YUV,highColor_YUV)).join(',')+')';
     const celda = $('<div>').append(Math.round(100*i/gradients)+'%').css('width','5%').css('background-color',color);
     leyenda.append(celda);
   }
