@@ -38,8 +38,8 @@ $(document).ready(function(){
 
 function color_func(t){
   //Uso YUV porque se puede interpolar de "frio" a "caliente" mas facil
-  const lowColor_YUV  = [0.33,-0.5,0.5];
-  const highColor_YUV = [0.45,-0.5,-0.5];
+  const lowColor_YUV  = [0.45,-0.50, 0.50];
+  const highColor_YUV = [0.50,-0.50,-0.50];
   function lerpColor(t,c0,c1){
     function lerpF(t,x0,x1){//(t=0,x0),(t=1,x1)
       return (1-t)*x0+t*x1;
@@ -62,7 +62,8 @@ function color_func(t){
     const b = Y + U*(1-Wb)/Umax;
     return [r,g,b];
   }
-  return YUVtoRGB([256*(c[0]),256*(c[1]),256*(c[2])]);
+  const rgb = YUVtoRGB(c);
+  return [256*rgb[0],256*rgb[1],256*rgb[2]];
 }
 
 function setearCeldaCalendario(dia,celda){
