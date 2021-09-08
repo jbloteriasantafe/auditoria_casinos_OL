@@ -38,8 +38,8 @@ $(document).ready(function(){
 
 function color_func(t){
   //Uso YUV porque se puede interpolar de "frio" a "caliente" mas facil
-  const lowColor_YUV  = [0.7,-0.2,0.2];
-  const highColor_YUV = [0.7,-0.2,-0.2];
+  const lowColor_YUV  = [0.33,-0.5,0.5];
+  const highColor_YUV = [0.45,-0.5,-0.5];
   function lerpColor(t,c0,c1){
     function lerpF(t,x0,x1){//(t=0,x0),(t=1,x1)
       return (1-t)*x0+t*x1;
