@@ -1,5 +1,3 @@
-
-
 $(document).ready(function(){
   $('#barraInformes').attr('aria-expanded','true');
   $('#informes').removeClass();
@@ -29,27 +27,41 @@ $(document).ready(function(){
     total_por_plataforma_por_mes[plat][añomes] = beneficio;    
     añomeses[añomes] = 1;//Evito duplicados agregandolo en un diccionario
   });
+
   generarGraficoTorta('#divBeneficiosMensuales','BENEFICIOS TOTALES (ULTIMO AÑO)',total_por_plataforma);
   generarGraficoBarras('#divBeneficiosMensualesEnMeses','BENEFICIOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Pesos','Mes',Object.keys(añomeses));
   generarCalendario('#divCalendarioActividadesCompletadas','ESTADO AUDITORIA DIARIO',
     $('#estadoDia option').first().attr('fecha'),
     $('#estadoDia option').last().attr('fecha'),
-    function(dia,celda){
-      const op = $(`#estadoDia option[fecha="${dateToIso(dia)}"]`);
-      if(op.length == 0) return celda;
-      const estado = parseFloat(op.text());
-      const color = lerpColor(estado,[255.,255.,255.],[0.,180.,180.]);
-      const title = [];
-      for(let idx=0;idx<op[0].attributes.length;idx++){
-        const attr = op[0].attributes[idx];
-        if(attr.name.substr(0,5)=='data-'){
-          title.push(attr.name.substr(5).toUpperCase()+': '+toPje(attr.nodeValue))
-        }
-      }
-      return celda.css('background-color','rgb('+color.join(',')+')').attr('title',title.join(' | '));
-    }
-  );
+    generarLeyendaCalendario,setearCeldaCalendario);
 });
+
+const lowColor = [255.,255.,255.];
+const highColor = [0.,180.,180.];
+function setearCeldaCalendario(dia,celda){
+  const op = $(`#estadoDia option[fecha="${dateToIso(dia)}"]`);
+  if(op.length == 0) return celda;
+  const estado = parseFloat(op.text());
+  const color = lerpColor(estado,lowColor,highColor);
+  const title = [];
+  for(let idx=0;idx<op[0].attributes.length;idx++){
+    const attr = op[0].attributes[idx];
+    if(attr.name.substr(0,5)=='data-'){
+      title.push(attr.name.substr(5).toUpperCase()+': '+toPje(attr.nodeValue))
+    }
+  }
+  return celda.css('background-color','rgb('+color.join(',')+')').attr('title',title.join(' | '));
+}
+function generarLeyendaCalendario(){
+  const leyenda = $('<div>').css('text-align','center').css('display','flex').css('flex-flow','row nowrap').css('justify-content','center');
+  const gradients = 4;
+  for(let i=0;i<=gradients;i++){
+    const color = 'rgb('+lerpColor(i/gradients,lowColor,highColor).join(',')+')';
+    const celda = $('<div>').append(Math.round(100*i/gradients)+'%').css('width','5%').css('background-color',color);
+    leyenda.append(celda);
+  }
+  return leyenda;
+}
 
 function toPje(s){
   return Math.round(parseFloat(s)*10000)/100+'%';
@@ -114,7 +126,9 @@ function generarGraficoTorta(div,titulo,valores){//viene plat1 => val1, plat2 =>
         cursor: 'pointer',
         depth: 35,
         dataLabels: {
-          enabled: false,
+          enabled: true,
+          formatter: function(){return format$(this.y);},
+          distance: 20,
         },
         showInLegend: true
       }
@@ -192,7 +206,7 @@ function lerpColor(t,c0,c1){
   return [lerpF(t,c0[0],c1[0]),lerpF(t,c0[1],c1[1]),lerpF(t,c0[2],c1[2])]
 }
 
-function generarCalendario(div,titulo,desde,hasta,estado_dia = function(dia,celda){return celda}){
+function generarCalendario(div,titulo,desde,hasta,leyenda = function(){return $('<div>');},setear_celda = function(dia,celda){return celda}){
   let d   = isoToDate(desde);
   const h = isoToDate(hasta);
   const dias_por_mes = {};
@@ -203,6 +217,8 @@ function generarCalendario(div,titulo,desde,hasta,estado_dia = function(dia,celd
     d.setDate(d.getDate()+1);
   }
   $(div).append($('<div>').addClass('titulo_ala_highchart').text(titulo));
+  $(div).append(leyenda());
+  $(div).append($('<br>'));
   const contenido = $('<div>').addClass('row contenido').css('overflow-y','scroll').css('max-height','300px');
   for(const mes in dias_por_mes){
     const tabla = $('#moldeMes').clone().removeAttr('id').css('display','inline-block').css('float','left');
@@ -211,7 +227,7 @@ function generarCalendario(div,titulo,desde,hasta,estado_dia = function(dia,celd
     for(const didx in dias){
       const dia = dias[didx];
       const d = dia.getDate();
-      const celda = estado_dia(dia,$('<div>').addClass('celda').text(d));
+      const celda = setear_celda(dia,$('<div>').addClass('celda').text(d));
       tabla.append(celda);
     }
     {//Completo 31 celdas si el mes esta incompleto
