@@ -476,34 +476,49 @@ class informesController extends Controller
       $fecha_mas_vieja_pj = DB::table('producido_jugadores')->select('fecha')->orderBy('fecha','asc')->take(1)->pluck('fecha')->first();
       $f = min($fecha_mas_vieja_b?: date('Y-m-d'),$fecha_mas_vieja_p?: date('Y-m-d'),$fecha_mas_vieja_pj?: date('Y-m-d'));
       $fecha_actual = date('Y-m-d');
-      function estado_dia($f){//@HACK: generalizar a multiples monedas si alguna vez se utiliza otra que no sea pesos
-        $plat_count = DB::table('plataforma')->count();
-        $p = DB::table('producido')
-        ->join('plataforma as plat','plat.id_plataforma','=','producido.id_plataforma')
-        ->where('fecha',date('Y-m-d',strtotime($f)))
-        ->where('id_tipo_moneda',1)
-        ->count()/$plat_count;
-        $pj = DB::table('producido_jugadores')
-        ->join('plataforma as plat','plat.id_plataforma','=','producido_jugadores.id_plataforma')
-        ->where('fecha',date('Y-m-d',strtotime($f)))
-        ->where('id_tipo_moneda',1)
-        ->count()/$plat_count;
-        $b = DB::table('beneficio')
-        ->join('beneficio_mensual','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
-        ->join('plataforma as plat','plat.id_plataforma','=','beneficio_mensual.id_plataforma')
-        ->where('beneficio.fecha',date('Y-m-d',strtotime($f)))
-        ->where('id_tipo_moneda',1)
-        ->count()/$plat_count;
-        return ['CONTROL-JUEGOS' => $p,'CONTROL-JUGADORES' => $pj,
-                'BENEFICIOS' => $b    ,'TOTAL' => ($p+$pj+$b)/3];
-      }
       while($f != $fecha_actual){
-        $estado_dia[$f] = estado_dia($f);
+        $estado_dia[$f] = $this->estado_dia($f);
         $f = date('Y-m-d',strtotime($f.' +1 day'));
       }
-      $estado_dia[$f] = estado_dia($f);
+      $estado_dia[$f] = $this->estado_dia($f);
     }
     return view('seccionInformesGenerales',['beneficios_mensuales' => $beneficios_mensuales,'estado_dia' => $estado_dia]);
+  }
+
+  private function estado_dia($f){//@HACK: generalizar a multiples monedas si alguna vez se utiliza otra que no sea pesos
+    $plat_count = DB::table('plataforma')->count();
+    $p = DB::table('producido')
+    ->join('plataforma as plat','plat.id_plataforma','=','producido.id_plataforma')
+    ->where('fecha',date('Y-m-d',strtotime($f)))
+    ->where('id_tipo_moneda',1)
+    ->count()/$plat_count;
+    $pj = DB::table('producido_jugadores')
+    ->join('plataforma as plat','plat.id_plataforma','=','producido_jugadores.id_plataforma')
+    ->where('fecha',date('Y-m-d',strtotime($f)))
+    ->where('id_tipo_moneda',1)
+    ->count()/$plat_count;
+    $b = DB::table('beneficio')
+    ->join('beneficio_mensual','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
+    ->join('plataforma as plat','plat.id_plataforma','=','beneficio_mensual.id_plataforma')
+    ->where('beneficio.fecha',date('Y-m-d',strtotime($f)))
+    ->where('id_tipo_moneda',1)
+    ->count()/$plat_count;
+    return ($p+$pj+$b)/3;
+  }
+
+  public function infoAuditoria($dia){
+    $producidos = DB::table('producido as p')->select('plat.codigo')
+    ->join('plataforma as plat','plat.id_plataforma','=','p.id_plataforma')
+    ->where('p.fecha',$dia)->get()->pluck('codigo');
+    $producidos_jugadores = DB::table('producido_jugadores as p')->select('plat.codigo')
+    ->join('plataforma as plat','plat.id_plataforma','=','p.id_plataforma')
+    ->where('p.fecha',$dia)->get()->pluck('codigo');
+    $beneficios = DB::table('beneficio_mensual as bm')->select('plat.codigo')
+    ->join('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
+    ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
+    ->where('b.fecha',$dia)->get()->pluck('codigo');
+    return ['total' => $this->estado_dia($dia),
+    'producidos' => $producidos,'producidos_jugadores' => $producidos_jugadores,'beneficios' => $beneficios];
   }
 }
 

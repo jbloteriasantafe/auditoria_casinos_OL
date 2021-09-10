@@ -245,6 +245,7 @@ Route::group(['prefix' => 'informesJuegos'],function(){
 
 Route::group(['prefix' => 'informesGenerales'],function(){
   Route::get('/','informesController@informesGenerales');
+  Route::get('/infoAuditoria/{dia}','informesController@infoAuditoria');
 });
 
 /*calendario*/

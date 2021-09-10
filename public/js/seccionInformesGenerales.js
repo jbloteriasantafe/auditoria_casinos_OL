@@ -66,19 +66,48 @@ function color_func(t){
   return [256*rgb[0],256*rgb[1],256*rgb[2]];
 }
 
+function formatPopoverCelda(data){
+  const text = [];
+  text.push('JUEGOS: '+data['producidos'].join(', '));
+  text.push('JUGADORES: '+data['producidos_jugadores'].join(', '));
+  text.push('BENEFICIOS: '+data['beneficios'].join(', '));
+  return text.join('<br>');
+}
+
+function celdaPopover(dia,celda){//@WARNING: CALLBACK HELL
+  //Clickeo en la celda con el popover ya desplegado
+  //Lo destruyo, le saco el evento y lo asigno de vuelta para que lo pueda regenerar
+  if(typeof celda.attr('aria-describedby') !== 'undefined'){
+    celda.popover('destroy');
+    celda.off('click').click(function(){
+      celdaPopover(dia,celda);
+    });
+    return;
+  }
+  //Clickeo en otra celda, destruyo todos los popovers y le creo el evento
+  $('.celda').popover('destroy');
+  $.get('/informesGenerales/infoAuditoria/'+dateToIso(dia),function(data){
+    celda.popover({
+      html:true,
+      content: formatPopoverCelda(data),
+    }).popover('show');
+    celda.attr('title',toPje(data.total));
+    celda.off('click').click(function(){
+      celdaPopover(dia,celda);
+    });
+  });
+}
+
 function setearCeldaCalendario(dia,celda){
   const op = $(`#estadoDia option[fecha="${dateToIso(dia)}"]`);
   if(op.length == 0) return celda;
   const estado = parseFloat(op.text());
   const color = color_func(estado);
-  const title = [];
-  for(let idx=0;idx<op[0].attributes.length;idx++){
-    const attr = op[0].attributes[idx];
-    if(attr.name.substr(0,5)=='data-'){
-      title.push(attr.name.substr(5).toUpperCase()+': '+toPje(attr.nodeValue))
-    }
-  }
-  return celda.css('background-color','rgb('+color.join(',')+')').attr('title',title.join(' | '));
+  celda.css('background-color','rgb('+color.join(',')+')').attr('title',toPje(estado));
+  celda.click(function(){
+    celdaPopover(dia,celda);
+  });
+  return celda;
 }
 function generarLeyendaCalendario(){
   const leyenda = $('<div>').css('text-align','center').css('display','flex').css('flex-flow','row nowrap').css('justify-content','center');
