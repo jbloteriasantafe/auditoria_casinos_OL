@@ -109,6 +109,7 @@ function setearCeldaCalendario(dia,celda){
   const estado = parseFloat(op.text());
   const color = color_func(estado);
   celda.css('background-color','rgb('+color.join(',')+')').attr('title',toPje(estado));
+  if(estado == 1.0) celda.css('font-weight','bold');
   celda.click(function(){
     celdaPopover(dia,celda);
   });
@@ -120,6 +121,7 @@ function generarLeyendaCalendario(){
   for(let i=0;i<=gradients;i++){
     const color = 'rgb('+color_func(i/gradients).join(',')+')';
     const celda = $('<div>').append(Math.round(100*i/gradients)+'%').css('width','5%').css('background-color',color);
+    if(i == gradients) celda.css('font-weight','bold');
     leyenda.append(celda);
   }
   return leyenda;
