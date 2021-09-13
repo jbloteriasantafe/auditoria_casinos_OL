@@ -68,10 +68,15 @@ function color_func(t){
 
 function formatPopoverCelda(data){
   const text = [];
-  text.push('JUEGOS: '+data['producidos'].join(', '));
-  text.push('JUGADORES: '+data['producidos_jugadores'].join(', '));
-  text.push('BENEFICIOS: '+data['beneficios'].join(', '));
-  return text.join('<br>');
+  function formatRow(key,value){
+    const k = $('<div>').css('text-align','left').css('display','inline-block').css('width','80%').css('font-size','75%').append(key);
+    const v = $('<div>').css('text-align','right').css('display','inline-block').css('width','20%').css('font-size','75%').append(value.length == 0? '-' : value);
+    return $('<div>').append(k).append(v).css('border-bottom','1px solid #ddd');
+  }
+  const prod = formatRow('PRODUCIDOS: ',data['producidos'].join(', '));
+  const prod_jug = formatRow('PROD. JUGADORES: ',data['producidos_jugadores'].join(', '));
+  const ben = formatRow('BENEFICIOS: ',data['beneficios'].join(', '));
+  return $('<div>').append(prod).append(prod_jug).append(ben)[0].outerHTML;
 }
 
 function celdaPopover(dia,celda){//@WARNING: CALLBACK HELL
