@@ -37,32 +37,17 @@ $(document).ready(function(){
 });
 
 function color_func(t){
-  //Uso YUV porque se puede interpolar de "frio" a "caliente" mas facil
-  const lowColor_YUV  = [0.45,-0.50, 0.50];
-  const highColor_YUV = [0.50,-0.50,-0.50];
   function lerpColor(t,c0,c1){
     function lerpF(t,x0,x1){//(t=0,x0),(t=1,x1)
       return (1-t)*x0+t*x1;
     }
     return [lerpF(t,c0[0],c1[0]),lerpF(t,c0[1],c1[1]),lerpF(t,c0[2],c1[2])]
-  }  
-  const c = lerpColor(t,lowColor_YUV,highColor_YUV);
-
-  function YUVtoRGB(yuv){
-    const Wr = 0.299;
-    const Wb = 0.114;
-    const Wg = 1 - Wr - Wb;
-    const Umax = 0.436;
-    const Vmax = 0.615;
-    const Y = yuv[0];
-    const U = yuv[1];
-    const V = yuv[2];
-    const r = Y + V*(1-Wr)/Vmax;
-    const g = Y - U*Wb*(1-Wb)/(Umax*Wg) - V*Wr*(1-Wr)/(Vmax*Wg);
-    const b = Y + U*(1-Wb)/Umax;
-    return [r,g,b];
   }
-  const rgb = YUVtoRGB(c);
+  const lowColor     = [1.,0.35,0.];
+  const controlPoint = [1.25,1.25,0.]
+  const highColor    = [0.,1.,0.];
+  //Bezier curve interpolation
+  const rgb = lerpColor(t,lerpColor(t,lowColor,controlPoint),lerpColor(t,controlPoint,highColor));
   return [256*rgb[0],256*rgb[1],256*rgb[2]];
 }
 
