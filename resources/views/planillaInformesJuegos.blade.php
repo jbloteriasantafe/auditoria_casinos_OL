@@ -83,34 +83,34 @@ tr:nth-child(even) {
       <tr>
         <td class="tablaCampos center">{{$d->fecha}}</td>
         <td class="tablaCampos center ">{{$d->jugadores}}</td>
-        <td class="tablaCampos right">{{$d->apuesta}}</td>
-        <td class="tablaCampos right">{{$d->premio + ($simplificado? $d->ajuste : 0)}}</td>
+        <td class="tablaCampos right">{{number_format($d->apuesta,2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->premio + ($simplificado? $d->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
-        <td class="tablaCampos right">{{$d->ajuste}}</td>
+        <td class="tablaCampos right">{{number_format($d->ajuste,2,",",".")}}</td>
         @endif
         @if($cotizacionDefecto != 1)
-        <td class="tablaCampos right">{{$ultima_cotizacion}}</td>
+        <td class="tablaCampos right">{{number_format($ultima_cotizacion,3,",",".")}}</td>
         @endif
-        <td class="tablaCampos right">{{$d->beneficio*$ultima_cotizacion}}</td>
+        <td class="tablaCampos right">{{number_format($d->beneficio*$ultima_cotizacion,2,",",".")}}</td>
         @if(!$simplificado)
-        <td class="tablaCampos right">{{$d->apuesta != 0.0? round(100*$d->premio/$d->apuesta,2) : '-'}}</td>
+        <td class="tablaCampos right">{{$d->apuesta != 0.0? number_format(round(100*$d->premio/$d->apuesta,2),2,",",".") : '-'}}</td>
         @endif
       </tr>
       @endforeach
       <tr class="total">
         <td class="tablaCampos total center">{{$total->fecha}}</td>
         <td class="tablaCampos total center">{{$total->jugadores}}</td>
-        <td class="tablaCampos total right">{{$total->apuesta}}</td>
-        <td class="tablaCampos total right">{{$total->premio + ($simplificado? $total->ajuste : 0)}}</td>
+        <td class="tablaCampos total right">{{number_format($total->apuesta,2,",",".")}}</td>
+        <td class="tablaCampos total right">{{number_format($total->premio + ($simplificado? $total->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
-        <td class="tablaCampos total right">{{$total->ajuste}}</td>
+        <td class="tablaCampos total right">{{number_format($total->ajuste,2,",",".")}}</td>
         @endif
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total right">-</td>
         @endif
-        <td class="tablaCampos total right">{{$total_beneficio}}</td>
+        <td class="tablaCampos total right">{{number_format($total_beneficio,2,",",".")}}</td>
         @if(!$simplificado)
-        <td class="tablaCampos total right">{{$total->apuesta != 0.0? round(100*$total->premio/$total->apuesta,2) : '-'}}</td>
+        <td class="tablaCampos total right">{{$total->apuesta != 0.0? number_format(round(100*$total->premio/$total->apuesta,2),2,",",".") : '-'}}</td>
         @endif
       </tr>
     </table>

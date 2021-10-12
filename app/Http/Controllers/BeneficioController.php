@@ -343,7 +343,7 @@ class BeneficioController extends Controller
 
     //Cambio punto por coma
     foreach($dias as $d) foreach($d as &$campo){
-      if(is_numeric($campo)) $campo = str_replace('.',',',$campo);
+      if(is_numeric($campo)) $campo = number_format($campo,2,",",".");
     }
 
     return json_decode(json_encode($dias),true);
