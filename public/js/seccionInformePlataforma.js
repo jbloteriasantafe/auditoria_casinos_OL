@@ -47,8 +47,35 @@ $('#btn-buscar').click(function(e){
             generarGraficos(clasificacion,data.estadisticas[clasificacion]);
         },250);
       }
+
+      $('.tablaAlertas').not('#moldeAlerta').remove();
+      for(const moneda in data.alertas.juegos){
+        const alertas = data.alertas.juegos[moneda];
+        if(alertas.length == 0) continue;
+        generarTablaAlertas('JUEGOS',moneda,alertas);
+      }
+      for(const moneda in data.alertas.jugadores){
+        const alertas = data.alertas.jugadores[moneda];
+        if(alertas == 0) continue;
+        generarTablaAlertas('JUGADORES',moneda,alertas);
+      }
   });
 });
+
+function generarTablaAlertas(tipo,moneda,alertas){
+  const div = $('#moldeAlerta').clone().removeAttr('id').show();
+  div.find('.descripcion_alerta').text(tipo+' '+moneda)
+  const fila = $('#moldeFilaAlerta').clone().removeAttr('id');
+  for(const aidx in alertas){
+    const a = alertas[aidx];
+    const f = fila.clone();
+    for(const columna in a){
+      f.find('.'+columna).text(a[columna]).attr('title',a[columna]);
+    }
+    div.find('tbody').append(f);
+  }
+  $('#divAlertasDiarias').append(div);
+}
 
 //Opacidad del modal al minimizar
 $('#btn-minimizar').click(function(){

@@ -164,6 +164,12 @@ class informesController extends Controller
   }
 
   public function informePlataformaObtenerEstado($id_plataforma){
+    return ['estadisticas' => $this->obtenerEstadisticas($id_plataforma),
+            'juegos_faltantes' => $this->obtenerJuegosFaltantes($id_plataforma),
+            'alertas' => $this->obtenerAlertas($id_plataforma)];
+  }
+
+  private function obtenerEstadisticas($id_plataforma){
     /*
     PdevTeorico = Si cada juego se jugara en igual cantidad
       Osea si cada juego tiene una apuesta "A", con "N" juegos
@@ -323,7 +329,10 @@ class informesController extends Controller
 
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
     }
+    return $estadisticas;
+  }
 
+  private function obtenerJuegosFaltantes($id_plataforma){
     $juegos_faltantes = DB::table('detalle_producido_juego as dp')
     ->selectRaw('dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
     SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
@@ -341,8 +350,30 @@ class informesController extends Controller
     ->groupBy(DB::raw('"constant"'));
 
     $juegos_faltantes->union($total);
+    return $juegos_faltantes->get();
+  }
 
-    return ['estadisticas' => $estadisticas,'juegos_faltantes' => $juegos_faltantes->get()];
+  private function obtenerAlertas($id_plataforma){
+    $monedas = DB::table('tipo_moneda')->get();
+    $alertas = ['juegos' => [],'jugadores' => []];
+    $limite_beneficio = 150000;
+    foreach($monedas as $m){
+      $alertas_juegos = DB::table('detalle_producido as dp')
+      ->selectRaw('p.fecha, dp.cod_juego as id, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
+      ->join('producido as p','p.id_producido','=','dp.id_producido')
+      ->where('p.id_plataforma',$id_plataforma)->where('p.id_tipo_moneda',$m->id_tipo_moneda)
+      ->whereRaw('ABS(dp.beneficio) > '.$limite_beneficio)
+      ->orderBy('p.fecha','desc')->orderBy('dp.cod_juego','asc')->get();
+      $alertas_jugadores = DB::table('detalle_producido_jugadores as dp')
+      ->selectRaw('p.fecha, dp.jugador as id, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
+      ->join('producido_jugadores as p','p.id_producido_jugadores','=','dp.id_producido_jugadores')
+      ->where('p.id_plataforma',$id_plataforma)->where('p.id_tipo_moneda',$m->id_tipo_moneda)
+      ->whereRaw('ABS(dp.beneficio) > '.$limite_beneficio)
+      ->orderBy('p.fecha','desc')->orderBy('dp.jugador','asc')->get();
+      $alertas['juegos'][$m->descripcion] = $alertas_juegos;
+      $alertas['jugadores'][$m->descripcion] = $alertas_jugadores;
+    }
+    return $alertas;
   }
 
   public function buscarTodoInformeContable(){
