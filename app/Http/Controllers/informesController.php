@@ -163,10 +163,10 @@ class informesController extends Controller
     return view('seccionInformePlataforma' , ['plataformas' => $usuario->plataformas]);
   }
 
-  public function informePlataformaObtenerEstado($id_plataforma){
+  public function informePlataformaObtenerEstado(Request $request,$id_plataforma){
     return ['estadisticas' => $this->obtenerEstadisticas($id_plataforma),
             'juegos_faltantes' => $this->obtenerJuegosFaltantes($id_plataforma),
-            'alertas' => $this->obtenerAlertas($id_plataforma)];
+            'alertas' => $this->obtenerAlertas($id_plataforma,$request->beneficio_alertas)];
   }
 
   private function obtenerEstadisticas($id_plataforma){
@@ -353,10 +353,9 @@ class informesController extends Controller
     return $juegos_faltantes->get();
   }
 
-  private function obtenerAlertas($id_plataforma){
+  private function obtenerAlertas($id_plataforma,$limite_beneficio){
     $monedas = DB::table('tipo_moneda')->get();
     $alertas = ['juegos' => [],'jugadores' => []];
-    $limite_beneficio = 150000;
     foreach($monedas as $m){
       $alertas_juegos = DB::table('detalle_producido as dp')
       ->selectRaw('p.fecha, dp.cod_juego as id, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')

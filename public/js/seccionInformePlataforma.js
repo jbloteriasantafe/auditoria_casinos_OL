@@ -20,7 +20,13 @@ $('#btn-buscar').click(function(e){
 
   $('#graficos').empty();
   $('#tablas').empty();
-  $.get('/informePlataforma/obtenerEstado/' + id , function(data){
+  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  const beneficio_alertas = $('#inputBeneficio').val() == ""? $('#inputBeneficio').attr("default") : $('#inputBeneficio').val();
+  $.ajax({
+    type: 'GET',
+    url: '/informePlataforma/obtenerEstado/' + id,
+    data: { beneficio_alertas : beneficio_alertas },
+    success: function(data){
       if(data.estadisticas.length == 0) return;
 
       for(const clasificacion in data.estadisticas){
@@ -59,6 +65,10 @@ $('#btn-buscar').click(function(e){
         if(alertas == 0) continue;
         generarTablaAlertas('JUGADORES',moneda,alertas);
       }
+    },
+    error: function(data){
+      console.log(data.responseJSON);
+    }
   });
 });
 

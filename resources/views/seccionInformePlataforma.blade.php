@@ -56,6 +56,8 @@ use Illuminate\Http\Request;
                             @endforeach
                         </select>
                         <br>
+                        <input id="inputBeneficio" type="number" class="form-control" placeholder="BENEFICIO ALERTAS (150000)" default="150000"/>
+                        <br>
                         <button id="btn-buscar" class="btn btn-infoBuscar" type="button" style="width:100%;">VER</button>
                     </div>
                 </div>
