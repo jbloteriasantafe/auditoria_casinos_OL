@@ -102,7 +102,6 @@ use Illuminate\Http\Request;
                     <div id="tablas" class="col-md-12"></div>
                 </div>
                 <div id="divJuegosFaltantesConMovimientos" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
-                    <h5>PORCENTAJES DE DEVOLUCION</h5>
                     <div id="juegosFaltantesConMovimientos" class="col-md-12">
                       <table class="col-md-12 table table-fixed">
                         <thead>
