@@ -17,57 +17,64 @@ $('#btn-ayuda').click(function(e){
 $('#btn-buscar').click(function(e){
   const id = $('#buscadorPlataforma').val();
   if(id == "") return;
+  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  const beneficio_alertas = $('#inputBeneficio').val() == ""? $('#inputBeneficio').attr("default") : $('#inputBeneficio').val();
+  const GET = function(url,success,error = function(data){console.log(data.responseJSON);}){
+    $.ajax({
+      type: 'GET',
+      url: '/informePlataforma/'+url+'/'+id,
+      data: { beneficio_alertas : beneficio_alertas },
+      success: success,
+      error: error,
+    });
+  };
 
   $('#graficos').empty();
   $('#tablas').empty();
-  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-  const beneficio_alertas = $('#inputBeneficio').val() == ""? $('#inputBeneficio').attr("default") : $('#inputBeneficio').val();
-  $.ajax({
-    type: 'GET',
-    url: '/informePlataforma/obtenerEstado/' + id,
-    data: { beneficio_alertas : beneficio_alertas },
-    success: function(data){
-      if(data.estadisticas.length == 0) return;
+  $('#juegosFaltantesConMovimientos tbody').empty();
+  $('.tablaAlertas').not('#moldeAlerta').remove();
+  $('#modalPlataforma').modal('show');
+  $('.tabContent').hide();
+  $('.tab').eq(0).click();
 
-      for(const clasificacion in data.estadisticas){
-        if(data.estadisticas[clasificacion].length > 0)
-          generarTabla(clasificacion,data.estadisticas[clasificacion]);
-      }
+  let midx = 0;
+  const loading = setInterval(function(){const m = ['―','/','|','\\'];$('#graficos').text(m[midx%4]);midx++;},100);
+  GET('obtenerEstadisticas',function(data){
+    clearInterval(loading);
+    for(const clasificacion in data){
+      if(data[clasificacion].length > 0)
+        generarTabla(clasificacion,data[clasificacion]);
+    }
+    $('#graficos').empty();
+    for(const clasificacion in data){
+      setTimeout(function(){
+        if(data[clasificacion].length > 0 && clasificacion != 'Total')
+          generarGraficos(clasificacion,data[clasificacion]);
+      },250);
+    }
+  },function(data){clearInterval(loading);console.log(data.responseJSON);});
 
-      $('#juegosFaltantesConMovimientos tbody').empty();
-      for(const jidx in data.juegos_faltantes){
-        const j = data.juegos_faltantes[jidx];
-        const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
-        for(const k in j){
-          fila.find('.'+k).text(j[k]).attr('title',j[k]);
-        }
-        $('#juegosFaltantesConMovimientos tbody').append(fila);
+  GET('obtenerJuegosFaltantes',function(data){
+    for(const jidx in data){
+      const j = data[jidx];
+      const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
+      for(const k in j){
+        fila.find('.'+k).text(j[k]).attr('title',j[k]);
       }
+      $('#juegosFaltantesConMovimientos tbody').append(fila);
+    }
+  });
 
-      $('#modalPlataforma').modal('show');
-      $('.tabContent').hide();
-      $('.tab').eq(0).click();
-      for(const clasificacion in data.estadisticas){
-        setTimeout(function(){
-          if(data.estadisticas[clasificacion].length > 0 && clasificacion != 'Total')
-            generarGraficos(clasificacion,data.estadisticas[clasificacion]);
-        },250);
-      }
-
-      $('.tablaAlertas').not('#moldeAlerta').remove();
-      for(const moneda in data.alertas.juegos){
-        const alertas = data.alertas.juegos[moneda];
-        if(alertas.length == 0) continue;
-        generarTablaAlertas('JUEGOS',moneda,alertas);
-      }
-      for(const moneda in data.alertas.jugadores){
-        const alertas = data.alertas.jugadores[moneda];
-        if(alertas == 0) continue;
-        generarTablaAlertas('JUGADORES',moneda,alertas);
-      }
-    },
-    error: function(data){
-      console.log(data.responseJSON);
+  GET('obtenerAlertas',function(data){
+    for(const moneda in data.juegos){
+      const alertas = data.juegos[moneda];
+      if(alertas.length == 0) continue;
+      generarTablaAlertas('JUEGOS',moneda,alertas);
+    }
+    for(const moneda in data.jugadores){
+      const alertas = data.jugadores[moneda];
+      if(alertas == 0) continue;
+      generarTablaAlertas('JUGADORES',moneda,alertas);
     }
   });
 });

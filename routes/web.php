@@ -224,7 +224,9 @@ Informes
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informePlataforma'],function(){
   Route::get('/' , 'informesController@informePlataforma');
-  Route::get('/obtenerEstado/{id_plataforma}','informesController@informePlataformaObtenerEstado');
+  Route::get('/obtenerEstadisticas/{id_plataforma}','informesController@obtenerEstadisticas');
+  Route::get('/obtenerJuegosFaltantes/{id_plataforma}','informesController@obtenerJuegosFaltantes');
+  Route::get('/obtenerAlertas/{id_plataforma}','informesController@obtenerAlertas');
 });
 
 Route::group(['prefix' => 'informeContableJuego'],function(){
