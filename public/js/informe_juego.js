@@ -223,6 +223,12 @@ $('#verTodosProducidos').change(function(e){
 })
 
 function generarGraficoJuego(fechas,producidos) {
+    let accum = 0;
+    const producidosAccum = [];
+    for(const idx in producidos){
+        accum += producidos[idx];
+        producidosAccum.push(accum);
+    }
     Highcharts.chart('graficoSeguimientoProducido', {
         chart: {
             backgroundColor: "#fff",
@@ -271,6 +277,11 @@ function generarGraficoJuego(fechas,producidos) {
             }
         },
         series: [
+            {
+                name: 'Producido acumulado',
+                data: producidosAccum,
+                color: 'rgba(0%,50%,80%,20%)',
+            },
             {
                 name: 'Producido diario',
                 data: producidos,
