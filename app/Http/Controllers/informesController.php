@@ -164,7 +164,6 @@ class informesController extends Controller
   }
 
   public function obtenerEstadisticas($id_plataforma){
-    sleep(7);
     /*
     PdevTeorico = Si cada juego se jugara en igual cantidad
       Osea si cada juego tiene una apuesta "A", con "N" juegos
