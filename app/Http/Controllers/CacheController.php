@@ -53,7 +53,7 @@ class CacheController extends Controller
       }
     }
     //Si no, borro lo cacheado
-    $cc->invalidar($codigo,$subcodigo);
+    $this->invalidar($codigo,$subcodigo);
     return null;
   }
 }
