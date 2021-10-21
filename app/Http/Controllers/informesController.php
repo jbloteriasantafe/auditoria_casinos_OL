@@ -168,17 +168,11 @@ class informesController extends Controller
     $cc = CacheController::getInstancia();
     $codigo = 'informeEstadoPlataforma';
     $subcodigo = 'estadisticas'.$id_plataforma;
-    $cache = $cc->buscarUnico($codigo,$subcodigo);
+    $cache = $cc->buscarUnicoDentroDeSegundos($codigo,$subcodigo,3600);
 
     if(!is_null($cache)){
-      $segundos = strtotime(date('Y-m-d H:i:s')) - strtotime($cache->creado);
-      if($segundos < 3600){//Si esta dentro de la hora retorno lo cacheado
-        //true = retornar como arreglo en vez de objecto
-        return json_decode($cache->data,true);
-      }
-      else {//Si no, borro lo cacheado y recalculo
-        $cc->invalidar($codigo,$subcodigo);
-      }
+      //true = retornar como arreglo en vez de objecto
+      return json_decode($cache->data,true);
     }
     /*
     PdevTeorico = Si cada juego se jugara en igual cantidad

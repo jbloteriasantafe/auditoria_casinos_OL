@@ -44,4 +44,16 @@ class CacheController extends Controller
     $this->invalidar($codigo,$subcodigo);
     return null;
   }
+  public function buscarUnicoDentroDeSegundos($codigo,$subcodigo,$segundos){
+    $cache = $this->buscarUnico($codigo,$subcodigo);
+    if(!is_null($cache)){
+      $s = strtotime(date('Y-m-d H:i:s')) - strtotime($cache->creado);
+      if($s < $segundos){//Si esta dentro de la hora retorno lo cacheado
+        return $cache;
+      }
+    }
+    //Si no, borro lo cacheado
+    $cc->invalidar($codigo,$subcodigo);
+    return null;
+  }
 }
