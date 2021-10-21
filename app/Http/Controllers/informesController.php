@@ -173,7 +173,8 @@ class informesController extends Controller
     if(!is_null($cache)){
       //Si esta dentro de la hora retorno lo cacheado
       //true = retornar como arreglo en vez de objecto
-      if(abs(date('Y-m-d H:i:s') - $cache->creado) > 3600) return json_decode($cache->data,true);
+      $segundos = strtotime(date('Y-m-d H:i:s')) - strtotime($cache->creado);
+      if($segundos > 3600) return json_decode($cache->data,true);
       else $cc->invalidar($codigo,$subcodigo);//Si no, borro lo cacheado y recalculo
     }
     /*
