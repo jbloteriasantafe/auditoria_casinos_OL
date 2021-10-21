@@ -12,8 +12,7 @@ use App\Http\Controllers\LectorCSVController;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Plataforma;
-
-use App\Services\LengthPager;
+use App\Http\Controllers\CacheController;
 
 class ImportacionController extends Controller
 {
@@ -190,6 +189,7 @@ class ImportacionController extends Controller
       $prodCont = ProducidoController::getInstancia();
       foreach($viejos as $p) $prodCont->eliminarProducido($p->id_producido);
       $ret = LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
     });
     return $ret;
   }
@@ -208,6 +208,7 @@ class ImportacionController extends Controller
       $prodCont = ProducidoController::getInstancia();
       foreach($viejos as $p) $prodCont->eliminarProducidoJugadores($p->id_producido_jugadores);
       $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
     });
     return $ret;
   }

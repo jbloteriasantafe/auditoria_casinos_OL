@@ -14,8 +14,8 @@ use App\TipoMoneda;
 use App\Juego;
 use View;
 use Dompdf\Dompdf;
-use App\Http\Controllers\FormatoController;
 use App\PdfParalelo;
+use App\Http\Controllers\CacheController;
 
 class ProducidoController extends Controller
 {
@@ -130,6 +130,7 @@ class ProducidoController extends Controller
     $resultados = $resultados->paginate($request->page_size);
     return $resultados;
   }
+
   // eliminarProducido elimina el producido y los detalles producidos asociados
   public function eliminarProducido($id_producido){
     Validator::make(['id_producido' => $id_producido]
@@ -140,6 +141,7 @@ class ProducidoController extends Controller
       $prod = Producido::find($id_producido);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
+      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
     });
   }
 
@@ -152,6 +154,7 @@ class ProducidoController extends Controller
       $prod = ProducidoJugadores::find($id_producido_jugadores);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
+      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
     });
   }
 

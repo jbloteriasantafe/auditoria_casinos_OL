@@ -18,6 +18,7 @@ use Validator;
 use Storage;
 use View;
 use Dompdf\Dompdf;
+use App\Http\Controllers\CacheController;
 
 class JuegoController extends Controller
 {
@@ -148,6 +149,7 @@ class JuegoController extends Controller
       $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->json = $rqst;
       $log->save();
+      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
     });
 
     return ['juego' => $juego];
@@ -261,6 +263,7 @@ class JuegoController extends Controller
       $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->json = $rqst;
       $log->save();
+      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
     });
 
     return ['juego' => $juego];

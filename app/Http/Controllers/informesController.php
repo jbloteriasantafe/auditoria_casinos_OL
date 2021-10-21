@@ -16,6 +16,7 @@ use App\BeneficioMensual;
 use App\Cotizacion;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\CacheController;
 
 class informesController extends Controller
 {
@@ -164,6 +165,17 @@ class informesController extends Controller
   }
 
   public function obtenerEstadisticas($id_plataforma){
+    $cc = CacheController::getInstancia();
+    $codigo = 'informeEstadoPlataforma';
+    $subcodigo = 'estadisticas'.$id_plataforma;
+    $cache = $cc->buscarUnico($codigo,$subcodigo);
+
+    if(!is_null($cache)){
+      //Si esta dentro de la hora retorno lo cacheado
+      //true = retornar como arreglo en vez de objecto
+      if(abs(date('Y-m-d H:i:s') - $cache->creado) > 3600) return json_decode($cache->data,true);
+      else $cc->invalidar($codigo,$subcodigo);//Si no, borro lo cacheado y recalculo
+    }
     /*
     PdevTeorico = Si cada juego se jugara en igual cantidad
       Osea si cada juego tiene una apuesta "A", con "N" juegos
@@ -323,6 +335,7 @@ class informesController extends Controller
 
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
     }
+    $cc->agregar($codigo,$subcodigo,json_encode($estadisticas));
     return $estadisticas;
   }
 
