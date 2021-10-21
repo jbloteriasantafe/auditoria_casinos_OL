@@ -171,11 +171,14 @@ class informesController extends Controller
     $cache = $cc->buscarUnico($codigo,$subcodigo);
 
     if(!is_null($cache)){
-      //Si esta dentro de la hora retorno lo cacheado
-      //true = retornar como arreglo en vez de objecto
       $segundos = strtotime(date('Y-m-d H:i:s')) - strtotime($cache->creado);
-      if($segundos > 3600) return json_decode($cache->data,true);
-      else $cc->invalidar($codigo,$subcodigo);//Si no, borro lo cacheado y recalculo
+      if($segundos < 3600){//Si esta dentro de la hora retorno lo cacheado
+        //true = retornar como arreglo en vez de objecto
+        return json_decode($cache->data,true);
+      }
+      else {//Si no, borro lo cacheado y recalculo
+        $cc->invalidar($codigo,$subcodigo);
+      }
     }
     /*
     PdevTeorico = Si cada juego se jugara en igual cantidad
