@@ -168,8 +168,9 @@ class informesController extends Controller
     $cc = CacheController::getInstancia();
     $codigo = 'informeEstadoPlataforma';
     $subcodigo = 'estadisticas'.$id_plataforma;
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
     $cache = $cc->buscarUnicoDentroDeSegundos($codigo,$subcodigo,3600);
-
+    
     if(!is_null($cache)){
       //true = retornar como arreglo en vez de objecto
       return json_decode($cache->data,true);
@@ -193,8 +194,6 @@ class informesController extends Controller
     Depende de la implementación de SUM y AVG... en todo caso no hace mal
     */
 
-    //Uso la vista detalle_producido_juego que ya asocia el detalle_producido con el juego
-    ProducidoController::inicializarVistas();
     //Auxiliares para simplificar la query
     //NULL es ignorado cuando MySQL hace AVG
     //El esperado no lo tengo que multiplicar por 100 porque el porcentaje_devolucion esta en 0-100 en vez de 0-1
@@ -208,6 +207,15 @@ class informesController extends Controller
     ->join('juego as j',function($j){
       //Si estuvo y esta borrado no lo consideramos en la BD
       return $j->on('j.id_juego','=','pj.id_juego')->whereRaw('j.deleted_at IS NULL');
+    })->where('p.id_plataforma',$id_plataforma);
+
+    $producidos_plataforma = DB::table('producido as p')
+    ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+    ->join('juego as j',function($j){
+      return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
+    })
+    ->join('plataforma_tiene_juego as pj',function($j){
+      return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
     })->where('p.id_plataforma',$id_plataforma);
 
     //Devuelve las estadisticas como son esperadas en el frontend
@@ -243,8 +251,10 @@ class informesController extends Controller
 
       $producido_pdevs = DB::table('producido as p')
       ->selectRaw('ej.nombre as '.$clasificador.', '.$select_pdev)
-      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
-      ->join('juego as j','j.id_juego','=','dp.id_juego')
+      ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+      ->join('juego as j',function($j){
+        return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
+      })
       ->join('plataforma_tiene_juego as pj',function($j){
         return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
       })
@@ -269,14 +279,8 @@ class informesController extends Controller
       ->selectRaw($tipo.', COUNT(distinct j.cod_juego) as juegos, AVG(j.porcentaje_devolucion) as pdev')
       ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
-      $producido_pdevs = DB::table('producido as p')
+      $producido_pdevs = (clone $producidos_plataforma)
       ->selectRaw($tipo.','.$select_pdev)
-      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
-      ->join('juego as j','j.id_juego','=','dp.id_juego')
-      ->join('plataforma_tiene_juego as pj',function($j){
-        return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
-      })
-      ->where('p.id_plataforma',$id_plataforma)
       ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
@@ -290,15 +294,9 @@ class informesController extends Controller
       ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
       ->groupBy('j.id_categoria_juego')->get();
 
-      $producido_pdevs = DB::table('producido as p')
+      $producido_pdevs = (clone $producidos_plataforma)
       ->selectRaw('cj.nombre as '.$clasificador.', '.$select_pdev)
-      ->join('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
-      ->join('juego as j','j.id_juego','=','dp.id_juego')
-      ->join('plataforma_tiene_juego as pj',function($j){
-        return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
-      })
       ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-      ->where('p.id_plataforma',$id_plataforma)
       ->groupBy('j.id_categoria_juego')->get();
 
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
@@ -307,13 +305,22 @@ class informesController extends Controller
     {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
       $clasificador = 'Categoria Informada (NO EN BD)';
 
-      $cantidad_y_pdev = DB::table('detalle_producido_juego as dp')
-      ->selectRaw('dp.categoria as "'.$clasificador.'", COUNT(distinct dp.cod_juego) as juegos, NULL as pdev')
-      ->groupBy('dp.categoria')->where('dp.id_plataforma',$id_plataforma)->whereNull('dp.id_juego')->get();
+      $producidos_plataforma_sin_juego = DB::table('producido as p')
+      ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+      ->leftJoin('juego as j',function($j){
+        return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
+      })
+      ->leftJoin('plataforma_tiene_juego as pj',function($j){
+        return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
+      })->where('p.id_plataforma',$id_plataforma)->whereNull('pj.id_juego');
 
-      $producido_pdevs = DB::table('detalle_producido_juego as dp')
+      $cantidad_y_pdev = (clone $producidos_plataforma_sin_juego)
+      ->selectRaw('dp.categoria as "'.$clasificador.'", COUNT(distinct dp.cod_juego) as juegos, NULL as pdev')
+      ->groupBy('dp.categoria')->get();
+
+      $producido_pdevs = (clone $producidos_plataforma_sin_juego)
       ->selectRaw('dp.categoria as "'.$clasificador.'", NULL as pdev_esperado,'.$avg_producido.'as pdev_producido')
-      ->groupBy('dp.categoria')->where('dp.id_plataforma',$id_plataforma)->whereNull('dp.id_juego')->get();
+      ->groupBy('dp.categoria')->get();
 
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
     }
@@ -325,10 +332,8 @@ class informesController extends Controller
       ->selectRaw('"Total" as '.$clasificador.', COUNT(distinct j.cod_juego) as juegos, AVG(j.porcentaje_devolucion) as pdev')
       ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
 
-      $producido_pdevs = DB::table('detalle_producido_juego as dp')
+      $producido_pdevs = (clone $producidos_plataforma)
       ->selectRaw('"Total" as '.$clasificador.', '.$select_pdev)
-      ->join('juego as j','j.id_juego','=','dp.id_juego')
-      ->where('dp.id_plataforma',$id_plataforma)
       ->groupBy(DB::raw('"constant"'))->get();
 
       $estadisticas[$clasificador] = estadisticas($clasificador,$cantidad_y_pdev,$producido_pdevs);
