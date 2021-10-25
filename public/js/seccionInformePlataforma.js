@@ -180,6 +180,13 @@ $('#btn-buscarAlertasJuegos').click(function(e){
       if(alertas.length == 0) continue;
       generarTablaAlertas('Juegos',moneda,alertas);
     }
+    $('#previewPage').text(pagina);
+    const cantidad = data.total? data.total.cantidad : 0;
+    const total = Math.ceil(cantidad/page_size);
+    $('#previewTotal').text(total);
+    if(page_size <= 0) $('#previewTotal').text(1);
+    $('#prevPreview').attr('disabled',pagina <= 1);
+    $('#nextPreview').attr('disabled',pagina >= total);
   });
 })
 
@@ -213,3 +220,26 @@ function generarTablaAlertas(tipo,moneda,alertas){
   }
   $('#divAlertasDiarias'+tipo).append(div);
 }
+
+function cambiarPagina(sumar){
+  const pag_actual    = parseInt($('#previewPage').text());
+  const max_pag       = parseInt($('#previewTotal').text());
+  $('#prevPreview').attr('disabled',pag_actual <= 1);
+  $('#nextPreview').attr('disabled',pag_actual >= max_pag);
+  
+  if((pag_actual <= 1 && sumar < 0) || (pag_actual >= max_pag && sumar > 0)) return;
+
+  const cod_juego     = $('#codigo').text();
+  const id_plataforma = $('#selectPlataforma').val();
+  cargarProducidos(id_plataforma,cod_juego,pag_actual+sumar,default_page_size);
+}
+
+$('#prevPreview').click(function(e){
+  e.preventDefault();
+  cambiarPagina(-1);
+});
+
+$('#nextPreview').click(function(e){
+  e.preventDefault();
+  cambiarPagina(+1);
+});
