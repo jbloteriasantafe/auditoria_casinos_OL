@@ -369,7 +369,7 @@ class informesController extends Controller
     foreach($monedas as $m){
       $alertas_juegos = DB::table('detalle_producido as dp')
       ->selectRaw('p.fecha, dp.cod_juego as codigo, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev,
-                  j.porcentaje_devolucion as pdev_juego')
+                  j.porcentaje_devolucion as pdev_juego,cj.nombre as categoria')
       ->join('producido as p','p.id_producido','=','dp.id_producido')
       ->join('juego as j',function($j){
         return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
@@ -377,6 +377,7 @@ class informesController extends Controller
       ->join('plataforma_tiene_juego as pj',function($j){
         return $j->on('pj.id_plataforma','=','p.id_plataforma')->on('pj.id_juego','=','j.id_juego');
       })
+      ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
       ->where('p.id_plataforma',$id_plataforma)->where('p.id_tipo_moneda',$m->id_tipo_moneda)
       ->whereRaw('ABS(dp.beneficio) >= '.$request->beneficio_alertas)
       ->whereRaw('ABS((100*dp.premio/dp.apuesta) - j.porcentaje_devolucion) >='.$request->pdev_alertas)
