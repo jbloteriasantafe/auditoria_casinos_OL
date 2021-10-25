@@ -226,7 +226,8 @@ Route::group(['prefix' => 'informePlataforma'],function(){
   Route::get('/' , 'informesController@informePlataforma');
   Route::get('/obtenerEstadisticas/{id_plataforma}','informesController@obtenerEstadisticas');
   Route::get('/obtenerJuegosFaltantes/{id_plataforma}','informesController@obtenerJuegosFaltantes');
-  Route::get('/obtenerAlertas/{id_plataforma}','informesController@obtenerAlertas');
+  Route::get('/obtenerAlertasJuegos/{id_plataforma}','informesController@obtenerAlertasJuegos');
+  Route::get('/obtenerAlertasJugadores/{id_plataforma}','informesController@obtenerAlertasJugadores');
 });
 
 Route::group(['prefix' => 'informeContableJuego'],function(){

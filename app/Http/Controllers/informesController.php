@@ -363,24 +363,42 @@ class informesController extends Controller
     return $juegos_faltantes->get();
   }
 
-  public function obtenerAlertas(Request $request,$id_plataforma){
+  public function obtenerAlertasJuegos(Request $request,$id_plataforma){
     $monedas = DB::table('tipo_moneda')->get();
-    $alertas = ['juegos' => [],'jugadores' => []];
+    $alertas = [];
     foreach($monedas as $m){
       $alertas_juegos = DB::table('detalle_producido as dp')
-      ->selectRaw('p.fecha, dp.cod_juego as id, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
+      ->selectRaw('p.fecha, dp.cod_juego as codigo, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev,
+                  j.porcentaje_devolucion as pdev_juego')
       ->join('producido as p','p.id_producido','=','dp.id_producido')
+      ->join('juego as j',function($j){
+        return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
+      })
+      ->join('plataforma_tiene_juego as pj',function($j){
+        return $j->on('pj.id_plataforma','=','p.id_plataforma')->on('pj.id_juego','=','j.id_juego');
+      })
       ->where('p.id_plataforma',$id_plataforma)->where('p.id_tipo_moneda',$m->id_tipo_moneda)
-      ->whereRaw('ABS(dp.beneficio) > '.$request->beneficio_alertas)
+      ->whereRaw('ABS(dp.beneficio) >= '.$request->beneficio_alertas)
+      ->whereRaw('ABS((100*dp.premio/dp.apuesta) - j.porcentaje_devolucion) >='.$request->pdev_alertas)
       ->orderBy('p.fecha','desc')->orderBy('dp.cod_juego','asc')->get();
+
+      $alertas[$m->descripcion] = $alertas_juegos;
+    }
+    return $alertas;
+  }
+
+  public function obtenerAlertasJugadores(Request $request,$id_plataforma){
+    $monedas = DB::table('tipo_moneda')->get();
+    $alertas = [];
+    foreach($monedas as $m){
       $alertas_jugadores = DB::table('detalle_producido_jugadores as dp')
-      ->selectRaw('p.fecha, dp.jugador as id, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
+      ->selectRaw('p.fecha, dp.jugador as codigo, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
       ->join('producido_jugadores as p','p.id_producido_jugadores','=','dp.id_producido_jugadores')
       ->where('p.id_plataforma',$id_plataforma)->where('p.id_tipo_moneda',$m->id_tipo_moneda)
-      ->whereRaw('ABS(dp.beneficio) > '.$request->beneficio_alertas)
+      ->whereRaw('ABS(dp.beneficio) >= '.$request->beneficio_alertas)
       ->orderBy('p.fecha','desc')->orderBy('dp.jugador','asc')->get();
-      $alertas['juegos'][$m->descripcion] = $alertas_juegos;
-      $alertas['jugadores'][$m->descripcion] = $alertas_jugadores;
+
+      $alertas[$m->descripcion] = $alertas_jugadores;
     }
     return $alertas;
   }

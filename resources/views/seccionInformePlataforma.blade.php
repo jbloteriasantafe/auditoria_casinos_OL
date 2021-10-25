@@ -56,8 +56,6 @@ use Illuminate\Http\Request;
                             @endforeach
                         </select>
                         <br>
-                        <input id="inputBeneficio" type="number" class="form-control" placeholder="BENEFICIO ALERTAS (150000)" default="150000"/>
-                        <br>
                         <button id="btn-buscar" class="btn btn-infoBuscar" type="button" style="width:100%;">VER</button>
                     </div>
                 </div>
@@ -84,8 +82,11 @@ use Illuminate\Http\Request;
             <div class="tab" style="width: 15%;" div-asociado="#divJuegosFaltantesConMovimientos">
               <h4>JUEGOS FALTANTES C/ MOV</h4>
             </div>
-            <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiarias">
-              <h4>ALERTAS DIARIAS</h4>
+            <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiariasJuegos">
+              <h4>ALERTAS DIARIAS (JUEGOS)</h4>
+            </div>
+            <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiariasJugadores">
+              <h4>ALERTAS DIARIAS (JUGADORES)</h4>
             </div>
           </div>
       </div>
@@ -105,7 +106,7 @@ use Illuminate\Http\Request;
                     <div id="juegosFaltantesConMovimientos" class="col-md-12">
                       <table class="col-md-12 table table-fixed">
                         <thead>
-                          <tr>
+                          <tr> 
                             <th class="col-md-1">JUEGO</th>
                             <th class="col-md-1">CATEGORIA</th>
                             <th class="col-md-1">APOSTADO EFEC.</th>
@@ -125,36 +126,35 @@ use Illuminate\Http\Request;
                       </table>
                     </div>
                 </div>
-                <div id="divAlertasDiarias" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
-                  <div id="moldeAlerta" class="col-md-6 tablaAlertas" style="height: 350px;overflow-y: scroll;border: 1px solid #eee;padding: 0px !important;" hidden>
-                    <h5>ALERTAS <span class="descripcion_alerta">JUEGO/JUGADORES MONEDA</span></h5>
-                    <div class="col-md-12">
-                      <table class="col-md-12 table table-fixed">
-                        <thead>
-                          <tr>
-                            <th class="col-md-2" style="text-align: center">FECHA</th>
-                            <th class="col-md-2" style="text-align: center">ID</th>
-                            <th class="col-md-2" style="text-align: center">APUESTA</th>
-                            <th class="col-md-2" style="text-align: center">PREMIO</th>
-                            <th class="col-md-2" style="text-align: center">BENEFICIO</th>
-                            <th class="col-md-2" style="text-align: center">%DEV</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                      </table>
-                      <table hidden>
-                        <tr id="moldeFilaAlerta">
-                          <td class="col-md-2 fecha"  style="text-align: center">AAAA-MM-DD</td>
-                          <td class="col-md-2 id" style="text-align: center">9999</td>
-                          <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
-                          <td class="col-md-2 premio" style="text-align: right">98765.43</td>
-                          <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>
-                          <td class="col-md-2 pdev" style="text-align: right">99.999</td>
-                        </tr>
-                      </table>
+                <div id="divAlertasDiariasJuegos" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                  <div class="row" id="inputsAlertas">
+                    <div class="col-md-2">
+                      <h5>BENEFICIO ≷</h5>
+                      <input id="inputBeneficioJuegos" type="number" class="form-control" value="150000" style="text-align: center;"/>
+                    </div>
+                    <div class="col-md-2">
+                      <h5>± JUEGO %DEV</h5>
+                      <input id="inputPdevJuegos" type="number" class="form-control" value="0" style="text-align: center;"/>
+                    </div>
+                    <div class="col-md-2">
+                      <h5>&nbsp;</h5>
+                      <button id="btn-buscarAlertasJuegos" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
                     </div>
                   </div>
+                  <br>
+                </div>
+                <div id="divAlertasDiariasJugadores" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                  <div class="row" id="inputsAlertas">
+                    <div class="col-md-2">
+                      <h5>BENEFICIO ≷</h5>
+                      <input id="inputBeneficioJugadores" type="number" class="form-control" value="150000" style="text-align: center;"/>
+                    </div>
+                    <div class="col-md-2">
+                      <h5>&nbsp;</h5>
+                      <button id="btn-buscarAlertasJugadores" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
+                    </div>
+                  </div>
+                  <br>
                 </div>
               </div>
           </div>
@@ -167,6 +167,69 @@ use Illuminate\Http\Request;
   </div>
 </div>
 
+<div id="moldeAlertaJuegos" class="col-md-12 tablaAlertasJuegos" style="height: 500px;overflow-y: scroll;border: 1px solid #eee;padding: 0px !important;" hidden>
+  <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
+  <div class="col-md-12">
+    <table class="col-md-12 table table-fixed">
+      <thead>
+        <tr>
+          <th class="col-md-2" style="text-align: center">FECHA</th>
+          <th class="col-md-2" style="text-align: center">CÓDIGO</th>
+          <th class="col-md-2" style="text-align: center">APUESTA</th>
+          <th class="col-md-2" style="text-align: center">PREMIO</th>
+          <th class="col-md-2" style="text-align: center">BENEFICIO</th>
+          <th class="col-md-1" style="text-align: center">%DEV</th>
+          <th class="col-md-1" style="text-align: center">%DEV (Juego)</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<table hidden>
+  <tr id="moldeFilaAlertaJuegos">
+    <td class="col-md-2 fecha"  style="text-align: center">AAAA-MM-DD</td>
+    <td class="col-md-2 codigo" style="text-align: center">9999</td>
+    <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
+    <td class="col-md-2 premio" style="text-align: right">98765.43</td>
+    <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>
+    <td class="col-md-1 pdev" style="text-align: right">99.999</td>
+    <td class="col-md-1 pdev_juego" style="text-align: right">99.999</td>
+  </tr>
+</table>
+
+<div id="moldeAlertaJugadores" class="col-md-12 tablaAlertasJugadores" style="height: 500px;overflow-y: scroll;border: 1px solid #eee;padding: 0px !important;" hidden>
+  <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
+  <div class="col-md-12">
+    <table class="col-md-12 table table-fixed">
+      <thead>
+        <tr>
+          <th class="col-md-2" style="text-align: center">FECHA</th>
+          <th class="col-md-2" style="text-align: center">ID</th>
+          <th class="col-md-2" style="text-align: center">APUESTA</th>
+          <th class="col-md-2" style="text-align: center">PREMIO</th>
+          <th class="col-md-2" style="text-align: center">BENEFICIO</th>
+          <th class="col-md-2" style="text-align: center">%DEV</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<table hidden>
+  <tr id="moldeFilaAlertaJugadores">
+    <td class="col-md-2 fecha"  style="text-align: center">AAAA-MM-DD</td>
+    <td class="col-md-2 id" style="text-align: center">9999</td>
+    <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
+    <td class="col-md-2 premio" style="text-align: right">98765.43</td>
+    <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>
+    <td class="col-md-2 pdev" style="text-align: right">99.999</td>
+  </tr>
+</table>
 
 <table hidden>
   <tr id="filaEjemploJuegosFaltantesConMovimientos">
