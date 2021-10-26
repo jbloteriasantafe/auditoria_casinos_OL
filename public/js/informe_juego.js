@@ -74,7 +74,7 @@ function limpiarNull(str, c = '-') {
 
 const default_page_size = 30;
 
-function verJuego(id_juego,id_plataforma){
+function verJuego(id_juego,id_plataforma, after = function(){}){
     $.get("informeContableJuego/obtenerInformeDeJuego/" + id_juego, function(data) {
         $('#codigo').text(limpiarNull(data.juego.cod_juego));
         $('#proveedor').text(limpiarNull(data.juego.proveedor));
@@ -99,7 +99,7 @@ function verJuego(id_juego,id_plataforma){
             }
         }
 
-        $('#modalJuegoContable').modal('show');
+        after();
     });
 }
 
@@ -118,25 +118,25 @@ $('#btn-verDetalles').click(function(e) {
         $('.de_jugador').hide();
         $('#estado').text('Produciendo (NO EN BD)');
         const id_juego = $('#inputCodigo').obtenerElementoSeleccionado();
-        cargarProducidos(id_plataforma,codigo,1,default_page_size,function(){
-            if(id_juego == -1){
-                $('#modalJuegoContable').modal('show');
-                return;
-            }
-            verJuego(id_juego,id_plataforma);
-        });
+        if(id_juego != -1){
+            verJuego(id_juego,id_plataforma,function(){
+                cargarProducidos(id_plataforma,codigo,1,default_page_size);
+            });
+        }
+        else{
+            cargarProducidos(id_plataforma,codigo,1,default_page_size);
+        }
+
     }
     else if(tipo == 'jugador'){
         $('.de_juego').hide();
         $('.de_jugador').show();
         $('#estado').text('-');
-        cargarProducidos(id_plataforma,codigo,1,default_page_size,function(){
-            $('#modalJuegoContable').modal('show');
-        });
+        cargarProducidos(id_plataforma,codigo,1,default_page_size);
     }
 });
 
-function cargarProducidos(id_plataforma,codigo,pagina,page_size,after = function(){}){
+function cargarProducidos(id_plataforma,codigo,pagina,page_size){
     let url = 'informeContableJuego/';
     const tipo = $('#selectTipoCodigo').val(); 
     if(tipo == 'juego') url += 'obtenerProducidosDeJuego';
@@ -183,7 +183,7 @@ function cargarProducidos(id_plataforma,codigo,pagina,page_size,after = function
         $('#prevPreview').attr('disabled',pagina <= 1);
         $('#nextPreview').attr('disabled',pagina >= total);
 
-        after();
+        $('#modalJuegoContable').modal('show');
 
         setTimeout(function(){
             //Para el grafico lo queremos de orden mas viejo a mas nuevo
