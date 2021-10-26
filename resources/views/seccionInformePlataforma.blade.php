@@ -174,7 +174,7 @@ use Illuminate\Http\Request;
   </div>
 </div>
 
-<div id="moldeAlertaJuegos" class="row tablaAlertasJuegos" style="border: 1px solid #eee;" hidden>
+<div id="moldeAlertaJuegos" class="row tablaAlertas" style="border: 1px solid #eee;" hidden>
   <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
   <div class="row">
     <table class="col-md-12 table table-fixed">
@@ -216,7 +216,7 @@ use Illuminate\Http\Request;
 </div>
 
 
-<div id="moldeAlertaJugadores" class="row tablaAlertasJugadores" style="border: 1px solid #eee;"  hidden>
+<div id="moldeAlertaJugadores" class="row tablaAlertas" style="border: 1px solid #eee;"  hidden>
   <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
   <div class="row">
     <table class="col-md-12 table table-fixed">

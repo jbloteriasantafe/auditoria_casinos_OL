@@ -202,7 +202,7 @@ $(document).on('click','#divAlertasDiariasJuegos .nextPreview',function(e){
 function generarTablaAlertas(tipo,moneda,alertas,page,pages){
   const div = $('#moldeAlerta'+tipo).clone().removeAttr('id').show();
   div.find('.moneda').text(moneda)
-  const fila = div.find('.moldeFilaAlerta').clone()
+  const fila = div.find('.moldeFilaAlerta').clone().removeClass('moldeFilaAlerta');
   for(const aidx in alertas){
     const a = alertas[aidx];
     const f = fila.clone();
@@ -215,6 +215,7 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages){
   div.find('.previewTotal').text(pages);
   div.find('.prevPreview').attr('disabled',page <= 1);
   div.find('.nextPreview').attr('disabled',page >= pages);
+  $('#divAlertasDiarias'+tipo).find('.tablaAlertas').remove();
   $('#divAlertasDiarias'+tipo).append(div);
 }
 
