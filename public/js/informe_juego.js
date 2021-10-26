@@ -148,7 +148,14 @@ function cargarProducidos(id_plataforma,codigo,pagina,page_size){
         $('#producido').text(data.total? data.total.beneficio : '-');
         $('#pdev').text(data.total? (100*data.total.pdev).toFixed(3) : '-');
         const pdev = parseFloat($('#devolucion').text())/100;
-        $('#producidoEsperado').text(data.total && !isNaN(pdev)? (data.total.apuesta*(1-pdev)).toFixed(2) : '-');
+        if (data.total && !isNaN(pdev)){
+            const apuesta = parseFloat(data.total.apuesta);
+            const premio_esperado =  pdev*apuesta;
+            $('#producidoEsperado').text(Math.round((apuesta-premio_esperado)*100)/100);
+        }
+        else {
+            $('#producidoEsperado').text('-');
+        }
 
         const fechas = [];
         const producidos = [];
