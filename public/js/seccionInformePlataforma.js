@@ -174,6 +174,7 @@ function generarAlertasDiarias(tipo,id_tipo_moneda,page){
   const data = { beneficio_alertas: beneficio_alertas, pdev_alertas: pdev_alertas, 
     id_tipo_moneda: id_tipo_moneda, page: page, page_size: page_size };
   const id_plataforma = $('#buscadorPlataforma').val();
+  $('#divAlertasDiarias'+tipo).find('.tablaAlertas').remove();
   GET('obtenerAlertas'+tipo+'/'+id_plataforma,data,function(data){
     const alertas = data.data;
     const total = data.total;
@@ -215,7 +216,6 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages){
   div.find('.previewTotal').text(pages);
   div.find('.prevPreview').attr('disabled',page <= 1);
   div.find('.nextPreview').attr('disabled',page >= pages);
-  $('#divAlertasDiarias'+tipo).find('.tablaAlertas').remove();
   $('#divAlertasDiarias'+tipo).append(div);
 }
 
