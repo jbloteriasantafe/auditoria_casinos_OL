@@ -167,16 +167,14 @@ $('.tab').click(function(){
 });
 
 function generarAlertasDiarias(tipo,id_tipo_moneda,page){
-  $('#inputsAlertasJuegos input').change();
-  $('.tablaAlertasJuegos').not('#moldeAlertaJuegos').remove();
-  const beneficio_alertas = $('#inputBeneficioJuegos').val() == ""? "0" : $('#inputBeneficioJuegos').val();
-  const pdev_alertas = $('#inputPdevJuegos').val() == ""? "0" : $('#inputPdevJuegos').val();
+  const beneficio_alertas = $('#inputBeneficio'+tipo).val() == ""? "0" : $('#inputBeneficio'+tipo).val();
+  const pdev_alertas = $('#inputPdev'+tipo).val() == ""? "0" : $('#inputPdev'+tipo).val();
   const page_size = 30;
   const moneda_str= ['ARS','USD'];
   const data = { beneficio_alertas: beneficio_alertas, pdev_alertas: pdev_alertas, 
     id_tipo_moneda: id_tipo_moneda, page: page, page_size: page_size };
   const id_plataforma = $('#buscadorPlataforma').val();
-  GET('obtenerAlertasJuegos/'+id_plataforma,data,function(data){
+  GET('obtenerAlertas'+tipo+'/'+id_plataforma,data,function(data){
     const alertas = data.data;
     const total = data.total;
     if(total == 0) return;
@@ -220,43 +218,19 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages){
   $('#divAlertasDiarias'+tipo).append(div);
 }
 
-
 $('#btn-buscarAlertasJugadores').click(function(e){
-  /*e.preventDefault();
-  $('#inputsAlertasJugadores input').change();
-  $('.tablaAlertasJugadores').not('#moldeAlertaJugadores').remove();
-  const beneficio_alertas = $('#inputBeneficioJugadores').val() == ""? "0" : $('#inputBeneficioJugadores').val();
-  const data = { beneficio_alertas : beneficio_alertas, page: 1, page_size: 30  };
-  const id = $('#buscadorPlataforma').val();
-  GET('obtenerAlertasJugadores/'+id,data,function(data){
-    for(const moneda in data){
-      const alertas = data[moneda];
-      if(alertas == 0) continue;
-      generarTablaAlertas('Jugadores',moneda,alertas,);
-    }
-  });*/
-})
-
-/*
-function cambiarPagina(sumar){
-  const pag_actual    = parseInt($('#previewPage').text());
-  const max_pag       = parseInt($('#previewTotal').text());
-  $('#prevPreview').attr('disabled',pag_actual <= 1);
-  $('#nextPreview').attr('disabled',pag_actual >= max_pag);
-  
-  if((pag_actual <= 1 && sumar < 0) || (pag_actual >= max_pag && sumar > 0)) return;
-
-  const cod_juego     = $('#codigo').text();
-  const id_plataforma = $('#selectPlataforma').val();
-  cargarProducidos(id_plataforma,cod_juego,pag_actual+sumar,default_page_size);
-}
-
-$('#prevPreview').click(function(e){
   e.preventDefault();
-  cambiarPagina(-1);
+  generarAlertasDiarias('Jugadores',1,1);
 });
 
-$('#nextPreview').click(function(e){
+$(document).on('click','#divAlertasDiariasJugadores .prevPreview',function(e){
   e.preventDefault();
-  cambiarPagina(+1);
-});*/
+  const p = parseInt($(this).parent().find('.previewPage').text())
+  generarAlertasDiarias('Jugadores',1,p-1);
+});
+
+$(document).on('click','#divAlertasDiariasJugadores .nextPreview',function(e){
+  e.preventDefault();
+  const p = parseInt($(this).parent().find('.previewPage').text())
+  generarAlertasDiarias('Jugadores',1,p+1);
+});

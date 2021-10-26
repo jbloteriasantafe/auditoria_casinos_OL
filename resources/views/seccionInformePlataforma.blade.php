@@ -244,7 +244,7 @@ use Illuminate\Http\Request;
   <table hidden>
     <tr class="moldeFilaAlerta">
       <td class="col-md-2 fecha"  style="text-align: center">AAAA-MM-DD</td>
-      <td class="col-md-2 id" style="text-align: center">9999</td>
+      <td class="col-md-2 jugador" style="text-align: center">9999</td>
       <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
       <td class="col-md-2 premio" style="text-align: right">98765.43</td>
       <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>

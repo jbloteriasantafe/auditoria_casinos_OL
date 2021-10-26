@@ -364,7 +364,6 @@ class informesController extends Controller
   }
 
   public function obtenerAlertasJuegos(Request $request,$id_plataforma){
-    $monedas = DB::table('tipo_moneda')->get();
     $alertas = [];
 
     $query = DB::table('detalle_producido as dp')
@@ -395,18 +394,23 @@ class informesController extends Controller
   }
 
   public function obtenerAlertasJugadores(Request $request,$id_plataforma){
-    $monedas = DB::table('tipo_moneda')->get();
     $alertas = [];
-    foreach($monedas as $m){
-      $alertas_jugadores = DB::table('detalle_producido_jugadores as dp')
-      ->selectRaw('p.fecha, dp.jugador as id, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
-      ->join('producido_jugadores as p','p.id_producido_jugadores','=','dp.id_producido_jugadores')
-      ->where('p.id_plataforma',$id_plataforma)->where('p.id_tipo_moneda',$m->id_tipo_moneda)
-      ->whereRaw('ABS(dp.beneficio) >= '.$request->beneficio_alertas)
-      ->orderBy('p.fecha','desc')->orderBy('dp.jugador','asc')->get();
 
-      $alertas[$m->descripcion] = $alertas_jugadores;
-    }
+    $query = DB::table('detalle_producido_jugadores as dp')
+    ->join('producido_jugadores as p','p.id_producido_jugadores','=','dp.id_producido_jugadores')
+    ->where('p.id_plataforma',$id_plataforma)
+    ->where('p.id_tipo_moneda',$request->id_tipo_moneda)
+    ->whereRaw('ABS(dp.beneficio) >= '.$request->beneficio_alertas);
+
+    $data = (clone $query)
+    ->selectRaw('p.fecha, dp.jugador, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
+    ->orderBy('p.fecha','desc')->orderBy('dp.jugador','asc')
+    ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
+    $alertas['data'] = $data;
+
+    $total = (clone $query)->selectRaw('COUNT(dp.id_detalle_producido_jugadores) as total')
+    ->groupBy(DB::raw('"constant"'))->get()->first();
+    $alertas['total'] = is_null($total)? 0 : $total->total;
     return $alertas;
   }
 
