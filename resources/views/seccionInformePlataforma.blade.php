@@ -30,6 +30,13 @@ use Illuminate\Http\Request;
 #juegosFaltantesConMovimientos > table > tbody > tr > td {
   text-align: right;
 }
+
+.tabContent {
+  text-align:center;
+  padding-bottom:25px;
+  overflow-y: scroll;
+  max-height: 650px;
+}
 </style>
 @endsection
 
@@ -92,17 +99,17 @@ use Illuminate\Http\Request;
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body">
-          <div class="row" style="overflow-y: scroll;max-height: 650px;">
+          <div class="row">
               <div class="col-md-12" style="border-right:1px solid #ccc;">
-                <div id="divGraficos" class="row tabContent" style="text-align:center; padding-bottom:25px;">
+                <div id="divGraficos" class="row tabContent">
                     <h5>CLASIFICACIÓN DE JUEGOS</h5>
                     <div id="graficos" class="col-md-12"></div>
                 </div>
-                <div id="divTablas" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                <div id="divTablas" class="row tabContent">
                     <h5>PORCENTAJES DE DEVOLUCION</h5>
                     <div id="tablas" class="col-md-12"></div>
                 </div>
-                <div id="divJuegosFaltantesConMovimientos" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                <div id="divJuegosFaltantesConMovimientos" class="row tabContent">
                     <div id="juegosFaltantesConMovimientos" class="col-md-12">
                       <table class="col-md-12 table table-fixed">
                         <thead>
@@ -126,14 +133,14 @@ use Illuminate\Http\Request;
                       </table>
                     </div>
                 </div>
-                <div id="divAlertasDiariasJuegos" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                <div id="divAlertasDiariasJuegos" class="row tabContent">
                   <div class="row" id="inputsAlertas">
                     <div class="col-md-2">
                       <h5>BENEFICIO ≷</h5>
                       <input id="inputBeneficioJuegos" type="number" class="form-control" value="150000" style="text-align: center;"/>
                     </div>
                     <div class="col-md-2">
-                      <h5>± JUEGO %DEV</h5>
+                      <h5>JUEGO %DEV ±</h5>
                       <input id="inputPdevJuegos" type="number" class="form-control" value="0" style="text-align: center;"/>
                     </div>
                     <div class="col-md-2">
@@ -143,7 +150,7 @@ use Illuminate\Http\Request;
                   </div>
                   <br>
                 </div>
-                <div id="divAlertasDiariasJugadores" class="row tabContent" style="text-align:center; padding-bottom: 25px;">
+                <div id="divAlertasDiariasJugadores" class="row tabContent">
                   <div class="row" id="inputsAlertas">
                     <div class="col-md-2">
                       <h5>BENEFICIO ≷</h5>
@@ -167,9 +174,9 @@ use Illuminate\Http\Request;
   </div>
 </div>
 
-<div id="moldeAlertaJuegos" class="col-md-12 tablaAlertasJuegos" style="height: 500px;overflow-y: scroll;border: 1px solid #eee;padding: 0px !important;" hidden>
+<div id="moldeAlertaJuegos" class="row tablaAlertasJuegos" style="border: 1px solid #eee;" hidden>
   <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
-  <div class="col-md-12">
+  <div class="row">
     <table class="col-md-12 table table-fixed">
       <thead>
         <tr>
@@ -187,24 +194,31 @@ use Illuminate\Http\Request;
       </tbody>
     </table>
   </div>
+  <div class="row paginado">
+    <div class="col-md-2 col-md-offset-5">
+      <button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button>
+      P <span class="previewPage">9</span>/<span class="previewTotal">99</span>
+      <button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+  <table hidden>
+    <tr class="moldeFilaAlerta">
+      <td class="col-md-1 fecha"  style="text-align: center">AAAA-MM-DD</td>
+      <td class="col-md-1 codigo" style="text-align: center">9999</td>
+      <td class="col-md-2 categoria" style="text-align: center">CAT</td>
+      <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
+      <td class="col-md-2 premio" style="text-align: right">98765.43</td>
+      <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>
+      <td class="col-md-1 pdev" style="text-align: right">99.999</td>
+      <td class="col-md-1 pdev_juego" style="text-align: right">99.999</td>
+    </tr>
+  </table>
 </div>
 
-<table hidden>
-  <tr id="moldeFilaAlertaJuegos">
-    <td class="col-md-1 fecha"  style="text-align: center">AAAA-MM-DD</td>
-    <td class="col-md-1 codigo" style="text-align: center">9999</td>
-    <td class="col-md-2 categoria" style="text-align: center">CAT</td>
-    <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
-    <td class="col-md-2 premio" style="text-align: right">98765.43</td>
-    <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>
-    <td class="col-md-1 pdev" style="text-align: right">99.999</td>
-    <td class="col-md-1 pdev_juego" style="text-align: right">99.999</td>
-  </tr>
-</table>
 
-<div id="moldeAlertaJugadores" class="col-md-12 tablaAlertasJugadores" style="height: 500px;overflow-y: scroll;border: 1px solid #eee;padding: 0px !important;" hidden>
+<div id="moldeAlertaJugadores" class="row tablaAlertasJugadores" style="border: 1px solid #eee;"  hidden>
   <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
-  <div class="col-md-12">
+  <div class="row">
     <table class="col-md-12 table table-fixed">
       <thead>
         <tr>
@@ -220,18 +234,25 @@ use Illuminate\Http\Request;
       </tbody>
     </table>
   </div>
+  <div class="row paginado">
+    <div class="col-md-2 col-md-offset-5">
+      <button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button>
+      P <span class="previewPage">9</span>/<span class="previewTotal">99</span>
+      <button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+  <table hidden>
+    <tr class="moldeFilaAlerta">
+      <td class="col-md-2 fecha"  style="text-align: center">AAAA-MM-DD</td>
+      <td class="col-md-2 id" style="text-align: center">9999</td>
+      <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
+      <td class="col-md-2 premio" style="text-align: right">98765.43</td>
+      <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>
+      <td class="col-md-2 pdev" style="text-align: right">99.999</td>
+    </tr>
+  </table>
 </div>
 
-<table hidden>
-  <tr id="moldeFilaAlertaJugadores">
-    <td class="col-md-2 fecha"  style="text-align: center">AAAA-MM-DD</td>
-    <td class="col-md-2 id" style="text-align: center">9999</td>
-    <td class="col-md-2 apuesta" style="text-align: right">123456.78</td>
-    <td class="col-md-2 premio" style="text-align: right">98765.43</td>
-    <td class="col-md-2 beneficio" style="text-align: right">-9999.99</td>
-    <td class="col-md-2 pdev" style="text-align: right">99.999</td>
-  </tr>
-</table>
 
 <table hidden>
   <tr id="filaEjemploJuegosFaltantesConMovimientos">

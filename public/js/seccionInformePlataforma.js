@@ -166,50 +166,45 @@ $('.tab').click(function(){
   $($(this).attr('div-asociado')).show();
 });
 
-$('#btn-buscarAlertasJuegos').click(function(e){
-  e.preventDefault();
+function generarAlertasDiarias(tipo,id_tipo_moneda,page){
   $('#inputsAlertasJuegos input').change();
   $('.tablaAlertasJuegos').not('#moldeAlertaJuegos').remove();
   const beneficio_alertas = $('#inputBeneficioJuegos').val() == ""? "0" : $('#inputBeneficioJuegos').val();
   const pdev_alertas = $('#inputPdevJuegos').val() == ""? "0" : $('#inputPdevJuegos').val();
-  const data = { beneficio_alertas: beneficio_alertas, pdev_alertas: pdev_alertas };
-  const id = $('#buscadorPlataforma').val();
-  GET('obtenerAlertasJuegos/'+id,data,function(data){
-    for(const moneda in data){
-      const alertas = data[moneda];
-      if(alertas.length == 0) continue;
-      generarTablaAlertas('Juegos',moneda,alertas);
-    }
-    $('#previewPage').text(pagina);
-    const cantidad = data.total? data.total.cantidad : 0;
-    const total = Math.ceil(cantidad/page_size);
-    $('#previewTotal').text(total);
-    if(page_size <= 0) $('#previewTotal').text(1);
-    $('#prevPreview').attr('disabled',pagina <= 1);
-    $('#nextPreview').attr('disabled',pagina >= total);
+  const page_size = 30;
+  const moneda_str= ['ARS','USD'];
+  const data = { beneficio_alertas: beneficio_alertas, pdev_alertas: pdev_alertas, 
+    id_tipo_moneda: id_tipo_moneda, page: page, page_size: page_size };
+  const id_plataforma = $('#buscadorPlataforma').val();
+  GET('obtenerAlertasJuegos/'+id_plataforma,data,function(data){
+    const alertas = data.data;
+    const total = data.total;
+    if(total == 0) return;
+    generarTablaAlertas(tipo,moneda_str[id_tipo_moneda-1],alertas,page,Math.ceil(total/page_size));
   });
-})
+}
 
-$('#btn-buscarAlertasJugadores').click(function(e){
+$('#btn-buscarAlertasJuegos').click(function(e){
   e.preventDefault();
-  $('#inputsAlertasJugadores input').change();
-  $('.tablaAlertasJugadores').not('#moldeAlertaJugadores').remove();
-  const beneficio_alertas = $('#inputBeneficioJugadores').val() == ""? "0" : $('#inputBeneficioJugadores').val();
-  const data = { beneficio_alertas : beneficio_alertas };
-  const id = $('#buscadorPlataforma').val();
-  GET('obtenerAlertasJugadores/'+id,data,function(data){
-    for(const moneda in data){
-      const alertas = data[moneda];
-      if(alertas == 0) continue;
-      generarTablaAlertas('Jugadores',moneda,alertas);
-    }
-  });
-})
+  generarAlertasDiarias('Juegos',1,1);
+});
 
-function generarTablaAlertas(tipo,moneda,alertas){
+$(document).on('click','#divAlertasDiariasJuegos .prevPreview',function(e){
+  e.preventDefault();
+  const p = parseInt($(this).parent().find('.previewPage').text())
+  generarAlertasDiarias('Juegos',1,p-1);
+});
+
+$(document).on('click','#divAlertasDiariasJuegos .nextPreview',function(e){
+  e.preventDefault();
+  const p = parseInt($(this).parent().find('.previewPage').text())
+  generarAlertasDiarias('Juegos',1,p+1);
+});
+
+function generarTablaAlertas(tipo,moneda,alertas,page,pages){
   const div = $('#moldeAlerta'+tipo).clone().removeAttr('id').show();
   div.find('.moneda').text(moneda)
-  const fila = $('#moldeFilaAlerta'+tipo).clone().removeAttr('id');
+  const fila = div.find('.moldeFilaAlerta').clone()
   for(const aidx in alertas){
     const a = alertas[aidx];
     const f = fila.clone();
@@ -218,9 +213,31 @@ function generarTablaAlertas(tipo,moneda,alertas){
     }
     div.find('tbody').append(f);
   }
+  div.find('.previewPage').text(page);
+  div.find('.previewTotal').text(pages);
+  div.find('.prevPreview').attr('disabled',page <= 1);
+  div.find('.nextPreview').attr('disabled',page >= pages);
   $('#divAlertasDiarias'+tipo).append(div);
 }
 
+
+$('#btn-buscarAlertasJugadores').click(function(e){
+  /*e.preventDefault();
+  $('#inputsAlertasJugadores input').change();
+  $('.tablaAlertasJugadores').not('#moldeAlertaJugadores').remove();
+  const beneficio_alertas = $('#inputBeneficioJugadores').val() == ""? "0" : $('#inputBeneficioJugadores').val();
+  const data = { beneficio_alertas : beneficio_alertas, page: 1, page_size: 30  };
+  const id = $('#buscadorPlataforma').val();
+  GET('obtenerAlertasJugadores/'+id,data,function(data){
+    for(const moneda in data){
+      const alertas = data[moneda];
+      if(alertas == 0) continue;
+      generarTablaAlertas('Jugadores',moneda,alertas,);
+    }
+  });*/
+})
+
+/*
 function cambiarPagina(sumar){
   const pag_actual    = parseInt($('#previewPage').text());
   const max_pag       = parseInt($('#previewTotal').text());
@@ -242,4 +259,4 @@ $('#prevPreview').click(function(e){
 $('#nextPreview').click(function(e){
   e.preventDefault();
   cambiarPagina(+1);
-});
+});*/
