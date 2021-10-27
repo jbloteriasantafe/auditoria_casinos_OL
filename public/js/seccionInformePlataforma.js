@@ -14,16 +14,26 @@ $('#btn-ayuda').click(function(e){
 	$('#modalAyuda').modal('show');
 });
 
-function GET(url,data,success,error = function(data){console.log(data.responseJSON);}){
+function GET(loadingselect,url,data,success,error){
+  let midx = 0;
+  const loading = setInterval(function(){const m = ['―','/','|','\\'];$(loadingselect).text(m[midx%4]);midx++;},100);
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
   $.ajax({
     type: 'GET',
     url: '/informePlataforma/'+url,
     data: data,
-    success: success,
-    error: error,
+    success: function(data){
+      clearInterval(loading);
+      $(loadingselect).empty();
+      success(data);
+    },
+    error: function(data){
+      clearInterval(loading);
+      $(loadingselect).text('ERROR DE CARGA');
+      error(data);
+    },
   });
-};
+}
 
 $('#btn-buscar').click(function(e){
   const id = $('#buscadorPlataforma').val();
@@ -36,24 +46,20 @@ $('#btn-buscar').click(function(e){
   $('.tabContent').hide();
   $('.tab').eq(0).click();
 
-  let midx = 0;
-  const loading = setInterval(function(){const m = ['―','/','|','\\'];$('#graficos').text(m[midx%4]);midx++;},100);
-  GET('obtenerEstadisticas/'+id,{},function(data){
-    clearInterval(loading);
+  GET('#graficos,#tablas','obtenerEstadisticas/'+id,{},function(data){
     for(const clasificacion in data){
       if(data[clasificacion].length > 0)
         generarTabla(clasificacion,data[clasificacion]);
     }
-    $('#graficos').empty();
     for(const clasificacion in data){
       setTimeout(function(){
         if(data[clasificacion].length > 0 && clasificacion != 'Total')
           generarGraficos(clasificacion,data[clasificacion]);
       },250);
     }
-  },function(data){clearInterval(loading);console.log(data.responseJSON);});
+  });
 
-  GET('obtenerJuegosFaltantes/'+id,{},function(data){
+  GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes/'+id,{},function(data){
     for(const jidx in data){
       const j = data[jidx];
       const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
@@ -175,7 +181,7 @@ function generarAlertasDiarias(tipo,id_tipo_moneda,page){
     id_tipo_moneda: id_tipo_moneda, page: page, page_size: page_size };
   const id_plataforma = $('#buscadorPlataforma').val();
   $('#divAlertasDiarias'+tipo).find('.tablaAlertas').remove();
-  GET('obtenerAlertas'+tipo+'/'+id_plataforma,data,function(data){
+  GET('#loadingAlertasDiarias'+tipo,'obtenerAlertas'+tipo+'/'+id_plataforma,data,function(data){
     const alertas = data.data;
     const total = data.total;
     if(total == 0) return;

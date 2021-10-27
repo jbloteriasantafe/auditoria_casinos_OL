@@ -149,6 +149,7 @@ use Illuminate\Http\Request;
                     </div>
                   </div>
                   <br>
+                  <div class="row" id="loadingAlertasDiariasJuegos"></div>
                 </div>
                 <div id="divAlertasDiariasJugadores" class="row tabContent">
                   <div class="row" id="inputsAlertas">
@@ -162,6 +163,7 @@ use Illuminate\Http\Request;
                     </div>
                   </div>
                   <br>
+                  <div class="row" id="loadingAlertasDiariasJugadores"></div>
                 </div>
               </div>
           </div>
