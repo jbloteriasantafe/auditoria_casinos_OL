@@ -46,16 +46,16 @@ $('#btn-buscar').click(function(e){
   $('.tabContent').hide();
   $('.tab').eq(0).click();
 
-  GET('#graficos,#tablas','obtenerEstadisticas/'+id,{},function(data){
-    for(const clasificacion in data){
-      if(data[clasificacion].length > 0)
-        generarTabla(clasificacion,data[clasificacion]);
-    }
+  GET('#graficos,#tablas','obtenerClasificacion/'+id,{},function(data){
     for(const clasificacion in data){
       setTimeout(function(){
-        if(data[clasificacion].length > 0 && clasificacion != 'Total')
-          generarGraficos(clasificacion,data[clasificacion]);
+        generarGraficos(clasificacion,data[clasificacion]);
       },250);
+    }
+  });
+  GET('#tablas','obtenerPdevs/'+id,{},function(data){
+    for(const clasificacion in data){
+      generarTabla(clasificacion,data[clasificacion]);
     }
   });
 
@@ -91,14 +91,15 @@ function generarTabla(nombre,valores){
   for(const idx in valores){
     const val = valores[idx];
     const f = filaModelo.clone().removeClass('filaModelo');
-    f.find('.fila').text(val[nombre]).attr('title',val[nombre]);
+    f.find('.fila').text(idx).attr('title',idx);
     const pdev = clearNaN(parseFloat(val['pdev']).toFixed(2));
     const pdev_esperado = clearNaN(parseFloat(val['pdev_esperado']).toFixed(2));
     const pdev_producido = clearNaN(parseFloat(val['pdev_producido']).toFixed(2));
     f.find('.pdev').text(pdev).attr('title',pdev);
     f.find('.pdev_esperado').text(pdev_esperado).attr('title',pdev_esperado);
     f.find('.pdev_producido').text(pdev_producido).attr('title',pdev_producido);
-    table.find('tbody').append(f);
+    //Si no tiene nada no lo muestro
+    if (pdev != '-' || pdev_esperado != '-' || pdev_producido != '-') table.find('tbody').append(f);
   }
   filaModelo.remove();
   $('#tablas').append(table);
@@ -108,7 +109,7 @@ function generarGraficos(nombre,valores){
   const dataseries = [];
   for(const idx in valores){
     const val = valores[idx];
-    dataseries.push([val[nombre],val['juegos']]);
+    dataseries.push([val['clase'],val['juegos']]);
   }
   const grafico = $('<div>').addClass('grafico col-md-4').css('padding-top','50px');
   $('#graficos').append(grafico);
