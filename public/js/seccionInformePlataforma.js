@@ -46,7 +46,7 @@ $('#btn-buscar').click(function(e){
   $('.tabContent').hide();
   $('.tab').eq(0).click();
 
-  GET('#graficos,#tablas','obtenerClasificacion/'+id,{},function(data){
+  GET('#graficos','obtenerClasificacion/'+id,{},function(data){
     for(const clasificacion in data){
       setTimeout(function(){
         generarGraficos(clasificacion,data[clasificacion]);
