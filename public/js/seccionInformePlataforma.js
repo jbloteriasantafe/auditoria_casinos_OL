@@ -195,16 +195,9 @@ $('#btn-buscarAlertasJuegos').click(function(e){
   generarAlertasDiarias('Juegos',1,1);
 });
 
-$(document).on('click','#divAlertasDiariasJuegos .prevPreview',function(e){
+$('#btn-buscarAlertasJugadores').click(function(e){
   e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').val())
-  generarAlertasDiarias('Juegos',1,p-1);
-});
-
-$(document).on('click','#divAlertasDiariasJuegos .nextPreview',function(e){
-  e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').val())
-  generarAlertasDiarias('Juegos',1,p+1);
+  generarAlertasDiarias('Jugadores',1,1);
 });
 
 function generarTablaAlertas(tipo,moneda,alertas,page,pages){
@@ -219,28 +212,23 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages){
     }
     div.find('tbody').append(f);
   }
-  div.find('.previewPage').val(page);
+  div.find('.previewPage').val(page).data('old_val',page);
   div.find('.previewTotal').val(pages);
   div.find('.prevPreview').attr('disabled',page <= 1);
   div.find('.nextPreview').attr('disabled',page >= pages);
   $('#divAlertasDiarias'+tipo).append(div);
 }
 
-$('#btn-buscarAlertasJugadores').click(function(e){
+$(document).on('click','.prevPreview,.nextPreview',function(e){
   e.preventDefault();
-  generarAlertasDiarias('Jugadores',1,1);
-});
-
-$(document).on('click','#divAlertasDiariasJugadores .prevPreview',function(e){
-  e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').val())
-  generarAlertasDiarias('Jugadores',1,p-1);
-});
-
-$(document).on('click','#divAlertasDiariasJugadores .nextPreview',function(e){
-  e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').val())
-  generarAlertasDiarias('Jugadores',1,p+1);
+  const p = parseInt($(this).closest('.paginado').find('.previewPage').val());
+  const next = p + ($(this).hasClass('nextPreview')? 1 : -1);
+  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
+    generarAlertasDiarias('Juegos',1,next);
+  }
+  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
+    generarAlertasDiarias('Jugadores',1,next);
+  }
 });
 
 $(document).on('focusin','.previewPage',function(e){
