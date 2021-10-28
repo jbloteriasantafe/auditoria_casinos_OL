@@ -181,7 +181,7 @@ use Illuminate\Http\Request;
   </div>
 </div>
 
-<div id="moldeAlertaJuegos" class="row tablaAlertas" style="border: 1px solid #eee;" hidden>
+<div id="moldeAlertaJuegos" class="row tablaAlertas tablaAlertasJuegos" style="border: 1px solid #eee;" hidden>
   <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
   <div class="row">
     <table class="col-md-12 table table-fixed">
@@ -200,12 +200,16 @@ use Illuminate\Http\Request;
       <tbody>
       </tbody>
     </table>
-  </div>
-  <div class="row paginado">
-    <div class="col-md-2 col-md-offset-5">
-      <button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button>
-      P <span class="previewPage">9</span>/<span class="previewTotal">99</span>
-      <button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button>
+    <div class="row paginado">
+      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
+      <div class="col-md-4">
+        <div class="input-group">
+          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
+          <span class="input-group-addon">/</span>
+          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
+        </div>
+      </div>
+      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
     </div>
   </div>
   <table hidden>
@@ -223,7 +227,7 @@ use Illuminate\Http\Request;
 </div>
 
 
-<div id="moldeAlertaJugadores" class="row tablaAlertas" style="border: 1px solid #eee;"  hidden>
+<div id="moldeAlertaJugadores" class="row tablaAlertas tablaAlertasJugadores" style="border: 1px solid #eee;"  hidden>
   <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
   <div class="row">
     <table class="col-md-12 table table-fixed">
@@ -240,12 +244,16 @@ use Illuminate\Http\Request;
       <tbody>
       </tbody>
     </table>
-  </div>
-  <div class="row paginado">
-    <div class="col-md-2 col-md-offset-5">
-      <button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button>
-      P <span class="previewPage">9</span>/<span class="previewTotal">99</span>
-      <button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button>
+    <div class="row paginado">
+      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
+      <div class="col-md-4">
+        <div class="input-group">
+          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
+          <span class="input-group-addon">/</span>
+          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
+        </div>
+      </div>
+      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
     </div>
   </div>
   <table hidden>
@@ -259,7 +267,6 @@ use Illuminate\Http\Request;
     </tr>
   </table>
 </div>
-
 
 <table hidden>
   <tr id="filaEjemploJuegosFaltantesConMovimientos">

@@ -197,13 +197,13 @@ $('#btn-buscarAlertasJuegos').click(function(e){
 
 $(document).on('click','#divAlertasDiariasJuegos .prevPreview',function(e){
   e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').text())
+  const p = parseInt($(this).parent().find('.previewPage').val())
   generarAlertasDiarias('Juegos',1,p-1);
 });
 
 $(document).on('click','#divAlertasDiariasJuegos .nextPreview',function(e){
   e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').text())
+  const p = parseInt($(this).parent().find('.previewPage').val())
   generarAlertasDiarias('Juegos',1,p+1);
 });
 
@@ -219,8 +219,8 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages){
     }
     div.find('tbody').append(f);
   }
-  div.find('.previewPage').text(page);
-  div.find('.previewTotal').text(pages);
+  div.find('.previewPage').val(page);
+  div.find('.previewTotal').val(pages);
   div.find('.prevPreview').attr('disabled',page <= 1);
   div.find('.nextPreview').attr('disabled',page >= pages);
   $('#divAlertasDiarias'+tipo).append(div);
@@ -233,14 +233,34 @@ $('#btn-buscarAlertasJugadores').click(function(e){
 
 $(document).on('click','#divAlertasDiariasJugadores .prevPreview',function(e){
   e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').text())
+  const p = parseInt($(this).parent().find('.previewPage').val())
   generarAlertasDiarias('Jugadores',1,p-1);
 });
 
 $(document).on('click','#divAlertasDiariasJugadores .nextPreview',function(e){
   e.preventDefault();
-  const p = parseInt($(this).parent().find('.previewPage').text())
+  const p = parseInt($(this).parent().find('.previewPage').val())
   generarAlertasDiarias('Jugadores',1,p+1);
+});
+
+$(document).on('focusin','.previewPage',function(e){
+  $(this).data('old_val',$(this).val());
+});
+
+$(document).on('change','.previewPage',function(e){
+  const old   = parseInt($(this).data('old_val'));
+  const val   = parseInt($(this).val());
+  const total = parseInt($(this).parent().find('.previewTotal').val());
+  if(val > total || val <= 0){
+    $(this).val(old);
+    return;
+  }
+  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
+    generarAlertasDiarias('Juegos',1,val);
+  }
+  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
+    generarAlertasDiarias('Jugadores',1,val);
+  }
 });
 
 $('#tabEvolucionCategorias').click(function(e){
