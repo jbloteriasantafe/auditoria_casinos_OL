@@ -263,7 +263,7 @@ function generarEvolucionCategorias(graphs) {
   Highcharts.chart('divEvolucionCategorias', {
       chart: {
           backgroundColor: "#fff",
-          type: 'area',
+          type: 'line',
           events: {
               click: function(e) {
                   console.log(e.xAxis[0].value,e.yAxis[0].value);
