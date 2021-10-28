@@ -229,7 +229,7 @@ Route::group(['prefix' => 'informePlataforma'],function(){
   Route::get('/obtenerJuegosFaltantes/{id_plataforma}','informesController@obtenerJuegosFaltantes');
   Route::get('/obtenerAlertasJuegos/{id_plataforma}','informesController@obtenerAlertasJuegos');
   Route::get('/obtenerAlertasJugadores/{id_plataforma}','informesController@obtenerAlertasJugadores');
-  
+  Route::get('/obtenerEvolucionCategorias/{id_plataforma}','informesController@obtenerEvolucionCategorias');
 });
 
 Route::group(['prefix' => 'informeContableJuego'],function(){

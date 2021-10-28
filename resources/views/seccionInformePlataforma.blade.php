@@ -95,6 +95,9 @@ use Illuminate\Http\Request;
             <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiariasJugadores">
               <h4>ALERTAS DIARIAS (JUGADORES)</h4>
             </div>
+            <div id="tabEvolucionCategorias" class="tab" style="width: 10%;" div-asociado="#divEvolucionCategorias">
+              <h4>EVOLUCIÓN %Dev CATEGORIAS</h4>
+            </div>
           </div>
       </div>
       <div id="colapsado" class="collapse in">
@@ -165,6 +168,8 @@ use Illuminate\Http\Request;
                   <br>
                   <div class="row" id="loadingAlertasDiariasJugadores"></div>
                 </div>
+              </div>
+              <div id="divEvolucionCategorias" class="row tabContent">
               </div>
           </div>
         </div>

@@ -296,5 +296,4 @@ function generarGraficoJuego(fechas,producidos) {
             },
         ]
     });
-
 }

@@ -17,13 +17,10 @@ use App\Cotizacion;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\CacheController;
+use App\CategoriaJuego;
 
 class informesController extends Controller
 {
-
-  private static $atributos = ['cod_juego' => 'Código del juego',
-                               'id_plataforma' => 'ID de plataforma'];
-
   private function obtenerMes($mes_num){
     $mes_map = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
     return $mes_map[intval($mes_num)-1];
@@ -446,6 +443,17 @@ class informesController extends Controller
     ->groupBy(DB::raw('"constant"'))->get()->first();
     $alertas['total'] = is_null($total)? 0 : $total->total;
     return $alertas;
+  }
+
+  public function obtenerEvolucionCategorias(Request $request,$id_plataforma){
+    $ret = [];
+    foreach(CategoriaJuego::all() as $cj){
+      $ret[$cj->nombre] = $this->producidosPlataforma($id_plataforma)
+      ->selectRaw('p.fecha as x, (ROUND(AVG(dp.premio)/AVG(dp.apuesta)*100,2))+0E0 as y')
+      ->where('j.id_categoria_juego','=',$cj->id_categoria_juego)
+      ->groupBy('p.fecha')->orderBy('p.fecha','asc')->get();
+    }
+    return $ret;
   }
 
   public function buscarTodoInformeContable(){

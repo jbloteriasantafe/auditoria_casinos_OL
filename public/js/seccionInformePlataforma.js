@@ -242,3 +242,59 @@ $(document).on('click','#divAlertasDiariasJugadores .nextPreview',function(e){
   const p = parseInt($(this).parent().find('.previewPage').text())
   generarAlertasDiarias('Jugadores',1,p+1);
 });
+
+$('#tabEvolucionCategorias').click(function(e){
+  e.preventDefault();
+  GET('#divEvolucionCategorias','obtenerEvolucionCategorias/'+$('#buscadorPlataforma').val(),{},function(data){
+    setTimeout(function(){
+      generarEvolucionCategorias(data);
+    },250);
+  });
+})
+
+function generarEvolucionCategorias(graphs) {
+  const series = [];
+  for(const name in graphs){
+    series.push({
+      name: name,
+      data: graphs[name].map(function(v){return [v.x,v.y];}),
+    });
+  }
+  Highcharts.chart('divEvolucionCategorias', {
+      chart: {
+          backgroundColor: "#fff",
+          type: 'area',
+          events: {
+              click: function(e) {
+                  console.log(e.xAxis[0].value,e.yAxis[0].value);
+              }
+          }
+      },
+      title: { text: ' ' },
+      subtitle: { text: '' },
+      xAxis: {
+          tickmarkPlacement: 'on',
+          title: { enabled: false },
+          visible: false,
+      },
+      yAxis: { title: { text: '' },  },
+      tooltip: {
+          split: true,
+          valueSuffix: '%',
+      },
+      plotOptions: {
+          series: {
+              cursor: 'pointer',
+              point: {
+                  events: {
+                      click: function(e) {
+                        //NOP
+                      }
+                  }
+              },
+              fillOpacity: 0.4
+          }
+      },
+      series: series
+  });
+}
