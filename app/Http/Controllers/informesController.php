@@ -199,13 +199,6 @@ class informesController extends Controller
   }
 
   public function obtenerClasificacion(Request $request){
-    $juegos_plataforma = DB::table('plataforma as p')
-    ->join('plataforma_tiene_juego as pj','pj.id_plataforma','=','p.id_plataforma')
-    ->join('juego as j',function($j){
-      //Si estuvo y esta borrado no lo consideramos en la BD
-      return $j->on('j.id_juego','=','pj.id_juego')->whereRaw('j.deleted_at IS NULL');
-    })->where('p.id_plataforma',$request->id_plataforma);
-
     $estadisticas = [];
     {//ESTADO
       $cantidad = $this->juegosPlataforma($request->id_plataforma)
