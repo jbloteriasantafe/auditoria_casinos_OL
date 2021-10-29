@@ -170,8 +170,8 @@ class informesController extends Controller
     })->where('p.id_plataforma',$id_plataforma);
   }
 
-  private function producidosPlataforma($id_plataforma){
-    return DB::table('producido as p')
+  private function producidosPlataforma($id_plataforma,$fecha_desde,$fecha_hasta){
+    $ret = DB::table('producido as p')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
     ->join('juego as j',function($j){
       return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
@@ -179,6 +179,9 @@ class informesController extends Controller
     ->join('plataforma_tiene_juego as pj',function($j){
       return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
     })->where('p.id_plataforma',$id_plataforma);
+    if(!empty($fecha_desde)) $ret = $ret->where('p.fecha','>=',$fecha_desde);
+    if(!empty($fecha_hasta)) $ret = $ret->where('p.fecha','<=',$fecha_hasta);
+    return $ret;
   }
 
   private function producidosSinJuegoPlataforma($id_plataforma){
@@ -190,19 +193,22 @@ class informesController extends Controller
     ->leftJoin('plataforma_tiene_juego as pj',function($j){
       return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
     })->where('p.id_plataforma',$id_plataforma)->whereNull('pj.id_juego');
+    if(!empty($fecha_desde)) $ret = $ret->where('p.fecha','>=',$fecha_desde);
+    if(!empty($fecha_hasta)) $ret = $ret->where('p.fecha','<=',$fecha_hasta);
+    return $ret;
   }
 
-  public function obtenerClasificacion($id_plataforma){
+  public function obtenerClasificacion(Request $request){
     $juegos_plataforma = DB::table('plataforma as p')
     ->join('plataforma_tiene_juego as pj','pj.id_plataforma','=','p.id_plataforma')
     ->join('juego as j',function($j){
       //Si estuvo y esta borrado no lo consideramos en la BD
       return $j->on('j.id_juego','=','pj.id_juego')->whereRaw('j.deleted_at IS NULL');
-    })->where('p.id_plataforma',$id_plataforma);
+    })->where('p.id_plataforma',$request->id_plataforma);
 
     $estadisticas = [];
     {//ESTADO
-      $cantidad = $this->juegosPlataforma($id_plataforma)
+      $cantidad = $this->juegosPlataforma($request->id_plataforma)
       ->selectRaw('ej.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
       ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
       ->groupBy('pj.id_estado_juego')->get();
@@ -218,7 +224,7 @@ class informesController extends Controller
         ELSE "(ERROR) Sin tipo asignado"
       END) as clase';
       
-      $cantidad = $this->juegosPlataforma($id_plataforma)
+      $cantidad = $this->juegosPlataforma($request->id_plataforma)
       ->selectRaw($tipo.', COUNT(distinct j.cod_juego) as juegos')
       ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
@@ -226,7 +232,7 @@ class informesController extends Controller
     }
 
     {//CATEGORIA
-      $cantidad = $this->juegosPlataforma($id_plataforma)
+      $cantidad = $this->juegosPlataforma($request->id_plataforma)
       ->selectRaw('cj.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
       ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
       ->groupBy('j.id_categoria_juego')->get();
@@ -235,7 +241,7 @@ class informesController extends Controller
     }
 
     {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
-      $cantidad = $this->producidosSinJuegoPlataforma($id_plataforma)
+      $cantidad = $this->producidosSinJuegoPlataforma($request->id_plataforma)
       ->selectRaw('dp.categoria as clase, COUNT(distinct dp.cod_juego) as juegos')
       ->groupBy('dp.categoria')->get();
 
@@ -244,10 +250,10 @@ class informesController extends Controller
     return $estadisticas;
   }
 
-  public function obtenerPdevs($id_plataforma){
+  public function obtenerPdevs(Request $request){
     $cc = CacheController::getInstancia();
     $codigo = 'informeEstadoPlataforma';
-    $subcodigo = 'estadisticas'.$id_plataforma;
+    $subcodigo = 'estadisticas'.$request->id_plataforma;
     //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
     $cache = $cc->buscarUnicoDentroDeSegundos($codigo,$subcodigo,3600);
     
@@ -298,15 +304,14 @@ class informesController extends Controller
 
     $estadisticas = [];
     {//ESTADO
-      $pdev_teorico = $this->juegosPlataforma($id_plataforma)
+      $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
       ->selectRaw('ej.nombre as clase, AVG(j.porcentaje_devolucion) as pdev')
       ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
       ->groupBy('pj.id_estado_juego')->get();
 
-      $producido_pdevs = $this->producidosPlataforma($id_plataforma)
+      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw('ej.nombre as clase, '.$select_pdev)
       ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
-      ->where('p.id_plataforma',$id_plataforma)
       ->groupBy('pj.id_estado_juego')->get();
 
       $estadisticas['Estado'] = merge_pdevs($pdev_teorico,$producido_pdevs);
@@ -319,11 +324,11 @@ class informesController extends Controller
         ELSE "(ERROR) Sin tipo asignado"
       END) as clase';
       
-      $pdev_teorico = $this->juegosPlataforma($id_plataforma)
+      $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
       ->selectRaw($tipo.', AVG(j.porcentaje_devolucion) as pdev')
       ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
-      $producido_pdevs = $this->producidosPlataforma($id_plataforma)
+      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw($tipo.','.$select_pdev)
       ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
@@ -331,12 +336,12 @@ class informesController extends Controller
     }
 
     {//CATEGORIA
-      $pdev_teorico = $this->juegosPlataforma($id_plataforma)
+      $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
       ->selectRaw('cj.nombre as clase, AVG(j.porcentaje_devolucion) as pdev')
       ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
       ->groupBy('j.id_categoria_juego')->get();
 
-      $producido_pdevs = $this->producidosPlataforma($id_plataforma)
+      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw('cj.nombre as clase, '.$select_pdev)
       ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
       ->groupBy('j.id_categoria_juego')->get();
@@ -345,11 +350,11 @@ class informesController extends Controller
     }
 
     {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
-      $pdev_teorico = $this->producidosSinJuegoPlataforma($id_plataforma)
+      $pdev_teorico = $this->producidosSinJuegoPlataforma($request->id_plataforma)
       ->selectRaw('dp.categoria as clase, NULL as pdev')
       ->groupBy('dp.categoria')->get();
 
-      $producido_pdevs = $this->producidosSinJuegoPlataforma($id_plataforma)
+      $producido_pdevs = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw('dp.categoria as clase, NULL as pdev_esperado,'.$avg_producido.'as pdev_producido')
       ->groupBy('dp.categoria')->get();
 
@@ -359,11 +364,11 @@ class informesController extends Controller
     {//El PDEV total
       $clasificador = 'Total';
 
-      $cantidad_y_pdev = $this->juegosPlataforma($id_plataforma)
+      $cantidad_y_pdev = $this->juegosPlataforma($request->id_plataforma)
       ->selectRaw('"Total" as clase, AVG(j.porcentaje_devolucion) as pdev')
       ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
 
-      $producido_pdevs = $this->producidosPlataforma($id_plataforma)
+      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw('"Total" as clase, '.$select_pdev)
       ->groupBy(DB::raw('"constant"'))->get();
 
@@ -373,40 +378,30 @@ class informesController extends Controller
     return $estadisticas;
   }
 
-  public function obtenerJuegosFaltantes($id_plataforma){
-    $juegos_faltantes = DB::table('detalle_producido_juego as dp')
+  public function obtenerJuegosFaltantes(Request $request){
+    $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw('dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
     SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
     SUM(dp.premio_efectivo)    as premio_efectivo,   SUM(dp.premio_bono)   as premio_bono,    SUM(dp.premio) as premio,
     SUM(dp.beneficio_efectivo) as beneficio_efectivo,SUM(dp.beneficio_bono) as beneficio_bono,SUM(dp.beneficio) as beneficio')
-    ->whereNull('dp.id_juego')->where('dp.id_plataforma',$id_plataforma)
     ->groupBy('dp.cod_juego')->orderBy('dp.cod_juego');
 
-    $total = DB::table('detalle_producido_juego as dp')
-    ->selectRaw('"-TOTAL-" as cod_juego,COUNT(distinct dp.cod_juego) as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
+    $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+    ->selectRaw('"TOTAL" as cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
     SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
     SUM(dp.premio_efectivo)    as premio_efectivo,   SUM(dp.premio_bono)   as premio_bono,    SUM(dp.premio) as premio,
     SUM(dp.beneficio_efectivo) as beneficio_efectivo,SUM(dp.beneficio_bono) as beneficio_bono,SUM(dp.beneficio) as beneficio')
-    ->whereNull('dp.id_juego')->where('dp.id_plataforma',$id_plataforma)
     ->groupBy(DB::raw('"constant"'));
 
     $juegos_faltantes->union($total);
     return $juegos_faltantes->get();
   }
 
-  public function obtenerAlertasJuegos(Request $request,$id_plataforma){
+  public function obtenerAlertasJuegos(Request $request){
     $alertas = [];
 
-    $query = DB::table('detalle_producido as dp')
-    ->join('producido as p','p.id_producido','=','dp.id_producido')
-    ->join('juego as j',function($j){
-      return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
-    })
-    ->join('plataforma_tiene_juego as pj',function($j){
-      return $j->on('pj.id_plataforma','=','p.id_plataforma')->on('pj.id_juego','=','j.id_juego');
-    })
+    $query = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-    ->where('p.id_plataforma',$id_plataforma)
     ->where('p.id_tipo_moneda',$request->id_tipo_moneda)
     ->whereRaw('ABS(dp.beneficio) >= '.$request->beneficio_alertas)
     ->whereRaw('ABS((100*dp.premio/dp.apuesta) - j.porcentaje_devolucion) >='.$request->pdev_alertas);
@@ -424,14 +419,16 @@ class informesController extends Controller
     return $alertas;
   }
 
-  public function obtenerAlertasJugadores(Request $request,$id_plataforma){
+  public function obtenerAlertasJugadores(Request $request){
     $alertas = [];
 
     $query = DB::table('detalle_producido_jugadores as dp')
     ->join('producido_jugadores as p','p.id_producido_jugadores','=','dp.id_producido_jugadores')
-    ->where('p.id_plataforma',$id_plataforma)
+    ->where('p.id_plataforma',$request->id_plataforma)
     ->where('p.id_tipo_moneda',$request->id_tipo_moneda)
     ->whereRaw('ABS(dp.beneficio) >= '.$request->beneficio_alertas);
+    if(!empty($request->fecha_desde)) $query = $query->where('p.fecha','>=',$request->fecha_desde);
+    if(!empty($request->fecha_hasta)) $query = $query->where('p.fecha','<=',$request->fecha_hasta);
 
     $data = (clone $query)
     ->selectRaw('p.fecha, dp.jugador, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
@@ -445,10 +442,10 @@ class informesController extends Controller
     return $alertas;
   }
 
-  public function obtenerEvolucionCategorias(Request $request,$id_plataforma){
+  public function obtenerEvolucionCategorias(Request $request){
     $ret = [];
     foreach(CategoriaJuego::all() as $cj){
-      $ret[$cj->nombre] = $this->producidosPlataforma($id_plataforma)
+      $ret[$cj->nombre] = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw('p.fecha as x, (ROUND(AVG(dp.premio)/AVG(dp.apuesta)*100,2))+0E0 as y')
       ->where('j.id_categoria_juego','=',$cj->id_categoria_juego)
       ->groupBy('p.fecha')->orderBy('p.fecha','asc')->get();

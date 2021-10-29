@@ -7,6 +7,27 @@ $(document).ready(function(){
   $('#gestionarJuegos').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcInformePlataforma').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcInformePlataforma').addClass('opcionesSeleccionado');
+  $('#dtpFechaDesde').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    showClear: true,
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2
+  });
+  $('#dtpFechaHasta').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    showClear: true,
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2
+  });
+  $('#buscadorPlataforma').change();
 });
 
 $('#btn-ayuda').click(function(e){
@@ -14,14 +35,28 @@ $('#btn-ayuda').click(function(e){
 	$('#modalAyuda').modal('show');
 });
 
-function GET(loadingselect,url,data,success,error){
+function GET(loadingselect,url,data,success,error=function(x){}){
   let midx = 0;
   const loading = setInterval(function(){const m = ['―','/','|','\\'];$(loadingselect).text(m[midx%4]);midx++;},100);
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  const hoy = new Date().toLocaleString('es-AR').split(" ")[0].split("/").reverse().join("-");
+  const data_default = {
+    id_plataforma: $('#buscadorPlataforma').val(),
+    id_tipo_moneda: 1,
+    beneficio_alertas: 0,
+    pdev_alertas: 0,
+    page: 1,
+    page_size: 30,
+    fecha_desde: $('#dtpFechaDesde input').val(),
+    fecha_hasta: $('#dtpFechaHasta input').val(),
+  };
   $.ajax({
     type: 'GET',
     url: '/informePlataforma/'+url,
-    data: data,
+    data: {
+      ...data_default,
+      ...data
+    },
     success: function(data){
       clearInterval(loading);
       $(loadingselect).empty();
@@ -34,6 +69,10 @@ function GET(loadingselect,url,data,success,error){
     },
   });
 }
+$('#buscadorPlataforma').change(function(e){
+  e.preventDefault();
+  $('#btn-buscar').attr('disabled',$(this).val() == "");
+})
 
 $('#btn-buscar').click(function(e){
   const id = $('#buscadorPlataforma').val();
@@ -46,20 +85,20 @@ $('#btn-buscar').click(function(e){
   $('.tabContent').hide();
   $('.tab').eq(0).click();
 
-  GET('#graficos','obtenerClasificacion/'+id,{},function(data){
+  GET('#graficos','obtenerClasificacion',{},function(data){
     for(const clasificacion in data){
       setTimeout(function(){
         generarGraficos(clasificacion,data[clasificacion]);
       },250);
     }
   });
-  GET('#tablas','obtenerPdevs/'+id,{},function(data){
+  GET('#tablas','obtenerPdevs',{},function(data){
     for(const clasificacion in data){
       generarTabla(clasificacion,data[clasificacion]);
     }
   });
 
-  GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes/'+id,{},function(data){
+  GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',{},function(data){
     for(const jidx in data){
       const j = data[jidx];
       const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
@@ -173,31 +212,29 @@ $('.tab').click(function(){
   $($(this).attr('div-asociado')).show();
 });
 
-function generarAlertasDiarias(tipo,id_tipo_moneda,page){
+function generarAlertasDiarias(tipo,page){
   const beneficio_alertas = $('#inputBeneficio'+tipo).val() == ""? "0" : $('#inputBeneficio'+tipo).val();
   const pdev_alertas = $('#inputPdev'+tipo).val() == ""? "0" : $('#inputPdev'+tipo).val();
   const page_size = 30;
-  const moneda_str= ['ARS','USD'];
   const data = { beneficio_alertas: beneficio_alertas, pdev_alertas: pdev_alertas, 
-    id_tipo_moneda: id_tipo_moneda, page: page, page_size: page_size };
-  const id_plataforma = $('#buscadorPlataforma').val();
+    page: page, page_size: page_size };
   $('#divAlertasDiarias'+tipo).find('.tablaAlertas').remove();
-  GET('#loadingAlertasDiarias'+tipo,'obtenerAlertas'+tipo+'/'+id_plataforma,data,function(data){
+  GET('#loadingAlertasDiarias'+tipo,'obtenerAlertas'+tipo,data,function(data){
     const alertas = data.data;
     const total = data.total;
     if(total == 0) return;
-    generarTablaAlertas(tipo,moneda_str[id_tipo_moneda-1],alertas,page,Math.ceil(total/page_size));
+    generarTablaAlertas(tipo,'ARS',alertas,page,Math.ceil(total/page_size));
   });
 }
 
 $('#btn-buscarAlertasJuegos').click(function(e){
   e.preventDefault();
-  generarAlertasDiarias('Juegos',1,1);
+  generarAlertasDiarias('Juegos',1);
 });
 
 $('#btn-buscarAlertasJugadores').click(function(e){
   e.preventDefault();
-  generarAlertasDiarias('Jugadores',1,1);
+  generarAlertasDiarias('Jugadores',1);
 });
 
 function generarTablaAlertas(tipo,moneda,alertas,page,pages){
@@ -224,10 +261,10 @@ $(document).on('click','.prevPreview,.nextPreview',function(e){
   const p = parseInt($(this).closest('.paginado').find('.previewPage').val());
   const next = p + ($(this).hasClass('nextPreview')? 1 : -1);
   if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
-    generarAlertasDiarias('Juegos',1,next);
+    generarAlertasDiarias('Juegos',next);
   }
   if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
-    generarAlertasDiarias('Jugadores',1,next);
+    generarAlertasDiarias('Jugadores',next);
   }
 });
 
@@ -244,16 +281,16 @@ $(document).on('change','.previewPage',function(e){
     return;
   }
   if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
-    generarAlertasDiarias('Juegos',1,val);
+    generarAlertasDiarias('Juegos',val);
   }
   if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
-    generarAlertasDiarias('Jugadores',1,val);
+    generarAlertasDiarias('Jugadores',val);
   }
 });
 
 $('#tabEvolucionCategorias').click(function(e){
   e.preventDefault();
-  GET('#divEvolucionCategorias','obtenerEvolucionCategorias/'+$('#buscadorPlataforma').val(),{},function(data){
+  GET('#divEvolucionCategorias','obtenerEvolucionCategorias',{},function(data){
     setTimeout(function(){
       generarEvolucionCategorias(data);
     },250);

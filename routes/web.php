@@ -224,12 +224,12 @@ Informes
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informePlataforma'],function(){
   Route::get('/' , 'informesController@informePlataforma');
-  Route::get('/obtenerClasificacion/{id_plataforma}','informesController@obtenerClasificacion');
-  Route::get('/obtenerPdevs/{id_plataforma}','informesController@obtenerPdevs');
-  Route::get('/obtenerJuegosFaltantes/{id_plataforma}','informesController@obtenerJuegosFaltantes');
-  Route::get('/obtenerAlertasJuegos/{id_plataforma}','informesController@obtenerAlertasJuegos');
-  Route::get('/obtenerAlertasJugadores/{id_plataforma}','informesController@obtenerAlertasJugadores');
-  Route::get('/obtenerEvolucionCategorias/{id_plataforma}','informesController@obtenerEvolucionCategorias');
+  Route::get('/obtenerClasificacion','informesController@obtenerClasificacion');
+  Route::get('/obtenerPdevs','informesController@obtenerPdevs');
+  Route::get('/obtenerJuegosFaltantes','informesController@obtenerJuegosFaltantes');
+  Route::get('/obtenerAlertasJuegos','informesController@obtenerAlertasJuegos');
+  Route::get('/obtenerAlertasJugadores','informesController@obtenerAlertasJugadores');
+  Route::get('/obtenerEvolucionCategorias','informesController@obtenerEvolucionCategorias');
 });
 
 Route::group(['prefix' => 'informeContableJuego'],function(){

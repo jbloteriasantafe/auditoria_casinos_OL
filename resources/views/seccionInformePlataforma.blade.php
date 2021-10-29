@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 ?>
 
 @section('estilos')
+<link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <style>
 
 .tab {
@@ -52,21 +53,38 @@ use Illuminate\Http\Request;
                 <h4>¿QUÉ PLATAFORMA DESEA VER?</h4>
             </div>
             <div class="panel-body" style="text-align:center;">
-                <img src="/img/logos/casinos_gris.png" alt="" width="250px" style="margin-bottom:40px; margin-top:20px;">
-
-                <div class="row">
-                    <div class="col-md-4 col-md-offset-4">
-                        <select id="buscadorPlataforma" class="form-control" name="">
-                            <option value="" selected>- Seleccione la plataforma -</option>
-                            @foreach($plataformas as $p)
-                            <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
-                            @endforeach
-                        </select>
-                        <br>
-                        <button id="btn-buscar" class="btn btn-infoBuscar" type="button" style="width:100%;">VER</button>
+              <img src="/img/logos/casinos_gris.png" alt="" width="250px" style="margin-bottom:40px; margin-top:20px;">
+              <div class="row">
+                <div class="col-md-4 col-md-offset-4">
+                  <select id="buscadorPlataforma" class="form-control">
+                    <option value="" selected>- Seleccione la plataforma -</option>
+                    @foreach($plataformas as $p)
+                    <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                    @endforeach
+                  </select>
+                  <div class="row">
+                    <div class="form-group" style="margin-bottom: 0px;">
+                      <div class='input-group date' id='dtpFechaDesde' data-link-field="fecha_desde" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                        <input type='text' class="form-control" placeholder="Fecha Desde"/>
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                      </div>
+                      <input class="form-control" type="hidden" id="fecha_desde" value=""/>
                     </div>
+                  </div>
+                  <div class="row">
+                    <div class="form-group">
+                      <div class='input-group date' id='dtpFechaHasta' data-link-field="fecha_hasta" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                        <input type='text' class="form-control" placeholder="Fecha Hasta"/>
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                      </div>
+                      <input class="form-control" type="hidden" id="fecha_hasta" value=""/>
+                    </div>
+                  </div>
+                  <button id="btn-buscar" class="btn btn-infoBuscar" type="button" style="width:100%;">VER</button>
                 </div>
-                <br>
+              </div>
             </div>
         </div>
     </div> <!-- col-md-4 -->
@@ -325,6 +343,10 @@ use Illuminate\Http\Request;
     <!-- Termina modal de ayuda -->
 
     @section('scripts')
+
+    <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+
     <!-- JavaScript personalizado -->
     <script src="js/seccionInformePlataforma.js" charset="utf-8"></script>
 
