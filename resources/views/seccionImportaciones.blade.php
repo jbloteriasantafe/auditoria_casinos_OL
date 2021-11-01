@@ -79,15 +79,6 @@ $id_usuario = session('id_usuario');
                          </a>
                         </div>
                     </div> <!-- .row | IMPORTAR BENEFICIOS -->
-                    <div class="row">
-                      <a href="/temporalProducidoCCO.html" target="_blank"  class="btn btn-infoBuscar col-md-offset-1" type="button">Generar Producido CCO</a>
-                    </div>
-                    <div class="row">
-                      <a href="/temporalProducidoBP.html" target="_blank"  class="btn btn-infoBuscar col-md-offset-1" type="button">Generar Producido BP</a>
-                    </div>
-                    <div class="row">
-                      <a href="/temporalBeneficioBP.html" target="_blank"  class="btn btn-infoBuscar col-md-offset-1" type="button">Generar Beneficio BP</a>
-                    </div>
               </div> <!-- .columna de los BOTONES -->
 
 
