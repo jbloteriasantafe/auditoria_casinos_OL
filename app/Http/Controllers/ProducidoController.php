@@ -54,7 +54,7 @@ class ProducidoController extends Controller
   FROM detalle_producido_juego dp
   LEFT JOIN categoria_juego cj on (cj.id_categoria_juego = dp.id_categoria_juego)';
 
-  public static function inicializarVistas(){//Llamado tambien desde informesController
+  public function buscarTodo(){
     DB::beginTransaction();
     try{
       DB::statement(self::$view_DP_juego);
@@ -64,10 +64,6 @@ class ProducidoController extends Controller
       DB::rollback();
       throw $e;
     } 
-  }
-
-  public function buscarTodo(){
-    self::inicializarVistas();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
     return view('seccionProducidos' , ['plataformas' => $usuario->plataformas,'tipo_monedas' => TipoMoneda::all()]);
