@@ -106,13 +106,11 @@ class ProducidoController extends Controller
     ->whereBetween('p.fecha',[$fecha_inicio, $fecha_fin])->where($reglas)
     ->whereIn('p.id_plataforma',$plataformas);
 
-    if(strlen($request->correcto) > 0){
-      if($request->correcto == "1"){
-        $data = $data->whereRaw('NOT '.$diff_subquery);
-      }
-      else if ($request->correcto == "0"){
-        $data = $data->whereRaw($diff_subquery);
-      }
+    if($request->correcto == "1"){
+      $data = $data->whereRaw('NOT '.$diff_subquery);
+    }
+    else if ($request->correcto == "0"){
+      $data = $data->whereRaw($diff_subquery);
     }
     
     if(empty($request->sort_by)){
