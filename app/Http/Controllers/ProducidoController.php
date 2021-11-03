@@ -135,7 +135,7 @@ class ProducidoController extends Controller
 
     return [
       'current_page' => $request->page,
-      'last_page' => (ceil($total)/$request->page_size),
+      'last_page' => ceil($total/$request->page_size),
       'per_page' => $request->page_size,
       'total' => $total,
       'from' => ($skip+1),
