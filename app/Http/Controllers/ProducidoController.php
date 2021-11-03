@@ -102,8 +102,6 @@ class ProducidoController extends Controller
     )".")";
 
     $data = DB::table('producido as p')
-    ->selectRaw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda,p.beneficio, '.$diff_subquery.' as diferencias,
-    pj.id_producido_jugadores,pj.diferencia_montos as diferencias_jugadores,pj.beneficio as beneficio_jugadores')
     ->leftJoin('producido_jugadores as pj',function($j){
       return $j->on('pj.fecha','=','p.fecha')->on('pj.id_tipo_moneda','=','p.id_tipo_moneda')->on('pj.id_plataforma','=','p.id_plataforma');
     })
@@ -119,6 +117,9 @@ class ProducidoController extends Controller
       }
     }
 
+    //Por alguna razon... paginate() no funciona... lo hago a pata
+    $total = (clone $data)->selectRaw('COUNT(*) as aggregate')->get()->first()->aggregate;
+
     if(empty($request->sort_by)){
       $data = $data->orderByRaw('fecha desc,id_producido desc,id_plataforma desc,id_tipo_moneda desc');
     }
@@ -126,7 +127,21 @@ class ProducidoController extends Controller
       $sort_by = $request->sort_by;
       $data = $data->orderBy($sort_by['columna'],$sort_by['orden']);
     }
-    return $data->paginate();
+
+    $skip = ($request->page-1)*$request->page_size;
+    $data = $data->selectRaw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda,p.beneficio, '.$diff_subquery.' as diferencias,
+    pj.id_producido_jugadores,pj.diferencia_montos as diferencias_jugadores,pj.beneficio as beneficio_jugadores')
+    ->skip($skip)->take($request->page_size)->get();
+
+    return [
+      'current_page' => $request->page,
+      'last_page' => (ceil($total)/$request->page_size),
+      'per_page' => $request->page_size,
+      'total' => $total,
+      'from' => ($skip+1),
+      'to' => ($skip+$request->page_size),
+      'data' => $data,
+    ];
   }
 
   // eliminarProducido elimina el producido y los detalles producidos asociados
