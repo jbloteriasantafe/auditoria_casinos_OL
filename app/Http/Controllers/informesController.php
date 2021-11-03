@@ -245,8 +245,8 @@ class informesController extends Controller
 
   public function obtenerPdevs(Request $request){
     $cc = CacheController::getInstancia();
-    $codigo = 'informeEstadoPlataforma';
-    $subcodigo = 'estadisticas'.$request->id_plataforma;
+    $codigo = 'estadoPlatPdevs';
+    $subcodigo = $request->id_plataforma.'|'.$request->fecha_desde.'|'.$request->fecha_hasta;
     //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
     $cache = $cc->buscarUnicoDentroDeSegundos($codigo,$subcodigo,3600);
     
@@ -367,7 +367,7 @@ class informesController extends Controller
 
       $estadisticas['Total'] = merge_pdevs($pdev_teorico,$producido_pdevs);
     }
-    $cc->agregar($codigo,$subcodigo,json_encode($estadisticas));
+    $cc->agregar($codigo,$subcodigo,json_encode($estadisticas),['producido','juego']);
     return $estadisticas;
   }
 

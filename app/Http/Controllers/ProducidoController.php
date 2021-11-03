@@ -134,7 +134,7 @@ class ProducidoController extends Controller
       $prod = Producido::find($id_producido);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
-      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
+      CacheController::getInstancia()->invalidarDependientes('producido');
     });
   }
 
@@ -147,7 +147,7 @@ class ProducidoController extends Controller
       $prod = ProducidoJugadores::find($id_producido_jugadores);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
-      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
+      CacheController::getInstancia()->invalidarDependientes('producido');
     });
   }
 

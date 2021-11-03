@@ -23,12 +23,13 @@ class CacheController extends Controller
     }
     return $ret;
   }
-  public function agregar($codigo,$subcodigo,$data){
+  public function agregar($codigo,$subcodigo,$data,$dependencias = []){
     $cache = new Cache;
     $cache->codigo = $codigo;
     $cache->subcodigo = $subcodigo;
     $cache->data = $data;
     $cache->creado = date('Y-m-d H:i:s');
+    $cache->dependencias = '|'.implode('|',$dependencias).'|';
     $cache->save();
     return $this;
   }
@@ -55,5 +56,14 @@ class CacheController extends Controller
     //Si no, borro lo cacheado
     $this->invalidar($codigo,$subcodigo);
     return null;
+  }
+  public function buscarDependientes($codigo){
+    return Cache::where('dependencias','LIKE','%|'.$codigo.'|%')->get();
+  }
+  public function invalidarDependientes($codigo){
+    $caches = $this->buscarDependientes($codigo);
+    if(empty($caches)) return false;
+    foreach($caches as $c) $c->delete();
+    return true;
   }
 }

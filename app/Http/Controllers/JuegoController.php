@@ -149,7 +149,7 @@ class JuegoController extends Controller
       $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->json = $rqst;
       $log->save();
-      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
+      CacheController::getInstancia()->invalidarDependientes('juego');
     });
 
     return ['juego' => $juego];
@@ -263,7 +263,7 @@ class JuegoController extends Controller
       $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->json = $rqst;
       $log->save();
-      CacheController::getInstancia()->invalidar('informeEstadoPlataforma');
+      CacheController::getInstancia()->invalidarDependientes('juego');
     });
 
     return ['juego' => $juego];
