@@ -89,46 +89,44 @@ class ProducidoController extends Controller
     $fecha_fin = date('Y-m-d');
     if(!empty($request->fecha_inicio)) $fecha_inicio = $request->fecha_inicio;
     if(!empty($request->fecha_fin))    $fecha_fin    = $request->fecha_fin;
-    
-    //Si creamos una vista con un group by adentro, MYSQL usa el algoritmo de temptable al queryearla (10x mas lento). 
-    //Por eso lo dejo como una query media rara https://stackoverflow.com/questions/17681449/mysql-view-super-slow 
-    //En principio debe haber 1 solo producido y producido_jugadores por (fecha,plataforma,moneda)
-    //El MAX es meramente para colapsar en 1 fila el join
 
-    $diferencias = 'BIT_OR(p.diferencia_montos OR
-      (dp.id_juego IS NULL) OR (p.id_tipo_moneda <> dp.id_tipo_moneda_juego) OR (cj.nombre_lower <> LOWER(dp.categoria))
-    )';
+    //Lo pongo en strings concatenadas pq sino no me funciona el resaltador de sintaxis del editor
+    $diff_subquery = "EXISTS ("."SELECT NULL
+    FROM producido p2
+    LEFT JOIN detalle_producido dp2 ON dp2.id_producido = p2.id_producido
+    LEFT JOIN juego j2 ON ((j2.cod_juego = dp2.cod_juego) AND (j2.deleted_AT IS NULL))
+    LEFT JOIN plataforma_tiene_juego plj2 ON ((plj2.id_juego = j2.id_juego) AND (plj2.id_plataforma = p2.id_plataforma))
+    LEFT JOIN categoria_juego cj2 ON cj2.id_categoria_juego = j2.id_categoria_juego
+    WHERE p2.id_producido = p.id_producido AND (
+      (p2.diferencia_montos > 0) OR (plj2.id_juego IS NULL) OR (j2.id_tipo_moneda <> p2.id_tipo_moneda) OR (cj2.nombre_lower <> LOWER(dp2.categoria))
+    )".")";
 
-    //El orden fecha-producido-moneda-plataforma es a proposito (cardinalidad mayor a menor, considernado tambien el orderBy deseado).
-    //Le fuerzo a usar el indice por las dudas
-    $resultados = DB::table(DB::raw('producido as p FORCE INDEX(uniq_fecha_producido_plataforma_moneda)'))
-    ->selectRaw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda,p.beneficio,
-      MAX(pj.id_producido_jugadores) as id_producido_jugadores,MAX(pj.diferencia_montos) as diferencias_jugadores,MAX(pj.beneficio) as beneficio_jugadores,
-      '.$diferencias.'as diferencias')
+    $data = DB::table('producido as p')
+    ->selectRaw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda,p.beneficio, '.$diff_subquery.' as diferencias,
+    pj.id_producido_jugadores,pj.diferencia_montos as diferencias_jugadores,pj.beneficio as beneficio_jugadores')
     ->leftJoin('producido_jugadores as pj',function($j){
       return $j->on('pj.fecha','=','p.fecha')->on('pj.id_tipo_moneda','=','p.id_tipo_moneda')->on('pj.id_plataforma','=','p.id_plataforma');
     })
-    ->leftJoin('detalle_producido_juego as dp','dp.id_producido','=','p.id_producido')
-    ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','dp.id_categoria_juego')
     ->whereBetween('p.fecha',[$fecha_inicio, $fecha_fin])->where($reglas)
-    ->groupBy(DB::raw('p.fecha,p.id_producido,p.id_plataforma,p.id_tipo_moneda'));
+    ->whereIn('p.id_plataforma',$plataformas);
 
-    if($request->correcto == "1"){
-      $resultados = $resultados->havingRaw('NOT ('.$diferencias.') AND NOT MAX(pj.diferencia_montos)');
+    if(strlen($request->correcto) > 0){
+      if($request->correcto == "1"){
+        $data = $data->whereRaw('NOT '.$diff_subquery);
+      }
+      else if ($request->correcto == "0"){
+        $data = $data->whereRaw($diff_subquery);
+      }
     }
-    else if($request->correcto == "0"){
-      $resultados = $resultados->havingRaw('('.$diferencias.') OR MAX(pj.diferencia_montos)');
-    }
-  
+
     if(empty($request->sort_by)){
-      $resultados = $resultados->orderByRaw('p.fecha desc,p.id_producido desc,p.id_plataforma desc,p.id_tipo_moneda desc');
+      $data = $data->orderByRaw('fecha desc,id_producido desc,id_plataforma desc,id_tipo_moneda desc');
     }
     else{
       $sort_by = $request->sort_by;
-      $resultados = $resultados->orderBy($sort_by['columna'],$sort_by['orden']);
+      $data = $data->orderBy($sort_by['columna'],$sort_by['orden']);
     }
-    $resultados = $resultados->paginate($request->page_size);
-    return $resultados;
+    return $data->paginate();
   }
 
   // eliminarProducido elimina el producido y los detalles producidos asociados

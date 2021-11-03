@@ -267,7 +267,6 @@ $(document).on('click','.planilla_jugadores',function(){
 
 //función para generar el listado inicial
 function agregarFilaTabla(producido){
-  const clearNull = function(x){ x? x : 0.00; }
   const plat = $(`#selectPlataforma option[value=${producido.id_plataforma}]`).text();
   const moneda = $(`#selectMoneda option[value=${producido.id_tipo_moneda}]`).text();
   const tr = $('#moldeFilaTabla').clone().removeAttr('id');
