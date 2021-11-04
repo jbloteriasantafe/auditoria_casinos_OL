@@ -26,7 +26,23 @@ class informesController extends Controller
     return $mes_map[intval($mes_num)-1];
   }
 
-  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado){
+  /*
+  DESCARGO DE RESPONSABILIDAD 
+
+  12:25 - 4 de Noviembre del 2021.
+
+  Yo, Octavio Garcia Aguirre, dejo en claro que:
+
+  Por pedido del Director de Casinos de la Caja de Asistencia Social, Lotería de Santa Fe, Gustavo Rivera, se agrega
+  una planilla especial sin considerar los ajustes manuales informados al momento de calcular el beneficio de la plataforma.
+
+  No garantizo la validez de la información ni tampoco avalo o aconsejo cualquier acción que se realice a partir de esta.
+  */
+  public function generarPlanillaSinAjuste($anio,$mes,$id_plataforma,$id_tipo_moneda){
+    return $this->generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,1,1);
+  }
+
+  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado,$sin_ajuste = 0){
     $dias = DB::table('beneficio')->select(
       DB::raw('CONCAT(LPAD(DAY(beneficio.fecha)  ,2,"00"),"-",
                       LPAD(MONTH(beneficio.fecha),2,"00"),"-",
@@ -72,7 +88,7 @@ class informesController extends Controller
     }
 
     $mesTexto = $this->obtenerMes($mes);
-    $view = View::make('planillaInformesJuegos',compact('mesTexto','dias','cotizacionDefecto','total_beneficio','total','simplificado'));
+    $view = View::make('planillaInformesJuegos',compact('mesTexto','dias','cotizacionDefecto','total_beneficio','total','simplificado','sin_ajuste'));
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');

@@ -244,7 +244,8 @@ Route::group(['prefix' => 'informeContableJuego'],function(){
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informesJuegos'],function(){
   Route::get('/','informesController@obtenerBeneficiosPorPlataforma');
-  Route::get('/generarPlanilla/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}/{simplificado}','informesController@generarPlanilla');
+  Route::get('/generarPlanilla/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}/{simplificado}/{sin_ajuste?}','informesController@generarPlanilla');
+  Route::get('/generarPlanillaSinAjuste/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@generarPlanillaSinAjuste');
   Route::get('/informeCompleto/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@informeCompleto');
 });
 
