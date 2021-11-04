@@ -84,7 +84,7 @@ tr:nth-child(even) {
         <td class="tablaCampos center">{{$d->fecha}}</td>
         <td class="tablaCampos center ">{{$d->jugadores}}</td>
         <td class="tablaCampos right">{{number_format($d->apuesta,2,",",".")}}</td>
-        <td class="tablaCampos right">{{number_format($d->premio + ($simplificado? $d->ajuste : 0),2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->premio + (($simplificado && !$sin_ajuste)? $d->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos right">{{number_format($d->ajuste,2,",",".")}}</td>
         @endif
@@ -101,7 +101,7 @@ tr:nth-child(even) {
         <td class="tablaCampos total center">{{$total->fecha}}</td>
         <td class="tablaCampos total center">{{$total->jugadores}}</td>
         <td class="tablaCampos total right">{{number_format($total->apuesta,2,",",".")}}</td>
-        <td class="tablaCampos total right">{{number_format($total->premio + ($simplificado? $total->ajuste : 0),2,",",".")}}</td>
+        <td class="tablaCampos total right">{{number_format($total->premio + (($simplificado && !$sin_ajuste)? $total->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos total right">{{number_format($total->ajuste,2,",",".")}}</td>
         @endif

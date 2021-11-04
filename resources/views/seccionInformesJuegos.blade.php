@@ -50,8 +50,8 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       @foreach($r["beneficios"] as $b)
                         <tr data-moneda="{{$b->id_tipo_moneda}}">
                           <td class="col-xs-4">{{$b->anio_mes}}</td>
-                          <td class="col-xs-5">{{$b->moneda}}</td>
-                          <td class="col-xs-3">
+                          <td class="col-xs-4">{{$b->moneda}}</td>
+                          <td class="col-xs-4">
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
                                     class="btn btn-info planilla" type="button">
@@ -61,6 +61,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
                                     class="btn btn-info planilla2" type="button">
                               <i class="fa fa-fw fa-dollar-sign"></i>
+                            </button>
+                            <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
+                                    data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
+                                    class="btn btn-info planilla_sin_ajuste" type="button">
+                              <b style="color: black;font-size: 80%">S/AJU</b>
                             </button>
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
