@@ -54,6 +54,7 @@ tr:nth-child(even) {
   }
   if($sin_ajuste){
     $sumar_ajuste_al_beneficio = true;
+    $sumar_ajute_al_premio = false;
   }
   $total_correcto = number_format($total->beneficio + ($sumar_ajuste_al_beneficio? $total->ajuste : 0),2,",",".");
   ?>
