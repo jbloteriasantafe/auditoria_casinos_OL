@@ -36,6 +36,24 @@ tr:nth-child(even) {
   if($cotizacionDefecto != 1){
     $widths = ["fecha" => "9","jugadores" => "11","apostado" => "16","premios" => "16", "cotizacion" => "15","ajuste" => "10","beneficio" => "16","dev" => "7"];
   }
+  //El campo beneficio YA VIENE ajustado, la apuesta y premio no
+  //Si es simplificado
+  //APUESTA = A
+  //PREMIO = P + Ajus
+  //BENEFICIO(AJUSTADO) = APUESTA - PREMIO (A - P - Ajus)
+
+  //Si es sin ajuste
+  //APUESTA = A
+  //PREMIO = P
+  //BENEFICIO(SIN AJUSTAR) = BENEFICIO_AJUSTADO + AJUSTE
+
+  if($simplificado){
+    $sumar_ajuste_al_premio = true;
+  }
+  if($sin_ajuste){
+    $sumar_ajuste_al_beneficio = true;
+  }
+  $total_correcto = number_format($total->beneficio + ($sumar_ajuste_al_beneficio? $total->ajuste : 0),2,",",".");
   ?>
   <head>
     <meta charset="utf-8">
@@ -55,7 +73,7 @@ tr:nth-child(even) {
     <div class="primerEncabezado">
       Se han realizado los procedimientos de control correspondientes
       al mes de <b>{{$mesTexto}}</b> de la <b>Plataforma de {{$total->plataforma}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>Juegos Online</b>
-      se obtuvo un beneficio de <b>${{$total_beneficio}}</b>, detallando a continuación el beneficio diario.
+      se obtuvo un beneficio de <b>${{$total_correcto}}</b>, detallando a continuación el beneficio diario.
     </div>
     <br>
     <table style="table-layout: fixed;">
@@ -84,14 +102,14 @@ tr:nth-child(even) {
         <td class="tablaCampos center">{{$d->fecha}}</td>
         <td class="tablaCampos center ">{{$d->jugadores}}</td>
         <td class="tablaCampos right">{{number_format($d->apuesta,2,",",".")}}</td>
-        <td class="tablaCampos right">{{number_format($d->premio + (($simplificado && !$sin_ajuste)? $d->ajuste : 0),2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->premio + ($sumar_ajuste_al_premio? $d->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos right">{{number_format($d->ajuste,2,",",".")}}</td>
         @endif
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos right">{{number_format($ultima_cotizacion,3,",",".")}}</td>
         @endif
-        <td class="tablaCampos right">{{number_format(($d->beneficio + ($sin_ajuste? $d->ajuste : 0))*$ultima_cotizacion,2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format(($d->beneficio + ($sumar_ajuste_al_beneficio? $d->ajuste : 0))*$ultima_cotizacion,2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos right">{{$d->apuesta != 0.0? number_format(round(100*$d->premio/$d->apuesta,2),2,",",".") : '-'}}</td>
         @endif
@@ -101,14 +119,14 @@ tr:nth-child(even) {
         <td class="tablaCampos total center">{{$total->fecha}}</td>
         <td class="tablaCampos total center">{{$total->jugadores}}</td>
         <td class="tablaCampos total right">{{number_format($total->apuesta,2,",",".")}}</td>
-        <td class="tablaCampos total right">{{number_format($total->premio + (($simplificado && !$sin_ajuste)? $total->ajuste : 0),2,",",".")}}</td>
+        <td class="tablaCampos total right">{{number_format($total->premio + ($sumar_ajuste_al_premio? $total->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos total right">{{number_format($total->ajuste,2,",",".")}}</td>
         @endif
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total right">-</td>
         @endif
-        <td class="tablaCampos total right">{{number_format($total_beneficio + ($sin_ajuste? $total->ajuste : 0),2,",",".")}}</td>
+        <td class="tablaCampos total right">{{$total_correcto}}</td>
         @if(!$simplificado)
         <td class="tablaCampos total right">{{$total->apuesta != 0.0? number_format(round(100*$total->premio/$total->apuesta,2),2,",",".") : '-'}}</td>
         @endif
