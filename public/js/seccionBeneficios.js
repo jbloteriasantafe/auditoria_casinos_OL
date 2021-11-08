@@ -1,30 +1,11 @@
 $(document).ready(function(){
-  $('#barraJuegos').attr('aria-expanded','true');
-  $('#juegos').removeClass();
-  $('#juegos').addClass('subMenu1 collapse in');
-  $('#procedimientos').removeClass();
-  $('#procedimientos').addClass('subMenu2 collapse in');
-  $('#contadores').removeClass();
-  $('#contadores').addClass('subMenu3 collapse in');
-  
+  $('#validacion').removeClass();
+  $('#validacion').addClass('subMenu2 collapse in');
   $('.tituloSeccionPantalla').text('Beneficios');
   $('#opcBeneficios').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcBeneficios').addClass('opcionesSeleccionado');
 
-  $('#mensajeExito').hide();
-
-  $('#dtpFechaDesde').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    showClear: true,
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 3
-  });
-
-  $('#dtpFechaHasta').datetimepicker({
+  $('#dtpFechaDesde,#dtpFechaHasta').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,

@@ -1,7 +1,5 @@
 $(document).ready(function(){
-  $('#barraInformes').attr('aria-expanded','true');
-  $('#informes').removeClass();
-  $('#informes').addClass('subMenu1 collapse in');
+  $('#informes').removeClass().addClass('subMenu2 collapse in');
   $('.tituloSeccionPantalla').text('Informes de beneficios de Juegos');
   $('#opcInformesJuegos').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#opcInformesJuegos').addClass('opcionesSeleccionado');

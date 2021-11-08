@@ -1,16 +1,9 @@
 $(document).ready(function() {
-    //Resetear componentes
-    $('#selectPlataforma').val("").change();
-
-    $('#barraJuegos').attr('aria-expanded', 'true');
-    $('#juegos').removeClass().addClass('subMenu1 collapse in');
-    $('#informesJuegos').removeClass();
-    $('#informesJuegos').addClass('subMenu2 collapse in');
-
+    $('#informesAuditoria').removeClass().addClass('subMenu2 collapse in');
     $('.tituloSeccionPantalla').text('Informe Contable');
-    $('#gestionarJuegos').attr('style', 'border-left: 6px solid #3F51B5;');
-    $('#opcInformesContableJuego').attr('style', 'border-left: 6px solid #25306b; background-color: #131836;');
+    $('#opcInformesContableJuego').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
     $('#opcInformesContableJuego').addClass('opcionesSeleccionado');
+    $('#selectPlataforma').val("").change();
 });
 
 //Opacidad del modal al minimizar

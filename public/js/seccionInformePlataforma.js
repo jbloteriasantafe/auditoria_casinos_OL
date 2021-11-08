@@ -1,11 +1,7 @@
 $(document).ready(function(){
-  $('#barraJuegos').attr('aria-expanded','true');
-  $('#juegos').removeClass().addClass('subMenu1 collapse in').show();
-  $('#informesJuegos').removeClass().addClass('subMenu2 collapse in');
-
+  $('#informesAuditoria').removeClass().addClass('subMenu2 collapse in');
   $('.tituloSeccionPantalla').text('Informe de Plataforma');
-  $('#gestionarJuegos').attr('style','border-left: 6px solid #3F51B5;');
-  $('#opcInformePlataforma').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
+  $('#opcInformePlataforma').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcInformePlataforma').addClass('opcionesSeleccionado');
   $('#dtpFechaDesde').datetimepicker({
     language:  'es',

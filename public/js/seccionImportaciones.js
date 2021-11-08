@@ -21,31 +21,11 @@ $('#btn-minimizarBeneficios').click(function(){
 });
 
 $(document).ready(function(){
-  $('#barraJuegos').attr('aria-expanded','true');
-  $('#juegos').removeClass();
-  $('#juegos').addClass('subMenu1 collapse in');
-  $('#procedimientos').removeClass();
-  $('#procedimientos').addClass('subMenu2 collapse in');
-  $('#contadores').removeClass();
-  $('#contadores').addClass('subMenu3 collapse in');
-  
   $('.tituloSeccionPantalla').text('Importaciones');
   $('#opcImportaciones').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcImportaciones').addClass('opcionesSeleccionado');
 
-  $('#fecha_busqueda').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 3,
-    minView: 3,
-    ignoreReadonly: true,
-  });
-
-  $('#mesInfoImportacion').datetimepicker({
+  $('#fecha_busqueda,#mesInfoImportacion').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,

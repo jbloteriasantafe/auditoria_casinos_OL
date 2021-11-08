@@ -135,17 +135,6 @@ $id_usuario = session('id_usuario');
                 </div>
                </a>
               </div>
-          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glihard'))
-            <div class="col-xl-12 col-lg-4">
-              <a href="/certificadoHard" style="text-decoration:none;">
-                  <div class="tarjetaSeccionMenor" align="center">
-                    <h2 class="tituloFondoMenor">CERTIFICADO HARD</h2>
-                    <h2 class="tituloSeccionMenor">CERTIFICADO HARDWARE</h2>
-                    <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/hardware_white.png" alt="">
-                  </div>
-              </a>
-            </div>
-          @endif
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
               <div class="col-xl-12 col-lg-4">
                 <a href="/expedientes" style="text-decoration:none;">

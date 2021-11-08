@@ -175,7 +175,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                 <span>Inicio <small>[CASINO ONLINE]</small></span>
                             </div>
                         </li>
-                        <!-- CASINOS -->
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_casinos'))
                         <li>
                             <div id="opcCasino" class="opcionesHover" 
@@ -291,165 +290,37 @@ $id_usuario = $usuario['usuario']->id_usuario;
                         </li>
                         @endif
 
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_maquinas','ver_seccion_progresivos','ver_seccion_islas',
-                                                                                                            'ver_seccion_formulas','ver_seccion_juegos','ver_seccion_glisoft',
-                                                                                                            'ver_seccion_glihard','ver_seccion_sectores']))
+                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_juegos','ver_seccion_glisoft']))
                         <li>
-                            <div class="opcionesHover" data-target="#gestionarJuegos" data-toggle="collapse">
-                              <span class="flechita">
-                                <i class="fa fa-angle-right"></i>
-                              </span>
-                              <span class="icono" style="padding-bottom: 56px;">
-                                @svg('maquinas','iconoMaquinas')
-                              </span>
+                          <div class="opcionesHover" data-target="#gestionarJuegos" data-toggle="collapse">
+                            <span class="flechita">
+                              <i class="fa fa-angle-right"></i>
+                            </span>
+                            <span class="icono" style="padding-bottom: 56px;">
+                              @svg('maquinas','iconoMaquinas')
+                            </span>
+                              <span>Juegos</span>
+                          </div>
+                          <ul class="subMenu2 collapse" id="gestionarJuegos">
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_juegos'))
+                            <li>
+                              <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
                                 <span>Juegos</span>
-                            </div>
-                              <!-- CUARTO NIVEL -->
-                              <ul class="subMenu2 collapse" id="gestionarJuegos">
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_juegos'))
-                                  <li>
-                                    <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
-                                      <span>Juegos</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glisoft'))
-                                  <li>
-                                    <div id="opcGliSoft" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoSoft'" href="#" style="cursor: pointer;">
-                                      <span>Certificados Software</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                              </ul>
+                              </div>
+                            </li>
+                            @endif
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glisoft'))
+                            <li>
+                              <div id="opcGliSoft" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoSoft'" href="#" style="cursor: pointer;">
+                                <span>Certificados Software</span>
+                              </div>
+                            </li>
+                            @endif
+                          </ul>
                         </li>
                         @endif
-
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_maquinas','ver_seccion_progresivos','ver_seccion_islas',
-                                                                                                            'ver_seccion_formulas','ver_seccion_juegos','ver_seccion_glisoft',
-                                                                                                            'ver_seccion_glihard','ver_seccion_sectores','ver_seccion_importaciones',
-                                                                                                            'ver_seccion_relevamientos','ver_seccion_mtm_a_pedido','ver_seccion_producidos',
-                                                                                                            'ver_seccion_beneficios','ver_planilla_layout_total','ver_planilla_layout_parcial',
-                                                                                                            'ver_seccion_gestionar_movimientos','ver_seccion_relevamientos_movimientos',
-                                                                                                            'ver_seccion_eventualidades','ver_seccion_eventualidades_MTM',
-                                                                                                            'ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                                                                                                            'ver_seccion_informecontable','ver_seccion_informesector']))
-                        <div class="separadoresMenu">AUDITORÍA</div>
-                        <li>
-                            <div id="barraJuegos" class="opcionesHover" data-target="#juegos" data-toggle="collapse" href="#">
-                                <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('maquinas','iconoMaquinas')
-                                </span>
-                                <span>Juegos</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="juegos">
-                              @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                              'ver_seccion_informecontable','ver_seccion_informesector']))
-                              <li>
-                                <div class="opcionesHover" data-target="#informesJuegos" data-toggle="collapse" href="#">
-                                  <span class="flechita">
-                                    <i class="fa fa-angle-right"></i>
-                                  </span>
-                                  <span>Informes</span>
-                                </div>
-
-                                <!-- TERCER NIVEL -->
-                                <ul class="subMenu2 collapse" id="informesJuegos">
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_estestadoparque'))
-                                    <li>
-                                      <div id="opcInformePlataforma" class="opcionesHover" 
-                                      onclick="window.location = window.location.protocol + '//' + window.location.host + '/informePlataforma'" href="#" style="cursor: pointer;"
-                                      >
-                                        <span>Plataforma</span>
-                                      </div>
-                                    </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informecontable'))
-                                    <li>
-                                      <div id="opcInformesContableJuego" class="opcionesHover" 
-                                      onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeContableJuego'" href="#" style="cursor: pointer;"
-                                      >
-                                        <span>Juegos/Jugadores</span>
-                                      </div>
-                                    </li>
-                                  @endif
-                                </ul>
-                              </li>
-                              @endif
-
-                              <!-- Procedimientos -->
-                              @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_importaciones','ver_seccion_relevamientos',
-                                                                                                                  'ver_seccion_relevamientos_progresivos','ver_seccion_mtm_a_pedido','ver_seccion_producidos',
-                                                                                                                  'ver_seccion_beneficios','ver_planilla_layout_total',
-                                                                                                                  'ver_planilla_layout_parcial','ver_seccion_prueba_juegos',
-                                                                                                                  'ver_seccion_prueba_progresivos','ver_seccion_gestionar_movimientos',
-                                                                                                                  'ver_seccion_relevamientos_movimientos','ver_seccion_eventualidades',
-                                                                                                                  'ver_seccion_eventualidades_MTM']))
-                              <li>
-                                <div id="gestionarProcedimientos" class="opcionesHover" data-target="#procedimientos" data-toggle="collapse" href="#">
-                                  <span class="flechita">
-                                    <i class="fa fa-angle-right"></i>
-                                  </span>
-                                  <span>Procedimientos</span>
-                                </div>
-                                <!-- TERCER NIVEL -->
-                                @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_importaciones','ver_seccion_relevamientos','ver_seccion_relevamientos_progresivos',
-                                                                                                                    'ver_seccion_mtm_a_pedido','ver_seccion_producidos',
-                                                                                                                    'ver_seccion_beneficios']))
-                               <ul class="subMenu2 collapse" id="procedimientos">
-                                   <li>
-                                     <div id="gestionarContadores" class="opcionesHover" data-target="#contadores" data-toggle="collapse" href="#">
-                                       <span class="flechita">
-                                         <i class="fa fa-angle-right"></i>
-                                       </span>
-                                       <span>Producidos</span>
-                                     </div>
-
-                                     <!-- CUARTO NIVEL -->
-                                     <ul class="subMenu3 collapse" id="contadores">
-                                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_importaciones'))
-                                         <li>
-                                           <div id="opcImportaciones" class="opcionesHover" 
-                                           onclick="window.location = window.location.protocol + '//' + window.location.host + '/importaciones'" href="#" style="cursor: pointer;"
-                                           >
-                                             <span>Importaciones</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_producidos'))
-                                         <li>
-                                           <div id="opcProducidos" class="opcionesHover" 
-                                           onclick="window.location = window.location.protocol + '//' + window.location.host + '/producidos'" href="#" style="cursor: pointer;"
-                                           >
-                                             <span>Producidos</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_beneficios'))
-                                         <li>
-                                           <div id="opcBeneficios" class="opcionesHover" 
-                                           onclick="window.location = window.location.protocol + '//' + window.location.host + '/beneficios'" href="#" style="cursor: pointer;"
-                                           >
-                                             <span>Beneficios</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                     </ul>
-                                   </li>
-                               </ul>
-                               @endif
-                              </li>
-                              @endif
-                            </ul>
-                        </li>
-                        @endif
-
+                        
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_ae_alta']))
-                        <div class="separadoresMenu">AUTOEXCLUSIÓN (FÍSICO)</div>
                         <li>
                           <div id="" class="opcionesHover"  href="">
                             <a 
@@ -467,65 +338,92 @@ $id_usuario = $usuario['usuario']->id_usuario;
                         </li>
                         @endif
 
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
-                                                                                                            'informes_mtm','informes_bingos','informes_mesas']))
-                        <div class="separadoresMenu">ESTADÍSTICAS</div>
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales']))
-                        <li>
-                            <div id="barraEstadisticas" class="opcionesHover" data-target="#tablero" data-toggle="collapse" href="#">
-                              <span class="flechita">
+                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,[
+                        'ver_seccion_importaciones','ver_seccion_producidos','ver_seccion_beneficios','ver_seccion_estestadoparque','ver_seccion_informecontable'
+                         ]))
+                        <div class="separadoresMenu">AUDITORÍA</div>
+                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_importaciones'))
+                          <li>
+                            <div id="opcImportaciones" class="opcionesHover" 
+                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/importaciones'" href="#" style="cursor: pointer;"
+                            >
+                              <span class="flechita"><i class="fa fa-angle-right"></i></span>
+                              <span class="icono" style="padding-bottom: 56px;">
+                                @svg('expedientes','iconoExpedientes')
+                              </span>
+                              <span>Importacion Diaria</span>
+                            </div>
+                          </li>
+                          @endif
+                          @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_producidos','ver_seccion_beneficios']))
+                          <li>
+                            <div class="opcionesHover" data-target="#validacion" data-toggle="collapse" href="#">
+                              <span class="flechita"><i class="fa fa-angle-right"></i></span>
+                              <span class="icono" style="color: #868b90;font-size: 160%;">
+                                <i class="fa fa-check-square"></i>
+                              </span>
+                              <span>Validación</span>
+                            </div>
+                          </li>
+                          <ul class="subMenu2 collapse" id="validacion">
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_producidos'))
+                            <li>
+                              <div id="opcProducidos" class="opcionesHover" 
+                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/producidos'" href="#" style="cursor: pointer;"
+                              >
+                                <span>Producidos</span>
+                              </div>
+                            </li>
+                            @endif
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_beneficios'))
+                            <li>
+                              <div id="opcBeneficios" class="opcionesHover" 
+                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/beneficios'" href="#" style="cursor: pointer;"
+                              >
+                                <span>Beneficios</span>
+                              </div>
+                            </li>
+                            @endif
+                          </ul>
+                          @endif
+                          @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_estestadoparque','ver_seccion_informecontable']))
+                          <li>
+                            <div class="opcionesHover" data-target="#informesAuditoria" data-toggle="collapse" href="#">
+                                <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
                                 </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('tablero_control','iconoTableroControl')
+                                <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('informes','iconoInformes')
                                 </span>
-                                <span>Tablero</span>
+                                <span>Informes Auditoria</span>
                             </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="tablero">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_generales'))
+                            <ul class="subMenu2 collapse" id="informesAuditoria">
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_estestadoparque'))
                               <li>
-                                <div id="opcEstadisticasGenerales" class="opcionesHover" 
-                                @if(false)
-                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasGenerales'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
+                                <div id="opcInformePlataforma" class="opcionesHover" 
+                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/informePlataforma'" href="#" style="cursor: pointer;"
                                 >
-                                  <span>Generales</span>
+                                  <span>Plataforma</span>
                                 </div>
                               </li>
                               @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informecontable'))
                               <li>
-                                <div id="opcEstadisticasPorCasino" class="opcionesHover" 
-                                @if(false)
-                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasPorCasino'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
+                                <div id="opcInformesContableJuego" class="opcionesHover" 
+                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeContableJuego'" href="#" style="cursor: pointer;"
                                 >
-                                  <span>Por Plataforma</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_interanuales'))
-                              <li>
-                                <div id="opcEstadisticasInteranuales" class="opcionesHover"
-                                @if(false) 
-                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/interanuales'" href="#" style="cursor: pointer;"
-                                @else
-                                style="color: grey;"
-                                @endif
-                                >
-                                  <span>Interanuales</span>
+                                  <span>Juegos/Jugadores</span>
                                 </div>
                               </li>
                               @endif
                             </ul>
-                        </li>
+                          </li>
+                          @endif
                         @endif
+
+                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
+                                                                                                            'informes_mtm','informes_bingos','informes_mesas']))
+                        <div class="separadoresMenu">ESTADÍSTICAS</div>
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'informes_mtm'))
                         <li>
                             <div id="barraInformes" class="opcionesHover" data-target="#informes" data-toggle="collapse" href="#">
@@ -554,6 +452,61 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                 </div>
                               </li>
                             </ul>
+                        </li>
+                        @endif
+                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales']))
+                        <li>
+                          <div id="barraEstadisticas" class="opcionesHover" data-target="#tablero" data-toggle="collapse" href="#">
+                            <span class="flechita">
+                                <i class="fa fa-angle-right"></i>
+                              </span>
+                              <span class="icono" style="padding-bottom: 50px;">
+                                @svg('tablero_control','iconoTableroControl')
+                              </span>
+                              <span>Tablero</span>
+                          </div>
+                          <!-- SEGUNDO NIVEL -->
+                          <ul class="subMenu1 collapse" id="tablero">
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_generales'))
+                            <li>
+                              <div id="opcEstadisticasGenerales" class="opcionesHover" 
+                              @if(false)
+                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasGenerales'" href="#" style="cursor: pointer;"
+                              @else
+                              style="color: grey;"
+                              @endif
+                              >
+                                <span>Generales</span>
+                              </div>
+                            </li>
+                            @endif
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
+                            <li>
+                              <div id="opcEstadisticasPorCasino" class="opcionesHover" 
+                              @if(false)
+                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasPorCasino'" href="#" style="cursor: pointer;"
+                              @else
+                              style="color: grey;"
+                              @endif
+                              >
+                                <span>Por Plataforma</span>
+                              </div>
+                            </li>
+                            @endif
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_interanuales'))
+                            <li>
+                              <div id="opcEstadisticasInteranuales" class="opcionesHover"
+                              @if(false) 
+                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/interanuales'" href="#" style="cursor: pointer;"
+                              @else
+                              style="color: grey;"
+                              @endif
+                              >
+                                <span>Interanuales</span>
+                              </div>
+                            </li>
+                            @endif
+                          </ul>
                         </li>
                         @endif
                         @endif
