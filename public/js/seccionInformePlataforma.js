@@ -77,6 +77,13 @@ $('#btn-buscar').click(function(e){
   $('#graficos').empty();
   $('#tablas').empty();
   $('#juegosFaltantesConMovimientos tbody').empty();
+  {
+    let titulo = $('#buscadorPlataforma option:selected').text() + ' ';
+    const desde = $('#fecha_desde').val();
+    const hasta = $('#fecha_hasta').val();
+    if(desde || hasta) titulo += (desde? desde : '####-##-##') + '/' + (hasta? hasta : '####-##-##');
+    $('#tituloModal').text(titulo);
+  }
   $('#modalPlataforma').modal('show');
   $('.tabContent').hide();
   $('.tab').eq(0).click();

@@ -96,7 +96,7 @@ use Illuminate\Http\Request;
       <div class="modal-header" style="background:#304FFE; padding-bottom: 1px;">
           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
           <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-          <h3 class="modal-title" style="color: #fff; text-align:center">ESTADO DE PLATAFORMA</h3>
+          <h3 class="modal-title" style="color: #fff; text-align:center">ESTADO DE PLATAFORMA <span id="tituloModal"> PLATAFORMA 9999-99-99/9999-99-99 </span></h3>
           <div style="text-align: center; margin: 0px;">
             <div class="tab" activa="activa" style="width: 10%;" div-asociado="#divGraficos">
               <h4>CLASIFICACIÓN</h4>
