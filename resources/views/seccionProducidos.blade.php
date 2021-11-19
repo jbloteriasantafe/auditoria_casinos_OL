@@ -302,6 +302,13 @@ use Illuminate\Http\Request;
                       <input id="devolucion_juego" type="text" class="form-control" disabled>
                     </div>
                   </div>
+                  <div class="row">
+                      <div class="col-lg-1 col-lg-offset-10">
+                        <button id="crearTicket" type="button" class="btn btn-default" title="CREAR TICKET">
+                          <i class="far fa-envelope"></i>
+                        </button>
+                      </div>
+                    </div>
                 </form>
               </div>
             </div>

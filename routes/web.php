@@ -160,7 +160,7 @@ CALENDARIO
 
 
 /**********
-Contadores
+IMPORTACIONES
 ***********/
 Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_seccion_importaciones'],function(){
   Route::get('/','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');

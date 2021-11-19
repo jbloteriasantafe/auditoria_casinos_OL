@@ -182,6 +182,8 @@ $(document).on('click','.infoDetalle',function(e){//PRESIONA UN OJITO
     console.log('Tipo de detalle invalido '+id_detalle+' '+tipo);
     return;
   }
+  $('.infoDetalle').removeClass('vista');//Esto lo uso para el ticket, saber que juego/jugador esta viendose
+  $(this).addClass('vista');
   $.get(url + id_detalle, function(data){
     const d = data.detalle;
     const diff = data.diferencias;
@@ -299,3 +301,28 @@ $(document).on('click', '#tablaImportacionesProducidos thead tr th[value]', func
 $('#verSoloDiferencias').change(function(e){
   $('#cuerpoTabla i.fa-eye').closest('tr').toggle(!$(this).prop('checked'));
 })
+
+
+$('#crearTicket').click(function(e){
+  e.preventDefault();
+
+  $('#frmCargaProducidos').find('textarea, select, input').each(function(){//"Bakeo" los valores para que se muestre bien en el ticket
+    if(this.nodeName == "TEXTAREA") $(this).text($(this).val());
+    else if (this.nodeName == "INPUT") $(this).attr('value',$(this).val());
+    else if (this.nodeName == "SELECT"){
+      const val = $(this).val();
+      $(this).find('option').each(function(){
+        if($(this).val() == val) $(this).attr('selected',true);
+        else $(this).removeAttr('selected');
+      });
+    }
+  });
+
+  //Deshabilito los inputs y saco los botones de un clon
+  const frm = $('#frmCargaProducidos').clone();
+  frm.find('textarea, select, input').attr('disabled',true).attr('readonly',true);
+  frm.find('button').remove();
+  const codigo = $('.vista').eq(0).parent().parent().find('.codigo').text();
+  const asunto = "Producido - "+$('#descripcion_validacion').text()+' - '+codigo;
+  enviarTicket(asunto,'data:text/html,'+frm.html());
+});
