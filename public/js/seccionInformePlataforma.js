@@ -35,7 +35,6 @@ function GET(loadingselect,url,data,success,error=function(x){}){
   let midx = 0;
   const loading = setInterval(function(){const m = ['―','/','|','\\'];$(loadingselect).text(m[midx%4]);midx++;},100);
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-  const hoy = new Date().toLocaleString('es-AR').split(" ")[0].split("/").reverse().join("-");
   const data_default = {
     id_plataforma: $('#buscadorPlataforma').val(),
     id_tipo_moneda: 1,
