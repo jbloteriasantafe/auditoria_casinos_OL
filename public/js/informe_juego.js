@@ -227,7 +227,7 @@ function generarGraficoJuego(fechas,producidos) {
     const producidosAccum = [];
     for(const idx in producidos){
         accum += producidos[idx];
-        producidosAccum.push(accum);
+        producidosAccum.push(Math.round(accum*100)/100);
     }
     Highcharts.chart('graficoSeguimientoProducido', {
         chart: {
