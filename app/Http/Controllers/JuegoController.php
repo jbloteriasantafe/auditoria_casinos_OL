@@ -469,7 +469,7 @@ class JuegoController extends Controller
 
       while (($datos = fgetcsv($gestor, 1000, ",")) !== FALSE) {
         $r = [];
-        $r["juego"] = $datos[$nombre_idx];
+        $r["juego"] = utf8_encode($datos[$nombre_idx]);//CCO viene con codificacion en latino... necesito encodearlo en utf8 para mostrarlo
         $cod_juego = $datos[$codigo_idx];
         $r["codigo"] = $cod_juego;
         $estado   = strtoupper($datos[$estado_idx]);
