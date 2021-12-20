@@ -123,8 +123,8 @@ $('#btn-minimizar').click(function(){
 });
 
 function generarTabla(nombre,valores){
-  function clearNaN(v){
-    return isNaN(v)? '-' : v;
+  function clearNull(v){
+    return v? v : '-';
   }
   const table = $('#tablaModelo').clone().removeAttr('id').show();
   table.find('.dato').text(nombre);
@@ -133,9 +133,9 @@ function generarTabla(nombre,valores){
     const val = valores[idx];
     const f = filaModelo.clone().removeClass('filaModelo');
     f.find('.fila').text(idx).attr('title',idx);
-    const pdev = clearNaN(parseFloat(val['pdev']).toFixed(2));
-    const pdev_esperado = clearNaN(parseFloat(val['pdev_esperado']).toFixed(2));
-    const pdev_producido = clearNaN(parseFloat(val['pdev_producido']).toFixed(2));
+    const pdev           = clearNull(val['pdev']);
+    const pdev_esperado  = clearNull(val['pdev_esperado']);
+    const pdev_producido = clearNull(val['pdev_producido']);
     f.find('.pdev').text(pdev).attr('title',pdev);
     f.find('.pdev_esperado').text(pdev_esperado).attr('title',pdev_esperado);
     f.find('.pdev_producido').text(pdev_producido).attr('title',pdev_producido);

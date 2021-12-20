@@ -291,10 +291,10 @@ class informesController extends Controller
     //Auxiliares para simplificar la query
     //NULL es ignorado cuando MySQL hace AVG
     //El esperado no lo tengo que multiplicar por 100 porque el porcentaje_devolucion esta en 0-100 en vez de 0-1
-    $avg_esperado = 'AVG(j.porcentaje_devolucion*dp.apuesta)/AVG(dp.apuesta)';
-    $avg_producido = '100*AVG(dp.premio)/AVG(dp.apuesta)';
-    $select_pdev = $avg_esperado.'  as pdev_esperado,'.$avg_producido.' as pdev_producido';
-
+    $avg_esperado     = 'FORMAT(AVG(j.porcentaje_devolucion*dp.apuesta)/AVG(dp.apuesta),3,"es_AR")';
+    $avg_producido    = 'FORMAT(                     100*AVG(dp.premio)/AVG(dp.apuesta),3,"es_AR")';
+    $select_pdev_jueg = 'FORMAT(                           AVG(j.porcentaje_devolucion),3,"es_AR") as pdev';
+    $select_pdev_prod = "$avg_esperado as pdev_esperado,$avg_producido as pdev_producido";
     function merge_pdevs($pdev_teorico,$producido_pdevs){
       $e = [];
       foreach($pdev_teorico as $p){
@@ -314,12 +314,12 @@ class informesController extends Controller
     $estadisticas = [];
     {//ESTADO
       $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('ej.nombre as clase, AVG(j.porcentaje_devolucion) as pdev')
+      ->selectRaw('ej.nombre as clase,'.$select_pdev_jueg)
       ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
       ->groupBy('pj.id_estado_juego')->get();
 
       $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('ej.nombre as clase, '.$select_pdev)
+      ->selectRaw('ej.nombre as clase, '.$select_pdev_prod)
       ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
       ->groupBy('pj.id_estado_juego')->get();
 
@@ -334,11 +334,11 @@ class informesController extends Controller
       END) as clase';
       
       $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw($tipo.', AVG(j.porcentaje_devolucion) as pdev')
+      ->selectRaw($tipo.','.$select_pdev_jueg)
       ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
       $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw($tipo.','.$select_pdev)
+      ->selectRaw($tipo.','.$select_pdev_prod)
       ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
       $estadisticas['Tipo'] = merge_pdevs($pdev_teorico,$producido_pdevs);
@@ -346,12 +346,12 @@ class informesController extends Controller
 
     {//CATEGORIA
       $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('cj.nombre as clase, AVG(j.porcentaje_devolucion) as pdev')
+      ->selectRaw('cj.nombre as clase,'.$select_pdev_jueg)
       ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
       ->groupBy('j.id_categoria_juego')->get();
 
       $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('cj.nombre as clase, '.$select_pdev)
+      ->selectRaw('cj.nombre as clase, '.$select_pdev_prod)
       ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
       ->groupBy('j.id_categoria_juego')->get();
 
@@ -374,11 +374,11 @@ class informesController extends Controller
       $clasificador = 'Total';
 
       $cantidad_y_pdev = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('"Total" as clase, AVG(j.porcentaje_devolucion) as pdev')
+      ->selectRaw('"Total" as clase,'.$select_pdev_jueg)
       ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
 
       $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('"Total" as clase, '.$select_pdev)
+      ->selectRaw('"Total" as clase,'.$select_pdev_prod)
       ->groupBy(DB::raw('"constant"'))->get();
 
       $estadisticas['Total'] = merge_pdevs($pdev_teorico,$producido_pdevs);
