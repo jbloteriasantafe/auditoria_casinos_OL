@@ -388,6 +388,8 @@ class informesController extends Controller
   }
 
   public function obtenerJuegosFaltantes(Request $request){
+    $columna = empty($request->columna)? 'dp.cod_juego' : $request->columna;
+    $orden   =   empty($request->orden)? 'asc' : $request->orden;
     $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw("dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria,
     FORMAT(100*AVG(dp.premio)/AVG(dp.apuesta),3,'es_AR') as pdev,            FORMAT(  SUM(dp.apuesta_efectivo),2,'es_AR') as apuesta_efectivo,
@@ -395,7 +397,8 @@ class informesController extends Controller
     FORMAT(           SUM(dp.premio_efectivo),2,'es_AR') as premio_efectivo, FORMAT(       SUM(dp.premio_bono),2,'es_AR') as premio_bono, 
     FORMAT(                    SUM(dp.premio),2,'es_AR') as premio,          FORMAT(SUM(dp.beneficio_efectivo),2,'es_AR') as beneficio_efectivo,
     FORMAT(            SUM(dp.beneficio_bono),2,'es_AR') as beneficio_bono,  FORMAT(         SUM(dp.beneficio),2,'es_AR') as beneficio")
-    ->groupBy('dp.cod_juego')->orderBy('dp.cod_juego');
+    ->groupBy('dp.cod_juego')
+    ->orderBy($columna,$orden)->get();
 
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw("'TOTAL' as cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria,
@@ -404,10 +407,9 @@ class informesController extends Controller
     FORMAT(           SUM(dp.premio_efectivo),2,'es_AR') as premio_efectivo, FORMAT(       SUM(dp.premio_bono),2,'es_AR') as premio_bono, 
     FORMAT(                    SUM(dp.premio),2,'es_AR') as premio,          FORMAT(SUM(dp.beneficio_efectivo),2,'es_AR') as beneficio_efectivo,
     FORMAT(            SUM(dp.beneficio_bono),2,'es_AR') as beneficio_bono,  FORMAT(         SUM(dp.beneficio),2,'es_AR') as beneficio")
-    ->groupBy(DB::raw('"constant"'));
-
-    $juegos_faltantes->union($total);
-    return $juegos_faltantes->get();
+    ->groupBy(DB::raw('"constant"'))->get();
+    
+    return $juegos_faltantes->merge($total);
   }
 
   public function obtenerAlertasJuegos(Request $request){

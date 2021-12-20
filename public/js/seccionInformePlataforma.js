@@ -23,6 +23,22 @@ $(document).ready(function(){
     startView: 4,
     minView: 2
   });
+
+
+  $('#juegosFaltantesConMovimientos table').data('buscar',
+  function(){
+    GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',sortBy('#juegosFaltantesConMovimientos'),function(data){
+      for(const jidx in data){
+        const j = data[jidx];
+        const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
+        for(const k in j){
+          fila.find('.'+k).text(j[k]).attr('title',j[k]);
+        }
+        $('#juegosFaltantesConMovimientos tbody').append(fila);
+      }
+    });
+  });
+
   $('#buscadorPlataforma').change();
 });
 
@@ -69,6 +85,11 @@ $('#buscadorPlataforma').change(function(e){
   $('#btn-buscar').attr('disabled',$(this).val() == "");
 })
 
+function sortBy(select){
+  const activa = $(`${select} .activa`);
+  return {columna: activa.attr('value'),orden: activa.attr('estado')};
+}
+
 $('#btn-buscar').click(function(e){
   const id = $('#buscadorPlataforma').val();
   if(id == "") return;
@@ -100,19 +121,28 @@ $('#btn-buscar').click(function(e){
     }
   });
 
-  GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',{},function(data){
-    for(const jidx in data){
-      const j = data[jidx];
-      const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
-      for(const k in j){
-        fila.find('.'+k).text(j[k]).attr('title',j[k]);
-      }
-      $('#juegosFaltantesConMovimientos tbody').append(fila);
-    }
-  });
+  $('#juegosFaltantesConMovimientos table').data('buscar')();
 
   $('#btn-buscarAlertasJuegos').click();
   $('#btn-buscarAlertasJugadores').click();
+});
+
+$(document).on('click','tr th[value]',function(e){
+  const tabla = $(this).closest('table');
+  tabla.find('th').removeClass('activa');
+  if($(e.currentTarget).children('i').hasClass('fa-sort')){
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+  }
+  else{
+    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+    }
+    else{
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+    }
+  }
+  tabla.find('th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  tabla.data('buscar')();
 });
 
 //Opacidad del modal al minimizar

@@ -143,22 +143,22 @@ use Illuminate\Http\Request;
                     <div id="tablas" class="col-md-12"></div>
                 </div>
                 <div id="divJuegosFaltantesConMovimientos" class="row tabContent">
-                    <div id="juegosFaltantesConMovimientos" class="col-md-12">
-                      <table class="col-md-12 table table-fixed">
+                    <div id="juegosFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
+                      <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
                         <thead>
                           <tr> 
-                            <th>JUEGO</th>
-                            <th>CATEGORIA</th>
-                            <th>APOSTADO EFEC.</th>
-                            <th>APOSTADO BO.</th>
-                            <th>APOSTADO</th>
-                            <th>PREMIO EFEC.</th>
-                            <th>PREMIO BO.</th>
-                            <th>PREMIO</th>
-                            <th>BENEFICIO EFEC:</th>
-                            <th>BENEFICIO BO.</th>
-                            <th>BENEFICIO</th>
-                            <th class="pdev">%DEV</th>
+                            <th value="dp.cod_juego" estado="asc" class="activa">JUEGO<i class="fa fa-sort"></i></th>
+                            <th value="categoria">CATEGORIA<i class="fa fa-sort"></i></th>
+                            <th value="apuesta_efectivo">APOSTADO EFEC.<i class="fa fa-sort"></i></th>
+                            <th value="apuesta_bono">APOSTADO BO.<i class="fa fa-sort"></i></th>
+                            <th value="apuesta">APOSTADO<i class="fa fa-sort"></i></th>
+                            <th value="premio_efectivo">PREMIO EFEC.<i class="fa fa-sort"></i></th>
+                            <th value="premio_bono">PREMIO BO.<i class="fa fa-sort"></i></th>
+                            <th value="premio">PREMIO<i class="fa fa-sort"></i></th>
+                            <th value="beneficio_efectivo">BENEFICIO EFEC:<i class="fa fa-sort"></i></th>
+                            <th value="beneficio_bono">BENEFICIO BO.<i class="fa fa-sort"></i></th>
+                            <th value="beneficio">BENEFICIO<i class="fa fa-sort"></i></th>
+                            <th value="pdev" class="pdev">%DEV<i class="fa fa-sort"></i></th>
                           </tr>
                         </thead>
                         <tbody>
