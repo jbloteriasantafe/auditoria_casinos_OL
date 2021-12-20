@@ -389,17 +389,21 @@ class informesController extends Controller
 
   public function obtenerJuegosFaltantes(Request $request){
     $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw('dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
-    SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
-    SUM(dp.premio_efectivo)    as premio_efectivo,   SUM(dp.premio_bono)   as premio_bono,    SUM(dp.premio) as premio,
-    SUM(dp.beneficio_efectivo) as beneficio_efectivo,SUM(dp.beneficio_bono) as beneficio_bono,SUM(dp.beneficio) as beneficio')
+    ->selectRaw("dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria,
+    FORMAT(100*AVG(dp.premio)/AVG(dp.apuesta),3,'es_AR') as pdev,            FORMAT(  SUM(dp.apuesta_efectivo),2,'es_AR') as apuesta_efectivo,
+    FORMAT(              SUM(dp.apuesta_bono),2,'es_AR') as apuesta_bono,    FORMAT(           SUM(dp.apuesta),2,'es_AR') as apuesta,
+    FORMAT(           SUM(dp.premio_efectivo),2,'es_AR') as premio_efectivo, FORMAT(       SUM(dp.premio_bono),2,'es_AR') as premio_bono, 
+    FORMAT(                    SUM(dp.premio),2,'es_AR') as premio,          FORMAT(SUM(dp.beneficio_efectivo),2,'es_AR') as beneficio_efectivo,
+    FORMAT(            SUM(dp.beneficio_bono),2,'es_AR') as beneficio_bono,  FORMAT(         SUM(dp.beneficio),2,'es_AR') as beneficio")
     ->groupBy('dp.cod_juego')->orderBy('dp.cod_juego');
 
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw('"TOTAL" as cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ", ") as categoria,ROUND(100*AVG(dp.premio)/AVG(dp.apuesta),2) as pdev,
-    SUM(dp.apuesta_efectivo)   as apuesta_efectivo,  SUM(dp.apuesta_bono)   as apuesta_bono,  SUM(dp.apuesta) as apuesta,
-    SUM(dp.premio_efectivo)    as premio_efectivo,   SUM(dp.premio_bono)   as premio_bono,    SUM(dp.premio) as premio,
-    SUM(dp.beneficio_efectivo) as beneficio_efectivo,SUM(dp.beneficio_bono) as beneficio_bono,SUM(dp.beneficio) as beneficio')
+    ->selectRaw("'TOTAL' as cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria,
+    FORMAT(100*AVG(dp.premio)/AVG(dp.apuesta),3,'es_AR') as pdev,            FORMAT(  SUM(dp.apuesta_efectivo),2,'es_AR') as apuesta_efectivo,
+    FORMAT(              SUM(dp.apuesta_bono),2,'es_AR') as apuesta_bono,    FORMAT(           SUM(dp.apuesta),2,'es_AR') as apuesta,
+    FORMAT(           SUM(dp.premio_efectivo),2,'es_AR') as premio_efectivo, FORMAT(       SUM(dp.premio_bono),2,'es_AR') as premio_bono, 
+    FORMAT(                    SUM(dp.premio),2,'es_AR') as premio,          FORMAT(SUM(dp.beneficio_efectivo),2,'es_AR') as beneficio_efectivo,
+    FORMAT(            SUM(dp.beneficio_bono),2,'es_AR') as beneficio_bono,  FORMAT(         SUM(dp.beneficio),2,'es_AR') as beneficio")
     ->groupBy(DB::raw('"constant"'));
 
     $juegos_faltantes->union($total);
@@ -636,6 +640,9 @@ class informesController extends Controller
     ->where('b.fecha',$dia)->get()->pluck('codigo');
     return ['total' => $this->estado_dia($dia),
     'producidos' => $producidos,'producidos_jugadores' => $producidos_jugadores,'beneficios' => $beneficios];
+  }
+  private function nf($s,$d = 2){//Formatea el numero con digitos en MYSQL
+    return "FORMAT($s,$d,'es_AR')";
   }
 }
 

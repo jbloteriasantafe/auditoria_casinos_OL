@@ -26,10 +26,22 @@ use Illuminate\Http\Request;
 
 #juegosFaltantesConMovimientos >table > thead > tr > th {
   text-align: center;
+  width: 8.333%;
+}
+#juegosFaltantesConMovimientos >table > thead > tr > th.pdev {
+  text-align: center;
+  width: 6%;
 }
 
 #juegosFaltantesConMovimientos > table > tbody > tr > td {
   text-align: right;
+  padding: 0px;
+  width: 8.333%;
+}
+#juegosFaltantesConMovimientos > table > tbody > tr > td.pdev {
+  text-align: right;
+  padding: 0px;
+  width: 6%;
 }
 
 .tabContent {
@@ -135,18 +147,18 @@ use Illuminate\Http\Request;
                       <table class="col-md-12 table table-fixed">
                         <thead>
                           <tr> 
-                            <th class="col-md-1">JUEGO</th>
-                            <th class="col-md-1">CATEGORIA</th>
-                            <th class="col-md-1">APOSTADO EFEC.</th>
-                            <th class="col-md-1">APOSTADO BO.</th>
-                            <th class="col-md-1">APOSTADO</th>
-                            <th class="col-md-1">PREMIO EFEC.</th>
-                            <th class="col-md-1">PREMIO BO.</th>
-                            <th class="col-md-1">PREMIO</th>
-                            <th class="col-md-1">BENEFICIO EFEC:</th>
-                            <th class="col-md-1">BENEFICIO BO.</th>
-                            <th class="col-md-1">BENEFICIO</th>
-                            <th class="col-md-1">%DEV</th>
+                            <th>JUEGO</th>
+                            <th>CATEGORIA</th>
+                            <th>APOSTADO EFEC.</th>
+                            <th>APOSTADO BO.</th>
+                            <th>APOSTADO</th>
+                            <th>PREMIO EFEC.</th>
+                            <th>PREMIO BO.</th>
+                            <th>PREMIO</th>
+                            <th>BENEFICIO EFEC:</th>
+                            <th>BENEFICIO BO.</th>
+                            <th>BENEFICIO</th>
+                            <th class="pdev">%DEV</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -288,18 +300,18 @@ use Illuminate\Http\Request;
 
 <table hidden>
   <tr id="filaEjemploJuegosFaltantesConMovimientos">
-    <td class="col-md-1 cod_juego" style="text-align: center;">JUEGO123</td>
-    <td class="col-md-1 categoria" style="text-align: center;">CAT321</td>
-    <td class="col-md-1 apuesta_efectivo">1111.11</td>
-    <td class="col-md-1 apuesta_bono">2222.22</td>
-    <td class="col-md-1 apuesta">3333.33</td>
-    <td class="col-md-1 premio_efectivo">4444.44</td>
-    <td class="col-md-1 premio_bono">5555.55</td>
-    <td class="col-md-1 premio">6666.66</td>
-    <td class="col-md-1 beneficio_efectivo">7777.77</td>
-    <td class="col-md-1 beneficio_bono">8888.88</td>
-    <td class="col-md-1 beneficio">9999.99</td>
-    <td class="col-md-1 pdev">99.123456%</td>
+    <td class="cod_juego" style="text-align: center;">JUEGO123</td>
+    <td class="categoria" style="text-align: center;">CAT321</td>
+    <td class="apuesta_efectivo">1111.11</td>
+    <td class="apuesta_bono">2222.22</td>
+    <td class="apuesta">3333.33</td>
+    <td class="premio_efectivo">4444.44</td>
+    <td class="premio_bono">5555.55</td>
+    <td class="premio">6666.66</td>
+    <td class="beneficio_efectivo">7777.77</td>
+    <td class="beneficio_bono">8888.88</td>
+    <td class="beneficio">9999.99</td>
+    <td class="pdev">99.123456%</td>
   </tr>
 </table>
 
