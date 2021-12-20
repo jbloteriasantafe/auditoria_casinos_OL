@@ -387,28 +387,28 @@ class informesController extends Controller
     return $estadisticas;
   }
 
+  //No encontre mejor forma de hacerlo... necesito la consulta para ordernar desde el front
+  public static $obtenerJuegosFaltantesSelect =
+  [ "dp.cod_juego as cod_juego"                       ,"GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria",
+    "SUM(dp.apuesta_efectivo)   as apuesta_efectivo"  ,"SUM(dp.apuesta_bono)               as apuesta_bono",
+    "SUM(dp.apuesta)            as apuesta"           ,"SUM(dp.premio_efectivo)            as premio_efectivo",
+    "SUM(dp.premio_bono)        as premio_bono"       ,"SUM(dp.premio)                     as premio",
+    "SUM(dp.beneficio_efectivo) as beneficio_efectivo","SUM(dp.beneficio_bono)             as beneficio_bono" ,
+    "SUM(dp.beneficio)          as beneficio"         ,"100*AVG(dp.premio)/AVG(dp.apuesta) as pdev"
+  ];
+
   public function obtenerJuegosFaltantes(Request $request){
     $columna = empty($request->columna)? 'dp.cod_juego' : $request->columna;
     $orden   =   empty($request->orden)? 'asc' : $request->orden;
     $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw("dp.cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria,
-    FORMAT(100*AVG(dp.premio)/AVG(dp.apuesta),3,'es_AR') as pdev,            FORMAT(  SUM(dp.apuesta_efectivo),2,'es_AR') as apuesta_efectivo,
-    FORMAT(              SUM(dp.apuesta_bono),2,'es_AR') as apuesta_bono,    FORMAT(           SUM(dp.apuesta),2,'es_AR') as apuesta,
-    FORMAT(           SUM(dp.premio_efectivo),2,'es_AR') as premio_efectivo, FORMAT(       SUM(dp.premio_bono),2,'es_AR') as premio_bono, 
-    FORMAT(                    SUM(dp.premio),2,'es_AR') as premio,          FORMAT(SUM(dp.beneficio_efectivo),2,'es_AR') as beneficio_efectivo,
-    FORMAT(            SUM(dp.beneficio_bono),2,'es_AR') as beneficio_bono,  FORMAT(         SUM(dp.beneficio),2,'es_AR') as beneficio")
+    ->selectRaw(implode(",",self::$obtenerJuegosFaltantesSelect))
     ->groupBy('dp.cod_juego')
-    ->orderBy($columna,$orden)->get();
+    ->orderByRaw($columna.' '.$orden)->get();
 
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw("'TOTAL' as cod_juego,GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria,
-    FORMAT(100*AVG(dp.premio)/AVG(dp.apuesta),3,'es_AR') as pdev,            FORMAT(  SUM(dp.apuesta_efectivo),2,'es_AR') as apuesta_efectivo,
-    FORMAT(              SUM(dp.apuesta_bono),2,'es_AR') as apuesta_bono,    FORMAT(           SUM(dp.apuesta),2,'es_AR') as apuesta,
-    FORMAT(           SUM(dp.premio_efectivo),2,'es_AR') as premio_efectivo, FORMAT(       SUM(dp.premio_bono),2,'es_AR') as premio_bono, 
-    FORMAT(                    SUM(dp.premio),2,'es_AR') as premio,          FORMAT(SUM(dp.beneficio_efectivo),2,'es_AR') as beneficio_efectivo,
-    FORMAT(            SUM(dp.beneficio_bono),2,'es_AR') as beneficio_bono,  FORMAT(         SUM(dp.beneficio),2,'es_AR') as beneficio")
+    ->selectRaw("'TOTAL' as cod_juego,".implode(",",array_slice(self::$obtenerJuegosFaltantesSelect,1)))
     ->groupBy(DB::raw('"constant"'))->get();
-    
+
     return $juegos_faltantes->merge($total);
   }
 

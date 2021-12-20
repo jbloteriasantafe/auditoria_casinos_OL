@@ -24,7 +24,7 @@ $(document).ready(function(){
     minView: 2
   });
 
-
+  const digits2 = new Intl.NumberFormat('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
   $('#juegosFaltantesConMovimientos table').data('buscar',
   function(){
     GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',sortBy('#juegosFaltantesConMovimientos'),function(data){
@@ -32,7 +32,9 @@ $(document).ready(function(){
         const j = data[jidx];
         const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
         for(const k in j){
-          fila.find('.'+k).text(j[k]).attr('title',j[k]);
+          const valf = digits2.format(j[k]);
+          const val  = valf == "NaN"? j[k] : valf;
+          fila.find('.'+k).text(val).attr('title',val);
         }
         $('#juegosFaltantesConMovimientos tbody').append(fila);
       }

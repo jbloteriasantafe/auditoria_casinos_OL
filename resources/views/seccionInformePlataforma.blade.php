@@ -1,6 +1,11 @@
 @extends('includes.dashboard')
 <?php
 use Illuminate\Http\Request;
+use App\Http\Controllers\informesController;
+
+$convertir_a_nombre = function($str){
+  return strtoupper(str_replace("_"," ",$str));
+};
 ?>
 
 @section('estilos')
@@ -146,19 +151,18 @@ use Illuminate\Http\Request;
                     <div id="juegosFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
                       <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
                         <thead>
-                          <tr> 
-                            <th value="dp.cod_juego" estado="asc" class="activa">JUEGO<i class="fa fa-sort"></i></th>
-                            <th value="categoria">CATEGORIA<i class="fa fa-sort"></i></th>
-                            <th value="apuesta_efectivo">APOSTADO EFEC.<i class="fa fa-sort"></i></th>
-                            <th value="apuesta_bono">APOSTADO BO.<i class="fa fa-sort"></i></th>
-                            <th value="apuesta">APOSTADO<i class="fa fa-sort"></i></th>
-                            <th value="premio_efectivo">PREMIO EFEC.<i class="fa fa-sort"></i></th>
-                            <th value="premio_bono">PREMIO BO.<i class="fa fa-sort"></i></th>
-                            <th value="premio">PREMIO<i class="fa fa-sort"></i></th>
-                            <th value="beneficio_efectivo">BENEFICIO EFEC:<i class="fa fa-sort"></i></th>
-                            <th value="beneficio_bono">BENEFICIO BO.<i class="fa fa-sort"></i></th>
-                            <th value="beneficio">BENEFICIO<i class="fa fa-sort"></i></th>
-                            <th value="pdev" class="pdev">%DEV<i class="fa fa-sort"></i></th>
+                          <tr>
+                            @foreach(informesController::$obtenerJuegosFaltantesSelect as $idx => $columna)
+                            @php
+                            $valcol    = array_map(function($str){return trim($str);},explode(' as ',$columna));
+                            $valcol[1] = $convertir_a_nombre($valcol[1]);
+                            @endphp
+                            <th value="{{$valcol[0]}}" class="{{$valcol[1]}}"
+                            @if($idx == 0)
+                            estado="asc" class="activa"
+                            @endif
+                            >{{$valcol[1]}}<i class="fa fa-sort"></i></th>
+                            @endforeach
                           </tr>
                         </thead>
                         <tbody>
