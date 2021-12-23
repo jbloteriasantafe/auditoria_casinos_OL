@@ -6,12 +6,18 @@ use App\Http\Controllers\informesController;
 $convertir_a_nombre = function($str){
   return strtoupper(str_replace("_"," ",$str));
 };
+$separar_sql = function($col){
+  $vals = explode(' as ',$col);
+  return ['sql' => trim($vals[0]),'alias' => trim($vals[1])];
+};
+$juegosFaltantesSelect  = array_map($separar_sql,informesController::$obtenerJuegosFaltantesSelect);
+$alertasJuegosSelect    = array_map($separar_sql,informesController::$obtenerAlertasJuegosSelect);
+$alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadoresSelect);
 ?>
 
 @section('estilos')
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <style>
-
 .tab {
   display: inline-block;
   font-family: Roboto-BoldCondensed;
@@ -31,17 +37,12 @@ $convertir_a_nombre = function($str){
 
 #juegosFaltantesConMovimientos >table > thead > tr > th,
 #juegosFaltantesConMovimientos > table > tbody > tr > td {
-  text-align: center;
-  width: 8.333%;
-  padding: 0px;
-}
-#juegosFaltantesConMovimientos > table > tbody > tr > td {
   text-align: right;
+  padding: 0px;
+  width: {{100.0/count($juegosFaltantesSelect)}}%;
 }
-#juegosFaltantesConMovimientos > table > thead > tr > th.pdev,
-#juegosFaltantesConMovimientos > table > tbody > tr > td.pdev {
-  width: 6%;
-}
+
+#juegosFaltantesConMovimientos > table > thead > tr > th,
 #juegosFaltantesConMovimientos > table > tbody > tr > td.cod_juego,
 #juegosFaltantesConMovimientos > table > tbody > tr > td.categoria {
   text-align: center;
@@ -49,13 +50,12 @@ $convertir_a_nombre = function($str){
 
 #divAlertasDiariasJuegos > div > div > table > thead > tr > th,
 #divAlertasDiariasJuegos > div > div > table > tbody > tr > td {
-  width: 12.5%;
   text-align: right;
   padding: 0px;
+  width: {{100.0/count($alertasJuegosSelect)}}%;
 }
-#divAlertasDiariasJuegos > div > div > table > thead > tr > th{
-  text-align: center;
-}
+
+#divAlertasDiariasJuegos > div > div > table > thead > tr > th,
 #divAlertasDiariasJuegos > div > div > table > tbody > tr > td.fecha,
 #divAlertasDiariasJuegos > div > div > table > tbody > tr > td.codigo,
 #divAlertasDiariasJuegos > div > div > table > tbody > tr > td.categoria {
@@ -64,13 +64,12 @@ $convertir_a_nombre = function($str){
 
 #divAlertasDiariasJugadores > div > div > table > thead > tr > th,
 #divAlertasDiariasJugadores > div > div > table > tbody > tr > td {
-  width: 16.666%;
   text-align: right;
   padding: 0px;
+  width: {{100.0/count($alertasJugadoresSelect)}}%;
 }
-#divAlertasDiariasJugadores > div > div > table > thead > tr > th{
-  text-align: center;
-}
+
+#divAlertasDiariasJugadores > div > div > table > thead > tr > th,
 #divAlertasDiariasJugadores > div > div > table > tbody > tr > td.fecha,
 #divAlertasDiariasJugadores > div > div > table > tbody > tr > td.jugador {
   text-align: center;
@@ -89,7 +88,6 @@ $convertir_a_nombre = function($str){
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
 @section('contenidoVista')
-
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default" style="height:650px; padding-top:100px;">
@@ -179,15 +177,12 @@ $convertir_a_nombre = function($str){
                       <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
                         <thead>
                           <tr>
-                            @foreach(informesController::$obtenerJuegosFaltantesSelect as $idx => $columna)
-                            @php
-                            $valcol    = array_map(function($str){return trim($str);},explode(' as ',$columna));
-                            @endphp
-                            <th value="{{$valcol[0]}}" class="{{$valcol[1]}}"
+                            @foreach($juegosFaltantesSelect as $idx => $columna)
+                            <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
                             @if($idx == 0)
                             estado="asc" class="activa"
                             @endif
-                            >{{$convertir_a_nombre($valcol[1])}}<i class="fa fa-sort"></i></th>
+                            >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
                             @endforeach
                           </tr>
                         </thead>
@@ -247,15 +242,12 @@ $convertir_a_nombre = function($str){
     <table class="col-md-12 table table-fixed">
       <thead>
         <tr>
-          @foreach(informesController::$obtenerAlertasJuegosSelect as $idx => $columna)
-          @php
-          $valcol = array_map(function($str){return trim($str);},explode(' as ',$columna));
-          @endphp
-          <th value="{{$valcol[0]}}" class="{{$valcol[1]}}""
+          @foreach($alertasJuegosSelect as $idx => $columna)
+          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}""
           @if($idx == 0)
           estado="asc" class="activa"
           @endif
-          >{{$convertir_a_nombre($valcol[1])}}<i class="fa fa-sort"></i></th>
+          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
           @endforeach
         </tr>
       </thead>
@@ -276,11 +268,8 @@ $convertir_a_nombre = function($str){
   </div>
   <table hidden>
     <tr class="moldeFilaAlerta">
-      @foreach(informesController::$obtenerAlertasJuegosSelect as $idx => $columna)
-      @php
-      $valcol    = array_map(function($str){return trim($str);},explode(' as ',$columna));
-      @endphp
-      <td class="{{$valcol[1]}}">XXX</td>
+      @foreach($alertasJuegosSelect as $idx => $columna)
+      <td class="{{$columna['alias']}}">XXX</td>
       @endforeach
     </tr>
   </table>
@@ -293,15 +282,12 @@ $convertir_a_nombre = function($str){
     <table class="col-md-12 table table-fixed">
       <thead>
         <tr>
-          @foreach(informesController::$obtenerAlertasJugadoresSelect as $idx => $columna)
-          @php
-          $valcol = array_map(function($str){return trim($str);},explode(' as ',$columna));
-          @endphp
-          <th value="{{$valcol[0]}}" class="{{$valcol[1]}}""
+          @foreach($alertasJugadoresSelect as $idx => $columna)
+          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}""
           @if($idx == 0)
           estado="asc" class="activa"
           @endif
-          >{{$convertir_a_nombre($valcol[1])}}<i class="fa fa-sort"></i></th>
+          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
           @endforeach
         </tr>
       </thead>
@@ -322,11 +308,8 @@ $convertir_a_nombre = function($str){
   </div>
   <table hidden>
     <tr class="moldeFilaAlerta">
-      @foreach(informesController::$obtenerAlertasJugadoresSelect as $idx => $columna)
-      @php
-      $valcol    = array_map(function($str){return trim($str);},explode(' as ',$columna));
-      @endphp
-      <td class="{{$valcol[1]}}">XXX</td>
+      @foreach($alertasJugadoresSelect as $idx => $columna)
+      <td class="{{$columna['alias']}}">XXX</td>
       @endforeach
     </tr>
   </table>
@@ -334,11 +317,8 @@ $convertir_a_nombre = function($str){
 
 <table hidden>
   <tr id="filaEjemploJuegosFaltantesConMovimientos">
-    @foreach(informesController::$obtenerJuegosFaltantesSelect as $idx => $columna)
-    @php
-    $valcol    = array_map(function($str){return trim($str);},explode(' as ',$columna));
-    @endphp
-    <td class="{{$valcol[1]}}">XXX</td>
+    @foreach($juegosFaltantesSelect as $idx => $columna)
+    <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>
 </table>
