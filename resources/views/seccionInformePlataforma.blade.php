@@ -35,52 +35,47 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
   color: white !important;
 }
 
-#juegosFaltantesConMovimientos >table > thead > tr > th,
-#juegosFaltantesConMovimientos > table > tbody > tr > td {
-  text-align: right;
-  padding: 0px;
-  width: {{100.0/count($juegosFaltantesSelect)}}%;
-}
-
-#juegosFaltantesConMovimientos > table > thead > tr > th,
-#juegosFaltantesConMovimientos > table > tbody > tr > td.cod_juego,
-#juegosFaltantesConMovimientos > table > tbody > tr > td.categoria {
-  text-align: center;
-}
-
-#divAlertasDiariasJuegos > div > div > table > thead > tr > th,
-#divAlertasDiariasJuegos > div > div > table > tbody > tr > td {
-  text-align: right;
-  padding: 0px;
-  width: {{100.0/count($alertasJuegosSelect)}}%;
-}
-
-#divAlertasDiariasJuegos > div > div > table > thead > tr > th,
-#divAlertasDiariasJuegos > div > div > table > tbody > tr > td.fecha,
-#divAlertasDiariasJuegos > div > div > table > tbody > tr > td.codigo,
-#divAlertasDiariasJuegos > div > div > table > tbody > tr > td.categoria {
-  text-align: center;
-}
-
-#divAlertasDiariasJugadores > div > div > table > thead > tr > th,
-#divAlertasDiariasJugadores > div > div > table > tbody > tr > td {
-  text-align: right;
-  padding: 0px;
-  width: {{100.0/count($alertasJugadoresSelect)}}%;
-}
-
-#divAlertasDiariasJugadores > div > div > table > thead > tr > th,
-#divAlertasDiariasJugadores > div > div > table > tbody > tr > td.fecha,
-#divAlertasDiariasJugadores > div > div > table > tbody > tr > td.jugador {
-  text-align: center;
-}
-
 .tabContent {
   text-align:center;
   padding-bottom:25px;
   overflow-y: scroll;
   max-height: 650px;
 }
+
+#juegosFaltantesConMovimientos th,
+#juegosFaltantesConMovimientos td {
+  text-align: right;
+  padding: 0px;
+  width: {{100.0/count($juegosFaltantesSelect)}}%;
+}
+
+#divAlertasDiariasJuegos th,
+#divAlertasDiariasJuegos td {
+  text-align: right;
+  padding: 0px;
+  width: {{100.0/count($alertasJuegosSelect)}}%;
+}
+
+#divAlertasDiariasJugadores th,
+#divAlertasDiariasJugadores td {
+  text-align: right;
+  padding: 0px;
+  width: {{100.0/count($alertasJugadoresSelect)}}%;
+}
+
+#juegosFaltantesConMovimientos th,
+#juegosFaltantesConMovimientos td.cod_juego,
+#juegosFaltantesConMovimientos td.categoria,
+#divAlertasDiariasJuegos th,
+#divAlertasDiariasJuegos td.fecha,
+#divAlertasDiariasJuegos td.codigo,
+#divAlertasDiariasJuegos td.categoria,
+#divAlertasDiariasJugadores th,
+#divAlertasDiariasJugadores td.fecha,
+#divAlertasDiariasJugadores td.jugador {
+  text-align: center;/*Casos especiales donde se visualiza mejor alineado en el centro*/
+}
+
 </style>
 @endsection
 
