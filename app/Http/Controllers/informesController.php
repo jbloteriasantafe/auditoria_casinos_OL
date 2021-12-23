@@ -412,6 +412,14 @@ class informesController extends Controller
     return $juegos_faltantes->merge($total);
   }
 
+  public static $obtenerAlertasJuegosSelect =
+  [
+    'p.fecha as fecha','dp.cod_juego as codigo','cj.nombre as categoria',
+    'dp.apuesta as apuesta','dp.premio as premio','dp.beneficio as beneficio',
+    'IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev',
+    'j.porcentaje_devolucion as pdev_juego'
+  ];
+
   public function obtenerAlertasJuegos(Request $request){
     $alertas = [];
 
@@ -422,8 +430,7 @@ class informesController extends Controller
     ->whereRaw('ABS((100*dp.premio/dp.apuesta) - j.porcentaje_devolucion) >='.$request->pdev_alertas);
 
     $data = (clone $query)
-    ->selectRaw('p.fecha, dp.cod_juego as codigo, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev,
-    j.porcentaje_devolucion as pdev_juego,cj.nombre as categoria')
+    ->selectRaw(implode(',',self::$obtenerAlertasJuegosSelect))
     ->orderBy('p.fecha','desc')->orderBy('dp.cod_juego','asc')
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
     $alertas['data'] = $data;
@@ -433,6 +440,12 @@ class informesController extends Controller
     $alertas['total'] = is_null($total)? 0 : $total->total;
     return $alertas;
   }
+
+  public static $obtenerAlertasJugadoresSelect =
+  [
+    'p.fecha as fecha','dp.jugador as jugador','dp.apuesta as apuesta',
+    'dp.premio as premio','dp.beneficio as beneficio','IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev'
+  ];
 
   public function obtenerAlertasJugadores(Request $request){
     $alertas = [];

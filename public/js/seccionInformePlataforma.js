@@ -1,3 +1,9 @@
+function digits(n,dig = 2){
+  const format = new Intl.NumberFormat('es-AR',{minimumFractionDigits: dig,maximumFractionDigits: dig});
+  const ret = format.format(n);
+  return ret == "NaN"? n : ret;
+}
+
 $(document).ready(function(){
   $('#informesAuditoria').removeClass().addClass('subMenu2 collapse in');
   $('.tituloSeccionPantalla').text('Informe de Plataforma');
@@ -24,7 +30,6 @@ $(document).ready(function(){
     minView: 2
   });
 
-  const digits2 = new Intl.NumberFormat('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
   $('#juegosFaltantesConMovimientos table').data('buscar',
   function(){
     GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',sortBy('#juegosFaltantesConMovimientos'),function(data){
@@ -32,8 +37,7 @@ $(document).ready(function(){
         const j = data[jidx];
         const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
         for(const k in j){
-          const valf = digits2.format(j[k]);
-          const val  = valf == "NaN"? j[k] : valf;
+          const val = digits(j[k],k.indexOf('pdev') != -1? 3 : 2);
           fila.find('.'+k).text(val).attr('title',val);
         }
         $('#juegosFaltantesConMovimientos tbody').append(fila);
@@ -279,7 +283,8 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages){
     const a = alertas[aidx];
     const f = fila.clone();
     for(const columna in a){
-      f.find('.'+columna).text(a[columna]).attr('title',a[columna]);
+      const val = digits(a[columna],columna.indexOf('pdev') != -1? 3 : 2);
+      f.find('.'+columna).text(val).attr('title',val);
     }
     div.find('tbody').append(f);
   }
