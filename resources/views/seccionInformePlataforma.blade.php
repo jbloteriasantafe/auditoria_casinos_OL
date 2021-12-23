@@ -238,7 +238,7 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
       <thead>
         <tr>
           @foreach($alertasJuegosSelect as $idx => $columna)
-          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}""
+          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
           @if($idx == 0)
           estado="asc" class="activa"
           @endif
@@ -278,7 +278,7 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
       <thead>
         <tr>
           @foreach($alertasJugadoresSelect as $idx => $columna)
-          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}""
+          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
           @if($idx == 0)
           estado="asc" class="activa"
           @endif

@@ -133,22 +133,22 @@ $('#btn-buscar').click(function(e){
   $('#btn-buscarAlertasJugadores').click();
 });
 
-$(document).on('click','tr th[value]',function(e){
-  const tabla = $(this).closest('table');
+function setearEstadoColumna(col,estado){
+  const tabla = col.closest('table');
   tabla.find('th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
-  }
-  else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-    }
-  }
+  col.addClass('activa').attr('estado',estado).children('i').removeClass().addClass(`fa fa-sort-${estado}`);
+  if(estado == '') col.removeClass('activa');
   tabla.find('th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-  tabla.data('buscar')();
+}
+function obtenerProximoEstadoColumna(col){
+  if(col.children('i').hasClass('fa-sort'))           return 'desc';
+  else if(col.children('i').hasClass('fa-sort-desc')) return 'asc';
+  return '';
+}
+$(document).on('click','tr th[value]',function(e){
+  const estado = obtenerProximoEstadoColumna($(this));
+  setearEstadoColumna($(this),estado);
+  $(this).closest('table').data('buscar')();
 });
 
 //Opacidad del modal al minimizar
@@ -254,14 +254,22 @@ function generarAlertasDiarias(tipo,page){
   const beneficio_alertas = $('#inputBeneficio'+tipo).val() == ""? "0" : $('#inputBeneficio'+tipo).val();
   const pdev_alertas = $('#inputPdev'+tipo).val() == ""? "0" : $('#inputPdev'+tipo).val();
   const page_size = 30;
+  const sort_by = sortBy(`#divAlertasDiarias${tipo}`);
   const data = { beneficio_alertas: beneficio_alertas, pdev_alertas: pdev_alertas, 
-    page: page, page_size: page_size };
-  $('#divAlertasDiarias'+tipo).find('.tablaAlertas').remove();
+    page: page, page_size: page_size,
+    ...sort_by,
+  };
+
+  $(`#divAlertasDiarias${tipo} .tablaAlertas`).remove();
   GET('#loadingAlertasDiarias'+tipo,'obtenerAlertas'+tipo,data,function(data){
     const alertas = data.data;
     const total = data.total;
     if(total == 0) return;
-    generarTablaAlertas(tipo,'ARS',alertas,page,Math.ceil(total/page_size));
+    generarTablaAlertas(tipo,'ARS',alertas,page,Math.ceil(total/page_size),sort_by);
+
+    $(`#divAlertasDiarias${tipo} table`).data('buscar',function(){//Necesario porque el event handler lo usa para los orderBy 
+      generarAlertasDiarias(tipo,page);
+    });
   });
 }
 
@@ -275,7 +283,7 @@ $('#btn-buscarAlertasJugadores').click(function(e){
   generarAlertasDiarias('Jugadores',1);
 });
 
-function generarTablaAlertas(tipo,moneda,alertas,page,pages){
+function generarTablaAlertas(tipo,moneda,alertas,page,pages,sort_by){
   const div = $('#moldeAlerta'+tipo).clone().removeAttr('id').show();
   div.find('.moneda').text(moneda)
   const fila = div.find('.moldeFilaAlerta').clone().removeClass('moldeFilaAlerta');
@@ -293,6 +301,13 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages){
   div.find('.prevPreview').attr('disabled',page <= 1);
   div.find('.nextPreview').attr('disabled',page >= pages);
   $('#divAlertasDiarias'+tipo).append(div);
+  //Tengo que hacerlo despues del append
+  if(sort_by && sort_by.columna){//Hay columna activa
+    const columna = $(`#divAlertasDiarias${tipo} table th`).filter(function(){
+      return $(this).attr('value') == sort_by.columna;
+    });
+    setearEstadoColumna(columna,sort_by.orden);
+  }
 }
 
 $(document).on('click','.prevPreview,.nextPreview',function(e){

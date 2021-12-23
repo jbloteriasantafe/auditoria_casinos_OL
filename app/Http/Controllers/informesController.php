@@ -423,6 +423,15 @@ class informesController extends Controller
   public function obtenerAlertasJuegos(Request $request){
     $alertas = [];
 
+    $columna = !empty($request->columna)? DB::raw($request->columna) : 'p.fecha';
+    $orden   =   !empty($request->orden)? $request->orden : 'desc';
+    $columna2 = 'dp.cod_juego';
+    $orden2 = 'asc';
+    if($columna == 'dp.cod_juego'){
+      $columna = 'p.fecha';
+      $orden = 'desc';
+    }
+
     $query = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
     ->where('p.id_tipo_moneda',$request->id_tipo_moneda)
@@ -431,7 +440,7 @@ class informesController extends Controller
 
     $data = (clone $query)
     ->selectRaw(implode(',',self::$obtenerAlertasJuegosSelect))
-    ->orderBy('p.fecha','desc')->orderBy('dp.cod_juego','asc')
+    ->orderBy($columna,$orden)->orderBy($columna2,$orden2)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
     $alertas['data'] = $data;
 
@@ -450,6 +459,15 @@ class informesController extends Controller
   public function obtenerAlertasJugadores(Request $request){
     $alertas = [];
 
+    $columna = !empty($request->columna)? DB::raw($request->columna) : 'p.fecha';
+    $orden   =   !empty($request->orden)? $request->orden : 'desc';
+    $columna2 = 'dp.jugador';
+    $orden2 = 'asc';
+    if($columna == 'dp.jugador'){
+      $columna = 'p.fecha';
+      $orden = 'desc';
+    }
+
     $query = DB::table('detalle_producido_jugadores as dp')
     ->join('producido_jugadores as p','p.id_producido_jugadores','=','dp.id_producido_jugadores')
     ->where('p.id_plataforma',$request->id_plataforma)
@@ -460,7 +478,7 @@ class informesController extends Controller
 
     $data = (clone $query)
     ->selectRaw('p.fecha, dp.jugador, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
-    ->orderBy('p.fecha','desc')->orderBy('dp.jugador','asc')
+    ->orderBy($columna,$orden)->orderBy($columna2,$orden2)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
     $alertas['data'] = $data;
 
