@@ -428,8 +428,8 @@ class informesController extends Controller
     $columna2 = 'dp.cod_juego';
     $orden2 = 'asc';
     if($columna == 'dp.cod_juego'){
-      $columna = 'p.fecha';
-      $orden = 'desc';
+      $columna2 = 'p.fecha';
+      $orden2 = 'desc';
     }
 
     $query = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
@@ -464,8 +464,8 @@ class informesController extends Controller
     $columna2 = 'dp.jugador';
     $orden2 = 'asc';
     if($columna == 'dp.jugador'){
-      $columna = 'p.fecha';
-      $orden = 'desc';
+      $columna2 = 'p.fecha';
+      $orden2 = 'desc';
     }
 
     $query = DB::table('detalle_producido_jugadores as dp')
