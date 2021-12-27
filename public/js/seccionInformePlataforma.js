@@ -301,6 +301,7 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages,sort_by){
   div.find('.prevPreview').attr('disabled',page <= 1);
   div.find('.nextPreview').attr('disabled',page >= pages);
   $('#divAlertasDiarias'+tipo).append(div);
+  //Pongo de vuelta el ordenamiento porque borramos la tabla entera y lo perdemos
   //Tengo que hacerlo despues del append
   if(sort_by && sort_by.columna){//Hay columna activa
     const columna = $(`#divAlertasDiarias${tipo} table th`).filter(function(){

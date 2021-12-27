@@ -416,7 +416,7 @@ class informesController extends Controller
   [
     'p.fecha as fecha','dp.cod_juego as codigo','cj.nombre as categoria',
     'dp.apuesta as apuesta','dp.premio as premio','dp.beneficio as beneficio',
-    'IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev',
+    '100*dp.premio/dp.apuesta as pdev',
     'j.porcentaje_devolucion as pdev_juego'
   ];
 
@@ -453,7 +453,7 @@ class informesController extends Controller
   public static $obtenerAlertasJugadoresSelect =
   [
     'p.fecha as fecha','dp.jugador as jugador','dp.apuesta as apuesta',
-    'dp.premio as premio','dp.beneficio as beneficio','IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev'
+    'dp.premio as premio','dp.beneficio as beneficio','100*dp.premio/dp.apuesta as pdev'
   ];
 
   public function obtenerAlertasJugadores(Request $request){
