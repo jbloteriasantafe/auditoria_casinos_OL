@@ -292,8 +292,9 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages,sort_by){
     const f = fila.clone();
     for(const columna in a){
       let val = digits(a[columna],columna.indexOf('pdev') != -1? 3 : 2);
-      //@HACK, en BPLAY los IDs de jugadores son todos numeros por lo que no lo detecta el chequeo común
-      if(columna == 'jugador') val = a[columna];
+      //@HACK, en BPLAY y CCO los IDs de jugadores son todos numeros por lo que no lo detecta el chequeo común
+      // En BPLAY los codigos de juegos son numeros tambien
+      if(columna == 'jugador' || columna == 'codigo') val = a[columna];
       f.find('.'+columna).text(val).attr('title',val);
     }
     div.find('tbody').append(f);
