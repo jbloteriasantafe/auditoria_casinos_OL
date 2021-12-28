@@ -37,7 +37,8 @@ $(document).ready(function(){
         const j = data[jidx];
         const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
         for(const k in j){
-          const val = digits(j[k],k.indexOf('pdev') != -1? 3 : 2);
+          let val = digits(j[k],k.indexOf('pdev') != -1? 3 : 2);
+          if(k == 'cod_juego') val = j[k];//@HACK en bplay los codigos de juegos son números
           fila.find('.'+k).text(val).attr('title',val);
         }
         $('#juegosFaltantesConMovimientos tbody').append(fila);
