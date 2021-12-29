@@ -118,18 +118,18 @@ function mostrarModal(id_plataforma,cod_plat,tipo,id_juego,codigo){
         $('#estado').text('Produciendo (NO EN BD)');
         if(id_juego != -1){
             verJuego(id_juego,id_plataforma,function(){
-                cargarProducidos(id_plataforma,codigo,1,default_page_size);
+                cargarProducidos(id_plataforma,tipo,codigo,1,default_page_size);
             });
         }
         else{
-            cargarProducidos(id_plataforma,codigo,1,default_page_size);
+            cargarProducidos(id_plataforma,tipo,codigo,1,default_page_size);
         }
     }
     else if(tipo == 'jugador'){
         $('.de_juego').hide();
         $('.de_jugador').show();
         $('#estado').text('-');
-        cargarProducidos(id_plataforma,codigo,1,default_page_size);
+        cargarProducidos(id_plataforma,tipo,codigo,1,default_page_size);
     }
 }
 
@@ -142,9 +142,8 @@ $('#btn-verDetalles').click(function(e) {
     mostrarModal(id_plataforma,cod_plat,tipo,id_juego,codigo);
 });
 
-function cargarProducidos(id_plataforma,codigo,pagina,page_size){
+function cargarProducidos(id_plataforma,tipo,codigo,pagina,page_size){
     let url = '/informeContableJuego/';
-    const tipo = $('#selectTipoCodigo').val(); 
     if(tipo == 'juego') url += 'obtenerProducidosDeJuego';
     else if(tipo == 'jugador') url += 'obtenerProducidosDeJugador';
 
@@ -216,7 +215,8 @@ function cambiarPagina(sumar){
 
     const cod_juego     = $('#codigo').text();
     const id_plataforma = $('#selectPlataforma').val();
-    cargarProducidos(id_plataforma,cod_juego,pag_actual+sumar,default_page_size);
+    const tipo = $('#selectTipoCodigo').val(); 
+    cargarProducidos(id_plataforma,tipo,cod_juego,pag_actual+sumar,default_page_size);
 }
 
 $('#prevPreview').click(function(e){
@@ -232,7 +232,8 @@ $('#nextPreview').click(function(e){
 $('#verTodosProducidos').change(function(e){
     e.preventDefault();
     const checked = $(this).prop('checked');
-    cargarProducidos($('#selectPlataforma').val(),$('#inputCodigo').val(),1,checked? -1 : default_page_size);
+    const tipo = $('#selectTipoCodigo').val(); 
+    cargarProducidos($('#selectPlataforma').val(),tipo,$('#inputCodigo').val(),1,checked? -1 : default_page_size);
 })
 
 function generarGraficoJuego(fechas,producidos) {
