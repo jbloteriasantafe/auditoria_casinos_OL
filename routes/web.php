@@ -234,12 +234,13 @@ Route::group(['prefix' => 'informePlataforma'],function(){
 });
 
 Route::group(['prefix' => 'informeContableJuego'],function(){
-  Route::get('/','informesController@buscarTodoInformeContable');
+  Route::get('/','informesController@informeContableJuego');
   Route::get('obtenerJuegoPlataforma/{id_plataforma}/{cod_juego?}', 'informesController@obtenerJuegoPlataforma');
   Route::get('obtenerJugadorPlataforma/{id_plataforma}/{jugador?}', 'informesController@obtenerJugadorPlataforma');
   Route::get('obtenerInformeDeJuego/{id_juego}','informesController@obtenerInformeDeJuego');
   Route::get('obtenerProducidosDeJuego/{id_plataforma}/{cod_juego}/{offset?}/{size}','informesController@obtenerProducidosDeJuego');
   Route::get('obtenerProducidosDeJugador/{id_plataforma}/{jugador}/{offset?}/{size}','informesController@obtenerProducidosDeJugador');
+  Route::get('{id_plataforma}/{modo}/{codigo}','informesController@informeContableJuego');
 });
 
 //@TODO: Agregar y asignar privilegios para esta sección

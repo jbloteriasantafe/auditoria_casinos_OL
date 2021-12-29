@@ -4,6 +4,17 @@ $(document).ready(function() {
     $('#opcInformesContableJuego').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
     $('#opcInformesContableJuego').addClass('opcionesSeleccionado');
     $('#selectPlataforma').val("").change();
+    if($('#mostrar').length > 0){//Si venimos redirigios para mostrar un juego/jugador
+        setTimeout(function(){
+            mostrarModal(
+                $('#mostrar').attr('data-id_plataforma'),
+                $('#mostrar').attr('data-codigo_plat'),
+                $('#mostrar').attr('data-modo'),
+                $('#mostrar').attr('data-id'),
+                $('#mostrar').attr('data-codigo')
+            );
+        },250);
+    }
 });
 
 //Opacidad del modal al minimizar
@@ -68,7 +79,7 @@ function limpiarNull(str, c = '-') {
 const default_page_size = 30;
 
 function verJuego(id_juego,id_plataforma, after = function(){}){
-    $.get("informeContableJuego/obtenerInformeDeJuego/" + id_juego, function(data) {
+    $.get("/informeContableJuego/obtenerInformeDeJuego/" + id_juego, function(data) {
         $('#codigo').text(limpiarNull(data.juego.cod_juego));
         $('#proveedor').text(limpiarNull(data.juego.proveedor));
         $('#denominacion').text(limpiarNull(data.juego.denominacion_juego));
@@ -96,21 +107,15 @@ function verJuego(id_juego,id_plataforma, after = function(){}){
     });
 }
 
-$('#btn-verDetalles').click(function(e) {
+function mostrarModal(id_plataforma,cod_plat,tipo,id_juego,codigo){
     $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#tipo,#producidoEsperado').text('-');
-    const codigo = $('#inputCodigo').val();
     $('#codigo').text(codigo);
-    const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
     $('#plataforma').text(cod_plat);
     $('#verTodosProducidos').prop('checked',false);
-
-    const id_plataforma = $('#selectPlataforma').val();
-    const tipo = $('#selectTipoCodigo').val(); 
     if(tipo == 'juego'){
         $('.de_juego').show();
         $('.de_jugador').hide();
         $('#estado').text('Produciendo (NO EN BD)');
-        const id_juego = $('#inputCodigo').obtenerElementoSeleccionado();
         if(id_juego != -1){
             verJuego(id_juego,id_plataforma,function(){
                 cargarProducidos(id_plataforma,codigo,1,default_page_size);
@@ -119,7 +124,6 @@ $('#btn-verDetalles').click(function(e) {
         else{
             cargarProducidos(id_plataforma,codigo,1,default_page_size);
         }
-
     }
     else if(tipo == 'jugador'){
         $('.de_juego').hide();
@@ -127,10 +131,19 @@ $('#btn-verDetalles').click(function(e) {
         $('#estado').text('-');
         cargarProducidos(id_plataforma,codigo,1,default_page_size);
     }
+}
+
+$('#btn-verDetalles').click(function(e) {
+    const codigo = $('#inputCodigo').val();
+    const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
+    const id_plataforma = $('#selectPlataforma').val();
+    const tipo = $('#selectTipoCodigo').val();
+    const id_juego = $('#inputCodigo').obtenerElementoSeleccionado();
+    mostrarModal(id_plataforma,cod_plat,tipo,id_juego,codigo);
 });
 
 function cargarProducidos(id_plataforma,codigo,pagina,page_size){
-    let url = 'informeContableJuego/';
+    let url = '/informeContableJuego/';
     const tipo = $('#selectTipoCodigo').val(); 
     if(tipo == 'juego') url += 'obtenerProducidosDeJuego';
     else if(tipo == 'jugador') url += 'obtenerProducidosDeJugador';

@@ -267,6 +267,17 @@
              </div>
           </div>
     </div>
+
+@if(!is_null($mostrar))
+<input id='mostrar' 
+
+@foreach($mostrar as $k => $v)
+  data-{{$k}} = "{{$v}}"
+@endforeach
+
+hidden/>
+@endif
+
 @endsection
 
 <!-- Comienza modal de ayuda -->
@@ -292,7 +303,7 @@
 <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
 <!-- Highchart -->
-<script src="js/highcharts.js"></script>
-<script src="js/highcharts-3d.js"></script>
+<script src="/js/highcharts.js"></script>
+<script src="/js/highcharts-3d.js"></script>
 
 @endsection

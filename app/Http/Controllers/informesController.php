@@ -499,10 +499,29 @@ class informesController extends Controller
     return $ret;
   }
 
-  public function buscarTodoInformeContable(){
+  public function informeContableJuego($id_plataforma = null,$modo = null,$codigo = null){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Contable Juegos/Jugadores' , 'informeContableJuego');
-    return view('informe_juego', ['plataformas' => $usuario->plataformas]);
+
+    $mostrar = null;
+    if(!is_null($id_plataforma) && !is_null($modo) && !is_null($codigo)){
+      $busqueda = [];
+      if($modo == 'juego'){
+        $busqueda = $this->obtenerJuegoPlataforma($id_plataforma,$codigo)['busqueda'];
+      }
+      else if($modo == 'jugador'){
+        $busqueda = $this->obtenerJugadorPlataforma($id_plataforma,$codigo)['busqueda'];
+      }
+      $plataforma = Plataforma::find($id_plataforma);
+      if(count($busqueda) > 0 && $busqueda[0]->codigo == $codigo && !is_null($plataforma)){
+        $mostrar['id_plataforma'] = $id_plataforma;
+        $mostrar['codigo_plat']   = $plataforma->codigo;
+        $mostrar['modo']          = $modo;
+        $mostrar['codigo']        = $codigo;
+        $mostrar['id']            = $busqueda[0]->id;
+      }
+    }
+    return view('informe_juego', ['plataformas' => $usuario->plataformas,'mostrar' => $mostrar]);
   }
 
   public function obtenerJugadorPlataforma($id_plataforma,$jugador=""){
