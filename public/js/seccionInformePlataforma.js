@@ -7,6 +7,7 @@ function digits(n,dig = 2){
 function convertirLinks(tds,id_plataforma,modo){
   tds.each(function(){
     const codigo = $(this).text();
+    if(codigo == 'TOTAL') continue;//@HACK: Se rompe si hay un juego/jugador con ID Total (lol)
     const a = $('<a>').attr('href',`/informeContableJuego/${id_plataforma}/${modo}/${codigo}`).attr('target','_blank').text(codigo);
     $(this).text('').append(a);
   });
