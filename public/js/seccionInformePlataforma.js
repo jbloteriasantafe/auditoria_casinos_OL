@@ -4,6 +4,14 @@ function digits(n,dig = 2){
   return ret == "NaN"? n : ret;
 }
 
+function convertirLinks(tds,id_plataforma,modo){
+  tds.each(function(){
+    const codigo = $(this).text();
+    const a = $('<a>').attr('href',`/informeContableJuego/${id_plataforma}/${modo}/${codigo}`).attr('target','_blank').text(codigo);
+    $(this).text('').append(a);
+  });
+}
+
 $(document).ready(function(){
   $('#informesAuditoria').removeClass().addClass('subMenu2 collapse in');
   $('.tituloSeccionPantalla').text('Informe de Plataforma');
@@ -43,6 +51,7 @@ $(document).ready(function(){
         }
         $('#juegosFaltantesConMovimientos tbody').append(fila);
       }
+      convertirLinks($('#juegosFaltantesConMovimientos tbody .cod_juego'),$('#buscadorPlataforma').val(),'juego');
     });
   });
 
@@ -312,6 +321,13 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages,sort_by){
       return $(this).attr('value') == sort_by.columna;
     });
     setearEstadoColumna(columna,sort_by.orden);
+  }
+  const modo = tipo == 'Juegos'? 'juego' : (tipo == 'Jugadores'? 'jugador' : null);
+  if(modo != null){
+    let td = null;
+    if(modo == 'juego')        td = 'codigo';
+    else if(modo == 'jugador') td = 'jugador';
+    if(td != null) convertirLinks($(`#divAlertasDiarias${tipo} tbody .${td}`),$('#buscadorPlataforma').val(),modo);
   }
 }
 
