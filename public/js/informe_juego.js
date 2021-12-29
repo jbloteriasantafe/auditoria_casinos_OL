@@ -34,7 +34,7 @@ $('#selectPlataforma').change(function(e) {
     if (id_plat != "") {
         $('#inputCodigo').borrarDataList();
 
-        let url = 'informeContableJuego/';
+        let url = '/informeContableJuego/';
         const tipo = $('#selectTipoCodigo').val(); 
         if(tipo == 'juego') url += 'obtenerJuegoPlataforma/';
         else if(tipo == 'jugador') url += 'obtenerJugadorPlataforma/';
