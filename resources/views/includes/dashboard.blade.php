@@ -15,7 +15,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_token" content="{!! csrf_token() !!}"/>
 
-    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.ico">
     <title>CASOnline - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->
