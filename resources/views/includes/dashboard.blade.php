@@ -230,7 +230,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                         </li>
                         @endif
 
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_casinos']))
+                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_logs_actividades']))
                         <div class="separadoresMenu">GESTIÓN</div>
                         <li>
                             <div id="barraUsuarios" class="opcionesHover" data-target="#usuarios" data-toggle="collapse">
