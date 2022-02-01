@@ -200,8 +200,8 @@ class informesController extends Controller
     return $ret;
   }
 
-  private function producidosSinJuegoPlataforma($id_plataforma){
-    return DB::table('producido as p')
+  private function producidosSinJuegoPlataforma($id_plataforma,$fecha_desde,$fecha_hasta){
+    $ret = DB::table('producido as p')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
     ->leftJoin('juego as j',function($j){
       return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
@@ -209,6 +209,7 @@ class informesController extends Controller
     ->leftJoin('plataforma_tiene_juego as pj',function($j){
       return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
     })->where('p.id_plataforma',$id_plataforma)->whereNull('pj.id_juego');
+
     if(!empty($fecha_desde)) $ret = $ret->where('p.fecha','>=',$fecha_desde);
     if(!empty($fecha_hasta)) $ret = $ret->where('p.fecha','<=',$fecha_hasta);
     return $ret;
@@ -250,7 +251,7 @@ class informesController extends Controller
     }
 
     {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
-      $cantidad = $this->producidosSinJuegoPlataforma($request->id_plataforma)
+      $cantidad = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw('dp.categoria as clase, COUNT(distinct dp.cod_juego) as juegos')
       ->groupBy('dp.categoria')->get();
 
@@ -359,7 +360,7 @@ class informesController extends Controller
     }
 
     {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
-      $pdev_teorico = $this->producidosSinJuegoPlataforma($request->id_plataforma)
+      $pdev_teorico = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
       ->selectRaw('dp.categoria as clase, NULL as pdev')
       ->groupBy('dp.categoria')->get();
 
