@@ -221,7 +221,7 @@
                               <th class="moneda">MONEDA</th>
                               <th class="categoria de_juego">CATEGORÍA INFORMADA</th>
                               <th class="jugadores de_juego">JUGADORES</th>
-                              <th class="jugadores de_jugador">JUGADORES</th>
+                              <th class="juegos de_jugador">JUEGOS</th>
                               <th class="apuesta_efectivo">APUESTA (Ef)</th>
                               <th class="apuesta_bono">APUESTA (Bo)</th>
                               <th class="apuesta">APUESTA</th>
