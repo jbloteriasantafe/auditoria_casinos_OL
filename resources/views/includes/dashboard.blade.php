@@ -65,8 +65,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
     <link rel="stylesheet" href="/css/perfect-scrollbar.css">
 
-
-
     @section('estilos')
     @show
 
@@ -75,12 +73,92 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
     <!-- Contenedor de toda la página -->
     <div class="contenedor">
-
         <!-- Barra superior  -->
         <header>
-            <nav>@section('headerLogo')
-                 @show
-              <h2 class="tituloSeccionPantalla"></h2>
+            <div class="dropdown" style="float: left;">
+              <button class="btn btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-right: 1px solid #fff;border-bottom: 1px solid #fff;background-color: #fff;color: rgb(38, 50, 56);">
+                @section('headerLogo')
+                @show
+                <span class="tituloSeccionPantalla"></span>
+              </button>
+            </div>
+            <style>
+            .my-dropdown-button {
+              border-right: 1px solid #fff;
+              border-bottom: 1px solid #fff;
+              background-color:rgb(38, 50, 56);
+              color: #fff;
+              width: 100%;
+              height: 100%;
+            }
+            .my-dropdown-button:hover{
+              background-color: orange !important;
+            }
+            .my-dropdown-button:focus{
+              background-color: orange !important;
+            }
+            .my-dropdown-menu {
+              margin: 0px;
+              padding: 0px;
+              border: 0px;
+              width: 100%;
+            }
+            .dropdown-submenu .dropdown-menu {
+              top: 0;
+              left: 100%;
+              margin-top: -1px;
+            }
+            </style>
+            <script>
+            $(document).ready(function(){
+              $('.dropdown-submenu a.test').on("click", function(e){
+                $(this).next('ul').toggle();
+                e.stopPropagation();
+                e.preventDefault();
+              });
+            });
+            </script>
+            <?php
+            $opciones = [
+              'Inicio [CASINO ONLINE]' => [],
+              'Plataformas' => [],
+              'Gestion' => [
+                'Usuarios' => [],
+                'Expedientes' => [],
+                'Juegos' => [],
+                'Autoexclusión' => []
+              ],
+              'Auditoria' => [
+                'Importación Diaria' => [],
+                'Validación' => [],
+                'Informes Auditoria' => []
+              ],
+              'Estadisticas' => [
+                'Informes' => [
+                  'test' => [],//No funciona a 3 niveles??
+                ],
+                'Tablero' => []
+              ],
+            ];
+            $parseOpcion = function($opcion,$hijos,$alternating = 0,$first_call = false) use (&$parseOpcion){
+              $button = 
+              "<button class='btn btn-sm dropdown-toggle my-dropdown-button' type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
+              $opcion
+              </button>";
+              $botones = "";
+              foreach($hijos as $h => $x){
+                $botones.=$parseOpcion($h,$x,($alternating+1)%2);
+              }
+              $sub = $alternating == 0? "" : "sub";
+              $menu = "<div class='dropdown-{$sub}menu my-dropdown-menu'>$botones</div>";
+              $width = $first_call? "12%" : "100%";
+              return "<div class='dropdown' style='float: left;width: $width;'>$button $menu</div>";
+            }
+            ?>
+            @foreach($opciones as $op => $hijos)
+              {!! $parseOpcion($op,$hijos,0,true) !!}
+            @endforeach
+            <nav>
               
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
               <ul class="opcionesBarraSuperior">
