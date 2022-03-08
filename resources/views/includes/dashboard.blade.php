@@ -87,7 +87,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
               border-right: 1px solid #fff;
               border-bottom: 1px solid #fff;
               background-color:rgb(38, 50, 56);
-              color: #fff;
+              color: white !important;
               width: 100%;
               height: 100%;
             }
@@ -97,11 +97,22 @@ $id_usuario = $usuario['usuario']->id_usuario;
             .my-dropdown-button:focus{
               background-color: orange !important;
             }
-            .my-dropdown-menu {
-              margin: 0px;
-              padding: 0px;
-              border: 0px;
+            .dropdown a {
+              border-right: 1px solid #fff;
+              border-bottom: 1px solid #fff;
+              background-color:rgb(38, 50, 56);
+              color: white !important;
               width: 100%;
+              height: 100%;
+            }
+            .dropdown a:hover{
+              background-color: orange !important;
+            }
+            .dropdown a:focus{
+              background-color: orange !important;
+            }
+            .dropdown-submenu {
+              position: relative;
             }
             .dropdown-submenu .dropdown-menu {
               top: 0;
@@ -109,15 +120,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
               margin-top: -1px;
             }
             </style>
-            <script>
-            $(document).ready(function(){
-              $('.dropdown-submenu a.test').on("click", function(e){
-                $(this).next('ul').toggle();
-                e.stopPropagation();
-                e.preventDefault();
-              });
-            });
-            </script>
             <?php
             $opciones = [
               'Inicio [CASINO ONLINE]' => [],
@@ -135,29 +137,47 @@ $id_usuario = $usuario['usuario']->id_usuario;
               ],
               'Estadisticas' => [
                 'Informes' => [
-                  'test' => [],//No funciona a 3 niveles??
+                  'test1' => [
+                    'test2' => [],
+                  ],
                 ],
                 'Tablero' => []
               ],
             ];
-            $parseOpcion = function($opcion,$hijos,$alternating = 0,$first_call = false) use (&$parseOpcion){
-              $button = 
-              "<button class='btn btn-sm dropdown-toggle my-dropdown-button' type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
-              $opcion
-              </button>";
-              $botones = "";
-              foreach($hijos as $h => $x){
-                $botones.=$parseOpcion($h,$x,($alternating+1)%2);
+            //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
+            $parseOpcion = function($hijos,$alternating = 1) use (&$parseOpcion){
+              $lista = "";
+              foreach($hijos as $h => $hh){
+                if(count($hh) == 0){
+                  $lista .= "<li><a tabindex='-1' href='#'>$h</a></li>";
+                }
+                else{
+                  $submenu = $parseOpcion($hh);
+                  $lista .= "<li class='dropdown-submenu'>
+                    <a class='desplegar-menu' tabindex='-1' href='#'>$h</a>
+                    <ul class='dropdown-menu'>
+                    $submenu
+                    </ul>
+                  </li>";
+                }
               }
-              $sub = $alternating == 0? "" : "sub";
-              $menu = "<div class='dropdown-{$sub}menu my-dropdown-menu'>$botones</div>";
-              $width = $first_call? "12%" : "100%";
-              return "<div class='dropdown' style='float: left;width: $width;'>$button $menu</div>";
+              return $lista;
             }
             ?>
+            <ul>
             @foreach($opciones as $op => $hijos)
-              {!! $parseOpcion($op,$hijos,0,true) !!}
+              @if(count($hijos) == 0)
+              <a class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:12%;">{{$op}}</a>
+              @else
+              <div class="dropdown" style="float:left;width:12%;">
+                <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">{{$op}}</a>
+                <ul class="dropdown-menu">
+                {!! $parseOpcion($hijos) !!}
+                </ul>
+              </div>
+              @endif
             @endforeach
+            </ul>
             <nav>
               
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
@@ -756,6 +776,14 @@ $id_usuario = $usuario['usuario']->id_usuario;
         });
 
         var ps = new PerfectScrollbar('.opcionesMenu');
+
+        $(document).ready(function(){
+          $('a.desplegar-menu').click(function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).next('ul').toggle();
+          });
+        });
     </script>
 
     <script src="/js/modalTicket.js" charset="utf-8"></script>
