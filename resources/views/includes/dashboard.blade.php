@@ -65,6 +65,56 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
     <link rel="stylesheet" href="/css/perfect-scrollbar.css">
 
+
+    <style>
+      #barraMenuPrincipal {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+        align-content: center;
+      }
+      #barraMenuPrincipal .dropdown a, #barraMenuPrincipal .my-dropdown-button {
+        border-right: 1px solid #fff;
+        border-bottom: 1px solid #fff;
+        background-color:rgb(38, 50, 56);
+        color: white !important;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      #barraMenuPrincipal .my-dropdown-button:hover, #barraMenuPrincipal .dropdown a:hover{
+        background-color: #384382 !important;
+      }
+      #barraMenuPrincipal .my-dropdown-button:focus, #barraMenuPrincipal .dropdown a:focus{
+        background-color: #384382 !important;
+      }
+      #barraMenuPrincipal img{
+        max-height: 1em;
+      }
+      #barraMenuPrincipal svg{
+        max-height: 2em;
+        fill: white;
+        stroke: white;
+      }
+      #barraMenuPrincipal .dropdown-submenu {
+        position: relative;
+      }
+      #barraMenuPrincipal .dropdown-menu {
+        padding: 0px;
+        margin: 0px;
+        border: 0px;
+        width: 100%;
+      }
+      #barraMenuPrincipal .dropdown-submenu .dropdown-menu {
+        top: 10%;
+        left: 100%;
+      }
+    </style>
+
     @section('estilos')
     @show
 
@@ -75,44 +125,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <div class="contenedor">
         <!-- Barra superior  -->
         <header>
-            <style>
-            #barraMenuPrincipal .dropdown a, #barraMenuPrincipal .my-dropdown-button {
-              border-right: 1px solid #fff;
-              border-bottom: 1px solid #fff;
-              background-color:rgb(38, 50, 56);
-              color: white !important;
-              width: 100%;
-              height: 100%;
-              text-align: center;
-            }
-            #barraMenuPrincipal .my-dropdown-button:hover, #barraMenuPrincipal .dropdown a:hover{
-              background-color: #384382 !important;
-            }
-            #barraMenuPrincipal .my-dropdown-button:focus, #barraMenuPrincipal .dropdown a:focus{
-              background-color: #384382 !important;
-            }
-            #barraMenuPrincipal img{
-              max-height: 1em;
-            }
-            #barraMenuPrincipal svg{
-              max-height: 2em;
-              fill: white;
-              stroke: white;
-            }
-            #barraMenuPrincipal .dropdown-submenu {
-              position: relative;
-            }
-            #barraMenuPrincipal .dropdown-menu {
-              padding: 0px;
-              margin: 0px;
-              border: 0px;
-              width: 100%;
-            }
-            #barraMenuPrincipal .dropdown-submenu .dropdown-menu {
-              top: 10%;
-              left: 100%;
-            }
-            </style>
+          <nav>
             <?php
             $opciones = [
               'Inicio [CASINO ONLINE]' => [],
@@ -179,8 +192,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
             }
             ?>
             <ul id="barraMenuPrincipal">
-              <span style="float:left;width:9%;border-right: 1px solid #fff;border-bottom: 1px solid #fff;
-                           background-color: rgb(61, 106, 41);color: white !important;height: 100%;
+              <span id="btn-ayuda" style="width:9%;border-right: 1px solid #fff;border-bottom: 1px solid #fff;
+                           background-color: rgb(61, 106, 41);color: white !important;height: 100%;cursor: pointer;
                            display: flex;
                            flex-direction: row;
                            flex-wrap: wrap;
@@ -193,9 +206,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
               </span>
               @foreach($opciones as $op => $hijos)
               @if(count($hijos) == 0)
-              <a class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:9%;">{!! $op !!}</a>
+              <a class="my-dropdown-button" tabindex="-1" href="#" style="width:12%;">{!! $op !!}</a>
               @else
-              <div class="dropdown" style="float:left;width:9%;">
+              <div class="dropdown" style="width:12%;">
                 <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">{!! $op !!}</a>
                 <ul class="dropdown-menu">
                 {!! $parseOpcion($hijos) !!}
@@ -203,89 +216,32 @@ $id_usuario = $usuario['usuario']->id_usuario;
               </div>
               @endif
               @endforeach
-              <a id="ticket" class="my-dropdown-button"         tabindex="-1" href="#" style="float:left;width:3%;"><i id="ticket" class="far fa-envelope"></i></a>
-              <a id="notificaciones" class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:3%;"><i  class="far fa-bell"></i></a>
-              <a id="calendario" class="my-dropdown-button"     tabindex="-1" href="#" style="float:left;width:3%;"><i  class="far fa-fw fa-calendar-alt"></i></a>
-              <a class="etiquetaLogoSalida my-dropdown-button"  tabindex="-1" href="#" style="float:left;width:3%;"><img src="/img/logos/salida.png"></a>
-            </ul>
-            <nav>
-              
-              <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
-              <ul class="opcionesBarraSuperior">
-                  <?php
-                    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                  ?>
-                  @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
-                  <li>
-                    <button id="ticket" type="button" class="iconoBarraSuperior btn btn-link"><i class="far fa-envelope fa-2x" style="margin-right:6px; margin-top: 1px; color: black;"></i></button>
-                    <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
-                      <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                          <div class="modal-header" style="font-family: Robot-Black;background-color: #6dc7be;">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                              <i class="fa fa-times"></i>
-                            </button>
-                            <h3 class="modal-title">Crear ticket</h3>
-                          </div>
-                          <div class="modal-body">
-                            <div class="row">
-                              <div class="col-md-12">
-                                <input class="form-control ticket-asunto" placeholder="Asunto"/>
-                              </div>
-                            </div>
-                            <br>
-                            <div class="row">
-                              <div class="col-md-12">
-                                <textarea class="form-control ticket-mensaje" placeholder="Mensaje"></textarea>
-                              </div>
-                            </div>
-                            <br>
-                            <div class="row">
-                              <h5>Adjunto</h5>
-                              <input type="file" class="form-control-file ticket-adjunto" multiple/>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-primary ticket-enviar">Enviar</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                  @endif
-
-                  <li class="dropdown" id="marcaLeido" onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')" style="right:1%;">
-                    <!--Icono de notificaciones -->
-
-                  <a href="#" id="notificaciones" style="text-decoration:none;position:relative;top:1px;" class="dropdown-toggle" data-toggle="dropdown" type="button">
-                    <i class="far fa-bell fa-2x" style="margin-right:5px;color:#333;"></i>
-                    <span class="badge" style="font-size:20px; background:#333333;height:30px;padding-top:5px;position:relative;top:-5px;">{{count($usuario['usuario']->unreadNotifications)}}</span>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-right" style="max-height: 300px; overflow-y:auto; width:350px;">
-                    @forelse ($usuario['usuario']->unreadNotifications as $notif)
-                    <div style="background: #E6E6E6;">
-                        @include('includes.notifications.'.snake_case(class_basename($notif->type)))
-                    </div>
-
+              @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
+              <a id="ticket" class="my-dropdown-button" tabindex="-1" href="#" style="width:3%;"><i id="ticket" class="far fa-envelope"></i></a>
+              @endif
+              <div class="dropdown" style="width: 5%;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
+                <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">
+                  <i  class="far fa-bell"></i>
+                  <span class="badge" style="background: white;color: black;text-align: center;">{{count($usuario['usuario']->unreadNotifications)}}</span>
+                </a>
+                <ul class="dropdown-menu" style="max-height: 300px; overflow-y:auto; width:350px;">
+                  @forelse ($usuario['usuario']->unreadNotifications as $notif)
+                  <div style="background: #E6E6E6;">
+                      @include('includes.notifications.'.snake_case(class_basename($notif->type)))
+                  </div>
+                  @empty
+                    @forelse($usuario['usuario']->lastNotifications() as $notif)
+                      @include('includes.notifications.'.snake_case(class_basename($notif->type)))
                     @empty
-                      @forelse($usuario['usuario']->lastNotifications() as $notif)
-                        @include('includes.notifications.'.snake_case(class_basename($notif->type)))
-                      @empty
-                        <a href="#" style="font-size:20px;">No hay nuevas Notificaciones</a>
-                      @endforelse
+                    <a href="#" style="display: inline-block;width: 100%;">No hay nuevas Notificaciones</a>
                     @endforelse
-                  </ul>
-
-                  </li>
-                  <li>
-                    <a id="calendario" class="iconoBarraSuperior" onclick="window.location = window.location.protocol + '//' + window.location.host + '/calendario_eventos'" href="#"><i class="far fa-fw fa-calendar-alt fa-2x" style="margin-right:6px; margin-top: 1px; color: black;"></i></a>
-                  </li>
-                  <li>
-                    <a href="#" class="etiquetaLogoSalida"><img src="/img/logos/salida_negrita.png" style="margin-top:4px; margin-right: 32px; width: 17px;"></a>
-                  </li>
-              </ul>
-            </nav>
+                  @endforelse
+                </ul>
+              </div>
+              <a id="calendario" class="my-dropdown-button"     tabindex="-1" href="/calendario_eventos" style="width:3%;"><i  class="far fa-fw fa-calendar-alt"></i></a>
+              <a class="etiquetaLogoSalida my-dropdown-button"  tabindex="-1" href="#" style="width:3%;"><img src="/img/logos/salida.png"></a>
+            </ul>
+          </nav>
         </header>
 
         <!-- Menú lateral -->
@@ -761,6 +717,43 @@ $id_usuario = $usuario['usuario']->id_usuario;
               </div>
         </div>
         <!-- HASTA ACA -->
+
+        @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
+        <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header" style="font-family: Robot-Black;background-color: #6dc7be;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <i class="fa fa-times"></i>
+                </button>
+                <h3 class="modal-title">Crear ticket</h3>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <input class="form-control ticket-asunto" placeholder="Asunto"/>
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <div class="col-md-12">
+                    <textarea class="form-control ticket-mensaje" placeholder="Mensaje"></textarea>
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <h5>Adjunto</h5>
+                  <input type="file" class="form-control-file ticket-adjunto" multiple/>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary ticket-enviar">Enviar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        @endif
     </div>
 
 
