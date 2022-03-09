@@ -69,26 +69,37 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <style>
       #barraMenuPrincipal {
         display: flex;
+        flex-wrap: wrap;
+      }
+      #barraMenuPrincipal > *{
+        flex: 1;
+        width: 100%;
+      }
+      #barraMenuPrincipal > div .my-dropdown-button{/*No entiendo porque esto funciona...*/
+        height: 100%;
+      }
+      #barraMenuPrincipal a {
+        border: 1px solid rgb(73, 102, 121);
+        background-color:rgb(38, 50, 56);
+        color: white !important;
+        text-decoration: none;
+        cursor: pointer;
+        text-align: center;
+        vertical-align: middle;
+      }
+      #btn-ayuda {
+        color: white;
+        border: 1px solid rgb(73, 102, 121);
+        background-color: rgb(61, 106, 41);
+        display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        justify-content: flex-start;
+        justify-content: center;
         align-items: center;
         align-content: center;
       }
-      #barraMenuPrincipal .dropdown a, #barraMenuPrincipal .my-dropdown-button {
-        border-right: 1px solid #fff;
-        border-bottom: 1px solid #fff;
-        background-color:rgb(38, 50, 56);
-        color: white !important;
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        text-decoration: none;
-        cursor: pointer;
-      }
-      #barraMenuPrincipal .my-dropdown-button:hover, #barraMenuPrincipal .dropdown a:hover{
-        background-color: #384382 !important;
-      }
+
+      #barraMenuPrincipal .my-dropdown-button:hover, #barraMenuPrincipal .dropdown a:hover,
       #barraMenuPrincipal .my-dropdown-button:focus, #barraMenuPrincipal .dropdown a:focus{
         background-color: #384382 !important;
       }
@@ -192,14 +203,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
             }
             ?>
             <ul id="barraMenuPrincipal">
-              <span id="btn-ayuda" style="width:9%;border-right: 1px solid #fff;border-bottom: 1px solid #fff;
-                           background-color: rgb(61, 106, 41);color: white !important;height: 100%;cursor: pointer;
-                           display: flex;
-                           flex-direction: row;
-                           flex-wrap: wrap;
-                           justify-content: center;
-                           align-items: center;
-                           align-content: center;">
+              <span id="btn-ayuda" style="width:9%;">
                 @section('headerLogo')
                 @show
                 <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
@@ -216,9 +220,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
               </div>
               @endif
               @endforeach
-              @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
-              <a id="ticket" class="my-dropdown-button" tabindex="-1" href="#" style="width:3%;"><i id="ticket" class="far fa-envelope"></i></a>
-              @endif
               <div class="dropdown" style="width: 5%;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
                 <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">
                   <i  class="far fa-bell"></i>
@@ -238,6 +239,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   @endforelse
                 </ul>
               </div>
+              @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
+              <a id="ticket" class="my-dropdown-button" tabindex="-1" href="#" style="width:3%;"><i id="ticket" class="far fa-envelope"></i></a>
+              @endif
               <a id="calendario" class="my-dropdown-button"     tabindex="-1" href="/calendario_eventos" style="width:3%;"><i  class="far fa-fw fa-calendar-alt"></i></a>
               <a class="etiquetaLogoSalida my-dropdown-button"  tabindex="-1" href="#" style="width:3%;"><img src="/img/logos/salida.png"></a>
             </ul>
