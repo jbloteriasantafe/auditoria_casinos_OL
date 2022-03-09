@@ -76,16 +76,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
         <!-- Barra superior  -->
         <header>
             <style>
-            .tituloSeccionPantalla {
-              border-right: 1px solid #fff;
-              border-bottom: 1px solid #fff;
-              background-color: rgb(61, 106, 41);
-              color: white !important;
-              width: 100%;
-              height: 100%;
-              text-align: center;
-            }
-            .my-dropdown-button {
+            #barraMenuPrincipal .dropdown a, #barraMenuPrincipal .my-dropdown-button {
               border-right: 1px solid #fff;
               border-bottom: 1px solid #fff;
               background-color:rgb(38, 50, 56);
@@ -94,43 +85,30 @@ $id_usuario = $usuario['usuario']->id_usuario;
               height: 100%;
               text-align: center;
             }
-            .my-dropdown-button:hover{
+            #barraMenuPrincipal .my-dropdown-button:hover, #barraMenuPrincipal .dropdown a:hover{
               background-color: #384382 !important;
             }
-            .my-dropdown-button:focus{
+            #barraMenuPrincipal .my-dropdown-button:focus, #barraMenuPrincipal .dropdown a:focus{
               background-color: #384382 !important;
             }
-            .dropdown a {
-              border-right: 1px solid #fff;
-              border-bottom: 1px solid #fff;
-              background-color:rgb(38, 50, 56);
-              color: white !important;
-              width: 100%;
-              height: 100%;
-              text-align: center;
-            }
-            .dropdown img{
+            #barraMenuPrincipal img{
               max-height: 1em;
             }
-            .dropdown svg{
-              max-height: 1em;
+            #barraMenuPrincipal svg{
+              max-height: 2em;
+              fill: white;
+              stroke: white;
             }
-            .dropdown a:hover{
-              background-color: #384382 !important;
-            }
-            .dropdown a:focus{
-              background-color: #384382 !important;
-            }
-            .dropdown-submenu {
+            #barraMenuPrincipal .dropdown-submenu {
               position: relative;
             }
-            .dropdown-menu {
+            #barraMenuPrincipal .dropdown-menu {
               padding: 0px;
               margin: 0px;
               border: 0px;
               width: 100%;
             }
-            .dropdown-submenu .dropdown-menu {
+            #barraMenuPrincipal .dropdown-submenu .dropdown-menu {
               top: 10%;
               left: 100%;
             }
@@ -179,12 +157,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   'Interanuales' => [],
                 ]
               ],
-              'Misc' => [
-                '<i class="far fa-envelope"></i>' => [],
-                '<i class="far fa-bell"></i>' => [],
-                '<i class="far fa-fw fa-calendar-alt"></i>' => [],
-                '<img src="/img/logos/salida.png">' => [],
-              ]
             ];
             //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
             $parseOpcion = function($hijos,$alternating = 1) use (&$parseOpcion){
@@ -207,14 +179,23 @@ $id_usuario = $usuario['usuario']->id_usuario;
             }
             ?>
             <ul id="barraMenuPrincipal">
-              @section('headerLogo')
-              @show
-              <span class="tituloSeccionPantalla" style="float:left;width:12%;">---</span>
+              <span style="float:left;width:9%;border-right: 1px solid #fff;border-bottom: 1px solid #fff;
+                           background-color: rgb(61, 106, 41);color: white !important;height: 100%;
+                           display: flex;
+                           flex-direction: row;
+                           flex-wrap: wrap;
+                           justify-content: center;
+                           align-items: center;
+                           align-content: center;">
+                @section('headerLogo')
+                @show
+                <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
+              </span>
               @foreach($opciones as $op => $hijos)
               @if(count($hijos) == 0)
-              <a class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:12%;">{!! $op !!}</a>
+              <a class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:9%;">{!! $op !!}</a>
               @else
-              <div class="dropdown" style="float:left;width:12%;">
+              <div class="dropdown" style="float:left;width:9%;">
                 <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">{!! $op !!}</a>
                 <ul class="dropdown-menu">
                 {!! $parseOpcion($hijos) !!}
@@ -222,6 +203,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
               </div>
               @endif
               @endforeach
+              <a id="ticket" class="my-dropdown-button"         tabindex="-1" href="#" style="float:left;width:3%;"><i id="ticket" class="far fa-envelope"></i></a>
+              <a id="notificaciones" class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:3%;"><i  class="far fa-bell"></i></a>
+              <a id="calendario" class="my-dropdown-button"     tabindex="-1" href="#" style="float:left;width:3%;"><i  class="far fa-fw fa-calendar-alt"></i></a>
+              <a class="etiquetaLogoSalida my-dropdown-button"  tabindex="-1" href="#" style="float:left;width:3%;"><img src="/img/logos/salida.png"></a>
             </ul>
             <nav>
               
