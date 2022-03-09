@@ -75,14 +75,16 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <div class="contenedor">
         <!-- Barra superior  -->
         <header>
-            <div class="dropdown" style="float: left;">
-              <button class="btn btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-right: 1px solid #fff;border-bottom: 1px solid #fff;background-color: #fff;color: rgb(38, 50, 56);">
-                @section('headerLogo')
-                @show
-                <span class="tituloSeccionPantalla"></span>
-              </button>
-            </div>
             <style>
+            .tituloSeccionPantalla {
+              border-right: 1px solid #fff;
+              border-bottom: 1px solid #fff;
+              background-color: rgb(61, 106, 41);
+              color: white !important;
+              width: 100%;
+              height: 100%;
+              text-align: center;
+            }
             .my-dropdown-button {
               border-right: 1px solid #fff;
               border-bottom: 1px solid #fff;
@@ -90,12 +92,13 @@ $id_usuario = $usuario['usuario']->id_usuario;
               color: white !important;
               width: 100%;
               height: 100%;
+              text-align: center;
             }
             .my-dropdown-button:hover{
-              background-color: orange !important;
+              background-color: #384382 !important;
             }
             .my-dropdown-button:focus{
-              background-color: orange !important;
+              background-color: #384382 !important;
             }
             .dropdown a {
               border-right: 1px solid #fff;
@@ -104,20 +107,32 @@ $id_usuario = $usuario['usuario']->id_usuario;
               color: white !important;
               width: 100%;
               height: 100%;
+              text-align: center;
+            }
+            .dropdown img{
+              max-height: 1em;
+            }
+            .dropdown svg{
+              max-height: 1em;
             }
             .dropdown a:hover{
-              background-color: orange !important;
+              background-color: #384382 !important;
             }
             .dropdown a:focus{
-              background-color: orange !important;
+              background-color: #384382 !important;
             }
             .dropdown-submenu {
               position: relative;
             }
+            .dropdown-menu {
+              padding: 0px;
+              margin: 0px;
+              border: 0px;
+              width: 100%;
+            }
             .dropdown-submenu .dropdown-menu {
-              top: 0;
+              top: 10%;
               left: 100%;
-              margin-top: -1px;
             }
             </style>
             <?php
@@ -125,24 +140,51 @@ $id_usuario = $usuario['usuario']->id_usuario;
               'Inicio [CASINO ONLINE]' => [],
               'Plataformas' => [],
               'Gestion' => [
-                'Usuarios' => [],
-                'Expedientes' => [],
-                'Juegos' => [],
+                'Usuarios' => [
+                  'Gestionar usuarios' => [],
+                  'Roles y permisos' => [],
+                  'Log de actividades' => [],
+                ],
+                'Expedientes' => [
+                  'Gestionar expedientes' => [],
+                  'Resoluciones' => [],
+                  'Notas' => [],
+                  'Disposiciones' => [],
+                ],
+                'Juegos' => [
+                  'Juegos' => [],
+                  'Certificados Software' => [],
+                ],
                 'Autoexclusión' => []
               ],
               'Auditoria' => [
                 'Importación Diaria' => [],
-                'Validación' => [],
-                'Informes Auditoria' => []
+                'Validación' => [
+                  'Producidos' => [],
+                  'Beneficios' => [],
+                ],
+                'Informes Auditoria' => [
+                  'Plataforma' => [],
+                  'Juegos/Jugadores' => [],
+                ]
               ],
               'Estadisticas' => [
                 'Informes' => [
-                  'test1' => [
-                    'test2' => [],
-                  ],
+                  'Juegos' => [],
+                  'Generales' => [],
                 ],
-                'Tablero' => []
+                'Tablero' => [
+                  'Generales' => [],
+                  'Por Plataforma' => [],
+                  'Interanuales' => [],
+                ]
               ],
+              'Misc' => [
+                '<i class="far fa-envelope"></i>' => [],
+                '<i class="far fa-bell"></i>' => [],
+                '<i class="far fa-fw fa-calendar-alt"></i>' => [],
+                '<img src="/img/logos/salida.png">' => [],
+              ]
             ];
             //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
             $parseOpcion = function($hijos,$alternating = 1) use (&$parseOpcion){
@@ -164,19 +206,22 @@ $id_usuario = $usuario['usuario']->id_usuario;
               return $lista;
             }
             ?>
-            <ul>
-            @foreach($opciones as $op => $hijos)
+            <ul id="barraMenuPrincipal">
+              @section('headerLogo')
+              @show
+              <span class="tituloSeccionPantalla" style="float:left;width:12%;">---</span>
+              @foreach($opciones as $op => $hijos)
               @if(count($hijos) == 0)
-              <a class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:12%;">{{$op}}</a>
+              <a class="my-dropdown-button" tabindex="-1" href="#" style="float:left;width:12%;">{!! $op !!}</a>
               @else
               <div class="dropdown" style="float:left;width:12%;">
-                <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">{{$op}}</a>
+                <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">{!! $op !!}</a>
                 <ul class="dropdown-menu">
                 {!! $parseOpcion($hijos) !!}
                 </ul>
               </div>
               @endif
-            @endforeach
+              @endforeach
             </ul>
             <nav>
               
@@ -782,6 +827,29 @@ $id_usuario = $usuario['usuario']->id_usuario;
             e.preventDefault();
             e.stopPropagation();
             $(this).next('ul').toggle();
+          });
+          function clearMenus() {//basado en el archivo bootstrap.js
+            $('.dropdown-backdrop').remove()
+            $('[data-toggle="dropdown"]').each(function () {
+              var $this         = $(this)
+              var $parent       = $this.parent();
+              var relatedTarget = { relatedTarget: this }
+
+              if (!$parent.hasClass('open')) return
+
+              const event = $.Event('hide.bs.dropdown', relatedTarget);
+              $parent.trigger(event);
+
+              if (event.isDefaultPrevented()) return
+
+              $this.attr('aria-expanded', 'false')
+              const event2 = $.Event('hidden.bs.dropdown', relatedTarget);
+              $parent.removeClass('open').trigger(event2);
+            });
+          };
+          $('#barraMenuPrincipal').focusout(function(e){
+            $(this).find('.dropdown-submenu').find('.dropdown-menu').hide();
+            clearMenus();
           });
         });
     </script>
