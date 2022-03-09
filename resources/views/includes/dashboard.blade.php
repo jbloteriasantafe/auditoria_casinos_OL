@@ -829,8 +829,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
             $(this).next('ul').toggle();
           });
           function clearMenus() {//basado en el archivo bootstrap.js
-            $('.dropdown-backdrop').remove()
-            $('[data-toggle="dropdown"]').each(function () {
+            $('#barraMenuPrincipal').find('.dropdown-backdrop').remove()
+            $('#barraMenuPrincipal').find('[data-toggle="dropdown"]').each(function () {
               var $this         = $(this)
               var $parent       = $this.parent();
               var relatedTarget = { relatedTarget: this }
