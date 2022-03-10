@@ -83,7 +83,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
       #barraMenuPrincipal a,#btn-ayuda{
         color: white;
         background-color: rgb(38, 50, 56);
-        border: 1px solid rgb(73, 102, 121);
+        border-right: 1px solid rgb(73, 102, 121);
+        border-bottom: 1px solid rgb(73, 102, 121);
         text-decoration: none;
         width: 100%;/*Estos hacen que ocupen todo el div*/
         height: 100%;
@@ -230,10 +231,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
               ]
             ];
             $opciones = [
-              'Inicio [CASINO ONLINE]' => [
-                'deshabilitado' => false,
-                'link' => '/inicio',
-              ],
               'Plataformas' => [
                 'deshabilitado' => true,
                 'link' => '/casinos',
@@ -271,6 +268,24 @@ $id_usuario = $usuario['usuario']->id_usuario;
             }
             ?>
             <ul id="barraMenuPrincipal">
+              <div class="card">
+                <?php $fondoOL = '/img/tarjetas/banner_OL'.(rand(0,1) + 1).'.jpg'; ?>
+                <a tabindex="-1" href="/inicio"><!--style="background-image: url({{$fondoOL}});background-size: cover;"-->
+                  <span><img src="/img/logos/logo_nuevo2_bn.png" style="width: 10em;"></span>
+                </a>
+              </div>
+              <div class="card">
+                <a tabindex="-1" href="/configCuenta">
+                  <?php
+                  $img_user = UsuarioController::getInstancia()->tieneImagen() ? '/usuarios/imagen' : '/img/img_user.jpg';
+                  ?>
+                  <span>
+                    <img src='{{$img_user}}' class='img-circle' style="width: 2.5em;">
+                  </span>
+                  {{$usuario['usuario']->nombre}} 
+                  {{'@'.$usuario['usuario']->user_name}}
+                </a>
+              </div>
               <div id="btn-ayuda" class="card" style="width:9%;background-color: rgb(61, 106, 41);">
                 @section('headerLogo')
                 @show
@@ -341,36 +356,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
 
               <div class="contenedorMenu">
-                <div class="contenedorUsuario">
-                  <?php
-                    $plat = rand(0,1);
-                    if($plat == 0){
-                      echo '<div class="fondoOL1"></div>';
-                    }
-                    else if($plat == 1){
-                      echo '<div class="fondoOL2"></div>';
-                    }
-                  ?>
-                    <div class="infoUsuario">
-                      <a onclick="window.location = window.location.protocol + '//' + window.location.host + '/configCuenta'" href="#">
-                        <?php
-                          $tieneImagen = UsuarioController::getInstancia()->tieneImagen();
-                          if($tieneImagen) {
-                            echo '<img id="img_perfilBarra" src="/usuarios/imagen" class="img-circle">';
-                          }
-                          else {
-                            echo '<img id="img_perfilBarra" src="/img/img_user.jpg" class="img-circle">';
-                          }
-                        ?>
-                        <i id="iconConfig" class="fa fa-cog"></i>
-                      </a>
-                        <h3>{{$usuario['usuario']->nombre}}</h3>
-                        <div class="nombreUsuario"><h4>{{'@'.$usuario['usuario']->user_name}}</h4></div>
-
-                    </div>
-                </div>
-
-                <div class="opcionesMenu">
+                 <div class="opcionesMenu">
 
                     <!-- PRIMER NIVEL -->
                     <ul>
