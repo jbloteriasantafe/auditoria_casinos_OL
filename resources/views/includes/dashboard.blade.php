@@ -132,61 +132,135 @@ $id_usuario = $usuario['usuario']->id_usuario;
         <header>
           <nav>
             <?php
+            $gestion_hijos = [
+              'Usuarios' => [
+                'hijos' => [
+                  'Gestionar usuarios' => [
+                    'link' => '/usuarios',
+                  ],
+                  'Roles y permisos' => [
+                    'link' => '/roles',
+                  ],
+                  'Log de actividades' => [
+                    'link' => '/logActividades',
+                  ],
+                ]
+              ],
+              'Expedientes' => [
+                'hijos' => [
+                  'Gestionar expedientes' => [
+                    'link' => '/expedientes',
+                  ],
+                  'Resoluciones' => [
+                    'link' => '/resoluciones',
+                  ],
+                  'Notas' => [
+                    'link' => '/notas',
+                  ],
+                  'Disposiciones' => [
+                    'link' => '/disposiciones',
+                  ],
+                ]
+              ],
+              'Juegos' => [
+                'hijos' => [
+                  'Juegos' => [
+                    'link' => '/juegos',
+                  ],
+                  'Certificados Software' => [
+                    'link' => '/certificadoSoft',
+                  ],
+                ]
+              ],
+              'Autoexclusión' => [
+                'link' => 'http://'.$_SERVER['REMOTE_ADDR'].':8000/autoexclusion',
+              ]
+            ];
+            $auditoria_hijos = [
+              'Importación Diaria' => [
+                'link' => '/importaciones',
+              ],
+              'Validación' => [
+                'hijos' => [
+                  'Producidos' => [
+                    'link' => '/producidos',
+                  ],
+                  'Beneficios' => [
+                    'link' => '/beneficios',
+                  ],
+                ]
+              ],
+              'Informes Auditoria' => [
+                'hijos' => [
+                  'Plataforma' => [
+                    'link' => '/informePlataforma',
+                  ],
+                  'Juegos/Jugadores' => [
+                    'link' => '/informeContableJuego',
+                  ],
+                ]
+              ]
+            ];
+            $estadisticas_hijos = [
+              'Informes' => [
+                'hijos' => [
+                  'Juegos' => [
+                    'link' => '/informesJuegos',
+                  ],
+                  'Generales' => [
+                    'link' => '/informesGenerales',
+                  ],
+                ]
+              ],
+              'Tablero' => [
+                'hijos' => [
+                  'Generales' => [
+                    'deshabilitado' => true,
+                    'link' => '/estadisticasGenerales',
+                  ],
+                  'Por Plataforma' => [
+                    'deshabilitado' => true,
+                    'link' => '/estadisticasPorCasino',
+                  ],
+                  'Interanuales' => [
+                    'deshabilitado' => true,
+                    'link' => '/interanuales',
+                  ],
+                ]
+              ]
+            ];
             $opciones = [
-              'Inicio [CASINO ONLINE]' => [],
-              'Plataformas' => [],
+              'Inicio [CASINO ONLINE]' => [
+                'deshabilitado' => false,
+                'link' => '/inicio',
+              ],
+              'Plataformas' => [
+                'deshabilitado' => true,
+                'link' => '/casinos',
+              ],
               'Gestion' => [
-                'Usuarios' => [
-                  'Gestionar usuarios' => [],
-                  'Roles y permisos' => [],
-                  'Log de actividades' => [],
-                ],
-                'Expedientes' => [
-                  'Gestionar expedientes' => [],
-                  'Resoluciones' => [],
-                  'Notas' => [],
-                  'Disposiciones' => [],
-                ],
-                'Juegos' => [
-                  'Juegos' => [],
-                  'Certificados Software' => [],
-                ],
-                'Autoexclusión' => []
+                'hijos' => $gestion_hijos,
               ],
               'Auditoria' => [
-                'Importación Diaria' => [],
-                'Validación' => [
-                  'Producidos' => [],
-                  'Beneficios' => [],
-                ],
-                'Informes Auditoria' => [
-                  'Plataforma' => [],
-                  'Juegos/Jugadores' => [],
-                ]
+                'hijos' => $auditoria_hijos,
               ],
               'Estadisticas' => [
-                'Informes' => [
-                  'Juegos' => [],
-                  'Generales' => [],
-                ],
-                'Tablero' => [
-                  'Generales' => [],
-                  'Por Plataforma' => [],
-                  'Interanuales' => [],
-                ]
+                'hijos' => $estadisticas_hijos,
               ],
             ];
             //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
-            $parseOpcion = function($hijos,$alternating = 1) use (&$parseOpcion){
+            $parseOpcion = function($opciones,$alternating = 1) use (&$parseOpcion){
               $lista = "";
-              foreach($hijos as $h => $hh){
-                if(count($hh) == 0){
-                  $lista .= "<li><a tabindex='-1' href='#'>$h</a></li>";
+              foreach($opciones as $op => $datos){
+                if(count($datos['hijos'] ?? []) == 0){
+                  $link = ($datos['deshabilitado'] ?? false)? '#' : ($datos['link'] ?? '#');
+                  $deshabilitado = $link == '#' ? 'style="color: grey;"' : '';
+                  $lista .= "<li><a tabindex='-1' href='$link' $deshabilitado>$op</a></li>";
                 }
                 else{
-                  $submenu = $parseOpcion($hh);
+                  $submenu = $parseOpcion($datos['hijos']);
                   $lista .= "<li class='dropdown-submenu'>
-                    <a class='desplegar-menu' tabindex='-1' href='#'>$h</a>
+                    <a class='desplegar-menu' tabindex='-1' href='#'>$op</a>
                     <ul class='dropdown-menu'>
                     $submenu
                     </ul>
@@ -202,14 +276,14 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 @show
                 <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
               </div>
-              @foreach($opciones as $op => $hijos)
-              @if(count($hijos) == 0)
+              @foreach($opciones as $op => $datos)
+              @if(count($datos['hijos'] ?? []) == 0)
               <div class="card" style="width:12%;"><a tabindex="-1" href="#">{!! $op !!}</a></div>
               @else
               <div class="card dropdown" style="width:12%;">
                 <a class="dropdown-toggle" type="button" data-toggle="dropdown">{!! $op !!}</a>
                 <ul class="dropdown-menu">
-                {!! $parseOpcion($hijos) !!}
+                {!! $parseOpcion($datos['hijos']) !!}
                 </ul>
               </div>
               @endif
@@ -708,7 +782,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
               <div class="modal-dialog">
                  <div class="modal-content">
                    <div class="modal-header modalNuevo" style="background-color: #1976D2;">
-                     <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                      @section('tituloDeAyuda')
