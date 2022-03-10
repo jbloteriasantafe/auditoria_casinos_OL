@@ -73,37 +73,32 @@ $id_usuario = $usuario['usuario']->id_usuario;
       }
       #barraMenuPrincipal .card {
         height: inherit;
-        display: flex;
+        display: flex;/*Esto es para que si hay varias entradas en el card se organizen una despues de la otra (icono de ayuda)*/
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
         align-items: center;
         align-content: center;
-        background-color: rgb(38, 50, 56);
-        border: 1px solid rgb(73, 102, 121);
-        border-top: none;
       }
       #barraMenuPrincipal a,#btn-ayuda{
         color: white;
-        height: 100%;
-        text-decoration: none;
-        cursor: pointer;
-        text-align: center;
-        display: inline-flex;
-        align-items: center;
-      }
-      #barraMenuPrincipal .dropdown-menu a {
         background-color: rgb(38, 50, 56);
         border: 1px solid rgb(73, 102, 121);
-        color: white;
-        width: 100%;
+        text-decoration: none;
+        width: 100%;/*Estos hacen que ocupen todo el div*/
+        height: 100%;
+        display: flex;/*Estos centran verticalmente*/
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
       }
       #barraMenuPrincipal div:hover,#barraMenuPrincipal a:hover,
       #barraMenuPrincipal div:focus,#barraMenuPrincipal a:focus {
         background-color: #384382 !important;
+        cursor: pointer;
       }
       #barraMenuPrincipal img {
-        max-height: 1em;
+        width: 1em;
       }
       #barraMenuPrincipal svg {
         max-height: 2em;
@@ -221,8 +216,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
               @endforeach
               <div class="card dropdown" style="width: 5%;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
                 <a class="dropdown-toggle" type="button" data-toggle="dropdown">
-                  <i  class="far fa-bell"></i>
-                  <span class="badge" style="background: white;color: black;text-align: center;">{{count($usuario['usuario']->unreadNotifications)}}</span>
+                  <span>
+                    <i  class="far fa-bell"></i>
+                    <span class="badge" style="background: white;color: black;text-align: center;">{{count($usuario['usuario']->unreadNotifications)}}</span>
+                  </span>
                 </a>
                 <ul class="dropdown-menu" style="max-height: 300px; overflow-y:auto; width:350px;">
                   @forelse ($usuario['usuario']->unreadNotifications as $notif)
@@ -236,13 +233,25 @@ $id_usuario = $usuario['usuario']->id_usuario;
                     <a href="#" style="display: inline-block;width: 100%;">No hay nuevas Notificaciones</a>
                     @endforelse
                   @endforelse
-                </ul>
+                  </ul>
               </div>
               @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
-              <div class="card" style="width:3%;"><a id="ticket" tabindex="-1" href="#"><i id="ticket" class="far fa-envelope"></i></a></div>
+              <div class="card" style="width:3%;">
+                <a id="ticket" tabindex="-1" href="#">
+                  <span><i id="ticket" class="far fa-envelope"></i></span>
+                </a>
+              </div>
               @endif
-              <div class="card" style="width:3%;"><a id="calendario" tabindex="-1" href="/calendario_eventos"><i  class="far fa-fw fa-calendar-alt"></i></a></div>
-              <div class="card" style="width:3%;"><a class="etiquetaLogoSalida"  tabindex="-1" href="#"><img src="/img/logos/salida.png"></a></div>
+              <div class="card" style="width:3%;">
+                <a id="calendario" tabindex="-1" href="/calendario_eventos">
+                  <span><i  class="far fa-fw fa-calendar-alt"></i></span>
+                </a>
+              </div>
+              <div class="card" style="width:3%;">
+                <a class="etiquetaLogoSalida"  tabindex="-1" href="#">
+                  <span><img src="/img/logos/salida.png"></span>
+                </a>
+              </div>
             </ul>
           </nav>
         </header>
