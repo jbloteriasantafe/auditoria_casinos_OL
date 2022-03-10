@@ -65,48 +65,47 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
     <link rel="stylesheet" href="/css/perfect-scrollbar.css">
 
-
     <style>
       #barraMenuPrincipal {
         display: flex;
+        flex-direction: row;
         flex-wrap: wrap;
       }
-      #barraMenuPrincipal > *{
-        flex: 1;
-        width: 100%;
-      }
-      #barraMenuPrincipal > div .my-dropdown-button{/*No entiendo porque esto funciona...*/
-        height: 100%;
-      }
-      #barraMenuPrincipal a {
-        border: 1px solid rgb(73, 102, 121);
-        background-color:rgb(38, 50, 56);
-        color: white !important;
-        text-decoration: none;
-        cursor: pointer;
-        text-align: center;
-        vertical-align: middle;
-      }
-      #btn-ayuda {
-        color: white;
-        border: 1px solid rgb(73, 102, 121);
-        background-color: rgb(61, 106, 41);
+      #barraMenuPrincipal .card {
+        height: inherit;
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
         align-items: center;
         align-content: center;
+        background-color: rgb(38, 50, 56);
+        border: 1px solid rgb(73, 102, 121);
+        border-top: none;
       }
-
-      #barraMenuPrincipal .my-dropdown-button:hover, #barraMenuPrincipal .dropdown a:hover,
-      #barraMenuPrincipal .my-dropdown-button:focus, #barraMenuPrincipal .dropdown a:focus{
+      #barraMenuPrincipal a,#btn-ayuda{
+        color: white;
+        height: 100%;
+        text-decoration: none;
+        cursor: pointer;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+      }
+      #barraMenuPrincipal .dropdown-menu a {
+        background-color: rgb(38, 50, 56);
+        border: 1px solid rgb(73, 102, 121);
+        color: white;
+        width: 100%;
+      }
+      #barraMenuPrincipal div:hover,#barraMenuPrincipal a:hover,
+      #barraMenuPrincipal div:focus,#barraMenuPrincipal a:focus {
         background-color: #384382 !important;
       }
-      #barraMenuPrincipal img{
+      #barraMenuPrincipal img {
         max-height: 1em;
       }
-      #barraMenuPrincipal svg{
+      #barraMenuPrincipal svg {
         max-height: 2em;
         fill: white;
         stroke: white;
@@ -203,25 +202,25 @@ $id_usuario = $usuario['usuario']->id_usuario;
             }
             ?>
             <ul id="barraMenuPrincipal">
-              <span id="btn-ayuda" style="width:9%;">
+              <div id="btn-ayuda" class="card" style="width:9%;background-color: rgb(61, 106, 41);">
                 @section('headerLogo')
                 @show
                 <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
-              </span>
+              </div>
               @foreach($opciones as $op => $hijos)
               @if(count($hijos) == 0)
-              <a class="my-dropdown-button" tabindex="-1" href="#" style="width:12%;">{!! $op !!}</a>
+              <div class="card" style="width:12%;"><a tabindex="-1" href="#">{!! $op !!}</a></div>
               @else
-              <div class="dropdown" style="width:12%;">
-                <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">{!! $op !!}</a>
+              <div class="card dropdown" style="width:12%;">
+                <a class="dropdown-toggle" type="button" data-toggle="dropdown">{!! $op !!}</a>
                 <ul class="dropdown-menu">
                 {!! $parseOpcion($hijos) !!}
                 </ul>
               </div>
               @endif
               @endforeach
-              <div class="dropdown" style="width: 5%;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
-                <a class="dropdown-toggle my-dropdown-button" type="button" data-toggle="dropdown" style="display: inline-block;width:100%;">
+              <div class="card dropdown" style="width: 5%;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
+                <a class="dropdown-toggle" type="button" data-toggle="dropdown">
                   <i  class="far fa-bell"></i>
                   <span class="badge" style="background: white;color: black;text-align: center;">{{count($usuario['usuario']->unreadNotifications)}}</span>
                 </a>
@@ -240,10 +239,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 </ul>
               </div>
               @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
-              <a id="ticket" class="my-dropdown-button" tabindex="-1" href="#" style="width:3%;"><i id="ticket" class="far fa-envelope"></i></a>
+              <div class="card" style="width:3%;"><a id="ticket" tabindex="-1" href="#"><i id="ticket" class="far fa-envelope"></i></a></div>
               @endif
-              <a id="calendario" class="my-dropdown-button"     tabindex="-1" href="/calendario_eventos" style="width:3%;"><i  class="far fa-fw fa-calendar-alt"></i></a>
-              <a class="etiquetaLogoSalida my-dropdown-button"  tabindex="-1" href="#" style="width:3%;"><img src="/img/logos/salida.png"></a>
+              <div class="card" style="width:3%;"><a id="calendario" tabindex="-1" href="/calendario_eventos"><i  class="far fa-fw fa-calendar-alt"></i></a></div>
+              <div class="card" style="width:3%;"><a class="etiquetaLogoSalida"  tabindex="-1" href="#"><img src="/img/logos/salida.png"></a></div>
             </ul>
           </nav>
         </header>
