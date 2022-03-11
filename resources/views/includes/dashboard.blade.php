@@ -234,29 +234,49 @@ $id_usuario = $usuario['usuario']->id_usuario;
               'Plataformas' => [
                 'deshabilitado' => true,
                 'link' => '/casinos',
+                'style' => 'width: 12%',
               ],
               'Gestion' => [
                 'hijos' => $gestion_hijos,
+                'style' => 'width: 12%',
               ],
               'Auditoria' => [
                 'hijos' => $auditoria_hijos,
+                'style' => 'width: 12%',
               ],
               'Estadisticas' => [
                 'hijos' => $estadisticas_hijos,
+                'style' => 'width: 12%',
               ],
             ];
             //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
-            $parseOpcion = function($opciones,$alternating = 1) use (&$parseOpcion){
+            $parseOpcion = function($opciones,$primer_nivel = false) use (&$parseOpcion){
               $lista = "";
-              foreach($opciones as $op => $datos){
+              foreach($opciones as $op => $datos){//Reemplazar las 3 (o 4) opciones por algun templateado/view??
+                $style = $datos['style'] ?? '';
+                $link = ($datos['deshabilitado'] ?? false)? '#' : ($datos['link'] ?? '#');
                 if(count($datos['hijos'] ?? []) == 0){
-                  $link = ($datos['deshabilitado'] ?? false)? '#' : ($datos['link'] ?? '#');
-                  $deshabilitado = $link == '#' ? 'style="color: grey;"' : '';
-                  $lista .= "<li><a tabindex='-1' href='$link' $deshabilitado>$op</a></li>";
+                  $open  = "<li style='$style'>";
+                  $close = '</li>';
+                  if($primer_nivel){
+                    $open = "<div class='card' style='$style'>";
+                    $close = '</div>';
+                  }
+                  $color = $link == '#' ? 'color: grey;' : '';
+                  $lista .= "$open<a tabindex='-1' href='$link' style='$color'>$op</a>$close";
                 }
-                else{
+                else if ($primer_nivel){
                   $submenu = $parseOpcion($datos['hijos']);
-                  $lista .= "<li class='dropdown-submenu'>
+                  $lista .= "<div class='card dropdown' style='$style'>
+                    <a class='dropdown-toggle' data-toggle='dropdown'>$op</a>
+                    <ul class='dropdown-menu'>
+                    $submenu
+                    </ul>
+                  </div>";
+                }
+                else {
+                  $submenu = $parseOpcion($datos['hijos']);
+                  $lista .= "<li class='dropdown-submenu' style='$style'>
                     <a class='desplegar-menu' tabindex='-1' href='#'>$op</a>
                     <ul class='dropdown-menu'>
                     $submenu
@@ -291,18 +311,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 @show
                 <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
               </div>
-              @foreach($opciones as $op => $datos)
-              @if(count($datos['hijos'] ?? []) == 0)
-              <div class="card" style="width:12%;"><a tabindex="-1" href="#">{!! $op !!}</a></div>
-              @else
-              <div class="card dropdown" style="width:12%;">
-                <a class="dropdown-toggle" type="button" data-toggle="dropdown">{!! $op !!}</a>
-                <ul class="dropdown-menu">
-                {!! $parseOpcion($datos['hijos']) !!}
-                </ul>
-              </div>
-              @endif
-              @endforeach
+              {!! $parseOpcion($opciones ?? [],true) !!}
               <div class="card dropdown" style="width: 5%;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
                 <a class="dropdown-toggle" type="button" data-toggle="dropdown">
                   <span>
@@ -347,14 +356,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
         <!-- Menú lateral -->
         <aside>
-            <div class="contenedorLogo">
-                <a onclick="window.location = window.location.protocol + '//' + window.location.host + '/inicio'"  href="#">
-                  <img src="/img/logos/logo_nuevo2_bn.png" alt="" width="55%" style="margin-top: 6px;">
-                </a>
-            </div>
-            <!-- <div class="scrollMenu"> -->
-
-
               <div class="contenedorMenu">
                  <div class="opcionesMenu">
 
