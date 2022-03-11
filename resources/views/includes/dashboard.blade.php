@@ -175,6 +175,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
               ],
               'Autoexclusión' => [
                 'link' => 'http://'.$_SERVER['REMOTE_ADDR'].':8000/autoexclusion',
+                'style' => 'color: #aaf;text-decoration: underline;'
               ]
             ];
             $auditoria_hijos = [
@@ -256,14 +257,14 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 $style = $datos['style'] ?? '';
                 $link = ($datos['deshabilitado'] ?? false)? '#' : ($datos['link'] ?? '#');
                 if(count($datos['hijos'] ?? []) == 0){
-                  $open  = "<li style='$style'>";
-                  $close = '</li>';
+                  $color = $link == '#' ? 'color: grey' : '';
+                  $open  = "<li><a tabindex='-1' href='$link' style='$color;$style;'>";
+                  $close = '</a></li>';
                   if($primer_nivel){
-                    $open = "<div class='card' style='$style'>";
-                    $close = '</div>';
+                    $open = "<div class='card' style='$style'><a tabindex='-1' href='$link' style='$color;'>";
+                    $close = '</a></div>';
                   }
-                  $color = $link == '#' ? 'color: grey;' : '';
-                  $lista .= "$open<a tabindex='-1' href='$link' style='$color'>$op</a>$close";
+                  $lista .= "$open $op $close";
                 }
                 else if ($primer_nivel){
                   $submenu = $parseOpcion($datos['hijos']);
@@ -276,8 +277,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 }
                 else {
                   $submenu = $parseOpcion($datos['hijos']);
-                  $lista .= "<li class='dropdown-submenu' style='$style'>
-                    <a class='desplegar-menu' tabindex='-1' href='#'>$op</a>
+                  $lista .= "<li class='dropdown-submenu'>
+                    <a class='desplegar-menu' tabindex='-1' href='#' style='$style'>$op</a>
                     <ul class='dropdown-menu'>
                     $submenu
                     </ul>
