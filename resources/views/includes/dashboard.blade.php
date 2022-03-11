@@ -136,6 +136,20 @@ $id_usuario = $usuario['usuario']->id_usuario;
             $gestion_hijos = [
               'Usuarios' => [
                 'hijos' => [
+                  'test' => [
+                    'hijos' => [
+                      'test1' => [],
+                      'test2' => [],
+                      'test3' => [],
+                    ]
+                  ],
+                  'test2' => [
+                    'hijos' => [
+                      'test1' => [],
+                      'test2' => [],
+                      'test3' => [],
+                    ]
+                  ],
                   'Gestionar usuarios' => [
                     'link' => '/usuarios',
                   ],
@@ -874,33 +888,17 @@ $id_usuario = $usuario['usuario']->id_usuario;
         var ps = new PerfectScrollbar('.opcionesMenu');
 
         $(document).ready(function(){
-          $('a.desplegar-menu').click(function(e){
+          $('#barraMenuPrincipal a.desplegar-menu').click(function(e){
             e.preventDefault();
             e.stopPropagation();
-            $(this).next('ul').toggle();
+            const submenu = $(this).next('ul');
+            $(this).closest('ul.dropdown-menu')//voy para el menu de arriba
+            .find('ul.dropdown-menu').not(submenu).hide();//escondo todos los submenues menos el propio
+            submenu.toggle();//Toggleo el submenu
           });
-          function clearMenus() {//basado en el archivo bootstrap.js
-            $('#barraMenuPrincipal').find('.dropdown-backdrop').remove()
-            $('#barraMenuPrincipal').find('[data-toggle="dropdown"]').each(function () {
-              var $this         = $(this)
-              var $parent       = $this.parent();
-              var relatedTarget = { relatedTarget: this }
-
-              if (!$parent.hasClass('open')) return
-
-              const event = $.Event('hide.bs.dropdown', relatedTarget);
-              $parent.trigger(event);
-
-              if (event.isDefaultPrevented()) return
-
-              $this.attr('aria-expanded', 'false')
-              const event2 = $.Event('hidden.bs.dropdown', relatedTarget);
-              $parent.removeClass('open').trigger(event2);
-            });
-          };
-          $('#barraMenuPrincipal').focusout(function(e){
-            $(this).find('.dropdown-submenu').find('.dropdown-menu').hide();
-            clearMenus();
+          $(document).on('hidden.bs.dropdown','.dropdown',function(e){
+            //Escondo todos los submenues cuando se esconde un menu de 1er nivel
+            $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
           });
         });
     </script>
