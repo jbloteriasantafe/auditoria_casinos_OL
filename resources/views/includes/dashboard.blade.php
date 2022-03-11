@@ -175,7 +175,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
               ],
               'Autoexclusión' => [
                 'link' => 'http://'.$_SERVER['REMOTE_ADDR'].':8000/autoexclusion',
-                'style' => 'color: #aaf;text-decoration: underline;'
+                'link_style' => 'color: #aaf;text-decoration: underline;'
               ]
             ];
             $auditoria_hijos = [
@@ -217,59 +217,59 @@ $id_usuario = $usuario['usuario']->id_usuario;
               'Tablero' => [
                 'hijos' => [
                   'Generales' => [
-                    'deshabilitado' => true,
-                    'link' => '/estadisticasGenerales',
+                    //'link' => '/estadisticasGenerales',
+                    'link_style' => 'color: grey;',
                   ],
                   'Por Plataforma' => [
-                    'deshabilitado' => true,
-                    'link' => '/estadisticasPorCasino',
+                    //'link' => '/estadisticasPorCasino',
+                    'link_style' => 'color: grey;',
                   ],
                   'Interanuales' => [
-                    'deshabilitado' => true,
-                    'link' => '/interanuales',
+                    //'link' => '/interanuales',
+                    'link_style' => 'color: grey;',
                   ],
                 ]
               ]
             ];
             $opciones = [
               'Plataformas' => [
-                'deshabilitado' => true,
-                'link' => '/casinos',
-                'style' => 'width: 12%',
+                //'link' => '/casinos',
+                'link_style' => 'color: grey;',
+                'divli_style' => 'width: 12%;',
               ],
               'Gestion' => [
                 'hijos' => $gestion_hijos,
-                'style' => 'width: 12%',
+                'divli_style' => 'width: 12%',
               ],
               'Auditoria' => [
                 'hijos' => $auditoria_hijos,
-                'style' => 'width: 12%',
+                'divli_style' => 'width: 12%',
               ],
               'Estadisticas' => [
                 'hijos' => $estadisticas_hijos,
-                'style' => 'width: 12%',
+                'divli_style' => 'width: 12%',
               ],
             ];
             //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
             $parseOpcion = function($opciones,$primer_nivel = false) use (&$parseOpcion){
               $lista = "";
               foreach($opciones as $op => $datos){//Reemplazar las 3 (o 4) opciones por algun templateado/view??
-                $style = $datos['style'] ?? '';
-                $link = ($datos['deshabilitado'] ?? false)? '#' : ($datos['link'] ?? '#');
+                $divli_style = $datos['divli_style'] ?? '';
+                $link_style  = $datos['link_style']  ?? '';
+                $link        = $datos['link']        ?? '#';
                 if(count($datos['hijos'] ?? []) == 0){
-                  $color = $link == '#' ? 'color: grey' : '';
-                  $open  = "<li><a tabindex='-1' href='$link' style='$color;$style;'>";
+                  $open  = "<li style='$divli_style'><a tabindex='-1' href='$link' style='$link_style;'>";
                   $close = '</a></li>';
                   if($primer_nivel){
-                    $open = "<div class='card' style='$style'><a tabindex='-1' href='$link' style='$color;'>";
+                    $open = "<div class='card' style='$divli_style'><a tabindex='-1' href='$link' style='$link_style'>";
                     $close = '</a></div>';
                   }
                   $lista .= "$open $op $close";
                 }
                 else if ($primer_nivel){
                   $submenu = $parseOpcion($datos['hijos']);
-                  $lista .= "<div class='card dropdown' style='$style'>
-                    <a class='dropdown-toggle' data-toggle='dropdown'>$op</a>
+                  $lista .= "<div class='card dropdown' style='$divli_style'>
+                    <a class='dropdown-toggle' data-toggle='dropdown' style='$link_style'>$op</a>
                     <ul class='dropdown-menu'>
                     $submenu
                     </ul>
@@ -277,8 +277,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 }
                 else {
                   $submenu = $parseOpcion($datos['hijos']);
-                  $lista .= "<li class='dropdown-submenu'>
-                    <a class='desplegar-menu' tabindex='-1' href='#' style='$style'>$op</a>
+                  $lista .= "<li class='dropdown-submenu' style='$divli_style'>
+                    <a class='desplegar-menu' tabindex='-1' href='#' style='$link_style'>$op</a>
                     <ul class='dropdown-menu'>
                     $submenu
                     </ul>
