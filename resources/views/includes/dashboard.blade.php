@@ -135,142 +135,169 @@ $id_usuario = $usuario['usuario']->id_usuario;
             <?php
             $gestion_hijos = [
               'Usuarios' => [
+                'algun_permiso' =>  ['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_logs_actividades'],
                 'hijos' => [
-                  'test' => [
-                    'hijos' => [
-                      'test1' => [],
-                      'test2' => [],
-                      'test3' => [],
-                    ]
-                  ],
-                  'test2' => [
-                    'hijos' => [
-                      'test1' => [],
-                      'test2' => [],
-                      'test3' => [],
-                    ]
-                  ],
                   'Gestionar usuarios' => [
                     'link' => '/usuarios',
+                    'algun_permiso' => ['ver_seccion_usuarios'],
                   ],
                   'Roles y permisos' => [
                     'link' => '/roles',
+                    'algun_permiso' => ['ver_seccion_roles_permisos'],
                   ],
                   'Log de actividades' => [
                     'link' => '/logActividades',
+                    'algun_permiso' => ['ver_seccion_logs_actividades'],
                   ],
                 ]
               ],
               'Expedientes' => [
+                'algun_permiso' => ['ver_seccion_expedientes','ver_seccion_resoluciones','ver_seccion_disposiciones'],
                 'hijos' => [
                   'Gestionar expedientes' => [
                     'link' => '/expedientes',
+                    'algun_permiso' => ['ver_seccion_expedientes'],
                   ],
                   'Resoluciones' => [
                     'link' => '/resoluciones',
+                    'algun_permiso' => ['ver_seccion_resoluciones'],
                   ],
                   'Notas' => [
                     'link' => '/notas',
+                    'algun_permiso' => [],//@TODO: Sin permiso O_o ??
                   ],
                   'Disposiciones' => [
                     'link' => '/disposiciones',
+                    'algun_permiso' => ['ver_seccion_disposiciones'],
                   ],
                 ]
               ],
               'Juegos' => [
+                'algun_permiso' => ['ver_seccion_juegos','ver_seccion_glisoft'],
                 'hijos' => [
                   'Juegos' => [
                     'link' => '/juegos',
+                    'algun_permiso' => ['ver_seccion_juegos'],
                   ],
                   'Certificados Software' => [
                     'link' => '/certificadoSoft',
+                    'algun_permiso' => ['ver_seccion_glisoft'],
                   ],
                 ]
               ],
               'Autoexclusión' => [
                 'link' => 'http://'.$_SERVER['REMOTE_ADDR'].':8000/autoexclusion',
-                'link_style' => 'color: #aaf;text-decoration: underline;'
+                'link_style' => 'color: #aaf;text-decoration: underline;',
+                'algun_permiso' => ['ver_seccion_ae_alta'],
               ]
             ];
             $auditoria_hijos = [
               'Importación Diaria' => [
                 'link' => '/importaciones',
+                'algun_permiso' => ['ver_seccion_importaciones'],
               ],
               'Validación' => [
+                'algun_permiso' => ['ver_seccion_producidos','ver_seccion_beneficios'],
                 'hijos' => [
                   'Producidos' => [
                     'link' => '/producidos',
+                    'algun_permiso' => ['ver_seccion_producidos'],
                   ],
                   'Beneficios' => [
                     'link' => '/beneficios',
+                    'algun_permiso' => ['ver_seccion_beneficios'],
                   ],
                 ]
               ],
               'Informes Auditoria' => [
+                'algun_permiso' => ['ver_seccion_estestadoparque','ver_seccion_informecontable'],
                 'hijos' => [
                   'Plataforma' => [
                     'link' => '/informePlataforma',
+                    'algun_permiso' => ['ver_seccion_estestadoparque'],
                   ],
                   'Juegos/Jugadores' => [
                     'link' => '/informeContableJuego',
+                    'algun_permiso' => ['ver_seccion_informecontable'],
                   ],
                 ]
               ]
             ];
             $estadisticas_hijos = [
               'Informes' => [
+                'algun_permiso' => ['informes_mtm'],
                 'hijos' => [
                   'Juegos' => [
                     'link' => '/informesJuegos',
+                    'algun_permiso' => ['informes_mtm'],
                   ],
                   'Generales' => [
                     'link' => '/informesGenerales',
+                    'algun_permiso' => ['informes_mtm'],
                   ],
                 ]
               ],
               'Tablero' => [
+                'algun_permiso' => ['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales'],
                 'hijos' => [
                   'Generales' => [
                     //'link' => '/estadisticasGenerales',
                     'link_style' => 'color: grey;',
+                    'algun_permiso' => ['estadisticas_generales'],
                   ],
                   'Por Plataforma' => [
                     //'link' => '/estadisticasPorCasino',
                     'link_style' => 'color: grey;',
+                    'algun_permiso' => ['estadisticas_por_casino'],
                   ],
                   'Interanuales' => [
                     //'link' => '/interanuales',
                     'link_style' => 'color: grey;',
+                    'algun_permiso' => ['estadisticas_interanuales'],
                   ],
                 ]
               ]
             ];
             $opciones = [
-              'Plataformas' => [
+              'Plataformas' => [//ver_seccion_casinos
                 //'link' => '/casinos',
                 'link_style' => 'color: grey;',
                 'divli_style' => 'width: 12%;',
+                'algun_permiso' => ['ver_seccion_casinos'],
               ],
               'Gestion' => [
                 'hijos' => $gestion_hijos,
                 'divli_style' => 'width: 12%',
+                'algun_permiso' => ['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_logs_actividades',
+                                    'ver_seccion_expedientes','ver_seccion_resoluciones','ver_seccion_disposiciones',
+                                    'ver_seccion_juegos','ver_seccion_glisoft',
+                                    'ver_seccion_ae_alta',]
               ],
               'Auditoria' => [
                 'hijos' => $auditoria_hijos,
                 'divli_style' => 'width: 12%',
+                'algun_permiso' => ['ver_seccion_importaciones','ver_seccion_producidos','ver_seccion_beneficios','ver_seccion_estestadoparque','ver_seccion_informecontable'],
               ],
               'Estadisticas' => [
                 'hijos' => $estadisticas_hijos,
                 'divli_style' => 'width: 12%',
+                'algun_permiso' => ['informes_mtm','estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales'],
               ],
             ];
-            //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
-            $parseOpcion = function($opciones,$primer_nivel = false) use (&$parseOpcion){
+            //@TODO: hacer alguna función que propage los permisos de los hijos a los padres para simplificar el array
+            $ac = AuthenticationController::getInstancia();
+            $parseOpcion = function($opciones,$primer_nivel = false) use (&$parseOpcion,$ac,$id_usuario){
               $lista = "";
-              foreach($opciones as $op => $datos){//Reemplazar las 3 (o 4) opciones por algun templateado/view??
+              foreach($opciones as $op => $datos){
+                $permisos    = $datos['algun_permiso'] ?? [];
+                if(count($permisos) != 0 && !$ac->usuarioTieneAlgunPermiso($id_usuario,$permisos)) continue;
+                
                 $divli_style = $datos['divli_style'] ?? '';
                 $link_style  = $datos['link_style']  ?? '';
                 $link        = $datos['link']        ?? '#';
+                
+                //Reemplazar las strings por algun templateado/view??
+                //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
                 if(count($datos['hijos'] ?? []) == 0){
                   $open  = "<li style='$divli_style'><a tabindex='-1' href='$link' style='$link_style;'>";
                   $close = '</a></li>';
@@ -373,7 +400,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
         <aside>
               <div class="contenedorMenu">
                  <div class="opcionesMenu">
-
                     <!-- PRIMER NIVEL -->
                     <ul>
                         <div class="separadoresMenu">MENÚ</div>
