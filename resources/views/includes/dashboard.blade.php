@@ -266,12 +266,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
               'Plataformas' => [//ver_seccion_casinos
                 //'link' => '/casinos',
                 'link_style' => 'color: grey;',
-                'divli_style' => 'width: 12%;',
                 'algun_permiso' => ['ver_seccion_casinos'],
               ],
               'Gestion' => [
                 'hijos' => $gestion_hijos,
-                'divli_style' => 'width: 12%',
                 'algun_permiso' => ['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_logs_actividades',
                                     'ver_seccion_expedientes','ver_seccion_resoluciones','ver_seccion_disposiciones',
                                     'ver_seccion_juegos','ver_seccion_glisoft',
@@ -279,12 +277,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
               ],
               'Auditoria' => [
                 'hijos' => $auditoria_hijos,
-                'divli_style' => 'width: 12%',
                 'algun_permiso' => ['ver_seccion_importaciones','ver_seccion_producidos','ver_seccion_beneficios','ver_seccion_estestadoparque','ver_seccion_informecontable'],
               ],
               'Estadisticas' => [
                 'hijos' => $estadisticas_hijos,
-                'divli_style' => 'width: 12%',
                 'algun_permiso' => ['informes_mtm','estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales'],
               ],
             ];
@@ -358,7 +354,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
               </div>
               {!! $parseOpcion($opciones ?? [],true) !!}
-              <div class="card dropdown" style="width: 5%;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
+              <div class="card dropdown" style="width: 5%;flex: unset;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
                 <a class="dropdown-toggle" type="button" data-toggle="dropdown">
                   <span>
                     <i  class="far fa-bell"></i>
