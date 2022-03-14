@@ -140,14 +140,10 @@ table td {
 
 
 header {
-  background-color: #fff;
-  margin-left: 260px;
   font-family: Roboto-Condensed;
 }
 
 nav {
-  min-height: 80px;
-  /*line-height: 50px;*/
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -185,33 +181,20 @@ aside {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 260px;
-  /*overflow-y: auto;*/
-  /*overflow-x: visible;*/
-
 }
 
 .contenedorLogo {
-  width: 260px;
   text-align: center;
   height: 80px;
 }
 
-/*.scrollMenu {
-    height: calc(100% - 80px);
-    width: 260px;
-    overflow: hidden;
-}*/
-
 .contenedorMenu {
   height: calc(100% - 80px);
-  width: 260px;
   overflow-y: hidden;
 }
 
 .contenedorUsuario {
   top:80px;
-  width: 260px;
   position: absolute;
   height: 200px;
   font-size: 16px;
@@ -285,13 +268,10 @@ aside {
 
 .opcionesMenu {
   position: relative;
-  /*margin: 0px 0px;*/
   padding: 0px;
-  width: 260px;
   height: calc(100% - 220px);
   overflow: auto;
   margin: 200px 0px 0px 0px;
-  /*padding-bottom: 60px;*/
 }
 
 .opcionesMenu a {
@@ -308,12 +288,9 @@ aside {
   display: block;
   padding-left: 15px;
   padding-right: 15px;
-  /*border-left: 4px solid transparent;*/
-  /*border-left: 6px solid #1cf;*/
   height: 50px;
   line-height: 50px;
   text-decoration: none;
-  /*letter-spacing: .0125em;*/
   color: inherit;
   overflow: hidden;
   cursor: default;
@@ -436,7 +413,6 @@ aside div[aria-expanded="true"] > .flechita {
 }*/
 
 .contenedorVistaPrincipal {
-  margin-left: 260px;
   position: relative;
   height: calc(100% - 80px);
   overflow-y: auto;

@@ -8,11 +8,6 @@
 
     /* CONFIGURACION DE LA PANTALLA */
 
-    header {
-      margin-left: 220px;
-      height: 60px;
-    }
-
     nav {
       min-height: 60px;
     }
@@ -29,14 +24,6 @@
     }
     .opcionesBarraSuperior span.badge {
       height: auto !important;
-    }
-
-    aside, .contenedorLogo, .opcionesMenu, .contenedorUsuario {
-      width: 220px;
-    }
-
-    .contenedorMenu {
-      width: 220px;
     }
 
     .contenedorLogo {
@@ -59,7 +46,6 @@
     .contenedorVistaPrincipal {
       /*position: absolute;*/
       height: calc(100% - 60px);
-      margin-left: 220px;
     }
 
     .contenedorVistaPrincipal section {

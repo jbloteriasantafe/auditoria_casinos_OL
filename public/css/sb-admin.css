@@ -539,10 +539,6 @@ input, .form-control {
   }
 }
 
-.usuario{
-  width: 260px;
-}
-
 /* Contenedor exterior (solo el borde)*/
 .zona-file {
     border: 1px solid;
