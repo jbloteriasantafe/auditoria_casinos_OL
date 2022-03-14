@@ -334,25 +334,25 @@ $id_usuario = $usuario['usuario']->id_usuario;
             }
             ?>
             <ul id="barraMenuPrincipal">
-              <div class="card">
+              <div class="card" style="width: 8vw; flex: unset;">
                 <?php $fondoOL = '/img/tarjetas/banner_OL'.(rand(0,1) + 1).'.jpg'; ?>
-                <a tabindex="-1" href="/inicio"><!--style="background-image: url({{$fondoOL}});background-size: cover;"-->
-                  <span><img src="/img/logos/logo_nuevo2_bn.png" style="width: 10em;"></span>
+                <a tabindex="-1" href="/inicio">
+                  <span><img src="/img/logos/logo_nuevo2_bn.png" style="width: 8vw;"></span>
                 </a>
               </div>
-              <div class="card">
+              <div class="card" style="width: 8vw; flex: unset;">
                 <a tabindex="-1" href="/configCuenta">
                   <?php
                   $img_user = UsuarioController::getInstancia()->tieneImagen() ? '/usuarios/imagen' : '/img/img_user.jpg';
                   ?>
                   <span>
-                    <img src='{{$img_user}}' class='img-circle' style="width: 2.5em;">
+                    <img src='{{$img_user}}' class='img-circle' style="width: 2vw;">
                   </span>
                   {{$usuario['usuario']->nombre}} 
                   {{'@'.$usuario['usuario']->user_name}}
                 </a>
               </div>
-              <div id="btn-ayuda" class="card" style="width:9%;background-color: rgb(61, 106, 41);">
+              <div id="btn-ayuda" class="card" style="background-color: rgb(61, 106, 41);">
                 @section('headerLogo')
                 @show
                 <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
@@ -380,18 +380,18 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   </ul>
               </div>
               @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
-              <div class="card" style="width:3%;">
+              <div class="card" style="width:5%;flex: unset;">
                 <a id="ticket" tabindex="-1" href="#">
                   <span><i id="ticket" class="far fa-envelope"></i></span>
                 </a>
               </div>
               @endif
-              <div class="card" style="width:3%;">
+              <div class="card" style="width:5%;flex: unset;">
                 <a id="calendario" tabindex="-1" href="/calendario_eventos">
                   <span><i  class="far fa-fw fa-calendar-alt"></i></span>
                 </a>
               </div>
-              <div class="card" style="width:3%;">
+              <div class="card" style="width:5%;flex: unset;">
                 <a class="etiquetaLogoSalida"  tabindex="-1" href="#">
                   <span><img src="/img/logos/salida.png"></span>
                 </a>
