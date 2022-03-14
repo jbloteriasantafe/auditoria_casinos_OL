@@ -5,15 +5,15 @@ $(document).ready(function() {
     $('#opcInformesContableJuego').addClass('opcionesSeleccionado');
     $('#selectPlataforma').val("").change();
     if($('#mostrar').length > 0){//Si venimos redirigios para mostrar un juego/jugador
-        setTimeout(function(){
-            mostrarModal(
-                $('#mostrar').attr('data-id_plataforma'),
-                $('#mostrar').attr('data-codigo_plat'),
-                $('#mostrar').attr('data-modo'),
-                $('#mostrar').attr('data-id'),
-                $('#mostrar').attr('data-codigo')
-            );
-        },250);
+        const id_plat = $('#mostrar').attr('data-id_plataforma');//@HACK: como hacer esto de manera no tan fea?
+        const codplat = $('#mostrar').attr('data-codigo_plat')
+        const modo    = $('#mostrar').attr('data-modo');
+        const id      = $('#mostrar').attr('data-id');
+        const codigo  = $('#mostrar').attr('data-codigo');
+        $('#selectPlataforma').val(id_plat);
+        $('#selectTipoCodigo').val(modo);
+        $('#inputCodigo').setearElementoSeleccionado(id,codigo);
+        setTimeout(function(){ mostrarModal(id_plat,codplat,modo,id,codigo); },250);
     }
 });
 
