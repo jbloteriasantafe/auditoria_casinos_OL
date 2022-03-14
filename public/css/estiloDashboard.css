@@ -143,10 +143,6 @@ header {
   font-family: Roboto-Condensed;
 }
 
-nav {
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-}
-
 .iconoAyuda {
   /*line-height: inherit;*/
   margin-top: 25px;
@@ -174,14 +170,6 @@ nav {
   padding: 0px 25px;
 }
 
-aside {
-  background-color: #263238;
-  color: #fff;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-}
 
 .contenedorLogo {
   text-align: center;

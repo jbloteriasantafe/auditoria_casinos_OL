@@ -97,6 +97,11 @@ $id_usuario = $usuario['usuario']->id_usuario;
         justify-content: center;
         text-align: center;
       }
+      #botonMenuDesplegable {
+        color: #fff;
+        background-color: rgb(38, 50, 56);
+        border-color: rgb(0,0,0,0.5);
+      }
       #barraMenuPrincipal div:hover,#barraMenuPrincipal a:hover,
       #barraMenuPrincipal div:focus,#barraMenuPrincipal a:focus {
         background-color: #384382 !important;
@@ -122,6 +127,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
       #barraMenuPrincipal .dropdown-submenu .dropdown-menu {
         top: 10%;
         left: 100%;
+      }
+      aside {
+        background-color: #263238;
+        color: #fff;
       }
     </style>
 
@@ -327,7 +336,15 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 }
               }
               return $lista;
-            }
+            };
+            $parseOpcionDesplegable = function($opciones,$primer_nivel = false) use (&$parseOpcionDesplegable,$ac,$id_usuario){
+              $lista = "";
+              foreach($opciones as $op => $datos){
+                $lista.="<p>$op</p>";
+                $lista.= $parseOpcionDesplegable($datos['hijos'] ?? []);
+              }
+              return $lista;
+            };
             ?>
             <ul id="barraMenuPrincipal">
               <div class="card" style="width: 8vw; flex: unset;">
@@ -395,7 +412,22 @@ $id_usuario = $usuario['usuario']->id_usuario;
             </ul>
           </nav>
         </header>
-
+        <div style="width:100%;position: absolute;z-index: 1;">
+          <aside id="menuDesplegable" style="height: 100vh;width: 15%;float: left;overflow-y: scroll;" hidden>
+            {!! $parseOpcionDesplegable($opciones ?? [],true) !!}
+          </aside>
+          <div style="float: left;">
+            <button id="botonMenuDesplegable" type="button" class="btn" 
+              data-toggle="#menuDesplegable,#oscurecerContenido,#botonDerecha,#botonIzquierda" 
+              style="z-index: 2;position: absolute;">
+              <i id="botonDerecha" class="fa fa-fw fa-solid fa-arrow-right"></i>
+              <i id="botonIzquierda" class="fa fa-fw fa-solid fa-arrow-left" style="display: none;"></i>
+            </button>
+          </div>
+          <div id="oscurecerContenido" style="height: 100vh;width: 85%;float:left;background: rgba(0,0,0,0.2);" hidden>
+            &nbsp;
+          </div>
+        </div>
         <?php $menu_costado = false; ?>
         @if($menu_costado)
         <!-- Menú lateral -->
@@ -641,6 +673,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
           $(document).on('hidden.bs.dropdown','.dropdown',function(e){
             //Escondo todos los submenues cuando se esconde un menu de 1er nivel
             $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
+          });
+          $('#botonMenuDesplegable').click(function(e){
+            $($(this).attr('data-toggle')).toggle();
           });
         });
     </script>
