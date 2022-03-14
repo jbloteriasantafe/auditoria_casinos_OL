@@ -73,6 +73,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
         justify-content: space-between;
         padding: 0px;
         margin: 0px;
+        font-family: Roboto-Regular;
       }
       #barraMenuPrincipal .card {
         height: inherit;
@@ -96,11 +97,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
         flex-direction: column;
         justify-content: center;
         text-align: center;
-      }
-      #botonMenuDesplegable {
-        color: #fff;
-        background-color: rgb(38, 50, 56);
-        border-color: rgb(0,0,0,0.5);
       }
       #barraMenuPrincipal div:hover,#barraMenuPrincipal a:hover,
       #barraMenuPrincipal div:focus,#barraMenuPrincipal a:focus {
@@ -128,9 +124,34 @@ $id_usuario = $usuario['usuario']->id_usuario;
         top: 10%;
         left: 100%;
       }
-      aside {
+      #menuDesplegable {
         background-color: #263238;
         color: #fff;
+        font-family: Roboto-Regular;
+        font-size: 1.25em;
+      }
+      #menuDesplegable ul {
+        box-shadow: inset 0 0 0 100vw rgba(0,0,0,0.06);
+        padding-left: 5%;
+      }
+      #menuDesplegable li {
+        list-style-type: none;
+        color: rgba(255,255,255,0.7);
+      }
+      #menuDesplegable a {
+        text-decoration: none;
+        color: rgba(200,200,255,0.85);
+        width: 100%;
+        text-align: center;
+        width: 100%;
+      }
+      #menuDesplegable a:hover {
+        background-color: #384382 !important;
+      }
+      #botonMenuDesplegable {
+        color: #fff;
+        background-color: rgb(38, 50, 56);
+        border-color: rgb(0,0,0,0.5);
       }
     </style>
 
@@ -340,8 +361,17 @@ $id_usuario = $usuario['usuario']->id_usuario;
             $parseOpcionDesplegable = function($opciones,$primer_nivel = false) use (&$parseOpcionDesplegable,$ac,$id_usuario){
               $lista = "";
               foreach($opciones as $op => $datos){
-                $lista.="<p>$op</p>";
-                $lista.= $parseOpcionDesplegable($datos['hijos'] ?? []);
+                $permisos    = $datos['algun_permiso'] ?? [];
+                if(count($permisos) != 0 && !$ac->usuarioTieneAlgunPermiso($id_usuario,$permisos)) continue;
+                $link = $datos['link'] ?? '#';
+                $valor_interno = $link != '#'? "<a href='$link'>$op</a>" : "<span>$op</span>";
+                $lista .= "<li>$valor_interno";
+                if(isset($datos['hijos']) && count($datos['hijos']) > 0){
+                  $lista.="<ul>";
+                  $lista.= $parseOpcionDesplegable($datos['hijos']);
+                  $lista.="</ul>";
+                }
+                else $lista .= "</li>";
               }
               return $lista;
             };
@@ -675,6 +705,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
             $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
           });
           $('#botonMenuDesplegable').click(function(e){
+            $('#menuDesplegable a').filter(function(){
+              return $(this).attr('href') == ("/"+window.location.pathname.split("/")[1]);
+            }).css('background','red');
             $($(this).attr('data-toggle')).toggle();
           });
         });
