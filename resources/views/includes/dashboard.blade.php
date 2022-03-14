@@ -87,8 +87,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
       #barraMenuPrincipal a,#btn-ayuda{
         color: white;
         background-color: rgb(38, 50, 56);
-        border-right: 1px solid rgb(73, 102, 121);
-        border-bottom: 1px solid rgb(73, 102, 121);
+        border-right:  1px solid rgba(255,255,255,0.15);
+        border-bottom: 1px solid rgba(255,255,255,0.15);
         text-decoration: none;
         width: 100%;/*Estos hacen que ocupen todo el div*/
         height: 100%;
@@ -139,7 +139,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
             <?php
             $gestion_hijos = [
               'Usuarios' => [
-                'algun_permiso' =>  ['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_logs_actividades'],
                 'hijos' => [
                   'Gestionar usuarios' => [
                     'link' => '/usuarios',
@@ -156,7 +155,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Expedientes' => [
-                'algun_permiso' => ['ver_seccion_expedientes','ver_seccion_resoluciones','ver_seccion_disposiciones'],
                 'hijos' => [
                   'Gestionar expedientes' => [
                     'link' => '/expedientes',
@@ -177,7 +175,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Juegos' => [
-                'algun_permiso' => ['ver_seccion_juegos','ver_seccion_glisoft'],
                 'hijos' => [
                   'Juegos' => [
                     'link' => '/juegos',
@@ -201,7 +198,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 'algun_permiso' => ['ver_seccion_importaciones'],
               ],
               'Validación' => [
-                'algun_permiso' => ['ver_seccion_producidos','ver_seccion_beneficios'],
                 'hijos' => [
                   'Producidos' => [
                     'link' => '/producidos',
@@ -214,7 +210,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Informes Auditoria' => [
-                'algun_permiso' => ['ver_seccion_estestadoparque','ver_seccion_informecontable'],
                 'hijos' => [
                   'Plataforma' => [
                     'link' => '/informePlataforma',
@@ -229,7 +224,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
             ];
             $estadisticas_hijos = [
               'Informes' => [
-                'algun_permiso' => ['informes_mtm'],
                 'hijos' => [
                   'Juegos' => [
                     'link' => '/informesJuegos',
@@ -242,7 +236,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Tablero' => [
-                'algun_permiso' => ['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales'],
                 'hijos' => [
                   'Generales' => [
                     //'link' => '/estadisticasGenerales',
@@ -270,21 +263,28 @@ $id_usuario = $usuario['usuario']->id_usuario;
               ],
               'Gestion' => [
                 'hijos' => $gestion_hijos,
-                'algun_permiso' => ['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_logs_actividades',
-                                    'ver_seccion_expedientes','ver_seccion_resoluciones','ver_seccion_disposiciones',
-                                    'ver_seccion_juegos','ver_seccion_glisoft',
-                                    'ver_seccion_ae_alta',]
               ],
               'Auditoria' => [
                 'hijos' => $auditoria_hijos,
-                'algun_permiso' => ['ver_seccion_importaciones','ver_seccion_producidos','ver_seccion_beneficios','ver_seccion_estestadoparque','ver_seccion_informecontable'],
               ],
               'Estadisticas' => [
                 'hijos' => $estadisticas_hijos,
-                'algun_permiso' => ['informes_mtm','estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales'],
               ],
             ];
-            //@TODO: hacer alguna función que propage los permisos de los hijos a los padres para simplificar el array
+            //Copia los permisos necesarios de los hijos a los padres, simplifica el array de $opciones bastante. Solo es necesario indicar la opcion
+            $promover_permisos = function($k,&$opciones) use (&$promover_permisos){
+              $opciones['algun_permiso'] = $opciones['algun_permiso'] ?? [];//Lo inicializo si no tiene
+              $hijos = &$opciones['hijos'];
+              if(!is_null($hijos)) foreach($hijos as $op => &$h){
+                $h = $promover_permisos($op,$h);
+                $opciones['algun_permiso'] = array_merge($opciones['algun_permiso'],$h['algun_permiso']);
+              }
+              return $opciones;
+            };
+            {
+              $aux = ['hijos' => $opciones];
+              $opciones = $promover_permisos('',$aux)['hijos'];
+            }
             $ac = AuthenticationController::getInstancia();
             $parseOpcion = function($opciones,$primer_nivel = false) use (&$parseOpcion,$ac,$id_usuario){
               $lista = "";
