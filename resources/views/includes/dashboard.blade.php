@@ -137,33 +137,62 @@ $id_usuario = $usuario['usuario']->id_usuario;
       }
       #menuDesplegable ul {
         box-shadow: inset 0 0 0 100vw rgba(255,255,255,0.04);
-        padding-left: 5%;
+        padding-left: 0px;
+        margin-left: 6px;
+        border-left:   3px solid #185891db;
+        border-right:  3px solid #00000000;
+        border-top:    2px solid #00000000;
+        border-bottom: 2px solid #00000000;
+        list-style-type: none;
       }
       #menuDesplegable li {
-        list-style-type: none;
-        color: white;
+        text-align: left;
+        padding: 2px;
       }
-      #menuDesplegable small {
-        color: rgba(255,255,255,0.7);
-      }
-      #menuDesplegable a {
+      #menuDesplegable .enlace {
         text-decoration: none;
         color: rgba(190,190,255,0.85);
-        background-color: rgba(255,255,255,0.04);
-        width: 100%;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
         text-align: center;
+      }
+      #menuDesplegable .enlace > a, #menuDesplegable .menu_con_opciones > span, #menuDesplegable .menu_con_opciones_desplegado > span,#menuDesplegable .desactivado > span{
+        display: block;
         width: 100%;
       }
-      #menuDesplegable a:hover,#menuDesplegable span:hover {
-        background-color: #384382 !important;
-        cursor: pointer;
+      #menuDesplegable .desactivado {
+        text-align: center;
+        color: rgba(255,255,255,0.7);
+        background: repeating-linear-gradient(45deg,
+          rgba(  0,  0,  0,0.05),
+          rgba(255,255,255,0.05) 5px,
+          rgba(  0,  0,  0,0.05) 5px,
+          rgba(255,255,255,0.05) 5px
+        );
       }
       #menuDesplegable .menu_con_opciones{
-        text-decoration: underline;
+        background-color: #0e5e5661;
+        text-align: center;
+      }
+      #menuDesplegable .menu_con_opciones > ul{
+        display: none;
       }
       #menuDesplegable .opcion_actual{
         color: white;
-        background: black;
+        background: rgb(61, 106, 41);
+      }
+      #menuDesplegable a {
+        color: white;
+        text-decoration: none;
+      }
+      #menuDesplegable .menu_con_opciones > span {
+        font-weight: bold;
+      }
+      #menuDesplegable .desactivado > span {
+        font-style: italic;
+      }
+      #menuDesplegable .enlace > a:hover, #menuDesplegable .menu_con_opciones > span:hover, #menuDesplegable .menu_con_opciones_desplegado > span:hover,#menuDesplegable .desactivado > span:hover{
+        cursor: pointer;
+        background-color: rgba(19, 24, 54,0.2);
       }
     </style>
 
@@ -370,34 +399,25 @@ $id_usuario = $usuario['usuario']->id_usuario;
               }
               return $lista;
             };
-            $parseOpcionDesplegable = function($opciones,$primer_nivel = false) use (&$parseOpcionDesplegable,$ac,$id_usuario){
+            $parseOpcionDesplegable = function($opciones) use (&$parseOpcionDesplegable,$ac,$id_usuario){
               $lista = "";
               foreach($opciones as $op => $datos){
                 $permisos    = $datos['algun_permiso'] ?? [];
                 if(count($permisos) != 0 && !$ac->usuarioTieneAlgunPermiso($id_usuario,$permisos)) continue;
-
-                $open  = "";
-                $close = "";
                 if(isset($datos['link'])){
-                  $link = $datos['link'];
-                  $open  = "<a href='$link'>";
-                  $close = "</a>";
+                  $link  = $datos['link'];
+                  $lista.= "<li class='enlace'><a href='$link'>$op</a></li>";
                 }
                 else if(!isset($datos['hijos']) || count($datos['hijos']) == 0){
-                  $open  = "<small>";
-                  $close = "</small>";
+                  $lista.= "<li class='desactivado'><span>$op</span></li>";
                 }
                 else{
-                  $open  = "<span>";
-                  $close = "</span>";
-                }
-                $lista .= "<li>$open $op $close";
-                if(isset($datos['hijos']) && count($datos['hijos']) > 0){
+                  $lista.="<li class='menu_con_opciones'><span>$op</span>";
                   $lista.="<ul>";
-                  $lista.= $parseOpcionDesplegable($datos['hijos']);
+                  $lista.=$parseOpcionDesplegable($datos['hijos']);
                   $lista.="</ul>";
+                  $lista.="</li>";
                 }
-                else $lista .= "</li>";
               }
               return $lista;
             };
@@ -470,7 +490,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
         </header>
         <div style="width:100%;position: absolute;z-index: 1;">
           <aside id="menuDesplegable" style="height: 100vh;width: 15%;float: left;overflow-y: scroll;" hidden>
-            {!! $parseOpcionDesplegable($opciones ?? [],true) !!}
+            <ul class="menu_con_opciones_desplegado">
+            {!! $parseOpcionDesplegable($opciones ?? []) !!}
+            </ul>
           </aside>
           <div style="float: left;">
             <button id="botonMenuDesplegable" type="button" class="btn" 
@@ -730,22 +752,31 @@ $id_usuario = $usuario['usuario']->id_usuario;
             //Escondo todos los submenues cuando se esconde un menu de 1er nivel
             $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
           });
+          $(document).on('click','#menuDesplegable .menu_con_opciones > span,#menuDesplegable .menu_con_opciones_desplegado > span',function(e){
+            if($(this).parent().hasClass('menu_con_opciones_desplegado')){//Si esta desplegado solo escondo todo lo por debajo
+              //Submenues
+              $(this).parent().find('.menu_con_opciones_desplegado').removeClass('menu_con_opciones_desplegado').addClass('menu_con_opciones');
+              //Padre
+              $(this).parent().removeClass('menu_con_opciones_desplegado').addClass('menu_con_opciones');
+              return;
+            }
+            //Si hizo click en otro menu, escondo todo y desplego el arbol hasta ahi
+            //Escondo todo
+            $('#menuDesplegable .menu_con_opciones_desplegado').removeClass('menu_con_opciones_desplegado').addClass('menu_con_opciones');
+            //Abro todos los padres
+            $(this).parents('.menu_con_opciones').removeClass('menu_con_opciones').addClass('menu_con_opciones_desplegado');
+          });
           $('#botonMenuDesplegable').click(function(e){
             //Busco la opcion basado en la URL y la diferencio
             const opcion_actual = $('#menuDesplegable a').filter(function(){
               return $(this).attr('href') == ("/"+window.location.pathname.split("/")[1]);
-            }).toggleClass('opcion_actual');
-
-            //Escondo todos los menues que no esten relacionados a la opcion actual
-            $('#menuDesplegable li').not(opcion_actual.parents('li')).find('span').click();
-
+            });
+            //Lo marco como que es la opción actual mostrandose
+            opcion_actual.parent().toggleClass('opcion_actual');
+            //Desplego la opcion
+            opcion_actual.closest('.menu_con_opciones').children('span').click();
             //Muestro el menu
             $($(this).attr('data-toggle')).toggle();
-          });
-          $('#menuDesplegable span').click(function(e){
-            if($(this).parent().find('ul').toggle().length > 0){
-              $(this).toggleClass('menu_con_opciones');
-            }
           });
         });
     </script>
