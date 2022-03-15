@@ -490,7 +490,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
         </header>
         <div style="width:100%;position: absolute;z-index: 3;">
           <aside id="menuDesplegable" style="height: 100vh;width: 15%;float: left;overflow-y: scroll;" hidden>
-            <ul class="menu_con_opciones_desplegado">
+            <ul class="menu_con_opciones_desplegado" style="margin-top: 5%;">
             {!! $parseOpcionDesplegable($opciones ?? []) !!}
             </ul>
           </aside>
