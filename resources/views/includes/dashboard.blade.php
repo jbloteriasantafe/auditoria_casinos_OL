@@ -124,6 +124,11 @@ $id_usuario = $usuario['usuario']->id_usuario;
         top: 10%;
         left: 100%;
       }
+      #botonMenuDesplegable {
+        color: #fff;
+        background-color: rgb(38, 50, 56);
+        border-color: rgb(0,0,0,0.5);
+      }
       #menuDesplegable {
         background-color: #263238;
         color: #fff;
@@ -131,27 +136,34 @@ $id_usuario = $usuario['usuario']->id_usuario;
         font-size: 1.25em;
       }
       #menuDesplegable ul {
-        box-shadow: inset 0 0 0 100vw rgba(0,0,0,0.06);
+        box-shadow: inset 0 0 0 100vw rgba(255,255,255,0.04);
         padding-left: 5%;
       }
       #menuDesplegable li {
         list-style-type: none;
+        color: white;
+      }
+      #menuDesplegable small {
         color: rgba(255,255,255,0.7);
       }
       #menuDesplegable a {
         text-decoration: none;
-        color: rgba(200,200,255,0.85);
+        color: rgba(190,190,255,0.85);
+        background-color: rgba(255,255,255,0.04);
         width: 100%;
         text-align: center;
         width: 100%;
       }
-      #menuDesplegable a:hover {
+      #menuDesplegable a:hover,#menuDesplegable span:hover {
         background-color: #384382 !important;
+        cursor: pointer;
       }
-      #botonMenuDesplegable {
-        color: #fff;
-        background-color: rgb(38, 50, 56);
-        border-color: rgb(0,0,0,0.5);
+      #menuDesplegable .menu_con_opciones{
+        text-decoration: underline;
+      }
+      #menuDesplegable .opcion_actual{
+        color: white;
+        background: black;
       }
     </style>
 
@@ -363,9 +375,23 @@ $id_usuario = $usuario['usuario']->id_usuario;
               foreach($opciones as $op => $datos){
                 $permisos    = $datos['algun_permiso'] ?? [];
                 if(count($permisos) != 0 && !$ac->usuarioTieneAlgunPermiso($id_usuario,$permisos)) continue;
-                $link = $datos['link'] ?? '#';
-                $valor_interno = $link != '#'? "<a href='$link'>$op</a>" : "<span>$op</span>";
-                $lista .= "<li>$valor_interno";
+
+                $open  = "";
+                $close = "";
+                if(isset($datos['link'])){
+                  $link = $datos['link'];
+                  $open  = "<a href='$link'>";
+                  $close = "</a>";
+                }
+                else if(!isset($datos['hijos']) || count($datos['hijos']) == 0){
+                  $open  = "<small>";
+                  $close = "</small>";
+                }
+                else{
+                  $open  = "<span>";
+                  $close = "</span>";
+                }
+                $lista .= "<li>$open $op $close";
                 if(isset($datos['hijos']) && count($datos['hijos']) > 0){
                   $lista.="<ul>";
                   $lista.= $parseOpcionDesplegable($datos['hijos']);
@@ -705,10 +731,21 @@ $id_usuario = $usuario['usuario']->id_usuario;
             $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
           });
           $('#botonMenuDesplegable').click(function(e){
-            $('#menuDesplegable a').filter(function(){
+            //Busco la opcion basado en la URL y la diferencio
+            const opcion_actual = $('#menuDesplegable a').filter(function(){
               return $(this).attr('href') == ("/"+window.location.pathname.split("/")[1]);
-            }).css('background','red');
+            }).toggleClass('opcion_actual');
+
+            //Escondo todos los menues que no esten relacionados a la opcion actual
+            $('#menuDesplegable li').not(opcion_actual.parents('li')).find('span').click();
+
+            //Muestro el menu
             $($(this).attr('data-toggle')).toggle();
+          });
+          $('#menuDesplegable span').click(function(e){
+            if($(this).parent().find('ul').toggle().length > 0){
+              $(this).toggleClass('menu_con_opciones');
+            }
           });
         });
     </script>
