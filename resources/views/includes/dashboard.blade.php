@@ -34,9 +34,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
     <link rel="stylesheet" type="text/css" href="/css/component.css" />
 
-    <!-- Custom Fonts -->
-    <!-- <link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css" > -->
-
     <!-- Animaciones de los LINKS en MENU -->
     <link rel="stylesheet" href="/css/animacionesMenu.css">
 
@@ -56,7 +53,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <link rel="stylesheet" href="/css/estiloDashboard_xs.css">
 
     <!-- Custom Fonts -->
-    <!-- <link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css"> -->
     <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
 
     <!-- Mesaje de notificación -->
@@ -64,150 +60,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <link rel="stylesheet" href="/css/mensajeError.css">
 
     <link rel="stylesheet" href="/css/perfect-scrollbar.css">
-
-    <style>
-      #barraMenuPrincipal {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        padding: 0px;
-        margin: 0px;
-        font-family: Roboto-Regular;
-      }
-      #barraMenuPrincipal .card {
-        height: inherit;
-        flex: 1;
-        display: flex;/*Esto es para que si hay varias entradas en el card se organizen una despues de la otra (icono de ayuda)*/
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        align-content: center;
-      }
-      #barraMenuPrincipal a,#btn-ayuda{
-        color: white;
-        background-color: rgb(38, 50, 56);
-        border-right:  1px solid rgba(255,255,255,0.15);
-        border-bottom: 1px solid rgba(255,255,255,0.15);
-        text-decoration: none;
-        width: 100%;/*Estos hacen que ocupen todo el div*/
-        height: 100%;
-        display: flex;/*Estos centran verticalmente*/
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-      }
-      #barraMenuPrincipal div:hover,#barraMenuPrincipal a:hover,
-      #barraMenuPrincipal div:focus,#barraMenuPrincipal a:focus {
-        background-color: #384382 !important;
-        cursor: pointer;
-      }
-      #barraMenuPrincipal img {
-        width: 1em;
-      }
-      #barraMenuPrincipal svg {
-        max-height: 2em;
-        fill: white;
-        stroke: white;
-      }
-      #barraMenuPrincipal .dropdown-submenu {
-        position: relative;
-      }
-      #barraMenuPrincipal .dropdown-menu {
-        padding: 0px;
-        margin: 0px;
-        border: 0px;
-        width: 100%;
-      }
-      #barraMenuPrincipal .dropdown-submenu .dropdown-menu {
-        top: 10%;
-        left: 100%;
-      }
-      #botonMenuDesplegable {
-        color: #fff;
-        background-color: rgb(38, 50, 56);
-        border-color: rgb(0,0,0,0.5);
-      }
-      #menuDesplegable {
-        background-color: #263238;
-        color: #fff;
-        font-family: Roboto-Regular;
-        font-size: 1.25em;
-      }
-      #menuDesplegable ul {
-        box-shadow: inset 0 0 0 100vw rgba(255,255,255,0.04);
-        padding-left:    0px;
-        margin-left:     10px;
-        margin-bottom:   10px;
-        border-left:   3px solid rgb(61, 106, 41);
-        border-right:  3px solid #00000000;
-        border-top:    2px solid #00000000;
-        border-bottom: 2px solid #00000000;
-        list-style-type: none;
-      }
-      #menuDesplegable > ul{/*Lo saco al borde izq para el primer nivel*/
-        border-left:   3px solid #00000000;
-      }
-      #menuDesplegable li {
-        text-align: left;
-        padding: 2px;
-      }
-      #menuDesplegable .enlace {
-        text-decoration: none;
-        color: rgba(190,190,255,0.85);
-        border-bottom: 1px solid rgba(255,255,255,0.15);
-        text-align: center;
-      }
-      #menuDesplegable .enlace > a, #menuDesplegable .menu_con_opciones > span, #menuDesplegable .menu_con_opciones_desplegado > span,#menuDesplegable .desactivado > span{
-        display: block;
-        width: 100%;
-      }
-      #menuDesplegable .desactivado {
-        text-align: center;
-        color: rgba(255,255,255,0.7);
-        background: repeating-linear-gradient(45deg,
-          rgba(  0,  0,  0,0.05),
-          rgba(255,255,255,0.05) 5px,
-          rgba(  0,  0,  0,0.05) 5px,
-          rgba(255,255,255,0.05) 5px
-        );
-        font-style: italic;
-      }
-      #menuDesplegable .menu_con_opciones > span{
-        text-align: center;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        font-weight: bold;
-      }
-      #menuDesplegable .menu_con_opciones > ul{
-        display: none;
-      }
-      #menuDesplegable .menu_con_opciones_desplegado > span{
-        border-bottom: 2px solid rgb(61, 106, 41);
-      }
-      #menuDesplegable a {
-        color: white;
-        text-decoration: none;
-        background: repeating-linear-gradient(45deg,
-          rgba(  0,  0,  0,0.05),
-          #185891db 5px,
-          rgba(  0,  0,  0,0.05) 5px,
-          #185891db 5px
-        );
-      }
-      #menuDesplegable .opcion_actual a{
-        background: repeating-linear-gradient(45deg,
-          rgba(  0,  0,  0,0.05),
-          rgb(61, 106, 41) 5px,
-          rgba(  0,  0,  0,0.05) 5px,
-          rgb(61, 106, 41) 5px
-        );
-      }
-      #menuDesplegable .enlace > a:hover, #menuDesplegable .menu_con_opciones > span:hover, #menuDesplegable .menu_con_opciones_desplegado > span:hover,#menuDesplegable .desactivado > span:hover{
-        cursor: pointer;
-        background-color: rgba(19, 24, 54,0.2);
-      }
-    </style>
+    <link rel="stylesheet" href="/css/menuHeader_y_Desplegable.css">
 
     @section('estilos')
     @show
