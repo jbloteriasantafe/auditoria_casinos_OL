@@ -145,11 +145,25 @@
     animation-duration: 0.11s;
     animation-timing-function: ease-out;
 }
+#menuDesplegable .menu_con_opciones_desplegado > span {
+    text-align: left;
+    animation-name: mover;
+    animation-duration: 0.08s;
+    animation-timing-function: linear;
+}
 @keyframes mostrarse {
     from {
         clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
     }
     to {
         clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+    }
+}
+@keyframes mover {/*Bastante @HACK, si el texto overflowea en varias lineas seguro se ve horrible, pero para una linea funciona*/
+    from {
+        transform: translate(30%);
+    }
+    to {
+        transform: translate(0%);
     }
 }
