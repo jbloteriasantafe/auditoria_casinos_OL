@@ -729,68 +729,23 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
     <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
 
+    @if($menu_costado)
     <script type="text/javascript">
-
-        $(document).on('show.bs.collapse','.subMenu1',function(){
-            $('.subMenu1').not($(this)).collapse('hide');
-        });
-        $(document).on('show.bs.collapse','.subMenu2',function(){
-            $('.subMenu2').not($(this)).collapse('hide');
-        });
-        $(document).on('show.bs.collapse','.subMenu3',function(){
-            $('.subMenu3').not($(this)).collapse('hide');
-        });
-
-        @if($menu_costado)
-        var ps = new PerfectScrollbar('.opcionesMenu');
-        @endif
-
-        $(document).ready(function(){
-          $('#barraMenuPrincipal a.desplegar-menu').click(function(e){
-            e.preventDefault();
-            e.stopPropagation();
-            const submenu = $(this).next('ul');
-            $(this).closest('ul.dropdown-menu')//voy para el menu de arriba
-            .find('ul.dropdown-menu').not(submenu).hide();//escondo todos los submenues menos el propio
-            submenu.toggle();//Toggleo el submenu
-          });
-          $(document).on('hidden.bs.dropdown','.dropdown',function(e){
-            //Escondo todos los submenues cuando se esconde un menu de 1er nivel
-            $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
-          });
-          $(document).on('click','#menuDesplegable .menu_con_opciones > span,#menuDesplegable .menu_con_opciones_desplegado > span',function(e){
-            if($(this).parent().hasClass('menu_con_opciones_desplegado')){//Si esta desplegado solo escondo todo lo por debajo
-              //Submenues
-              $(this).parent().find('.menu_con_opciones_desplegado').removeClass('menu_con_opciones_desplegado').addClass('menu_con_opciones');
-              //Padre
-              $(this).parent().removeClass('menu_con_opciones_desplegado').addClass('menu_con_opciones');
-              return;
-            }
-            //Si hizo click en otro menu, escondo todo y desplego el arbol hasta ahi
-            //Escondo todo
-            $('#menuDesplegable .menu_con_opciones_desplegado').removeClass('menu_con_opciones_desplegado').addClass('menu_con_opciones');
-            //Abro todos los padres
-            $(this).parents('.menu_con_opciones').removeClass('menu_con_opciones').addClass('menu_con_opciones_desplegado');
-          });
-          $('#botonMenuDesplegable').click(function(e){
-            //Busco la opcion basado en la URL y la diferencio
-            const opcion_actual = $('#menuDesplegable a').filter(function(){
-              return $(this).attr('href') == ("/"+window.location.pathname.split("/")[1]);
-            });
-            //Lo marco como que es la opción actual mostrandose
-            opcion_actual.parent().toggleClass('opcion_actual');
-            //Desplego la opcion
-            opcion_actual.closest('.menu_con_opciones').children('span').click();
-            //Muestro el menu
-            $($(this).attr('data-toggle')).toggle();
-          });
-        });
+    var ps = new PerfectScrollbar('.opcionesMenu');
+    $(document).on('show.bs.collapse','.subMenu1',function(){
+        $('.subMenu1').not($(this)).collapse('hide');
+    });
+    $(document).on('show.bs.collapse','.subMenu2',function(){
+        $('.subMenu2').not($(this)).collapse('hide');
+    });
+    $(document).on('show.bs.collapse','.subMenu3',function(){
+        $('.subMenu3').not($(this)).collapse('hide');
+    });
     </script>
-
-    <script src="/js/modalTicket.js" charset="utf-8"></script>
-
+    @endif
+    <script type="text/javascript" src="/js/menuPrincipal.js" charset="utf-8"></script>
+    <script src="/js/menuHeader_y_Desplegable.js" charset="utf-8"></script>
     @section('scripts')
     @show
-
   </body>
 </html>
