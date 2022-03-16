@@ -137,8 +137,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
       }
       #menuDesplegable ul {
         box-shadow: inset 0 0 0 100vw rgba(255,255,255,0.04);
-        padding-left: 0px;
-        margin-left: 6px;
+        padding-left:  0px;
+        margin-left:   10px;
         border-left:   3px solid #185891db;
         border-right:  3px solid #00000000;
         border-top:    2px solid #00000000;
@@ -193,6 +193,12 @@ $id_usuario = $usuario['usuario']->id_usuario;
       #menuDesplegable .enlace > a:hover, #menuDesplegable .menu_con_opciones > span:hover, #menuDesplegable .menu_con_opciones_desplegado > span:hover,#menuDesplegable .desactivado > span:hover{
         cursor: pointer;
         background-color: rgba(19, 24, 54,0.2);
+      }
+      #menuDesplegable .menu_con_opciones_desplegado > span{
+        border-bottom: 2px solid rgb(61, 106, 41);
+      }
+      #menuDesplegable > .menu_con_opciones_desplegado{/*Lo deshabilito para el primer nivel*/
+        border-bottom: unset;
       }
     </style>
 
