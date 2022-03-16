@@ -137,13 +137,17 @@ $id_usuario = $usuario['usuario']->id_usuario;
       }
       #menuDesplegable ul {
         box-shadow: inset 0 0 0 100vw rgba(255,255,255,0.04);
-        padding-left:  0px;
-        margin-left:   10px;
-        border-left:   3px solid #185891db;
+        padding-left:    0px;
+        margin-left:     10px;
+        margin-bottom:   10px;
+        border-left:   3px solid rgb(61, 106, 41);
         border-right:  3px solid #00000000;
         border-top:    2px solid #00000000;
         border-bottom: 2px solid #00000000;
         list-style-type: none;
+      }
+      #menuDesplegable > ul{/*Lo saco al borde izq para el primer nivel*/
+        border-left:   3px solid #00000000;
       }
       #menuDesplegable li {
         text-align: left;
@@ -168,37 +172,40 @@ $id_usuario = $usuario['usuario']->id_usuario;
           rgba(  0,  0,  0,0.05) 5px,
           rgba(255,255,255,0.05) 5px
         );
+        font-style: italic;
       }
-      #menuDesplegable .menu_con_opciones{
-        background-color: #0e5e5661;
+      #menuDesplegable .menu_con_opciones > span{
         text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        font-weight: bold;
       }
       #menuDesplegable .menu_con_opciones > ul{
         display: none;
       }
-      #menuDesplegable .opcion_actual{
-        color: white;
-        background: rgb(61, 106, 41);
+      #menuDesplegable .menu_con_opciones_desplegado > span{
+        border-bottom: 2px solid rgb(61, 106, 41);
       }
       #menuDesplegable a {
         color: white;
         text-decoration: none;
+        background: repeating-linear-gradient(45deg,
+          rgba(  0,  0,  0,0.05),
+          #185891db 5px,
+          rgba(  0,  0,  0,0.05) 5px,
+          #185891db 5px
+        );
       }
-      #menuDesplegable .menu_con_opciones > span {
-        font-weight: bold;
-      }
-      #menuDesplegable .desactivado > span {
-        font-style: italic;
+      #menuDesplegable .opcion_actual a{
+        background: repeating-linear-gradient(45deg,
+          rgba(  0,  0,  0,0.05),
+          rgb(61, 106, 41) 5px,
+          rgba(  0,  0,  0,0.05) 5px,
+          rgb(61, 106, 41) 5px
+        );
       }
       #menuDesplegable .enlace > a:hover, #menuDesplegable .menu_con_opciones > span:hover, #menuDesplegable .menu_con_opciones_desplegado > span:hover,#menuDesplegable .desactivado > span:hover{
         cursor: pointer;
         background-color: rgba(19, 24, 54,0.2);
-      }
-      #menuDesplegable .menu_con_opciones_desplegado > span{
-        border-bottom: 2px solid rgb(61, 106, 41);
-      }
-      #menuDesplegable > .menu_con_opciones_desplegado{/*Lo deshabilito para el primer nivel*/
-        border-bottom: unset;
       }
     </style>
 
