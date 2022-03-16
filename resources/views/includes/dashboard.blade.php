@@ -58,8 +58,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <!-- Mesaje de notificación -->
     <link rel="stylesheet" href="/css/mensajeExito.css">
     <link rel="stylesheet" href="/css/mensajeError.css">
-
-    <link rel="stylesheet" href="/css/perfect-scrollbar.css">
     <link rel="stylesheet" href="/css/menuHeader_y_Desplegable.css">
 
     @section('estilos')
@@ -372,80 +370,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
             &nbsp;
           </div>
         </div>
-        <?php $menu_costado = false; ?>
-        @if($menu_costado)
-        <!-- Menú lateral -->
-        <aside>
-              <div class="contenedorMenu">
-                 <div class="opcionesMenu">
-                    <!-- PRIMER NIVEL -->
-                    <ul>                        
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
-                                                                                                            'informes_mtm','informes_bingos','informes_mesas']))
-                        <div class="separadoresMenu">ESTADÍSTICAS</div>
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales']))
-                        <li>
-                          <div id="barraEstadisticas" class="opcionesHover" data-target="#tablero" data-toggle="collapse" href="#">
-                            <span class="flechita">
-                                <i class="fa fa-angle-right"></i>
-                              </span>
-                              <span class="icono" style="padding-bottom: 50px;">
-                                @svg('tablero_control','iconoTableroControl')
-                              </span>
-                              <span>Tablero</span>
-                          </div>
-                          <!-- SEGUNDO NIVEL -->
-                          <ul class="subMenu1 collapse" id="tablero">
-                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_generales'))
-                            <li>
-                              <div id="opcEstadisticasGenerales" class="opcionesHover" 
-                              @if(false)
-                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasGenerales'" href="#" style="cursor: pointer;"
-                              @else
-                              style="color: grey;"
-                              @endif
-                              >
-                                <span>Generales</span>
-                              </div>
-                            </li>
-                            @endif
-                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
-                            <li>
-                              <div id="opcEstadisticasPorCasino" class="opcionesHover" 
-                              @if(false)
-                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasPorCasino'" href="#" style="cursor: pointer;"
-                              @else
-                              style="color: grey;"
-                              @endif
-                              >
-                                <span>Por Plataforma</span>
-                              </div>
-                            </li>
-                            @endif
-                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_interanuales'))
-                            <li>
-                              <div id="opcEstadisticasInteranuales" class="opcionesHover"
-                              @if(false) 
-                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/interanuales'" href="#" style="cursor: pointer;"
-                              @else
-                              style="color: grey;"
-                              @endif
-                              >
-                                <span>Interanuales</span>
-                              </div>
-                            </li>
-                            @endif
-                          </ul>
-                        </li>
-                        @endif
-                        @endif
-                    </ul>
-                </div>
-                <div class="bottomMenu"></div>
-              </div> <!-- contenedorMenu -->
-          <!--  </div>  scrollMenu -->
-        </aside>
-        @endif
 
         <!-- Vista de secciones -->
         <main class="contenedorVistaPrincipal">
@@ -586,23 +510,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <!-- librerias de animate -->
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
-
-    <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
-
-    @if($menu_costado)
-    <script type="text/javascript">
-    var ps = new PerfectScrollbar('.opcionesMenu');
-    $(document).on('show.bs.collapse','.subMenu1',function(){
-        $('.subMenu1').not($(this)).collapse('hide');
-    });
-    $(document).on('show.bs.collapse','.subMenu2',function(){
-        $('.subMenu2').not($(this)).collapse('hide');
-    });
-    $(document).on('show.bs.collapse','.subMenu3',function(){
-        $('.subMenu3').not($(this)).collapse('hide');
-    });
-    </script>
-    @endif
     <script type="text/javascript" src="/js/menuPrincipal.js" charset="utf-8"></script>
     <script src="/js/menuHeader_y_Desplegable.js" charset="utf-8"></script>
     @section('scripts')
