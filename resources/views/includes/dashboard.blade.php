@@ -122,7 +122,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Autoexclusión' => [
-                'link' => 'http://'.$_SERVER['REMOTE_ADDR'].':8000/autoexclusion',
+                'link' => 'http://'.$_SERVER['SERVER_ADDR'].':8000/autoexclusion',
                 'link_style' => 'color: #aaf;text-decoration: underline;',
                 'algun_permiso' => ['ver_seccion_ae_alta'],
               ]
