@@ -1,5 +1,9 @@
 $(document).ready(function(){
-  $('#barraMenuPrincipal a.desplegar-menu').click(function(e){
+  $('#barraMenuPrincipal > .dropdown > .dropdown-toggle:not(.no_abrir_en_mouseenter)').mouseenter(function(e){
+    console.log('asd!');
+    $(this).click();
+  });
+  $('#barraMenuPrincipal a.desplegar-menu').mouseenter(function(e){
     e.preventDefault();
     e.stopPropagation();
     const submenu = $(this).next('ul');

@@ -237,7 +237,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   $open  = "<li style='$divli_style'><a tabindex='-1' href='$link' style='$link_style;'>";
                   $close = '</a></li>';
                   if($primer_nivel){
-                    $open = "<div class='card' style='$divli_style'><a tabindex='-1' href='$link' style='$link_style'>";
+                    $open  = "<div class='card' style='$divli_style'><a tabindex='-1' href='$link' style='$link_style'>";
                     $close = '</a></div>';
                   }
                   $lista .= "$open $op $close";
@@ -312,7 +312,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
               </div>
               {!! $parseOpcion($opciones ?? [],true) !!}
               <div class="card dropdown" style="width: 5%;flex: unset;"  onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')">
-                <a class="dropdown-toggle" type="button" data-toggle="dropdown">
+                <a class="dropdown-toggle no_abrir_en_mouseenter" type="button" data-toggle="dropdown">
                   <span>
                     <i  class="far fa-bell"></i>
                     <span class="badge" style="background: white;color: black;text-align: center;">{{count($usuario['usuario']->unreadNotifications)}}</span>
