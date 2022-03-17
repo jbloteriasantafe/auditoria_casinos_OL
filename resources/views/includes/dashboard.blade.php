@@ -58,7 +58,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <!-- Mesaje de notificación -->
     <link rel="stylesheet" href="/css/mensajeExito.css">
     <link rel="stylesheet" href="/css/mensajeError.css">
-    <link rel="stylesheet" href="/css/menuHeader_y_Desplegable.css">
+    <link rel="stylesheet" href="/css/menuHeader_y_Desplegable.css?2">
 
     @section('estilos')
     @show
@@ -122,7 +122,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Autoexclusión' => [
-                'link' => 'http://'.$_SERVER['SERVER_ADDR'].':8000/autoexclusion',
+                'link' => 'http://'.($_SERVER['SERVER_ADDR'] ?? $_SERVER['REMOTE_ADDR']).':8000/autoexclusion',
                 'link_style' => 'color: #aaf;text-decoration: underline;',
                 'algun_permiso' => ['ver_seccion_ae_alta'],
               ]
@@ -511,7 +511,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
     <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
-    <script type="text/javascript" src="/js/menuHeader_y_Desplegable.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/menuHeader_y_Desplegable.js?2" charset="utf-8"></script>
     @section('scripts')
     @show
   </body>

@@ -1,8 +1,8 @@
 $(document).ready(function(){
+  /* Deshabilito desplegar el menu principal en hover
   $('#barraMenuPrincipal > .dropdown > .dropdown-toggle:not(.no_abrir_en_mouseenter)').mouseenter(function(e){
-    console.log('asd!');
     $(this).click();
-  });
+  });*/
   $('#barraMenuPrincipal a.desplegar-menu').mouseenter(function(e){
     e.preventDefault();
     e.stopPropagation();
