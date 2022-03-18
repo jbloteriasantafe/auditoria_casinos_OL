@@ -16,161 +16,176 @@ $id_usuario = session('id_usuario');
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/animacionCarga.css">
 <link rel="stylesheet" href="/css/paginacion.css">
+<style>
+  #botonesImportar {
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+  }
+  #botonesImportar > *{
+    flex: 1;
+  }
+</style>
 @endsection
 
-          <div class="row">
-
-              <!-- columna de los BOTONES  -->
-              <div class="col-md-3">
-                    <!-- IMPORTAR PRODUCIDOS -->
-                    <div class="row">
-                        <div class="col-sm-12 col-md-12 col-xl-12">
-                         <a href="" id="btn-importarProducidos" style="text-decoration: none;">
-                          <div class="panel panel-default panelBotonNuevo">
-                              <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-                              <div class="backgroundNuevo"></div>
-                              <div class="row">
-                                  <div class="col-xs-12">
-                                    <center>
-                                        <h5 class="txtLogo">+<span style="font-size:145px; position:relative; top:-8px;">P</span></h5>
-                                        <h4 class="txtNuevo">IMPORTAR PRODUCIDOS</h4>
-                                    </center>
-                                  </div>
-                              </div>
-                          </div>
-                         </a>
-                        </div>
-                    </div> <!--    .row | IMPORTAR PRODUCIDOS -->
-                    <!-- IMPORTAR PRODUCIDOS JUGADORES -->
-                    <div class="row">
-                        <div class="col-sm-12 col-md-12 col-xl-12">
-                         <a href="" id="btn-importarProducidosJugadores" style="text-decoration: none;">
-                          <div class="panel panel-default panelBotonNuevo">
-                              <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-                              <div class="backgroundNuevo"></div>
-                              <div class="row">
-                                  <div class="col-xs-12">
-                                    <center>
-                                        <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+PJ</span></h5>
-                                        <h4 class="txtNuevo">IMPORTAR PRODUCIDOS JUGADORES</h4>
-                                    </center>
-                                  </div>
-                              </div>
-                          </div>
-                         </a>
-                        </div>
-                    </div> <!--    .row | IMPORTAR PRODUCIDOS -->
-                    <!-- IMPORTAR BENEFICIOS -->
-                    <div class="row">
-                        <div class="col-sm-12 col-md-12 col-xl-12">
-                         <a href="" id="btn-importarBeneficios" style="text-decoration: none;">
-                          <div class="panel panel-default panelBotonNuevo">
-                              <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-                              <div class="backgroundNuevo"></div>
-                              <div class="row">
-                                  <div class="col-xs-12">
-                                    <center>
-                                        <h5 class="txtLogo">+<span style="font-size:145px; position:relative; top:-8px;">B</span></h5>
-                                        <h4 class="txtNuevo">IMPORTAR BENEFICIOS</h4>
-                                    </center>
-                                  </div>
-                              </div>
-                          </div>
-                         </a>
-                        </div>
-                    </div> <!-- .row | IMPORTAR BENEFICIOS -->
-              </div> <!-- .columna de los BOTONES -->
-
-
-              <!-- tabla info -->
-              <div class="col-md-9">
-                  <div class="row">
-                      <div class="col-md-12">
-                          <div class="panel panel-default" style="height:644px;">
-                              <div class="panel-heading">
-                                  <h4>IMPORTACIONES POR DÍA</h4>
-                              </div>
-                              <div class="panel-body">
-                                  <div class="row">
-                                      <div class="col-md-3">
-                                        <select id="plataformaInfoImportacion" class="form-control" name="">
-                                            @foreach ($plataformas as $plataforma)
-                                              <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
-                                            @endforeach
-                                        </select>
-                                      </div>
-                                      <div class="col-md-3">
-                                        <div class='input-group date' id='mesInfoImportacion' data-link-field="mes_info_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                            <input type='text' class="form-control"/>
-                                            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                        </div>
-                                        <input type="hidden" id="mes_info_hidden" value=""/>
-                                      </div>
-                                      <div class="col-md-3">
-                                        <select id="monedaInfoImportacion" class="form-control" name="">
-                                            @foreach($tipoMoneda as $tipo)
-                                              <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
-                                            @endforeach
-                                        </select>
-                                      </div>
-                                  </div>
-
-                                  <br>
-
-                                  <style media="screen">
-                                      #infoImportaciones .fa-check {
-                                          color: #00C853;
-                                      }
-                                      #infoImportaciones .fa-times {
-                                          color: #FF1744;
-                                      }
-                                      #infoImportaciones td {
-                                          height: 50px;
-                                      }
-
-                                      #infoImportaciones td.true .fa-check {
-                                        display: inline;
-                                      }
-
-                                      #infoImportaciones td.true .fa-times {
-                                        display: none;
-                                      }
-
-                                      #infoImportaciones td.false .fa-times {
-                                        display: inline;
-                                      }
-
-                                      #infoImportaciones td.false .fa-check {
-                                        display: none;
-                                      }
-                                  </style>
-
-                                  <table id="infoImportaciones" class="table table-fixed tablesorter">
-                                      <thead>
-                                        <tr>
-                                          <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                                          <th class="col-xs-3" style="text-align:center;">PRODUCIDOS</th>
-                                          <th class="col-xs-3" style="text-align:center;">PROD. JUGADORES</th>
-                                          <th class="col-xs-3" style="text-align:center;">BENEFICIOS</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody style="text-align:center; max-height:440px;">
-                                        <tr id="moldeFilaImportacion">
-                                          <td class="col-xs-3 fecha" style="text-align:left;">12 AGO 2018</td>
-                                          <td class="col-xs-3 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                                          <td class="col-xs-3 producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                                          <td class="col-xs-3 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                                        </tr>
-                                      </tbody>
-                                  </table>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
+<div class="row">
+  <!-- columna de los BOTONES  -->
+  <div style="width: 25%;float: left;">
+    <div id="botonesImportar">
+      <div><!-- IMPORTAR PRODUCIDOS -->
+        <a href="" id="btn-importarProducidos" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+            <div class="backgroundNuevo"></div>
+            <div class="row">
+              <div class="col-xs-12">
+                <center>
+                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+P</span></h5>
+                  <h4 class="txtNuevo">IMPORTAR PRODUCIDOS</h4>
+                </center>
               </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div><!-- IMPORTAR PRODUCIDOS JUGADORES -->
+        <a href="" id="btn-importarProducidosJugadores" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+            <div class="backgroundNuevo"></div>
+            <div class="row">
+              <div class="col-xs-12">
+                <center>
+                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+PJ</span></h5>
+                  <h4 class="txtNuevo">IMPORTAR PRODUCIDOS JUGADORES</h4>
+                </center>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div> <!-- IMPORTAR BENEFICIOS -->
+        <a href="" id="btn-importarBeneficios" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+            <div class="backgroundNuevo"></div>
+            <div class="row">
+              <div class="col-xs-12">
+                <center>
+                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+B</span></h5>
+                  <h4 class="txtNuevo">IMPORTAR BENEFICIOS</h4>
+                </center>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div> <!-- IMPORTAR JUGADORES -->
+        <a href="" id="btn-importarJugadores" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+            <div class="backgroundNuevo"></div>
+            <div class="row">
+              <div class="col-xs-12">
+                <center>
+                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+J</span></h5>
+                  <h4 class="txtNuevo">IMPORTAR JUGADORES</h4>
+                </center>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- tabla info -->
+  <div style="width: 75%;float: left;">
+    <div id="importacionesDiarias" class="panel panel-default">
+      <div class="panel-heading"><h4>IMPORTACIONES POR DÍA</h4></div>
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-3">
+            <select id="plataformaInfoImportacion" class="form-control" name="">
+              @foreach ($plataformas as $plataforma)
+              <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-md-3">
+            <div class='input-group date' id='mesInfoImportacion' data-link-field="mes_info_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+              <input type='text' class="form-control"/>
+              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+              <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+            </div>
+            <input type="hidden" id="mes_info_hidden" value=""/>
+          </div>
+          <div class="col-md-3">
+            <select id="monedaInfoImportacion" class="form-control" name="">
+              @foreach($tipoMoneda as $tipo)
+              <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+              @endforeach
+            </select>
+          </div>
+        </div>
+        <br>
+        <style media="screen">
+          #infoImportaciones .fa-check {
+              color: #00C853;
+          }
+          #infoImportaciones .fa-times {
+              color: #FF1744;
+          }
+          #infoImportaciones td {
+              height: 50px;
+          }
 
+          #infoImportaciones td.true .fa-check {
+            display: inline;
+          }
+
+          #infoImportaciones td.true .fa-times {
+            display: none;
+          }
+
+          #infoImportaciones td.false .fa-times {
+            display: inline;
+          }
+
+          #infoImportaciones td.false .fa-check {
+            display: none;
+          }
+        </style>
+        <table id="infoImportaciones" class="table table-fixed tablesorter">
+            <thead>
+              <tr>
+                <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                <th class="col-xs-2" style="text-align:center;">PRODUCIDOS</th>
+                <th class="col-xs-3" style="text-align:center;">PROD. JUGADORES</th>
+                <th class="col-xs-2" style="text-align:center;">BENEFICIOS</th>
+                <th class="col-xs-3" style="text-align:center;">JUGADORES</th>
+              </tr>
+            </thead>
+            <tbody style="text-align:center; max-height:440px;">
+              <tr id="moldeFilaImportacion">
+                <td class="col-xs-2 fecha" style="text-align:left;">12 AGO 2018</td>
+                <td class="col-xs-2 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="col-xs-3 producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="col-xs-2 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="col-xs-3 jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+              </tr>
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
               <!-- columna FILTROS -->
+            <div class="row">
               <div class="col-md-12">
                 <div class="row">
                     <div class="col-lg-12">
@@ -263,6 +278,7 @@ $id_usuario = session('id_usuario');
               </div> <!-- .col-lg-9 -->
 
           </div> <!-- .row -->
+        </div>
 
 
     <!-- Modal planilla -->
