@@ -468,12 +468,21 @@ $('#btn-importarProducidos').click(function(e){
   $('#modalImportacionProducidos').find('.modal-footer').children().show();
   reiniciarModalImportarProducido();
   $('#mensajeExito').hide();
-  $('#modalImportacionProducidos').data('modo','juegos').modal('show');
+  $('#modalImportacionProducidos').data('modo','producido_juegos').modal('show');
 });
 
 $('#btn-importarProducidosJugadores').click(function(e){
   e.preventDefault();
-  $('#modalImportacionProducidos .modal-title').text("| IMPORTAR PRODUCIDO JUEGOS");
+  $('#modalImportacionProducidos .modal-title').text("| IMPORTAR PRODUCIDO JUGADORES");
+  $('#modalImportacionProducidos').find('.modal-footer').children().show();
+  reiniciarModalImportarProducido();
+  $('#mensajeExito').hide();
+  $('#modalImportacionProducidos').data('modo','producido_jugadores').modal('show');
+});
+
+$('#btn-importarJugadores').click(function(e){
+  e.preventDefault();
+  $('#modalImportacionProducidos .modal-title').text("| IMPORTAR JUGADORES");
   $('#modalImportacionProducidos').find('.modal-footer').children().show();
   reiniciarModalImportarProducido();
   $('#mensajeExito').hide();
@@ -481,11 +490,7 @@ $('#btn-importarProducidosJugadores').click(function(e){
 });
 
 $('#btn-guardarProducido').on('click',function(e){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
 
@@ -508,7 +513,7 @@ $('#btn-guardarProducido').on('click',function(e){
     formData.append('archivo' , $('#modalImportacionProducidos #archivo')[0].files[0]);
   }
 
-  const modo = $('#modalImportacionProducidos').data('modo') == "jugadores" ? "Jugadores" : "";
+  const modo = $('#modalImportacionProducidos').data('modo') == "producido_jugadores" ? "Jugadores" : "";
   $.ajax({
       type: "POST",
       url: 'importaciones/importarProducido' + modo,
@@ -565,40 +570,44 @@ function toIso(f){
   return f[2]+'-'+mm+'-'+dd+'T'+aux[1];
 }
 
-function procesarDatosProducidos(e) {
+function procesarDatosProducidos_y_Jugadores(e) {
   const csv = e.target.result;
   //Limpio retorno de carro y saco las lineas sin nada.
   const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
-  const COLUMNASPROD = $('#modalImportacionProducidos').data('modo') == "jugadores"? 9 : 10;
-  if(allTextLines.length > 0){
-    const columnas = allTextLines[0].split(',');
-    if (columnas.length == COLUMNASPROD) {
-      //Si tiene filas, extraigo la fecha
-      if (allTextLines.length > 1) {
-        //Se obtiene la fecha del CSV para mostrarlo
-        const date = allTextLines[1].split(',')[0].replaceAll('"','');//Saco las comillas
-        $('#fechaProducido').data('datetimepicker').setDate(new Date(toIso(date)));
-        $('#fechaProducido input').attr('disabled',true);
-        $('#fechaProducido span').hide()
-      }
-      else{
-        $('#fechaProducido input').attr('disabled',false);
-        $('#fechaProducido span').show()
-      }
-      $('#monedaProducido').val(1);
-      $('#modalImportacionProducidos #mensajeInvalido').hide();
-      //Mostrar botón SUBIR
-      $('#btn-guardarProducido').show();
-      $('#datosProducido').show();
-      return;
-    }
+  const columnas_modos = {
+    'producido_juegos' : [10,','], 'producido_jugadores' : [9,','], 'jugadores' : [9,';']
   }
-  //Si no retorno arriba quiere decir que no era valido
-  $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
-  $('#modalImportacionProducidos #mensajeInvalido').show();
-  $('#modalImportacionProducidos #iconoCarga').hide();
-  //Ocultar botón de subida
-  $('#btn-guardarProducido').hide();
+  const modo = $('#modalImportacionProducidos').data('modo');
+  const fail = function(){
+    //Si no retorno arriba quiere decir que no era valido
+    $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
+    $('#modalImportacionProducidos #mensajeInvalido').show();
+    $('#modalImportacionProducidos #iconoCarga').hide();
+    //Ocultar botón de subida
+    $('#btn-guardarProducido').hide();
+  };
+
+  if(allTextLines.length <= 0 || !(modo in columnas_modos) || allTextLines[0].split(columnas_modos[modo][1]).length != columnas_modos[modo][0]){
+    return fail();
+  }
+  if(allTextLines.length == 1 || modo == 'jugadores'){
+    $('#fechaProducido input').attr('disabled',false);
+    $('#fechaProducido span').show()
+  }
+  else if (['producido_juegos','producido_jugadores'].includes(modo)) {//Si tiene filas, extraigo la fecha
+    const date = allTextLines[1].split(columnas_modos[modo][1])[0].replaceAll('"','');//Saco las comillas
+    $('#fechaProducido').data('datetimepicker').setDate(new Date(toIso(date)));
+    $('#fechaProducido input').attr('disabled',true);
+    $('#fechaProducido span').hide()
+  }
+  else{
+    return fail();
+  }
+  $('#monedaProducido').val(1);
+  $('#modalImportacionProducidos #mensajeInvalido').hide();
+  //Mostrar botón SUBIR
+  $('#btn-guardarProducido').show();
+  $('#datosProducido').show();
 }
 
 //Eventos de la librería del input
@@ -620,7 +629,7 @@ $('#modalImportacionProducidos #archivo').on('fileselect', function(event) {
   // Se lee el archivo guardado en el input de tipo 'file'.
   // se valida la importación.
   let reader = new FileReader();
-  reader.onload = procesarDatosProducidos;
+  reader.onload = procesarDatosProducidos_y_Jugadores;
   reader.readAsText($('#modalImportacionProducidos #archivo')[0].files[0]);
 });
 

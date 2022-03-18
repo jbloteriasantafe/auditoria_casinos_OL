@@ -18,8 +18,6 @@ $id_usuario = session('id_usuario');
 <link rel="stylesheet" href="/css/paginacion.css">
 <style>
   #botonesImportar {
-    margin: 0px;
-    padding: 0px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -28,7 +26,7 @@ $id_usuario = session('id_usuario');
     align-content: center;
   }
   #botonesImportar > *{
-    flex: 1;
+    width: 50%;
   }
 </style>
 @endsection
@@ -588,7 +586,7 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js?2" charset="utf-8"></script>
     <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->
