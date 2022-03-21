@@ -480,15 +480,6 @@ $('#btn-importarProducidosJugadores').click(function(e){
   $('#modalImportacionProducidos').data('modo','producido_jugadores').modal('show');
 });
 
-$('#btn-importarJugadores').click(function(e){
-  e.preventDefault();
-  $('#modalImportacionProducidos .modal-title').text("| IMPORTAR JUGADORES");
-  $('#modalImportacionProducidos').find('.modal-footer').children().show();
-  reiniciarModalImportarProducido();
-  $('#mensajeExito').hide();
-  $('#modalImportacionProducidos').data('modo','jugadores').modal('show');
-});
-
 $('#btn-guardarProducido').on('click',function(e){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
@@ -513,10 +504,15 @@ $('#btn-guardarProducido').on('click',function(e){
     formData.append('archivo' , $('#modalImportacionProducidos #archivo')[0].files[0]);
   }
 
-  const modo = $('#modalImportacionProducidos').data('modo') == "producido_jugadores" ? "Jugadores" : "";
+  const url_modo = {
+    'producido_juegos'    : 'importarProducido',
+    'producido_jugadores' : 'importarProducidoJugadores',
+  };
+  const modo = $('#modalImportacionProducidos').data('modo');
+  if(!(modo in url_modo)) return;
   $.ajax({
       type: "POST",
-      url: 'importaciones/importarProducido' + modo,
+      url: url_modo[modo],
       data: formData,
       processData: false,
       contentType:false,
@@ -527,16 +523,13 @@ $('#btn-guardarProducido').on('click',function(e){
         $('#modalImportacionProducidos').find('.modal-body').children().hide();
         $('#modalImportacionProducidos').find('.modal-body').children('#iconoCarga').show();
       },
-      complete: function(data){
-        console.log('Terminó');
-      },
       success: function (data) {
         $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
         $('#modalImportacionProducidos').modal('hide');
         limpiarBodysImportaciones();
         $('#plataformaInfoImportacion').change();
-        $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN PRODUCIDO');
-        text = data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados'
+        $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN');
+        text = data.cantidad_registros + ' registro(s) fueron importados'
         if(data.juegos_multiples_reportes > 0) text += '<br>' + data.juegos_multiples_reportes + ' juego(s) reportaron multiples veces';
         if(data.jugadores_multiples_reportes > 0) text += '<br>' + data.jugadores_multiples_reportes + ' jugador(es) reportaron multiples veces';
         $('#mensajeExito p').html(text);
@@ -574,8 +567,8 @@ function procesarDatosProducidos_y_Jugadores(e) {
   const csv = e.target.result;
   //Limpio retorno de carro y saco las lineas sin nada.
   const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
-  const columnas_modos = {
-    'producido_juegos' : [10,','], 'producido_jugadores' : [9,','], 'jugadores' : [9,';']
+  const columnas_modos = {//@TODO: Unificar beneficio
+    'producido_juegos' : 10, 'producido_jugadores' : 9,
   }
   const modo = $('#modalImportacionProducidos').data('modo');
   const fail = function(){
@@ -587,15 +580,20 @@ function procesarDatosProducidos_y_Jugadores(e) {
     $('#btn-guardarProducido').hide();
   };
 
-  if(allTextLines.length <= 0 || !(modo in columnas_modos) || allTextLines[0].split(columnas_modos[modo][1]).length != columnas_modos[modo][0]){
+  if(allTextLines.length <= 0 ||!(modo in columnas_modos)){
     return fail();
   }
-  if(allTextLines.length == 1 || modo == 'jugadores'){
+  const columnas = columnas_modos[modo];
+  if(allTextLines[0].split(',').length != columnas){
+    return fail();
+  }
+
+  if(allTextLines.length == 1){
     $('#fechaProducido input').attr('disabled',false);
     $('#fechaProducido span').show()
   }
   else if (['producido_juegos','producido_jugadores'].includes(modo)) {//Si tiene filas, extraigo la fecha
-    const date = allTextLines[1].split(columnas_modos[modo][1])[0].replaceAll('"','');//Saco las comillas
+    const date = allTextLines[1].split(',')[0].replaceAll('"','');//Saco las comillas
     $('#fechaProducido').data('datetimepicker').setDate(new Date(toIso(date)));
     $('#fechaProducido input').attr('disabled',true);
     $('#fechaProducido span').hide()

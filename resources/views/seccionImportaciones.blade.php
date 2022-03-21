@@ -26,15 +26,14 @@ $id_usuario = session('id_usuario');
     align-content: center;
   }
   #botonesImportar > *{
-    width: 50%;
+    width: 100%;
   }
 </style>
 @endsection
 
-<div class="row">
+<div class="row" style="height: 80vh;">
   <!-- columna de los BOTONES  -->
-  <div style="width: 25%;float: left;">
-    <div id="botonesImportar">
+  <div id="botonesImportar" style="width: 25%;height: 90%;float: left;">
       <div><!-- IMPORTAR PRODUCIDOS -->
         <a href="" id="btn-importarProducidos" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
@@ -43,7 +42,7 @@ $id_usuario = session('id_usuario');
             <div class="row">
               <div class="col-xs-12">
                 <center>
-                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+P</span></h5>
+                  <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+P</span></h5>
                   <h4 class="txtNuevo">IMPORTAR PRODUCIDOS</h4>
                 </center>
               </div>
@@ -59,7 +58,7 @@ $id_usuario = session('id_usuario');
             <div class="row">
               <div class="col-xs-12">
                 <center>
-                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+PJ</span></h5>
+                  <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+PJ</span></h5>
                   <h4 class="txtNuevo">IMPORTAR PRODUCIDOS JUGADORES</h4>
                 </center>
               </div>
@@ -75,7 +74,7 @@ $id_usuario = session('id_usuario');
             <div class="row">
               <div class="col-xs-12">
                 <center>
-                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+B</span></h5>
+                  <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+B</span></h5>
                   <h4 class="txtNuevo">IMPORTAR BENEFICIOS</h4>
                 </center>
               </div>
@@ -83,29 +82,12 @@ $id_usuario = session('id_usuario');
           </div>
         </a>
       </div>
-      <div> <!-- IMPORTAR JUGADORES -->
-        <a href="" id="btn-importarJugadores" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-            <div class="backgroundNuevo"></div>
-            <div class="row">
-              <div class="col-xs-12">
-                <center>
-                  <h5 class="txtLogo"><span style="font-size:100px; position:relative; top:-8px;">+J</span></h5>
-                  <h4 class="txtNuevo">IMPORTAR JUGADORES</h4>
-                </center>
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
     </div>
-  </div>
   <!-- tabla info -->
-  <div style="width: 75%;float: left;">
-    <div id="importacionesDiarias" class="panel panel-default">
+  <div style="width: 75%;height: 100%;float: left;">
+    <div id="importacionesDiarias" class="panel panel-default" style="height: 90%;">
       <div class="panel-heading"><h4>IMPORTACIONES POR DÍA</h4></div>
-      <div class="panel-body">
+      <div class="panel-body" style="height: 90%;">
         <div class="row">
           <div class="col-md-3">
             <select id="plataformaInfoImportacion" class="form-control" name="">
@@ -157,27 +139,35 @@ $id_usuario = session('id_usuario');
           #infoImportaciones td.false .fa-check {
             display: none;
           }
+          #infoImportaciones td,#infoImportaciones th{
+            text-align: center;
+          }
+          #infoImportaciones td,#infoImportaciones th{
+            padding: 0px;
+            margin: 0px;
+            width: 25%;
+          }
         </style>
-        <table id="infoImportaciones" class="table table-fixed tablesorter">
+        <div style="height: 90%;overflow: auto;">
+          <table id="infoImportaciones" class="table tablesorter">
             <thead>
               <tr>
-                <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                <th class="col-xs-2" style="text-align:center;">PRODUCIDOS</th>
-                <th class="col-xs-3" style="text-align:center;">PROD. JUGADORES</th>
-                <th class="col-xs-2" style="text-align:center;">BENEFICIOS</th>
-                <th class="col-xs-3" style="text-align:center;">JUGADORES</th>
+                <th value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                <th>PRODUCIDOS</th>
+                <th>PROD. JUGADORES</th>
+                <th>BENEFICIOS</th>
               </tr>
             </thead>
-            <tbody style="text-align:center; max-height:440px;">
+            <tbody>
               <tr id="moldeFilaImportacion">
-                <td class="col-xs-2 fecha" style="text-align:left;">12 AGO 2018</td>
-                <td class="col-xs-2 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                <td class="col-xs-3 producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                <td class="col-xs-2 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                <td class="col-xs-3 jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="fecha">12 AGO 2018</td>
+                <td class="producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
               </tr>
             </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -586,7 +576,7 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js?2" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js?3" charset="utf-8"></script>
     <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->

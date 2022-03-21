@@ -169,9 +169,9 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::post('/importarProducido','ImportacionController@importarProducido');
   Route::post('/importarProducidoJugadores','ImportacionController@importarProducidoJugadores');
   Route::post('/importarBeneficio','ImportacionController@importarBeneficio');
-  Route::post('/previewBeneficio','ImportacionController@previewBeneficio');
   Route::post('/previewProducido','ImportacionController@previewProducido');
   Route::post('/previewProducidoJugadores','ImportacionController@previewProducidoJugadores');
+  Route::post('/previewBeneficio','ImportacionController@previewBeneficio');
   Route::delete('/eliminarProducido/{id}','ProducidoController@eliminarProducido');
   Route::delete('/eliminarProducidoJugadores/{id}','ProducidoController@eliminarProducidoJugadores');
   Route::delete('/eliminarBeneficioMensual/{id}','BeneficioMensualController@eliminarBeneficioMensual');
