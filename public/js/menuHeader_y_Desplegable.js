@@ -3,7 +3,7 @@ $(document).ready(function(){
   $('#barraMenuPrincipal > .dropdown > .dropdown-toggle:not(.no_abrir_en_mouseenter)').mouseenter(function(e){
     $(this).click();
   });*/
-  $('#barraMenuPrincipal a.desplegar-menu').mouseenter(function(e){
+  $('#barraMenuPrincipal > .card > .dropdown-menu a').mouseenter(function(e){
     e.preventDefault();
     e.stopPropagation();
     const submenu = $(this).next('ul');
