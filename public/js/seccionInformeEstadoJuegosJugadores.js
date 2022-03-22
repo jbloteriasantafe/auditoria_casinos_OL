@@ -125,7 +125,6 @@ function generarFilaTabla(jugador) {
     return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
   }
   const fila = $('#moldeTablaJugadores').clone().removeAttr('id');
-  fila.attr('data-id', jugador.id_jugador);
   fila.find('.plataforma').text(jugador.plataforma);
   fila.find('.codigo').text(jugador.codigo).attr('title',jugador.codigo);
   fila.find('.estado').text(jugador.estado).attr('title',jugador.estado);
@@ -136,6 +135,7 @@ function generarFilaTabla(jugador) {
   fila.find('.fecha_autoexclusion').text(convertir_fecha(jugador.fecha_autoexclusion)).attr('title',jugador.fecha_autoexclusion);
   fila.find('.fecha_alta').text(convertir_fecha(jugador.fecha_alta)).attr('title',jugador.fecha_alta);
   fila.find('.fecha_ultimo_movimiento').text(convertir_fecha(jugador.fecha_ultimo_movimiento)).attr('title',jugador.fecha_ultimo_movimiento);
+  fila.find('button').val(jugador.id_jugador);
   return fila;
 }
 
@@ -360,3 +360,36 @@ function mensajeError(msg){
     $('#mensajeError').show();
   }, 250);
 }
+
+$(document).on('click','.historia',function(){
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "GET",
+    url: '/informeEstadoJuegosJugadores/historial/'+$(this).val(),
+    success: function (data) {
+      $('#modalHistorial .columna tbody').empty();
+      $('#modalHistorial .cuerpo  tbody').empty();
+      data.forEach((val,idx) => {
+        const col = $('#moldeColumna').clone().removeAttr('id');
+        col.find('.fecha').text(val['fecha']);
+        col.attr('data-idx',idx);
+        $('#modalHistorial .columna tbody').append(col);
+        const cuerpo = $('#moldeCuerpo').clone().removeAttr('id');
+        cuerpo.find('.json').empty().append(JSON.stringify(val['json']));
+        cuerpo.attr('data-idx',idx);
+        $('#modalHistorial .cuerpo tbody').append(cuerpo);
+      });
+      $('tr[data-idx="0"]').find('.verLog').click();
+      $('#modalHistorial').modal('show');
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
+});
+
+$(document).on('click','.verLog',function(){
+  const idx = $(this).parent().parent().attr('data-idx');
+  $(`#modalHistorial .cuerpo tr[data-idx!="${idx}"]`).hide();
+  $(`#modalHistorial .cuerpo tr[data-idx="${idx}"]`).show();
+});

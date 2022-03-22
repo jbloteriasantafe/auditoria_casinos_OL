@@ -186,7 +186,9 @@ background-color: #4CAF50;
             <div class="panel-body">
               <style>
                 #tablaJugadores th, #tablaJugadores td{
-                  width: 10%;
+                  width: 9.09%;
+                  padding: 0px;
+                  margin: 0px;
                   font-size: 95%;
                   text-align: center;
                 }
@@ -204,6 +206,7 @@ background-color: #4CAF50;
                     <th value="estado" estado="">ESTADO<i class="fa fa-sort"></i></th>
                     <th value="fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
                     <th value="fecha_ultimo_movimiento" estado="">F. ULTIMO MOV.<i class="fa fa-sort"></i></th>
+                    <th>ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody style="height: 350px;">
@@ -218,9 +221,10 @@ background-color: #4CAF50;
                   <td class="sexo">SEXO</td>
                   <td class="localidad">LOCALIDAD</td>
                   <td class="provincia">PROVINCIA</td>
-                  <td class="estado" style="border-left: 2px dashed #ddd;">ESTADO</td>
+                  <td class="estado">ESTADO</td>
                   <td class="fecha_ae">F. AE</td>
                   <td class="fecha_ultimo_movimiento">F. ULTIMO MOV.</td>
+                  <td><button class="btn historia" type="button" title="VER ESTADOS ANTERIORES"><i class="fa fa-fw fa-user-clock"></i></button></td>
                 </tr>
               </table>
               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
@@ -230,6 +234,56 @@ background-color: #4CAF50;
       </div>  <!-- row tabla -->
   </div> <!-- row principal -->
 </div>
+
+<div class="modal fade" id="modalHistorial" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" style="width: 70%;">
+      <div class="modal-content">
+        <div class="modal-header" style="background: lightgray;">
+          <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+          <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+          <h3>| HISTORIAL</h2>
+        </div>
+
+        <div  id="colapsado" class="collapse in">
+        <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="col-md-3 columna" style="height: 700px;overflow: scroll;">
+                  <table class="table">
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-md-9 cuerpo" style="height: 700px;overflow: scroll;">
+                  <table class="table">
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<table hidden>
+  <tr id="moldeColumna">
+    <td class="fecha col-md-9">9999-99-99 99:99:99</td>
+    <td class="col-md-3">
+      <button class="btn btn-info verLog"><i class="fa fa-fw fa-search-plus"></i></button>
+    </td>
+  </tr>
+  <tr id="moldeCuerpo">
+    <td class="json">JSON</td>
+  <tr>
+</table>
 
 @if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_despacho)
   <div class="row">

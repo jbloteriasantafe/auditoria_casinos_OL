@@ -718,5 +718,12 @@ class informesController extends Controller
     }
     return ['data' => $data,'total' => $jugs];
   }
+  public function historialJugador($id_jugador){
+    return [
+      ['fecha' => '1900-01-01','json' => []],
+      ['fecha' => '1900-01-02','json' => ['asd' => 'a']],
+      ['fecha' => '1900-01-03','json' => ['bd' => 'd']],
+    ];
+  }
 }
 
