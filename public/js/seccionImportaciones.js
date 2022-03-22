@@ -505,8 +505,8 @@ $('#btn-guardarProducido').on('click',function(e){
   }
 
   const url_modo = {
-    'producido_juegos'    : 'importarProducido',
-    'producido_jugadores' : 'importarProducidoJugadores',
+    'producido_juegos'    : 'importaciones/importarProducido',
+    'producido_jugadores' : 'importaciones/importarProducidoJugadores',
   };
   const modo = $('#modalImportacionProducidos').data('modo');
   if(!(modo in url_modo)) return;

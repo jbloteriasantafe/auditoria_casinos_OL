@@ -697,5 +697,11 @@ class informesController extends Controller
   private function nf($s,$d = 2){//Formatea el numero con digitos en MYSQL
     return "FORMAT($s,$d,'es_AR')";
   }
+
+  public function informeEstadoJuegosJugadores(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Juegos/Jugadores','informeEstadoJuegosJugadores');
+    return view('seccionInformeEstadoJuegosJugadores' , ['plataformas' => $usuario->plataformas]);
+  }
 }
 

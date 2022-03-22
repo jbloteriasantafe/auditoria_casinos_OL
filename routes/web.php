@@ -223,7 +223,7 @@ Route::post('interanuales','BeneficioMensualController@cargaSeccionInteranual');
 Informes
 ***********/
 //@TODO: Agregar y asignar privilegios para esta sección
-Route::group(['prefix' => 'informePlataforma'],function(){
+Route::group(['prefix' => 'informePlataforma','middleware' =>'tiene_permiso:ver_seccion_estestadoparque'],function(){
   Route::get('/' , 'informesController@informePlataforma');
   Route::get('/obtenerClasificacion','informesController@obtenerClasificacion');
   Route::get('/obtenerPdevs','informesController@obtenerPdevs');
@@ -233,7 +233,7 @@ Route::group(['prefix' => 'informePlataforma'],function(){
   Route::get('/obtenerEvolucionCategorias','informesController@obtenerEvolucionCategorias');
 });
 
-Route::group(['prefix' => 'informeContableJuego'],function(){
+Route::group(['prefix' => 'informeContableJuego','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
   Route::get('/','informesController@informeContableJuego');
   Route::get('obtenerJuegoPlataforma/{id_plataforma}/{cod_juego?}', 'informesController@obtenerJuegoPlataforma');
   Route::get('obtenerJugadorPlataforma/{id_plataforma}/{jugador?}', 'informesController@obtenerJugadorPlataforma');
@@ -241,6 +241,10 @@ Route::group(['prefix' => 'informeContableJuego'],function(){
   Route::get('obtenerProducidosDeJuego/{id_plataforma}/{cod_juego}/{offset?}/{size}','informesController@obtenerProducidosDeJuego');
   Route::get('obtenerProducidosDeJugador/{id_plataforma}/{jugador}/{offset?}/{size}','informesController@obtenerProducidosDeJugador');
   Route::get('{id_plataforma}/{modo}/{codigo}','informesController@informeContableJuego');
+});
+
+Route::group(['prefix' => 'informeEstadoJuegosJugadores','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
+  Route::get('/','informesController@informeEstadoJuegosJugadores');
 });
 
 //@TODO: Agregar y asignar privilegios para esta sección

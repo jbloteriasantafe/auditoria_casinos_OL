@@ -159,56 +159,20 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="expedientes"><i class="fa fa-share fa-2x"></i>@svg('expedientes','iconoExpedientes')</a>
                                           @elseif($visitada->ruta == 'informePlataforma')
                                             <a href="informePlataforma"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'estadisticas_relevamientos')
-                                            <a href="estadisticas_relevamientos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'informeContableJuego')
                                             <a href="informeContableJuego"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'informeSector')
-                                            <a href="informeSector"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'relevamientosProgresivo')
-                                            <a href="relevamientosProgresivo"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'maquinas')
-                                            <a href="maquinas"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'progresivos')
-                                            <a href="progresivos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'islas')
-                                            <a href="islas"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'formulas')
-                                            <a href="formulas"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
+                                          @elseif($visitada->ruta == 'informeEstadoJuegosJugadores')
+                                            <a href="informeEstadoJuegosJugadores"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'juegos')
                                             <a href="juegos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'certificadoSoft')
                                             <a href="certificadoSoft"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'certificadoHard')
-                                            <a href="certificadoHard"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'sectores')
-                                            <a href="sectores"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'importaciones')
                                             <a href="importaciones"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'relevamientos')
-                                            <a href="relevamientos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'mtm_a_pedido')
-                                            <a href="mtm_a_pedido"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'producidos')
                                             <a href="producidos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'beneficios')
                                             <a href="beneficios"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'layout_total')
-                                            <a href="layout_total"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'layout_parcial')
-                                            <a href="layout_parcial"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'prueba_juego')
-                                            <a href="prueba_juegos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'prueba_progresivos')
-                                            <a href="prueba_progresivos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'movimientos')
-                                            <a href="movimientos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'relevamientos_movimientos')
-                                            <a href="relevamientos_movimientos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'eventualidades')
-                                            <a href="eventualidades"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'eventualidadesMTM')
-                                            <a href="eventualidadesMTM"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'estadisticasGenerales')
                                             <a href="estadisticasGenerales"><i class="fa fa-share fa-2x"></i>@svg('tablero_modif','iconoTableroModif')</a>
                                           @elseif($visitada->ruta == 'estadisticasPorCasino')
@@ -217,24 +181,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="interanuales"><i class="fa fa-share fa-2x"></i>@svg('tablero_control','iconoTableroModif')</a>
                                           @elseif($visitada->ruta == 'informesJuegos')
                                             <a href="informesJuegos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoInformesModif')</a>
-                                          @elseif($visitada->ruta == 'bingo')
-                                            <a href="bingo"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
-                                          @elseif($visitada->ruta == 'diferencia-bingo')
-                                            <a href="bingo/reportesDiferencia"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
-                                          @elseif($visitada->ruta == 'estado-bingo')
-                                            <a href="bingo/reportesEstado"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
-                                          @elseif($visitada->ruta == 'importacion-bingo')
-                                            <a href="bingo/importarRelevamiento"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
-                                          @elseif($visitada->ruta == 'informe-bingo')
-                                            <a href="bingo/informe"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>  
-                                          @elseif($visitada->ruta == 'relevamientosControlAmbiental')
-                                            <a href="relevamientosControlAmbiental"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'autoexclusion')
-                                            <a href="autoexclusion"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
-                                          @elseif($visitada->ruta == 'galeriaAE')
-                                            <a href="galeriaImagenesAutoexcluidos"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
-                                          @elseif($visitada->ruta == 'informesAutoexcluidos')
-                                            <a href="informesAutoexcluidos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoInformesModif')</a>
                                           @endif
                                           <h6>{{$visitada->seccion}}</h6>
                                   </div>

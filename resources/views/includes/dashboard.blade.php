@@ -150,10 +150,14 @@ $id_usuario = $usuario['usuario']->id_usuario;
                     'link' => '/informePlataforma',
                     'algun_permiso' => ['ver_seccion_estestadoparque'],
                   ],
-                  'Juegos/Jugadores' => [
+                  '<span>Juegos/Jugadores</span><small>[contable]</small>' => [
                     'link' => '/informeContableJuego',
                     'algun_permiso' => ['ver_seccion_informecontable'],
                   ],
+                  '<span>Juegos/Jugadores</span><small>[estado]</small>' => [
+                    'link' => '/informeEstadoJuegosJugadores',
+                    'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
+                  ]
                 ]
               ]
             ];
