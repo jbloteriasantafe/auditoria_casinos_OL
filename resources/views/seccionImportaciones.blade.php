@@ -576,7 +576,7 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js?3" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js?4" charset="utf-8"></script>
     <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->
