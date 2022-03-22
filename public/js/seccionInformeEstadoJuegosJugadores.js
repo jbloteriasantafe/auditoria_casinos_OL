@@ -201,7 +201,7 @@ $('#columnasCSV').change(function(){
 });
 
 $('#importarCSV').click(function(){
-    $('#importarCSVinput').click();
+  $('#importarCSVinput').click();
 });
 
 $('#importarCSVinput').change(function(){
@@ -217,7 +217,8 @@ $('#importarCSVinput').change(function(){
 
 function exportarCSV(){
     const vacio = function(s){
-        return s == '\xa0' || s == '\xa0 - \xa0';
+      const trim = s.trim();
+      return trim == '' || trim == '-';
     }
     const filas = [];
     const borrar = $('#columnasCSV').is(':checked');
@@ -264,104 +265,98 @@ function exportarCSV(){
 
 
 function mostrarColumnas(hidecols){
-    $('#tablaCSV thead tr th').each(function(idx,elem){
-        $(elem).css('display',hidecols[idx]? 'none' : '');
-    });
-    $('#tablaCSV tbody tr').not('.filaTablaCSV').each(function(){
-        $(this).find('td').each(function(idx,elem){
-            $(elem).css('display',hidecols[idx]? 'none' : '');
-        })
-    });
+  $('#tablaCSV thead tr th').each(function(idx,elem){
+    $(elem).css('display',hidecols[idx]? 'none' : '');
+  });
+  $('#tablaCSV tbody tr').not('.filaTablaCSV').each(function(){
+    $(this).find('td').each(function(idx,elem){
+      $(elem).css('display',hidecols[idx]? 'none' : '');
+    })
+  });
+}
+
+const to_iso = function(s){
+  const ddmmyy = s.split('/');
+  if(ddmmyy.length < 3) return null;
+  //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
+  return '20'+ddmmyy[2]+'-'+ddmmyy[1]+'-'+ddmmyy[0]+'T00:00:00.000-03:00';
 }
 
 function importarCSV(s){
-    $('#limpiarCSV').click();
-    s = s.replace(/\r\n/g,'\n');//Saco el retorno de linea de Windows
-    let lines = s.split('\n');
-    if(lines.length == 0) return;
-    const colnames = lines[0].split(',');
-    const tablecols = $('#tablaCSV thead tr');
-    const colidxs = {};
-    // Nota: Las columnas pueden faltar por la opcion de remover columnas, por eso
-    // es necesario este paso
-    for(const idx in colnames){// Saco cual es el numero de la columna
-        const col = colnames[idx].replace(/"/g,'');//Le saco comillas
-        const th = tablecols.find('th:contains('+col+')');
-        if(th.length == 0) continue;//No existe columna con ese nombre
-        const filtro = th.attr('data-busq');
-        const es_fecha = th.is('[fecha]');
-        const attr = th.attr('data-busq-attr');
-        colidxs[idx] = {filtro: filtro,es_fecha: es_fecha,attr: attr,rango: th.is('[rango]'),opcional: th.is('[opcional]')};
+  $('#limpiarCSV').click();
+  s = s.replace(/\r\n/g,'\n');//Saco el retorno de linea de Windows
+  let lines = s.split('\n');
+  if(lines.length == 0) return;
+  const colnames = lines[0].split(',');
+  const tablecols = $('#tablaCSV thead tr');
+  const colidxs = {};
+  // Nota: Las columnas pueden faltar por la opcion de remover columnas, por eso
+  // es necesario este paso
+  for(const idx in colnames){// Saco cual es el numero de la columna
+    const col = colnames[idx].replace(/"/g,'');//Le saco comillas
+    const th = tablecols.find('th:contains('+col+')');
+    if(th.length == 0) continue;//No existe columna con ese nombre
+    colidxs[idx] = {
+      filtro: th.attr('data-busq'),attr: th.attr('data-busq-attr'),es_fecha:  th.is('[fecha]'),es_rango: th.is('[rango]')
+    };
+  }
+  lines  = lines.slice(1);
+  if(lines.length == 0) return;
+  //NOTA: esto tal vez termino siendo artificialmente generico, capaz era mejor hardcodear cada opcion en un switch
+  for(const lineidx in lines){
+    if(lines[lineidx].length == 0) continue;
+    const cols = lines[lineidx].split(',');
+    limpiarFiltros();
+    for(const colidx in cols){
+      if(!colidxs.hasOwnProperty(colidx)) continue;
+      const aux = colidxs[colidx];
+      const text = cols[colidx].replace(/"/g,'');
+      if(aux.es_fecha){
+        const fechas = text.split('-');
+        const desde = to_iso(fechas[0]? fechas[0].replace(/ /g,'') : '');
+        const hasta = to_iso(fechas[1]? fechas[1].replace(/ /g,'') : '');
+        const dtpD = $(aux.filtro+'D');
+        const dtpH = $(aux.filtro+'H');
+        if(desde != null) dtpD.data("datetimepicker").setDate(new Date(desde));
+        if(hasta != null) dtpH.data("datetimepicker").setDate(new Date(hasta));
+      }
+      else if(aux.es_rango){
+        const vals = text.split('-');
+        cargarVal($(aux.filtro+'D'),aux.attr,vals[0]? vals[0] : '');
+        cargarVal($(aux.filtro+'H'),aux.attr,vals[1]? vals[1] : '');
+      }
+      else{
+        cargarVal($(aux.filtro),aux.attr,text);
+      }
     }
-    lines  = lines.slice(1);
-    if(lines.length == 0) return;
-    const to_iso = function(s){
-        const ddmmyy = s.split('/');
-        if(ddmmyy.length < 3) return null;
-        //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
-        return '20'+ddmmyy[2]+'-'+ddmmyy[1]+'-'+ddmmyy[0]+'T00:00:00.000-03:00';
-    }
-    //NOTA: esto tal vez termino siendo artificialmente generico, capaz era mejor hardcodear cada opcion en un switch
-    for(const lineidx in lines){
-        if(lines[lineidx].length == 0) continue;
-        const cols = lines[lineidx].split(',');
-        limpiarFiltros();
-        for(const colidx in cols){
-            if(!colidxs.hasOwnProperty(colidx)) continue;
-            const aux = colidxs[colidx];
-            const text = cols[colidx].replace(/"/g,'');
-            if(aux.es_fecha){
-                const fechas = text.split('-');
-                const desde = to_iso(fechas[0]? fechas[0].replace(/ /g,'') : '');
-                const hasta = to_iso(fechas[1]? fechas[1].replace(/ /g,'') : '');
-                const dtpD = $(aux.filtro+'D');
-                const dtpH = $(aux.filtro+'H');
-                if(desde != null) dtpD.data("datetimepicker").setDate(new Date(desde));
-                if(hasta != null) dtpH.data("datetimepicker").setDate(new Date(hasta));
-            }
-            else if(aux.rango){
-                if(aux.opcional){
-                    if(text == "No contesta"){
-                        $(aux.filtro+'D').parent().find('.no_contesta').prop('checked',true).change();
-                        continue;
-                    }
-                }
-                const vals = text.split('-');
-                cargarVal($(aux.filtro+'D'),aux.attr,vals[0]? vals[0] : '');
-                cargarVal($(aux.filtro+'H'),aux.attr,vals[1]? vals[1] : '');
-            }
-            else{
-                cargarVal($(aux.filtro),aux.attr,text);
-            }
-        }
-        $('#agregarCSV').click();
-    }
+    $('#agregarCSV').click();
+  }
 }
 
 function cargarVal(dom,attr,text){
-    if(dom.is('select')){
-        const selval = dom.find('option').filter(function () { //Busco el val del option para setearlo
-            const seltext = (attr)? $(this).attr(attr) : $(this).text();
-            return seltext == text; 
-        }).val();
-        dom.val(selval);
-    }
-    else if(dom.is('input')){
-        dom.val(text);
-    }
+  if(dom.is('select')){
+    const selval = dom.find('option').filter(function () { //Busco el val del option para setearlo
+        const seltext = (attr)? $(this).attr(attr) : $(this).text();
+        return seltext == text; 
+    }).val();
+    dom.val(selval);
+  }
+  else if(dom.is('input')){
+    dom.val(text);
+  }
 }
 
 function limpiarFiltros(){
-    $('#collapseFiltros input').val('');
-    $('#collapseFiltros select').val('');
-    $('#collapseFiltros .no_contesta').prop('checked',true).change().prop('checked',false).change();
+  $('#collapseFiltros input').val('');
+  $('#collapseFiltros select').val('');
+  $('#collapseFiltros .no_contesta').prop('checked',true).change().prop('checked',false).change();
 }
 
 function mensajeError(msg){
-    $('#mensajeError .textoMensaje').empty();
-    $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
-    $('#mensajeError').hide();
-    setTimeout(function() {
-      $('#mensajeError').show();
-    }, 250);
-  }
+  $('#mensajeError .textoMensaje').empty();
+  $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
+  $('#mensajeError').hide();
+  setTimeout(function() {
+    $('#mensajeError').show();
+  }, 250);
+}
