@@ -154,7 +154,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                     'link' => '/informeContableJuego',
                     'algun_permiso' => ['ver_seccion_informecontable'],
                   ],
-                  '<span>Juegos/Jugadores</span><small>[estado]</small>' => [
+                  '<span>Jugadores</span><small>[estado]</small>' => [
                     'link' => '/informeEstadoJuegosJugadores',
                     'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
                   ]

@@ -17,7 +17,7 @@ $(document).ready(function(){
   $('#dtpFechaAltaH').datetimepicker(iso_dtp);
   $('#dtpFechaUltimoMovimientoD').datetimepicker(iso_dtp);
   $('#dtpFechaUltimoMovimientoH').datetimepicker(iso_dtp);
-  $('.tituloSeccionPantalla').text('Informes de Autoexcluidos');
+  $('.tituloSeccionPantalla').text('Estado de Jugadores');
   $('#btn-buscar').trigger('click');
 });
 
@@ -96,10 +96,10 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
 $(document).on('click', '#tablaJugadores thead tr th[value]', function(e) {
   $('#tablaJugadores th').removeClass('activa');
   if ($(e.currentTarget).children('i').hasClass('fa-sort')) {
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado', 'desc');
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado', 'desc');
   } else {
-    if ($(e.currentTarget).children('i').hasClass('fa-sort-desc')) {
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado', 'asc');
+    if ($(e.currentTarget).children('i').hasClass('fa-sort-down')) {
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado', 'asc');
     } else {
       $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
     }
@@ -162,69 +162,32 @@ $('#agregarCSV').click(function(){
   const plataforma = $('#buscadorPlataforma').val() == ''? '\xa0' : $('#buscadorPlataforma option:selected').attr('data-codigo');
   assign(fila.find('.plataforma'),plataforma);
 
-  const estado = $('#buscadorEstado').val() == ''? '\xa0' : $('#buscadorEstado option:selected').text();
-  assign(fila.find('.estado'),estado);
+  assign(fila.find('.codigo'),e($('#buscadorCodigo').val()));
 
-  const finalizoAE = $('#finalizoAE').val() == ''? '\xa0' : $('#finalizoAE option:selected').text();
-  assign(fila.find('.finalizoAE'),finalizoAE);
-
-  assign(fila.find('.apellido'),e($('#buscadorApellido').val()));
-
-  const dia = $('#buscadorDia').val() == ''? '\xa0' : $('#buscadorDia option:selected').text();
-  assign(fila.find('.dia_semanal'),dia);
+  const f_alta = e($('#buscadorFechaAltaD').val())+' - '+e($('#buscadorFechaAltaH').val());
+  assign(fila.find('.fecha_alta'),f_alta.trim() == '-'? '\xa0' : f_alta);
 
   const rango_etario = e($('#buscadorRangoEtarioD').val()) +' - '+ e($('#buscadorRangoEtarioH').val());
-  assign(fila.find('.rango_etario'),rango_etario.length == 5? '\xa0' : rango_etario);
+  assign(fila.find('.rango_etario'),rango_etario.trim() == '-'? '\xa0' : rango_etario);
 
-  assign(fila.find('.dni'),e($('#buscadorDni').val()));
-  const sexo = $('#buscadorSexo').val() == ''? '\xa0' : $('#buscadorSexo option:selected').text();
-  assign(fila.find('.sexo'),e(sexo));
+  assign(fila.find('.sexo'),e($('#buscadorSexo').val()));
   assign(fila.find('.localidad'),e($('#buscadorLocalidad').val()));
   assign(fila.find('.provincia'),e($('#buscadorProvincia').val()));
+  assign(fila.find('.estado'),e($('#buscadorEstado').val()));
+
   const f_ae = e($('#buscadorFechaAutoexclusionD').val())+' - '+e($('#buscadorFechaAutoexclusionH').val());
-  assign(fila.find('.f_ae'),f_ae.length == 5? '\xa0' : f_ae);
-  const f_v = e($('#buscadorFechaVencimientoD').val())   +' - '+e($('#buscadorFechaVencimientoH').val())
-  assign(fila.find('.f_v'),f_v.length == 5? '\xa0' : f_v);
-  const f_r = e($('#buscadorFechaRevocacionD').val())    +' - '+e($('#buscadorFechaRevocacionH').val());
-  assign(fila.find('.f_r'),f_r.length == 5? '\xa0' : f_r);
-  const f_c = e($('#buscadorFechaCierreD').val())       +' - '+e($('#buscadorFechaCierreH').val());
-  assign(fila.find('.f_c'),f_c.length == 5? '\xa0' : f_c);
+  console.log(f_ae.trim());
+  assign(fila.find('.fecha_autoexclusion'),f_ae.trim() == '-'? '\xa0' : f_ae);
 
-  const hace_encuesta = $('#buscadorEncuesta option:selected').text();
-  assign(fila.find('.hace_encuesta'),$('#buscadorEncuesta').val() == ''? '\xa0' : hace_encuesta);
-  const frecuencia = $('#buscadorFrecuencia option:selected').text();
-  assign(fila.find('.frecuencia'),$('#buscadorFrecuencia').val() == ''? '\xa0' : frecuencia);
-  const compania = $('#buscadorCompania option:selected').text();
-  assign(fila.find('.compania'),$('#buscadorCompania').val() == ''? '\xa0' : compania);
-  const juego = $('#buscadorJuego option:selected').text();
-  assign(fila.find('.juego'),$('#buscadorJuego').val() == ''? '\xa0' : juego);
-  const programa = $('#buscadorJuegoResponsable option:selected').text();
-  assign(fila.find('.programa'),$('#buscadorJuegoResponsable').val() == ''? '\xa0' : programa);
-  const socio = $('#buscadorClub option:selected').text();
-  assign(fila.find('.socio'),$('#buscadorClub').val() == ''? '\xa0' : socio);
-  const autocontrol = $('#buscadorAutocontrol option:selected').text();
-  assign(fila.find('.autocontrol'),$('#buscadorAutocontrol').val() == ''? '\xa0' : autocontrol);
-  const recibir_info = $('#buscadorRecibirInfo option:selected').text();
-  assign(fila.find('.recibir_info'),$('#buscadorRecibirInfo').val() == ''? '\xa0' : recibir_info);
-  const medio = $('#buscadorMedio option:selected').text();
-  assign(fila.find('.medio'),$('#buscadorMedio').val() == ''? '\xa0' : medio);
-
-  const range_val = function(s1,s2){
-      const obj1 = $(s1);
-      const obj2 = $(s2);
-      if($(s1).parent().find('.no_contesta').prop('checked')) return 'No contesta';
-      return obj1.val() + ' - ' + obj2.val();
-  }
-
-  const horas = range_val('#buscadorHorasD','#buscadorHorasH');
-  assign(fila.find('.horas'),horas.length == 3? '\xa0' : horas);
-  const veces = range_val('#buscadorVecesD','#buscadorVecesH');
-  assign(fila.find('.veces'),veces.length == 3? '\xa0' : veces);
+  const f_ultimo_mov = e($('#buscadorFechaUltimoMovimientoD').val())+' - '+e($('#buscadorFechaUltimoMovimientoH').val());
+  assign(fila.find('.fecha_ultimo_movimiento'),f_ultimo_mov.trim() == '-'? '\xa0' : f_ultimo_mov);
 
   const cant = $('#herramientasPaginacion h4').text().split(' ')[6];//@HACK
   assign(fila.find('.cant'),cant == null? '0' : cant);
+
   fila.find('td').filter(function () { return $(this).text() == '\xa0';}).css('background','rgba(0,0,0,0.1)');
   $('#tablaCSV tbody').append(fila);
+  
   exportarCSV()
 });
 
@@ -302,7 +265,6 @@ function exportarCSV(){
 
 function mostrarColumnas(hidecols){
     $('#tablaCSV thead tr th').each(function(idx,elem){
-        console.log(idx);
         $(elem).css('display',hidecols[idx]? 'none' : '');
     });
     $('#tablaCSV tbody tr').not('.filaTablaCSV').each(function(){

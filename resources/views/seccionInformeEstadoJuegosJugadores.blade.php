@@ -50,10 +50,6 @@ opacity: 1;
 .step.finish {
 background-color: #4CAF50;
 }
-
-.smalltext{
-  font-size: 95%;
-}
 </style>
 @endsection
 
@@ -200,13 +196,13 @@ background-color: #4CAF50;
                   <tr>
                     <th value="plataforma" estado="">PLATAFORMA<i class="fa fa-sort"></i></th>
                     <th value="codigo" estado="">CÓDIGO<i class="fa fa-sort"></i></th>
-                    <th value="estado" estado="">ESTADO<i class="fa fa-sort"></i></th>
+                    <th value="fecha_alta" estado="">F. ALTA<i class="fa fa-sort"></i></th>
                     <th value="fecha_nacimiento" estado="">F. NACIMIENTO<i class="fa fa-sort"></i></th>
                     <th value="sexo" estado="">SEXO<i class="fa fa-sort"></i></th>
                     <th value="localidad" estado="">LOCALIDAD<i class="fa fa-sort"></i></th>
                     <th value="provincia" estado="">PROVINCIA<i class="fa fa-sort"></i></th>
+                    <th value="estado" estado="">ESTADO<i class="fa fa-sort"></i></th>
                     <th value="fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
-                    <th value="fecha_alta" estado="">F. ALTA<i class="fa fa-sort"></i></th>
                     <th value="fecha_ultimo_movimiento" estado="">F. ULTIMO MOV.<i class="fa fa-sort"></i></th>
                   </tr>
                 </thead>
@@ -216,14 +212,14 @@ background-color: #4CAF50;
               <table hidden>
                 <tr id="moldeTablaJugadores">
                   <td class="plataforma">PLATAFORMA</td>
-                  <td class="codigo">CÓDIGO</td>             
-                  <td class="estado">ESTADO</td>
+                  <td class="codigo">CÓDIGO</td>
+                  <td class="fecha_alta">F. ALTA</td>             
                   <td class="fecha_nacimiento">F. NACIMIENTO</td>
                   <td class="sexo">SEXO</td>
                   <td class="localidad">LOCALIDAD</td>
                   <td class="provincia">PROVINCIA</td>
+                  <td class="estado" style="border-left: 2px dashed #ddd;">ESTADO</td>
                   <td class="fecha_ae">F. AE</td>
-                  <td class="fecha_alta">F. ALTA</td>
                   <td class="fecha_ultimo_movimiento">F. ULTIMO MOV.</td>
                 </tr>
               </table>
@@ -247,65 +243,43 @@ background-color: #4CAF50;
       <a type="button" class="btn btn-light" id="descargarCSV">Descargar</a>
     </div>
     <div class="panel-body" style="height: 400px;overflow-y: auto;overflow-x: auto;">
+    <style>
+    #tablaCSV th,#tablaCSV td{
+      font-size: 95%;
+      padding: 0px;
+      margin: 0px;
+      width: 9.09%;
+    }
+    </style>
     <table id="tablaCSV" class="table table-responsive table-bordered">
       <thead>
         <tr>
-          <th class="smalltext plataforma" style="width: 4%;" data-busq="#buscadorPlataforma" data-busq-attr='data-codigo'>PLAT</th>
-          <th class="smalltext estado" style="width: 6%;" data-busq="#buscadorEstado">Estado</th>
-          <th class="smalltext finalizoAE" style="width: 2%;" data-busq="#finalizoAE">FIN. AE</th>
-          <th class="smalltext apellido" style="width: 6%;" data-busq="#buscadorApellido">Apellido</th>
-          <th class="smalltext dia_semanal" style="width: 4%" data-busq="#buscadorDia">Día</th>
-          <th class="smalltext rango_etario" style="width: 4%" data-busq="#buscadorRangoEtario" rango>Rango Etario</th>
-          <th class="smalltext dni" style="width: 7%;" data-busq="#buscadorDni">DNI</th>
-          <th class="smalltext sexo" style="width: 5%;" data-busq="#buscadorSexo">Sexo</th>
-          <th class="smalltext localidad" style="width: 8%;" data-busq="#buscadorLocalidad">Localidad</th>
-          <th class="smalltext provincia" style="width: 8%;" data-busq="#buscadorProvincia">Provincia</th>
-          <th class="smalltext f_ae" style="width: 10%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
-          <th class="smalltext f_v" style="width: 10%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
-          <th class="smalltext f_r" style="width: 10%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
-          <th class="smalltext f_c" style="width: 10%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
-          <th class="smalltext hace_encuesta" style="width: 3%;" data-busq="#buscadorEncuesta" >Encuesta</th>
-          <th class="smalltext frecuencia" style="width: 3%;" data-busq="#buscadorFrecuencia" >Frecuencia</th>
-          <th class="smalltext veces" style="width: 3%;" data-busq="#buscadorVeces" rango opcional>Veces</th>
-          <th class="smalltext horas" style="width: 3%;" data-busq="#buscadorHoras" rango opcional>Horas</th>
-          <th class="smalltext compania" style="width: 3%;" data-busq="#buscadorCompania" >Compañia</th>
-          <th class="smalltext juego" style="width: 3%;" data-busq="#buscadorJuego" >Juego</th>
-          <th class="smalltext programa" style="width: 3%;" data-busq="#buscadorJuegoResponsable" >Programa J.R.</th>
-          <th class="smalltext socio" style="width: 3%;" data-busq="#buscadorClub" >Socio</th>
-          <th class="smalltext autocontrol" style="width: 3%;" data-busq="#buscadorAutocontrol" >Autocontrol</th>
-          <th class="smalltext recibir_info" style="width: 3%;" data-busq="#buscadorRecibirInfo" >Recib. Info</th>
-          <th class="smalltext medio" style="width: 3%;" data-busq="#buscadorMedio" >Medio</th>
-          <th class="smalltext cant" style="width: 6%;">CANT.</th>
+          <th class="plataforma"   data-busq="#buscadorPlataforma" data-busq-attr='data-codigo'>Plataforma</th>
+          <th class="codigo"       data-busq="#buscadorCodigo">Código</th>
+          <th class="fecha_alta"   data-busq="#dtpFechaAlta" fecha>Fecha Alta</th>
+          <th class="rango_etario" data-busq="#buscadorRangoEtario" rango>Rango Etario</th>
+          <th class="sexo"         data-busq="#buscadorSexo">Sexo</th>
+          <th class="localidad"    data-busq="#buscadorLocalidad">Localidad</th>
+          <th class="provincia"    data-busq="#buscadorProvincia">Provincia</th>
+          <th class="estado"       data-busq="#buscadorEstado">Estado</th>
+          <th class="fecha_autoexclusion" data-busq="#dtpFechaAutoexclusion" fecha>Fecha Autoexclusión</th>
+          <th class="fecha_ultimo_movimiento" data-busq="#dtpFechaUltimoMovimiento" fecha>Fecha Ultimo Movimiento</th>
+          <th class="cant">CANT.</th>
         </tr>
       </thead>
       <tbody>
         <tr class="filaTablaCSV" style="display: none">
-          <td class="smalltext plataforma"    style="width: 4%;">PLAT</td>
-          <td class="smalltext estado"    style="width: 6%;">ESTADO</td>
-          <td class="smalltext finalizoAE"    style="width: 2%;">FINALIZO AE</td>
-          <td class="smalltext apellido"  style="width: 6%;">APELLIDO</td>
-          <td class="smalltext dia_semanal" style="width: 4%">DIA</td>
-          <td class="smalltext rango_etario" style="width: 4%">00-99</td>
-          <td class="smalltext dni"       style="width: 7%;">DNI</td>
-          <td class="smalltext sexo"      style="width: 5%;">S</td>
-          <td class="smalltext localidad" style="width: 8%;">LOC</td>
-          <td class="smalltext provincia" style="width: 8%;">PROV</td>
-          <td class="smalltext f_ae"    style="width: 10%;">Fecha AE</td>
-          <td class="smalltext f_v"     style="width: 10%;">Fecha Venc.</td> 
-          <td class="smalltext f_r"     style="width: 10%;">Fecha Revoc.</td>
-          <td class="smalltext f_c"     style="width: 10%;" >Fecha Cierre</td>
-          <td class="smalltext hace_encuesta"     style="width: 3%;">Encuesta</td>
-          <td class="smalltext frecuencia"   style="width: 3%;">Frecuencia</td>
-          <td class="smalltext veces"        style="width: 3%;">Veces</td>
-          <td class="smalltext horas"        style="width: 3%;">Horas</td>
-          <td class="smalltext compania"     style="width: 3%;">Compañia</td>
-          <td class="smalltext juego"        style="width: 3%;">Juego</td>
-          <td class="smalltext programa"     style="width: 3%;">Programa J.R.</td>
-          <td class="smalltext socio"        style="width: 3%;" >Socio</td>
-          <td class="smalltext autocontrol"  style="width: 3%;">Autocontrol</td>
-          <td class="smalltext recibir_info" style="width: 3%;">Recib. Info</td>
-          <td class="smalltext medio"        style="width: 3%;">Medio</td>
-          <td class="smalltext cant"      style="width: 6%;" >CANT.</td>
+          <td class="plataforma"   data-busq="#buscadorPlataforma" data-busq-attr='data-codigo'>Plataforma</td>
+          <td class="codigo"       data-busq="#buscadorCodigo">Código</td>
+          <td class="fecha_alta"   data-busq="#dtpFechaAlta" fecha>Fecha Alta</td>
+          <td class="rango_etario" data-busq="#buscadorRangoEtario" rango>Rango Etario</td>
+          <td class="sexo"         data-busq="#buscadorSexo">Sexo</td>
+          <td class="localidad"    data-busq="#buscadorLocalidad">Localidad</td>
+          <td class="provincia"    data-busq="#buscadorProvincia">Provincia</td>
+          <td class="estado"       data-busq="#buscadorEstado">Estado</td>
+          <td class="fecha_autoexclusion" data-busq="#dtpFechaAutoexclusion" fecha>Fecha Autoexclusión</td>
+          <td class="fecha_ultimo_movimiento" data-busq="#dtpFechaUltimoMovimiento" fecha>Fecha Ultimo Movimiento</td>
+          <td class="cant">CANT.</td>
         </tr>
       </tbody>
     </table>
@@ -325,13 +299,11 @@ background-color: #4CAF50;
 
   <!-- Comienza modal de ayuda -->
   @section('tituloDeAyuda')
-  <h3 class="modal-title2" style="color: #fff;">| SESIONES</h3>
+  <h3 class="modal-title2" style="color: #fff;">Estado de Jugadores</h3>
   @endsection
   @section('contenidoAyuda')
   <div class="col-md-12">
-    <h5>Tarjeta de Sesiones</h5>
-    <p>
-      Agregar nuevos autoexluidos, revocar autoexclusiones, ver listado y estados.
+    <p>Buscar, filtrar y obtener el historial del estado de los jugadores</p>
   </div>
   @endsection
   <!-- Termina modal de ayuda -->
