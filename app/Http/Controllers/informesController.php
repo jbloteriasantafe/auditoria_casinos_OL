@@ -701,7 +701,22 @@ class informesController extends Controller
   public function informeEstadoJuegosJugadores(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Juegos/Jugadores','informeEstadoJuegosJugadores');
-    return view('seccionInformeEstadoJuegosJugadores' , ['plataformas' => $usuario->plataformas]);
+    return view('seccionInformeEstadoJuegosJugadores' , [
+      'plataformas' => $usuario->plataformas,
+      'estados'     => ['Pending','New','Enabled','Disabled','Autoexcluded','Suspended'],
+      'sexos'       => ['Hombre','Mujer','Otro'],
+    ]);
+  }
+  public function buscarJugadores(){
+    $jugs = rand(10,100);
+    $data = [];
+    for($i = 0;$i<$jugs;$i++){
+      $data[] = ['id_jugador' => -1,'plataforma' => 'XXX','codigo' => '999','estado' => 'EEE','fecha_nacimiento' => '1900-01-01','sexo' => 'MFO',
+                  'localidad' => 'LOC','provincia' => 'PROV','fecha_autoexclusion' => '1900-01-02','fecha_alta'=>'1900-01-03',
+                  'fecha_ultimo_movimiento' => '1900-01-04'
+      ];
+    }
+    return ['data' => $data,'total' => $jugs];
   }
 }
 
