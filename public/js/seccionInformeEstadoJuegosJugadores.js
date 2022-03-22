@@ -81,7 +81,8 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
 
       $('#tablaJugadores tbody').empty();
       for (let i = 0; i < resultados.data.length; i++) {
-        $('#tablaJugadores tbody').append(generarFilaTabla(resultados.data[i]));
+        const fila = $('#moldeTablaJugadores').clone().removeAttr('id');
+        $('#tablaJugadores tbody').append(llenarFila(fila,resultados.data[i]));
       }
 
       $('#herramientasPaginacion').generarIndices(page_number, page_size, resultados.total, clickIndice);
@@ -118,13 +119,12 @@ function clickIndice(e, pageNumber, tam,async = true) {
   $('#btn-buscar').trigger('click', [pageNumber, tam, columna, orden,async]);
 }
 
-function generarFilaTabla(jugador) {
+function llenarFila(fila,jugador){
   const convertir_fecha = function(fecha){
     if(fecha === null || fecha.length == 0) return '-';
     yyyymmdd = fecha.split('-');
     return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
   }
-  const fila = $('#moldeTablaJugadores').clone().removeAttr('id');
   fila.find('.plataforma').text(jugador.plataforma);
   fila.find('.codigo').text(jugador.codigo).attr('title',jugador.codigo);
   fila.find('.estado').text(jugador.estado).attr('title',jugador.estado);
@@ -367,29 +367,15 @@ $(document).on('click','.historia',function(){
     type: "GET",
     url: '/informeEstadoJuegosJugadores/historial/'+$(this).val(),
     success: function (data) {
-      $('#modalHistorial .columna tbody').empty();
       $('#modalHistorial .cuerpo  tbody').empty();
-      data.forEach((val,idx) => {
-        const col = $('#moldeColumna').clone().removeAttr('id');
-        col.find('.fecha').text(val['fecha']);
-        col.attr('data-idx',idx);
-        $('#modalHistorial .columna tbody').append(col);
-        const cuerpo = $('#moldeCuerpo').clone().removeAttr('id');
-        cuerpo.find('.json').empty().append(JSON.stringify(val['json']));
-        cuerpo.attr('data-idx',idx);
-        $('#modalHistorial .cuerpo tbody').append(cuerpo);
+      data.forEach((jugador,idx) => {
+        const fila = $('#moldeCuerpoHistorial').clone().removeAttr('id');
+        $('#modalHistorial .cuerpo tbody').append(llenarFila(fila,jugador));
       });
-      $('tr[data-idx="0"]').find('.verLog').click();
       $('#modalHistorial').modal('show');
     },
     error: function (data) {
       console.log(data);
     }
   });
-});
-
-$(document).on('click','.verLog',function(){
-  const idx = $(this).parent().parent().attr('data-idx');
-  $(`#modalHistorial .cuerpo tr[data-idx!="${idx}"]`).hide();
-  $(`#modalHistorial .cuerpo tr[data-idx="${idx}"]`).show();
 });

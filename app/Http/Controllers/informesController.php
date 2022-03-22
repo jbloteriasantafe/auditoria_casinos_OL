@@ -707,23 +707,28 @@ class informesController extends Controller
       'sexos'       => ['Hombre','Mujer','Otro'],
     ]);
   }
+  private function obtenerJugador($id_jugador){
+    return [
+      'id_jugador' => -1,'plataforma' => 'XXX','codigo' => '999','estado' => 'EEE','fecha_nacimiento' => '1900-01-01','sexo' => 'MFO',
+      'localidad' => 'LOC','provincia' => 'PROV','fecha_autoexclusion' => '1900-01-02','fecha_alta'=>'1900-01-03','fecha_ultimo_movimiento' => '1900-01-04',
+      'fecha_importacion' => '1900-01-01',
+    ];
+  }
   public function buscarJugadores(){
     $jugs = rand(10,100);
     $data = [];
     for($i = 0;$i<$jugs;$i++){
-      $data[] = ['id_jugador' => -1,'plataforma' => 'XXX','codigo' => '999','estado' => 'EEE','fecha_nacimiento' => '1900-01-01','sexo' => 'MFO',
-                  'localidad' => 'LOC','provincia' => 'PROV','fecha_autoexclusion' => '1900-01-02','fecha_alta'=>'1900-01-03',
-                  'fecha_ultimo_movimiento' => '1900-01-04'
-      ];
+      $data[] = $this->obtenerJugador(-1);
     }
     return ['data' => $data,'total' => $jugs];
   }
   public function historialJugador($id_jugador){
-    return [
-      ['fecha' => '1900-01-01','json' => []],
-      ['fecha' => '1900-01-02','json' => ['asd' => 'a']],
-      ['fecha' => '1900-01-03','json' => ['bd' => 'd']],
-    ];
+    $jugs = rand(10,100);
+    $data = [];
+    for($i = 0;$i<$jugs;$i++){
+      $data[] = $this->obtenerJugador(-1);
+    }
+    return $data;
   }
 }
 

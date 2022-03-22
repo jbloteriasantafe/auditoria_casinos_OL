@@ -50,10 +50,44 @@ opacity: 1;
 .step.finish {
 background-color: #4CAF50;
 }
+#tablaJugadores th, #tablaJugadores td,#modalHistorial .cuerpo th,#modalHistorial .cuerpo td{
+  width: 9.09%;
+  padding: 0px;
+  margin: 0px;
+  font-size: 95%;
+  text-align: center;
+}
 </style>
 @endsection
 
 @section('contenidoVista')
+
+@section('columnas_jugador_thead')
+<th value="plataforma">PLATAFORMA<i class='fa fa-sort'></i></th>
+<th value="codigo">CÓDIGO<i class='fa fa-sort'></i></th>
+<th value="fecha_alta">F. ALTA<i class='fa fa-sort'></i></th>
+<th value="fecha_nacimiento">F. NACIMIENTO<i class='fa fa-sort'></i></th>
+<th value="sexo">SEXO<i class='fa fa-sort'></i></th>
+<th value="localidad">LOCALIDAD<i class='fa fa-sort'></i></th>
+<th value="provincia" >PROVINCIA<i class='fa fa-sort'></i></th>
+<th value="estado">ESTADO<i class='fa fa-sort'></i></th>
+<th value="fecha_ae">F. AE<i class='fa fa-sort'></i></th>
+<th value="fecha_ultimo_movimiento" >F. ULTIMO MOV.<i class='fa fa-sort'></i></th>
+@endsection
+
+@section('columnas_jugador_tbody')
+<td class="plataforma">PLATAFORMA</td>
+<td class="codigo">CÓDIGO</td>
+<td class="fecha_alta">F. ALTA</td>             
+<td class="fecha_nacimiento">F. NACIMIENTO</td>
+<td class="sexo">SEXO</td>
+<td class="localidad">LOCALIDAD</td>
+<td class="provincia">PROVINCIA</td>
+<td class="estado">ESTADO</td>
+<td class="fecha_ae">F. AE</td>
+<td class="fecha_ultimo_movimiento">F. ULTIMO MOV.</td>
+@endsection
+
 <div class="col-md-12">
   <div class="row">
     <div class="col-md-10">
@@ -184,48 +218,15 @@ background-color: #4CAF50;
               <h4>LISTADO DE JUGADORES</h4>
             </div>
             <div class="panel-body">
-              <style>
-                #tablaJugadores th, #tablaJugadores td{
-                  width: 9.09%;
-                  padding: 0px;
-                  margin: 0px;
-                  font-size: 95%;
-                  text-align: center;
-                }
-              </style>
               <table id="tablaJugadores" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th value="plataforma" estado="">PLATAFORMA<i class="fa fa-sort"></i></th>
-                    <th value="codigo" estado="">CÓDIGO<i class="fa fa-sort"></i></th>
-                    <th value="fecha_alta" estado="">F. ALTA<i class="fa fa-sort"></i></th>
-                    <th value="fecha_nacimiento" estado="">F. NACIMIENTO<i class="fa fa-sort"></i></th>
-                    <th value="sexo" estado="">SEXO<i class="fa fa-sort"></i></th>
-                    <th value="localidad" estado="">LOCALIDAD<i class="fa fa-sort"></i></th>
-                    <th value="provincia" estado="">PROVINCIA<i class="fa fa-sort"></i></th>
-                    <th value="estado" estado="">ESTADO<i class="fa fa-sort"></i></th>
-                    <th value="fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
-                    <th value="fecha_ultimo_movimiento" estado="">F. ULTIMO MOV.<i class="fa fa-sort"></i></th>
+                    @yield('columnas_jugador_thead')
                     <th>ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody style="height: 350px;">
                 </tbody>
-              </table>
-              <table hidden>
-                <tr id="moldeTablaJugadores">
-                  <td class="plataforma">PLATAFORMA</td>
-                  <td class="codigo">CÓDIGO</td>
-                  <td class="fecha_alta">F. ALTA</td>             
-                  <td class="fecha_nacimiento">F. NACIMIENTO</td>
-                  <td class="sexo">SEXO</td>
-                  <td class="localidad">LOCALIDAD</td>
-                  <td class="provincia">PROVINCIA</td>
-                  <td class="estado">ESTADO</td>
-                  <td class="fecha_ae">F. AE</td>
-                  <td class="fecha_ultimo_movimiento">F. ULTIMO MOV.</td>
-                  <td><button class="btn historia" type="button" title="VER ESTADOS ANTERIORES"><i class="fa fa-fw fa-user-clock"></i></button></td>
-                </tr>
               </table>
               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
             </div>
@@ -236,34 +237,30 @@ background-color: #4CAF50;
 </div>
 
 <div class="modal fade" id="modalHistorial" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" style="width: 70%;">
+  <div class="modal-dialog modal-lg" style="width: 90%;">
       <div class="modal-content">
         <div class="modal-header" style="background: lightgray;">
           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
           <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-          <h3>| HISTORIAL</h2>
+          <h3>HISTORIAL</h2>
         </div>
-
         <div  id="colapsado" class="collapse in">
         <div class="modal-body">
             <div class="row">
-              <div class="col-md-12">
-                <div class="col-md-3 columna" style="height: 700px;overflow: scroll;">
-                  <table class="table">
-                    <tbody>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-md-9 cuerpo" style="height: 700px;overflow: scroll;">
-                  <table class="table">
-                    <tbody>
-                    </tbody>
-                  </table>
-                </div>
+              <div class="col-md-12 cuerpo" style="height: 700px;overflow: scroll;">
+                <table class="table table-fixed">
+                  <thead>
+                    <tr>
+                      <th value="fecha_importacion">FECHA <i class='fa fa-sort'></i></th>
+                      @yield('columnas_jugador_thead')
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
               </div>
             </div>
         </div>
-
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
         </div>
@@ -272,17 +269,15 @@ background-color: #4CAF50;
   </div>
 </div>
 
-
 <table hidden>
-  <tr id="moldeColumna">
-    <td class="fecha col-md-9">9999-99-99 99:99:99</td>
-    <td class="col-md-3">
-      <button class="btn btn-info verLog"><i class="fa fa-fw fa-search-plus"></i></button>
-    </td>
+  <tr id="moldeTablaJugadores">
+    @yield('columnas_jugador_tbody')
+    <td><button class="btn historia" type="button" title="VER ESTADOS ANTERIORES"><i class="fa fa-fw fa-user-clock"></i></button></td>
   </tr>
-  <tr id="moldeCuerpo">
-    <td class="json">JSON</td>
-  <tr>
+  <tr  id="moldeCuerpoHistorial">
+    <td class="fecha_importacion">9999-99-99</td>
+    @yield('columnas_jugador_tbody')
+  </tr>
 </table>
 
 @if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_despacho)
