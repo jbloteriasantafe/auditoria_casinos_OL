@@ -146,44 +146,59 @@ $("#contenedorFiltros input").on('keypress',function(e){
   }
 });
 
-$('#agregarCSV').click(function(){
-  //Realizo una busqueda sincronica para no agregar mal si esta escrito un filtro pero no hizo click en buscar.
-  clickIndice(null,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize(),false);
+function obtenerVal(obj){
   const e = function(s){
     return s.length == 0? '\xa0' : s;
   };
-  const assign = function(obj,s){
-    obj.text(s).attr('title',s);
-  };
+  if(obj.is('[rango]')){
+    const filtroD = $(obj.attr('data-busq')+'D');
+    const filtroH = $(obj.attr('data-busq')+'H');
+    const rango = e(filtroD.val()) +' - '+ e(filtroH.val());
+    return rango.trim() == '-'? '\xa0' : rango;
+  }
+  else if(obj.is('[fecha]')){
+    const filtroD = $(obj.attr('data-busq')+'D').find('input').first();
+    const filtroH = $(obj.attr('data-busq')+'H').find('input').first();
+    const rango = e(filtroD.val()) +' - '+ e(filtroH.val());
+    return rango.trim() == '-'? '\xa0' : rango;
+  }
+  else{
+    const filtro = $(obj.attr('data-busq'));
+    if(filtro.is('select')){
+      let valor = filtro.val();
+      if(obj.is('[data-busq-attr]')){
+        const opcion = filtro.find('option:selected');
+        const atributo = obj.attr('data-busq-attr');
+        if(opcion.is(atributo)){
+          valor = opcion.attr(atributo);
+        }
+      }
+      return e(valor);
+    }
+    else if(filtro.is('input')){
+      return e(filtro.val());
+    }
+  }
+  return '\xa0';
+}
+
+$('#agregarCSV').click(function(){
+  //Realizo una busqueda sincronica para no agregar mal si esta escrito un filtro pero no hizo click en buscar.
+  clickIndice(null,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize(),false);
+
   const fila = $('#tablaCSV tbody .filaTablaCSV').clone().removeClass('filaTablaCSV').css('display','');
   fila.find('.padding').css('display','none');
   fila.dblclick(function(){$(this).remove();exportarCSV();});
-
-  const plataforma = $('#buscadorPlataforma').val() == ''? '\xa0' : $('#buscadorPlataforma option:selected').attr('data-codigo');
-  assign(fila.find('.plataforma'),plataforma);
-
-  assign(fila.find('.codigo'),e($('#buscadorCodigo').val()));
-
-  const f_alta = e($('#buscadorFechaAltaD').val())+' - '+e($('#buscadorFechaAltaH').val());
-  assign(fila.find('.fecha_alta'),f_alta.trim() == '-'? '\xa0' : f_alta);
-
-  const rango_etario = e($('#buscadorRangoEtarioD').val()) +' - '+ e($('#buscadorRangoEtarioH').val());
-  assign(fila.find('.rango_etario'),rango_etario.trim() == '-'? '\xa0' : rango_etario);
-
-  assign(fila.find('.sexo'),e($('#buscadorSexo').val()));
-  assign(fila.find('.localidad'),e($('#buscadorLocalidad').val()));
-  assign(fila.find('.provincia'),e($('#buscadorProvincia').val()));
-  assign(fila.find('.estado'),e($('#buscadorEstado').val()));
-
-  const f_ae = e($('#buscadorFechaAutoexclusionD').val())+' - '+e($('#buscadorFechaAutoexclusionH').val());
-  console.log(f_ae.trim());
-  assign(fila.find('.fecha_autoexclusion'),f_ae.trim() == '-'? '\xa0' : f_ae);
-
-  const f_ultimo_mov = e($('#buscadorFechaUltimoMovimientoD').val())+' - '+e($('#buscadorFechaUltimoMovimientoH').val());
-  assign(fila.find('.fecha_ultimo_movimiento'),f_ultimo_mov.trim() == '-'? '\xa0' : f_ultimo_mov);
+  
+  fila.find('td').each(function(){
+    if($(this).hasClass('cant')) return;//para la cantidad es un caso especial
+    const val = obtenerVal($(this));
+    $(this).text(val).attr('title',val);
+  });
 
   const cant = $('#herramientasPaginacion h4').text().split(' ')[6];//@HACK
-  assign(fila.find('.cant'),cant == null? '0' : cant);
+  const val = cant == null? '0' : cant;
+  fila.find('.cant').text(val).attr('title',val);
 
   fila.find('td').filter(function () { return $(this).text() == '\xa0';}).css('background','rgba(0,0,0,0.1)');
   $('#tablaCSV tbody').append(fila);
@@ -205,64 +220,63 @@ $('#importarCSV').click(function(){
 });
 
 $('#importarCSVinput').change(function(){
-    const archivos = $('#importarCSVinput')[0].files;
-    if(archivos.length == 0) return;
-    const csv = archivos[0];
-    const reader = new FileReader();
-    reader.onload = function(){
-        importarCSV(reader.result);
-    }
-    reader.readAsText(csv);
+  const archivos = $('#importarCSVinput')[0].files;
+  if(archivos.length == 0) return;
+  const csv = archivos[0];
+  const reader = new FileReader();
+  reader.onload = function(){
+    importarCSV(reader.result);
+  }
+  reader.readAsText(csv);
 });
 
 function exportarCSV(){
-    const vacio = function(s){
-      const trim = s.trim();
-      return trim == '' || trim == '-';
-    }
-    const filas = [];
-    const borrar = $('#columnasCSV').is(':checked');
-    const borrar_col = [];
-    const cabezera = [];
-    $('#tablaCSV thead tr th').each(function(idx,val){
-        cabezera.push($(val).text());
-        borrar_col.push(borrar);
+  const vacio = function(s){
+    const trim = s.trim();
+    return trim == '' || trim == '-';
+  }
+  const filas = [];
+  const borrar = $('#columnasCSV').is(':checked');
+  const borrar_col = [];
+  const cabezera = [];
+  $('#tablaCSV thead tr th').each(function(idx,val){
+    cabezera.push($(val).text());
+    borrar_col.push(borrar);
+  });
+  filas.push(cabezera);
+
+  $('#tablaCSV tbody tr').not('.filaTablaCSV').each(function(rowidx,val){
+    const f = [];
+    $(val).find('td').each(function(colidx,val2){
+      const t = $(val2).text();
+      borrar_col[colidx] = borrar_col[colidx] && vacio(t);
+      f.push(t);
     });
-    filas.push(cabezera);
+    filas.push(f);
+  });
 
-    $('#tablaCSV tbody tr').not('.filaTablaCSV').each(function(rowidx,val){
-        const f = [];
-        $(val).find('td').each(function(colidx,val2){
-            const t = $(val2).text();
-            borrar_col[colidx] = borrar_col[colidx] && vacio(t);
-            f.push(t);
-        });
-        filas.push(f);
+  transformadas = [];
+  for(const f in filas){
+    const sin_cols_innecesarias = filas[f].filter(function(elem,idx){
+      return !borrar_col[idx];
     });
+    const vaciado = sin_cols_innecesarias.map(elem => vacio(elem)? '' : ('"'+elem+'"'))
+    transformadas.push(vaciado);
+  }
 
-    transformadas = [];
-    for(const f in filas){
-        const sin_cols_innecesarias = filas[f].filter(function(elem,idx){
-            return !borrar_col[idx];
-        });
-        const vaciado = sin_cols_innecesarias.map(elem => vacio(elem)? '' : ('"'+elem+'"'))
-        transformadas.push(vaciado);
-    }
+  let csv = "";
+  transformadas.forEach(function(f){
+    f.join(',');
+    csv += f + '\n';
+  });
 
-    let csv = "";
-    transformadas.forEach(function(f){
-        f.join(',');
-        csv += f + '\n';
-    });
-
-    const a = document.getElementById("descargarCSV");
-    const file = new Blob([csv], {type: 'text/csv'});
-    a.href = URL.createObjectURL(file);
-    a.download = 'informeAE.csv';
-    
-    mostrarColumnas(borrar_col);
+  const a = document.getElementById("descargarCSV");
+  const file = new Blob([csv], {type: 'text/csv'});
+  a.href = URL.createObjectURL(file);
+  a.download = 'informeAE.csv';
+  
+  mostrarColumnas(borrar_col);
 }
-
 
 function mostrarColumnas(hidecols){
   $('#tablaCSV thead tr th').each(function(idx,elem){
@@ -361,6 +375,9 @@ function mensajeError(msg){
   }, 250);
 }
 
+//@TODO: 
+// -paginar/ordenar el modal de historial
+// -simplificar la exportación a CSV usando los atributos de las columnas
 $(document).on('click','.historia',function(){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
