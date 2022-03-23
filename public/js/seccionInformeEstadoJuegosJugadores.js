@@ -147,20 +147,17 @@ $("#contenedorFiltros input").on('keypress',function(e){
 });
 
 function obtenerVal(obj){
-  const e = function(s){
-    return s.length == 0? '\xa0' : s;
-  };
   if(obj.is('[rango]')){
     const filtroD = $(obj.attr('data-busq')+'D');
     const filtroH = $(obj.attr('data-busq')+'H');
-    const rango = e(filtroD.val()) +' - '+ e(filtroH.val());
-    return rango.trim() == '-'? '\xa0' : rango;
+    const rango = filtroD.val() +' - '+ filtroH.val();
+    return rango.trim() == '-'? '' : rango;
   }
   else if(obj.is('[fecha]')){
     const filtroD = $(obj.attr('data-busq')+'D').find('input').first();
     const filtroH = $(obj.attr('data-busq')+'H').find('input').first();
-    const rango = e(filtroD.val()) +' - '+ e(filtroH.val());
-    return rango.trim() == '-'? '\xa0' : rango;
+    const rango = filtroD.val() +' - '+ filtroH.val();
+    return rango.trim() == '-'? '' : rango;
   }
   else{
     const filtro = $(obj.attr('data-busq'));
@@ -173,13 +170,12 @@ function obtenerVal(obj){
           valor = opcion.attr(atributo);
         }
       }
-      return e(valor);
+      return valor;
     }
     else if(filtro.is('input')){
-      return e(filtro.val());
+      return filtro.val();
     }
   }
-  return '\xa0';
 }
 
 $('#agregarCSV').click(function(){
@@ -192,8 +188,9 @@ $('#agregarCSV').click(function(){
   
   fila.find('td').each(function(){
     if($(this).hasClass('cant')) return;//para la cantidad es un caso especial
-    const val = obtenerVal($(this));
-    $(this).text(val).attr('title',val);
+    const val  = obtenerVal($(this));
+    const nbsp = val.length == 0? '\xa0' : val;
+    $(this).text(nbsp).attr('title',nbsp);
   });
 
   const cant = $('#herramientasPaginacion h4').text().split(' ')[6];//@HACK
