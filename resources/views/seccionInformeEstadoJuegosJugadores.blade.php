@@ -101,7 +101,7 @@ background-color: #4CAF50;
               <div class="col-md-2">
                 <h5>Plataformas</h5>
                 <select id="buscadorPlataforma" class="form-control">
-                  <option value="">-Todas las plataformas-</option>
+                  <option >-Todas las plataformas-</option>
                   @foreach ($plataformas as $p)
                   <option id="{{$p->id_plataforma}}" value="{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}">{{$p->nombre}}</option>
                   @endforeach
@@ -109,12 +109,12 @@ background-color: #4CAF50;
               </div>
               <div class="col-md-2">
                 <h5>CÓDIGO</h5>
-                <input class="form-control" id="buscadorCodigo" value="">
+                <input class="form-control" id="buscadorCodigo" >
               </div>
               <div class="col-md-3">
                 <h5>Estado</h5>
                 <select id="buscadorEstado" class="form-control">
-                  <option selected="" value="">- Todos los estados -</option>
+                  <option selected>- Todos los estados -</option>
                   @foreach($estados as $e)
                   <option value="{{$e}}">{{$e}}</option>
                   @endforeach
@@ -123,15 +123,15 @@ background-color: #4CAF50;
               <div class="col-md-2">
                 <h5>Rango etario</h5>
                 <div class="input-group">
-                  <input id="buscadorRangoEtarioD" class="form-control input-sm" value=""/>
+                  <input id="buscadorRangoEtarioD" class="form-control input-sm" />
                   <span class="input-group-btn" style="width:0px;"></span>
-                  <input id="buscadorRangoEtarioH" class="form-control input-sm" value=""/>
+                  <input id="buscadorRangoEtarioH" class="form-control input-sm" />
                 </div>
               </div>
               <div class="col-md-2">
                 <h5>Sexo</h5>
-                <select id="buscadorSexo" class="form-control" name="">
-                  <option selected="" value="">- Todos -</option>
+                <select id="buscadorSexo" class="form-control" >
+                  <option selected>- Todos -</option>
                   @foreach($sexos as $s)
                   <option value="{{$s}}">{{$s}}</option>
                   @endforeach
@@ -141,18 +141,18 @@ background-color: #4CAF50;
             <div class="row">
               <div class="col-md-3">
                 <h5>Localidad</h5>
-                <input class="form-control" id="buscadorLocalidad" value=""/>
+                <input class="form-control" id="buscadorLocalidad" />
               </div>
               <div class="col-md-3">
                 <h5>Provincia</h5>
-                <input class="form-control" id="buscadorProvincia" value=""/>
+                <input class="form-control" id="buscadorProvincia" />
               </div>
             </div>
             <div class="row">
               <div class="col-md-3">
                 <h5>Fecha autoexclusión - Desde</h5>
                 <div class="input-group date" id="dtpFechaAutoexclusionD">
-                    <input type="text" class="form-control" placeholder="Fecha de autoexclusión (desde)" id="buscadorFechaAutoexclusionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                    <input type="text" class="form-control" placeholder="Fecha de autoexclusión (desde)" id="buscadorFechaAutoexclusionD" autocomplete="off" style="background-color: rgb(255,255,255);">
                     <span id="input-times-autoexclusionD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                     <span id="input-calendar-autoexclusionD" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -160,7 +160,7 @@ background-color: #4CAF50;
               <div class="col-md-3">
                 <h5>Fecha autoexclusión- Hasta</h5>
                 <div class="input-group date" id="dtpFechaAutoexclusionH">
-                    <input type="text" class="form-control" placeholder="Fecha de autoexclusión (hasta)" id="buscadorFechaAutoexclusionH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                    <input type="text" class="form-control" placeholder="Fecha de autoexclusión (hasta)" id="buscadorFechaAutoexclusionH" autocomplete="off" style="background-color: rgb(255,255,255);">
                     <span id="input-times-autoexclusionH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                     <span id="input-calendar-autoexclusionH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -168,7 +168,7 @@ background-color: #4CAF50;
               <div class="col-md-3">
                 <h5>Fecha alta - Desde</h5>
                 <div class="input-group date" id="dtpFechaAltaD">
-                  <input type="text" class="form-control" placeholder="Fecha de alta (desde)" id="buscadorFechaAltaD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <input type="text" class="form-control" placeholder="Fecha de alta (desde)" id="buscadorFechaAltaD" autocomplete="off" style="background-color: rgb(255,255,255);">
                   <span id="input-times-altaD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-altaD" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -176,7 +176,7 @@ background-color: #4CAF50;
               <div class="col-md-3">
                 <h5>Fecha alta- Hasta</h5>
                 <div class="input-group date" id="dtpFechaAltaH">
-                  <input type="text" class="form-control" placeholder="Fecha de alta (hasta)" id="buscadorFechaAltaH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <input type="text" class="form-control" placeholder="Fecha de alta (hasta)" id="buscadorFechaAltaH" autocomplete="off" style="background-color: rgb(255,255,255);">
                   <span id="input-times-altaH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-altaH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -184,7 +184,7 @@ background-color: #4CAF50;
               <div class="col-md-3">
                 <h5>Fecha ultimo movimiento - Desde</h5>
                 <div class="input-group date" id="dtpFechaUltimoMovimientoD">
-                  <input type="text" class="form-control" placeholder="Fecha del ultimo movimiento (desde)" id="buscadorFechaUltimoMovimientoD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <input type="text" class="form-control" placeholder="Fecha del ultimo movimiento (desde)" id="buscadorFechaUltimoMovimientoD" autocomplete="off" style="background-color: rgb(255,255,255);">
                   <span id="input-times-ultimoMovimientoD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-ultimoMovimientoD" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -192,7 +192,7 @@ background-color: #4CAF50;
               <div class="col-md-3">
                 <h5>Fecha ultimo movimiento- Hasta</h5>
                 <div class="input-group date" id="dtpFechaUltimoMovimientoH">
-                  <input type="text" class="form-control" placeholder="Fecha del ultimo movimiento (hasta)" id="buscadorFechaUltimoMovimientoH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <input type="text" class="form-control" placeholder="Fecha del ultimo movimiento (hasta)" id="buscadorFechaUltimoMovimientoH" autocomplete="off" style="background-color: rgb(255,255,255);">
                   <span id="input-times-ultimoMovimientoH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-ultimoMovimientoH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -230,7 +230,7 @@ background-color: #4CAF50;
     </div> 
   </div>
   <div class="col-md-2 col-sm-3">
-    <a href="" id="btn-importar-jugadores" style="text-decoration: none;">
+    <a id="btn-importar-jugadores" style="text-decoration: none;">
       <div class="panel panel-default panelBotonNuevo">
         <center><img class="imgNuevo" src="/img/logos/gestion_usuarios_white.png"><center>
         <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
@@ -352,6 +352,77 @@ background-color: #4CAF50;
   </div>
 </div>
 
+<div class="modal fade" id="modalImportacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizarImportacion" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoImportacion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title">IMPORTAR JUGADORES</h3>
+      </div>
+      <div id="colapsadoImportacion" class="collapse in">
+        <div class="modal-body">
+          <div id="rowArchivo" class="row">
+            <div class="col-xs-12">
+              <h5>ARCHIVO</h5>
+              <div class="zona-file">
+                <input id="archivo" data-borrado="false" type="file">
+                <br>
+                <span id="alertaArchivo" class="alertaSpan"></span>
+              </div>
+            </div>
+            @include('includes.md5hash')
+          </div>
+          <div id="datosImportacion" class="row">
+            <div class="col-xs-12">
+              <div class="col-xs-6">
+                <h5>FECHA</h5>
+                <div class="input-group date" id="fechaImportacion" data-date-format="dd/mm/yyyy" data-link-field="fechaImportacion_hidden" data-link-format="yyyy-mm-dd">
+                  <input type="text" class="form-control" placeholder="Fecha del archivo">
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+                <input type="hidden" id="fechaImportacion_hidden" >
+                <br>
+              </div>
+              <div class="col-xs-6">
+                <h5>PLATAFORMA</h5>
+                <select id="plataformaImportacion" class="form-control">
+                  <option selected>- Seleccione -</option>
+                  @foreach ($plataformas as $plataforma)
+                  <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+          </div>
+          <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
+            <div class="col-xs-12" align="center">
+              <i class="fa fa-fw fa-exclamation-triangle"></i>
+              <h6> ARCHIVO INCORRECTO</h6>
+            </div>
+            <br>
+            <br>
+            <div class="col-xs-12" align="center">
+              <p>Solo se aceptan archivos con extensión .csv o .txt</p>
+            </div>
+          </div>
+          <div id="iconoCarga" class="sk-folding-cube">
+            <div class="sk-cube1 sk-cube"></div>
+            <div class="sk-cube2 sk-cube"></div>
+            <div class="sk-cube4 sk-cube"></div>
+            <div class="sk-cube3 sk-cube"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-successAceptar" id="btn-guardarImportacion" value="nuevo"> SUBIR</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <table hidden>
   <tr id="moldeTablaJugadores">
     @yield('columnas_jugador_tbody')
@@ -383,6 +454,7 @@ background-color: #4CAF50;
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
 <script src="/js/seccionInformeEstadoJuegosJugadores.js" charset="utf-8"></script>
+<script src="/js/md5.js" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->
 <script src="/js/fileinput.min.js" type="text/javascript"></script>
 <script src="/js/locales/es.js" type="text/javascript"></script>

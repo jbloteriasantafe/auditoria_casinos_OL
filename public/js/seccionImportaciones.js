@@ -563,7 +563,7 @@ function toIso(f){
   return f[2]+'-'+mm+'-'+dd+'T'+aux[1];
 }
 
-function procesarDatosProducidos_y_Jugadores(e) {
+function procesarDatosProducidos(e) {
   const csv = e.target.result;
   //Limpio retorno de carro y saco las lineas sin nada.
   const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
@@ -627,7 +627,7 @@ $('#modalImportacionProducidos #archivo').on('fileselect', function(event) {
   // Se lee el archivo guardado en el input de tipo 'file'.
   // se valida la importación.
   let reader = new FileReader();
-  reader.onload = procesarDatosProducidos_y_Jugadores;
+  reader.onload = procesarDatosProducidos;
   reader.readAsText($('#modalImportacionProducidos #archivo')[0].files[0]);
 });
 
