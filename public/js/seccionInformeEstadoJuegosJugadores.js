@@ -379,15 +379,6 @@ function limpiarFiltros(){
   $('#collapseFiltros .no_contesta').prop('checked',true).change().prop('checked',false).change();
 }
 
-function mensajeError(msg){
-  $('#mensajeError .textoMensaje').empty();
-  $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
-  $('#mensajeError').hide();
-  setTimeout(function() {
-    $('#mensajeError').show();
-  }, 250);
-}
-
 //@TODO: 
 // -paginar/ordenar el modal de historial
 function mostrarHistorial(id_jugador,pagina){
@@ -549,19 +540,20 @@ $('#btn-guardarImportacion').on('click', function(e){
       $('#mensajeExito').show();
     },
     error: function (data) {
-      mensajeError(['Error al subir el archivo']);
+      mensajeError('Error al subir el archivo');
       console.log(data);
     }
   });
 });
 
-function mensajeError(errores,timeout = 3000) {
+function mensajeError(msg){
   $('#mensajeError .textoMensaje').empty();
-  for (let i = 0; i < errores.length; i++) {
-      $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
-  }
-  $('#mensajeError').modal('show');
+  $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
+  $('#mensajeError').modal('hide');
   setTimeout(function() {
-    $('#mensajeError').modal('hide');
-  }, timeout);
+    $('#mensajeError').modal('show')
+  }, 100);
+  setTimeout(function() {
+    $('#mensajeError').modal('hide')
+  }, 3000);
 }
