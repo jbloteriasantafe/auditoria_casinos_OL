@@ -1,5 +1,5 @@
 $(document).ready(function(){
-  const iso_dtp = {
+  const ddmmyy_dtp = {
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -11,12 +11,12 @@ $(document).ready(function(){
     ignoreReadonly: true
   };
 
-  $('#dtpFechaAutoexclusionD').datetimepicker(iso_dtp);
-  $('#dtpFechaAutoexclusionH').datetimepicker(iso_dtp);
-  $('#dtpFechaAltaD').datetimepicker(iso_dtp);
-  $('#dtpFechaAltaH').datetimepicker(iso_dtp);
-  $('#dtpFechaUltimoMovimientoD').datetimepicker(iso_dtp);
-  $('#dtpFechaUltimoMovimientoH').datetimepicker(iso_dtp);
+  $('#dtpFechaAutoexclusionD').datetimepicker(ddmmyy_dtp);
+  $('#dtpFechaAutoexclusionH').datetimepicker(ddmmyy_dtp);
+  $('#dtpFechaAltaD').datetimepicker(ddmmyy_dtp);
+  $('#dtpFechaAltaH').datetimepicker(ddmmyy_dtp);
+  $('#dtpFechaUltimoMovimientoD').datetimepicker(ddmmyy_dtp);
+  $('#dtpFechaUltimoMovimientoH').datetimepicker(ddmmyy_dtp);
   $('.tituloSeccionPantalla').text('Estado de Jugadores');
   $('#btn-buscar').trigger('click');
 });
@@ -381,22 +381,64 @@ function mensajeError(msg){
 
 //@TODO: 
 // -paginar/ordenar el modal de historial
-// -simplificar la exportación a CSV usando los atributos de las columnas
-$(document).on('click','.historia',function(){
+function mostrarHistorial(id_jugador,pagina){
+  $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_jugador);
+
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  const formData = {
+    id_jugador: id_jugador,
+    page: pagina,
+    page_size: 30,
+    sort_by: {
+      columna: 'fecha_importacion',
+      orden: 'desc',
+    },
+  };
   $.ajax({
     type: "GET",
-    url: '/informeEstadoJuegosJugadores/historial/'+$(this).val(),
+    url: '/informeEstadoJuegosJugadores/historial',
+    data: formData,
     success: function (data) {
       $('#modalHistorial .cuerpo  tbody').empty();
-      data.forEach((jugador,idx) => {
+      data.data.forEach((jugador,idx) => {
         const fila = $('#moldeCuerpoHistorial').clone().removeAttr('id');
         $('#modalHistorial .cuerpo tbody').append(llenarFila(fila,jugador));
       });
+      const pages = Math.ceil(data.total / formData.page_size);
+      $('#modalHistorial').find('.previewPage').val(pagina).data('old_val',pagina);
+      $('#modalHistorial').find('.previewTotal').val(pages);
+      $('#modalHistorial').find('.prevPreview').attr('disabled',pagina <= 1);
+      $('#modalHistorial').find('.nextPreview').attr('disabled',pagina >= pages);
       $('#modalHistorial').modal('show');
     },
     error: function (data) {
       console.log(data);
     }
   });
+}
+
+$(document).on('click','.historia',function(){
+  mostrarHistorial($(this).val(),1);
+});
+
+$(document).on('click','.prevPreview,.nextPreview',function(e){
+  e.preventDefault();
+  const p = parseInt($(this).closest('.paginado').find('.previewPage').val());
+  const next = p + ($(this).hasClass('nextPreview')? 1 : -1);
+  mostrarHistorial($(this).val(),next);
+});
+
+$(document).on('focusin','.previewPage',function(e){
+  $(this).data('old_val',$(this).val());
+});
+
+$(document).on('change','.previewPage',function(e){
+  const old   = parseInt($(this).data('old_val'));
+  const val   = parseInt($(this).val());
+  const total = parseInt($(this).parent().find('.previewTotal').val());
+  if(val > total || val <= 0){
+    $(this).val(old);
+    return;
+  }
+  mostrarHistorial($('#modalHistorial').find('.prevPreview').val(),val);
 });

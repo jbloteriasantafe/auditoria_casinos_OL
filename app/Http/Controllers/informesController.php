@@ -722,13 +722,14 @@ class informesController extends Controller
     }
     return ['data' => $data,'total' => $jugs];
   }
-  public function historialJugador($id_jugador){
-    $jugs = rand(10,100);
+  public function historialJugador(Request $request){
+    //$request := {id_jugador,page,page_size,sort_by: {columna, orden}}
+    $total = 100;
     $data = [];
-    for($i = 0;$i<$jugs;$i++){
+    for($i = 0;$i<$total;$i++){
       $data[] = $this->obtenerJugador(-1);
     }
-    return $data;
+    return ['data' => array_slice($data,($request->page-1)*$request->page_size,$request->page_size),'total' => $total];
   }
 }
 

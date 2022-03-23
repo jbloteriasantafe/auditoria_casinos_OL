@@ -247,7 +247,7 @@ background-color: #4CAF50;
         <div  id="colapsado" class="collapse in">
         <div class="modal-body">
             <div class="row">
-              <div class="col-md-12 cuerpo" style="height: 700px;overflow: scroll;">
+              <div class="col-md-12 cuerpo">
                 <table class="table table-fixed">
                   <thead>
                     <tr>
@@ -258,6 +258,17 @@ background-color: #4CAF50;
                   <tbody>
                   </tbody>
                 </table>
+                <div class="row paginado">
+                  <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
+                  <div class="col-md-4">
+                    <div class="input-group">
+                      <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
+                      <span class="input-group-addon">/</span>
+                      <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
+                    </div>
+                  </div>
+                  <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
+                </div>
               </div>
             </div>
         </div>

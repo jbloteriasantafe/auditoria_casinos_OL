@@ -246,7 +246,7 @@ Route::group(['prefix' => 'informeContableJuego','middleware' =>'tiene_permiso:v
 Route::group(['prefix' => 'informeEstadoJuegosJugadores','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
   Route::get('/','informesController@informeEstadoJuegosJugadores');
   Route::get('/buscarJugadores','informesController@buscarJugadores');
-  Route::get('/historial/{id_jugador}','informesController@historialJugador');
+  Route::get('/historial','informesController@historialJugador');
 });
 
 //@TODO: Agregar y asignar privilegios para esta sección
