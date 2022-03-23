@@ -714,13 +714,13 @@ class informesController extends Controller
       'fecha_importacion' => '1900-01-01',
     ];
   }
-  public function buscarJugadores(){
-    $jugs = rand(10,100);
+  public function buscarJugadores(Request $request){
+    $total = 100;
     $data = [];
-    for($i = 0;$i<$jugs;$i++){
+    for($i = 0;$i<$total;$i++){
       $data[] = $this->obtenerJugador(-1);
     }
-    return ['data' => $data,'total' => $jugs];
+    return ['data' => array_slice($data,($request->page-1)*$request->page_size,$request->page_size),'total' => $total];
   }
   public function historialJugador(Request $request){
     //$request := {id_jugador,page,page_size,sort_by: {columna, orden}}
