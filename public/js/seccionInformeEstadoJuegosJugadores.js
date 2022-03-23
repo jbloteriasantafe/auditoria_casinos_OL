@@ -270,8 +270,15 @@ function exportarCSV(){
   const a = document.getElementById("descargarCSV");
   const file = new Blob([csv], {type: 'text/csv'});
   a.href = URL.createObjectURL(file);
-  a.download = 'informeAE.csv';
-  
+  const date = new Date();
+  let date_s = date.getFullYear();
+  {
+    const mes = date.getMonth()+1;
+    const dia = date.getDate();
+    date_s += (mes < 10? '0' : '') + mes + (dia < 10? '0' : '') + dia;
+    date_s += date.toTimeString().split(' ')[0].replaceAll(':','');//Le saco el timezone y los dos puntos al tiempo
+  }
+  a.download = 'informeAE-'+date_s+'.csv';
   mostrarColumnas(borrar_col);
 }
 
