@@ -746,21 +746,14 @@ class informesController extends Controller
 
     if(!is_null($request->sort_by)) $sort_by = $request->sort_by;
     //Retorno el ultimo estado del jugador
-    //@SPEED: por alguna razon tengo que forzar los indices en producción para que sea mas rapido, mientras que en prueba lo ralentiza (por las versiones de mysql?)
-    //@TODO: pasar a alguna tabla que cachee la ultima importación al importarse... deberia ser casi instantaneo
     $ret = DB::table('datos_jugador as dj')
-    ->select('p.codigo as plataforma','dj.*','ej.*')
-    ->join(DB::raw('estado_jugador as ej'),'ej.id_datos_jugador','=','dj.id_datos_jugador')
-    ->join(DB::raw('importacion_estado_jugador as iej FORCE INDEX(PRIMARY)'),'iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
-    ->join(DB::raw('plataforma as p FORCE INDEX(PRIMARY)'),'p.id_plataforma','=','iej.id_plataforma')
-    ->whereRaw('iej.id_importacion_estado_jugador = (
-      select iej2.id_importacion_estado_jugador
-      from estado_jugador ej2
-      join importacion_estado_jugador iej2 FORCE INDEX(PRIMARY) on (iej2.id_importacion_estado_jugador = ej2.id_importacion_estado_jugador)
-      where ej2.id_datos_jugador = dj.id_datos_jugador
-      order by iej2.fecha_importacion desc
-      limit 1      
-    )')->where($reglas)
+    ->selectRaw('p.codigo as plataforma,dj.codigo,dj.fecha_alta,dj.fecha_nacimiento,dj.sexo,
+                dj.localidad,dj.provincia,ej.estado,ej.fecha_autoexclusion,
+                ej.fecha_ultimo_movimiento,ej.id_estado_jugador')
+    ->join('estado_jugador as ej','ej.id_datos_jugador','=','dj.id_datos_jugador')
+    ->join('importacion_estado_jugador as iej','iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
+    ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
+    ->where($reglas)->where('iej.es_ultima_importacion',1)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
 

@@ -9,6 +9,7 @@ use Validator;
 use App\DatosJugador;
 use App\EstadoJugador;
 use App\ImportacionEstadoJugador;
+use App\Plataforma;
 use App\Producido;
 use App\ProducidoJugadores;
 use App\Beneficio;
@@ -504,6 +505,15 @@ class LectorCSVController extends Controller
 
     DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$importacion->id_importacion_estado_jugador)->delete();
 
+    //Util para la busqueda en la pantalla principal
+    DB::statement("UPDATE importacion_estado_jugador SET es_ultima_importacion = 0");
+    foreach(Plataforma::all() as $p){
+      $ultimo = ImportacionEstadoJugador::where('id_plataforma','=',$p->id_plataforma)->orderBy('fecha_importacion','desc')->take(1)->get()->first();
+      if(!is_null($ultimo)){
+        $ultimo->es_ultima_importacion = 1;
+        $ultimo->save();
+      }
+    }
     return 1;
   }
 }
