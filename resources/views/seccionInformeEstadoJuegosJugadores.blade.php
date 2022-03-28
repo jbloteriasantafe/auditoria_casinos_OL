@@ -114,7 +114,7 @@ background-color: #4CAF50;
               <div class="col-md-3">
                 <h5>Estado</h5>
                 <select id="buscadorEstado" class="form-control">
-                  <option selected>- Todos los estados -</option>
+                  <option value="" selected>- Todos los estados -</option>
                   @foreach($estados as $e)
                   <option value="{{$e}}">{{$e}}</option>
                   @endforeach
@@ -131,7 +131,7 @@ background-color: #4CAF50;
               <div class="col-md-2">
                 <h5>Sexo</h5>
                 <select id="buscadorSexo" class="form-control" >
-                  <option selected>- Todos -</option>
+                  <option value="" selected>- Todos -</option>
                   @foreach($sexos as $s)
                   <option value="{{$s}}">{{$s}}</option>
                   @endforeach
@@ -388,7 +388,7 @@ background-color: #4CAF50;
               <div class="col-xs-6">
                 <h5>PLATAFORMA</h5>
                 <select id="plataformaImportacion" class="form-control">
-                  <option selected>- Seleccione -</option>
+                  <option value="" selected>- Seleccione -</option>
                   @foreach ($plataformas as $plataforma)
                   <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
                   @endforeach

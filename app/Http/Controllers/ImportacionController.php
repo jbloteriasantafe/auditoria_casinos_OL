@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Producido;
 use App\ProducidoJugadores;
 use App\BeneficioMensual;
+use App\ImportacionEstadoJugador;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\LectorCSVController;
@@ -16,7 +17,19 @@ use App\Http\Controllers\CacheController;
 
 class ImportacionController extends Controller
 {
-  private static $atributos = [
+  private static $atributos = [];
+  private static $errores =       [
+    'required' => 'El valor es requerido',
+    'integer' => 'El valor no es un numero',
+    'numeric' => 'El valor no es un numero',
+    'exists' => 'El valor es invalido',
+    'array' => 'El valor es invalido',
+    'alpha_dash' => 'El valor tiene que ser alfanumérico opcionalmente con guiones',
+    'regex' => 'El formato es incorrecto',
+    'string' => 'El valor tiene que ser una cadena de caracteres',
+    'string.min' => 'El valor es muy corto',
+    'privilegios' => 'No puede realizar esa acción',
+    'incompatibilidad' => 'El valor no puede ser asignado',
   ];
   private static $instance;
 
@@ -228,6 +241,36 @@ class ImportacionController extends Controller
       $ret = LectorCSVController::getInstancia()->importarBeneficio($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
     });
     return $ret;
+  }
+
+  public function importarJugadores(Request $request){
+    Validator::make($request->all(),[
+        'id_plataforma' => 'required|exists:plataforma,id_plataforma',
+        'fecha' => 'required|date',
+        'archivo' => 'required|mimes:csv,txt',
+    ], self::$errores, self::$atributos)->after(function($validator){})->validate();
+
+    return DB::transaction(function() use ($request){
+      $importaciones = ImportacionEstadoJugador::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
+      foreach($importaciones as $i){
+        $i->estados()->delete();
+        DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$i->id_importacion_estado_jugador)->delete();
+      }
+      //Borro los datos sin estados
+      DB::table('datos_jugador')
+      ->select('datos_jugador.*')
+      ->whereRaw('NOT EXISTS(
+        select id_estado_jugador
+        from estado_jugador
+        where estado_jugador.id_datos_jugador = datos_jugador.id_datos_jugador
+      )')->delete();
+
+      foreach($importaciones as $i){
+        $i->delete();
+      }
+
+      return LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->fecha,$request->id_plataforma);
+    });
   }
 
   public function hashearArchivo(Request $request,$tipo){

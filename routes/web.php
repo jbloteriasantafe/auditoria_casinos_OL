@@ -247,6 +247,7 @@ Route::group(['prefix' => 'informeEstadoJuegosJugadores','middleware' =>'tiene_p
   Route::get('/','informesController@informeEstadoJuegosJugadores');
   Route::get('/buscarJugadores','informesController@buscarJugadores');
   Route::get('/historial','informesController@historialJugador');
+  Route::post('/importarJugadores','ImportacionController@importarJugadores');
 });
 
 //@TODO: Agregar y asignar privilegios para esta sección

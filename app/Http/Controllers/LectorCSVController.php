@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\DB;
 use DateTime;
 use PDO;
 use Validator;
+use App\DatosJugador;
+use App\EstadoJugador;
+use App\ImportacionEstadoJugador;
 use App\Producido;
 use App\ProducidoJugadores;
 use App\Beneficio;
@@ -430,5 +433,77 @@ class LectorCSVController extends Controller
 
     return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->fecha, 
     'bruto' => $benMensual->beneficio, 'dias' => $benMensual->beneficios()->count()]; 
+  }
+
+  private function importarJugadoresTemporal($id_importacion_estado_jugador,$archivo){
+    $query = sprintf("LOAD DATA local INFILE '%s'
+    INTO TABLE jugadores_temporal
+    FIELDS TERMINATED BY ';'
+    OPTIONALLY ENCLOSED BY '\"'
+    ESCAPED BY '\"'
+    LINES TERMINATED BY '\\r\\n'
+    IGNORE 1 LINES
+    (@codigo,@localidad,@provincia,@fecha_alta,@estado,@fecha_autoexclusion,@fecha_nacimiento,@fecha_ultimo_movimiento,@sexo)
+    SET id_importacion_estado_jugador = %d,
+                      codigo = @codigo,
+                   localidad = @localidad,
+                   provincia = @provincia,
+                  fecha_alta = @fecha_alta,
+                      estado = @estado,
+         fecha_autoexclusion = IF(@fecha_autoexclusion = '',NULL,@fecha_autoexclusion),
+            fecha_nacimiento = @fecha_nacimiento,
+     fecha_ultimo_movimiento = @fecha_ultimo_movimiento,
+                        sexo = @sexo",
+      $archivo->getRealPath(),$id_importacion_estado_jugador
+    );
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
+    $pdo->exec($query);
+  }
+
+  public function importarJugadores($archivo,$fecha,$id_plataforma){
+    $importacion = new ImportacionEstadoJugador;
+    $importacion->id_plataforma = $id_plataforma;
+    $importacion->fecha_importacion = $fecha;
+    $importacion->md5 = "CALCULAR MD5";//@TODO
+    $importacion->save();
+    $this->importarJugadoresTemporal($importacion->id_importacion_estado_jugador,$archivo);
+    //Inserto datos si no estan repetidos
+    $err = DB::statement("INSERT INTO datos_jugador (codigo,fecha_alta,fecha_nacimiento,sexo,localidad,provincia)
+    SELECT jt.codigo,jt.fecha_alta,jt.fecha_nacimiento,jt.sexo,jt.localidad,jt.provincia
+    FROM jugadores_temporal jt
+    WHERE jt.id_importacion_estado_jugador = ? AND NOT EXISTS (
+      SELECT dj.id_datos_jugador
+      FROM datos_jugador dj FORCE INDEX (idx_datosjugador_codigo)
+      WHERE dj.codigo         = jt.codigo 
+      AND dj.fecha_alta       = jt.fecha_alta 
+      AND dj.fecha_nacimiento = jt.fecha_nacimiento 
+      AND dj.sexo             = jt.sexo
+      AND dj.localidad        = jt.localidad
+      AND dj.provincia        = jt.provincia
+    )",[$importacion->id_importacion_estado_jugador]);
+    if(!$err){
+      throw new \Exception('Error al importar datos del jugador');
+    }
+    
+    $err = DB::statement("INSERT INTO estado_jugador (id_importacion_estado_jugador,id_datos_jugador,estado,fecha_autoexclusion,fecha_ultimo_movimiento)
+    SELECT jt.id_importacion_estado_jugador,dj.id_datos_jugador,jt.estado,jt.fecha_autoexclusion,jt.fecha_ultimo_movimiento
+    FROM jugadores_temporal jt
+    JOIN datos_jugador dj FORCE INDEX (idx_datosjugador_codigo) ON (
+          dj.codigo = jt.codigo 
+      AND dj.fecha_alta = jt.fecha_alta 
+      AND dj.fecha_nacimiento = jt.fecha_nacimiento 
+      AND dj.sexo = jt.sexo
+      AND dj.localidad = jt.localidad
+      AND dj.provincia = jt.provincia
+    )
+    WHERE jt.id_importacion_estado_jugador = ?",[$importacion->id_importacion_estado_jugador]);
+    if(!$err){
+      throw new \Exception('Error al importar estados del jugador');
+    }
+
+    DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$importacion->id_importacion_estado_jugador)->delete();
+
+    return 1;
   }
 }

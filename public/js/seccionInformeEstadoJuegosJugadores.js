@@ -445,6 +445,7 @@ $(document).on('change','.previewPage',function(e){
 
 $('#btn-importar-jugadores').click(function(e){
   e.preventDefault();
+  ocultarErrorValidacion($('#modalImportacion').find('input,select'));
   $('#modalImportacion').find('.modal-footer').children().show();
   $('#mensajeExito').hide();
   //Mostrar: rowArchivo
@@ -505,6 +506,7 @@ function procesarDatosJugadores(e) {
     $('#modalImportacion #mensajeInvalido').show();
     $('#modalImportacion #iconoCarga').hide();
     $('#btn-guardarImportacion').hide();
+    return;
   }
 
   $('#modalImportacion').find('#btn-guardarImportacion,#datosImportacion').show();
@@ -524,7 +526,7 @@ $('#btn-guardarImportacion').on('click', function(e){
   if($('#modalImportacion #archivo').attr('data-borrado') == 'false' && $('#modalImportacion #archivo')[0].files[0] != null){
     formData.append('archivo' , $('#modalImportacion #archivo')[0].files[0]);
   }
-
+  ocultarErrorValidacion($('#modalImportacion').find('input,select'));
   $.ajax({
     type: "POST",
     url: 'informeEstadoJuegosJugadores/importarJugadores',
@@ -540,8 +542,15 @@ $('#btn-guardarImportacion').on('click', function(e){
       $('#mensajeExito').show();
     },
     error: function (data) {
-      mensajeError('Error al subir el archivo');
       console.log(data);
+      mensajeError('Error al subir el archivo');
+      const response = data.responseJSON;
+      if(typeof response['fecha'] !== 'undefined'){
+        mostrarErrorValidacion($('#fechaImportacion input'),response['fecha'].join(', '),true);
+      }
+      if(typeof response['id_plataforma'] !== 'undefined'){
+        mostrarErrorValidacion($('#plataformaImportacion'),response['id_plataforma'].join(', '),true);
+      }
     }
   });
 });
