@@ -762,12 +762,16 @@ class informesController extends Controller
     $ej = EstadoJugador::find($request->id_estado_jugador);
     $dj = $ej->datos;
     $iej = $ej->importacion;
+    $sort_by = $request->sort_by ?? [
+      'orden' => 'desc',
+      'columna' => 'fecha_importacion',
+    ];
     return DB::table('datos_jugador as dj')->select('dj.*','ej.*','iej.*')
     ->join('estado_jugador as ej','ej.id_datos_jugador','=','dj.id_datos_jugador')
     ->join('importacion_estado_jugador as iej','iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
     ->where('dj.codigo','=',$dj->codigo)
     ->where('iej.id_plataforma','=',$iej->id_plataforma)
-    ->orderBy('iej.fecha_importacion','desc')
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
   }
 }

@@ -105,13 +105,13 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
 //Paginacion
 $(document).on('click', '#tablaJugadores thead tr th[value]', function(e) {
   $('#tablaJugadores th').removeClass('activa');
-  if ($(e.currentTarget).children('i').hasClass('fa-sort')) {
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado', 'desc');
+  if ($(this).children('i').hasClass('fa-sort')) {
+    $(this).children('i').removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado', 'desc');
   } else {
-    if ($(e.currentTarget).children('i').hasClass('fa-sort-down')) {
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado', 'asc');
+    if ($(this).children('i').hasClass('fa-sort-down')) {
+      $(this).children('i').removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado', 'asc');
     } else {
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
+      $(this).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
     }
   }
   $('#tablaJugadores th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
@@ -385,20 +385,19 @@ function limpiarFiltros(){
   $('#collapseFiltros .no_contesta').prop('checked',true).change().prop('checked',false).change();
 }
 
-//@TODO: 
-// -paginar/ordenar el modal de historial
 function mostrarHistorial(id_estado_jugador,pagina){
   $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_estado_jugador);
+
+  const sort_by =  { columna: $('#modalHistorial .cuerpo .activa').attr('value'), orden: $('#modalHistorial .cuerpo .activa').attr('estado') };
+  sort_by.columna = sort_by.columna ?? 'fecha_importacion';
+  sort_by.orden   = sort_by.orden ?? 'desc';
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   const formData = {
     id_estado_jugador: id_estado_jugador,
     page: pagina,
     page_size: 30,
-    sort_by: {
-      columna: 'fecha_importacion',
-      orden: 'desc',
-    },
+    sort_by: sort_by,
   };
   $.ajax({
     type: "GET",
@@ -447,6 +446,22 @@ $(document).on('change','.previewPage',function(e){
     return;
   }
   mostrarHistorial($('#modalHistorial').find('.prevPreview').val(),val);
+});
+
+
+$(document).on('click', '#modalHistorial .cuerpo tr th[value]', function(e) {
+  $('#tablaJugadores th').removeClass('activa');
+  if ($(this).children('i').hasClass('fa-sort')) {
+    $(this).children('i').removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado', 'desc');
+  } else {
+    if ($(this).children('i').hasClass('fa-sort-down')) {
+      $(this).children('i').removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado', 'asc');
+    } else {
+      $(this).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
+    }
+  }
+  $('#tablaJugadores th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
+  mostrarHistorial($('#modalHistorial').find('.prevPreview').val(),$('#modalHistorial').find('.previewPage').val());
 });
 
 $('#btn-importar-jugadores').click(function(e){
