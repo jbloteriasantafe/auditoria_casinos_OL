@@ -61,7 +61,8 @@ function formatPopoverCelda(data){
   const prod = formatRow('PRODUCIDOS: ',data['producidos'].join(', '));
   const prod_jug = formatRow('PROD. JUGADORES: ',data['producidos_jugadores'].join(', '));
   const ben = formatRow('BENEFICIOS: ',data['beneficios'].join(', '));
-  return $('<div>').append(prod).append(prod_jug).append(ben)[0].outerHTML;
+  const jug = formatRow('JUGADORES: ',data['jugadores'].join(', '));
+  return $('<div>').append(prod).append(prod_jug).append(ben).append(jug)[0].outerHTML;
 }
 
 function celdaPopover(dia,celda){//@WARNING: CALLBACK HELL

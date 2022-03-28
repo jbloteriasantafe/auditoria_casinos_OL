@@ -105,5 +105,5 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     <!-- JavaScript personalizado -->
     <script src="js/highcharts.js"></script>
     <script src="js/highcharts-3d.js"></script>
-    <script src="/js/seccionInformesGenerales.js" charset="utf-8"></script>
+    <script src="/js/seccionInformesGenerales.js?2" charset="utf-8"></script>
     @endsection

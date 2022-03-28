@@ -678,7 +678,11 @@ class informesController extends Controller
     ->where('beneficio.fecha',date('Y-m-d',strtotime($f)))
     ->where('id_tipo_moneda',1)
     ->count()/$plat_count;
-    return ($p+$pj+$b)/3;
+    $iej = DB::table('importacion_estado_jugador')
+    ->join('plataforma as plat','plat.id_plataforma','=','importacion_estado_jugador.id_plataforma')
+    ->where('importacion_estado_jugador.fecha_importacion',date('Y-m-d',strtotime($f)))
+    ->count()/$plat_count;
+    return ($p+$pj+$b+$iej)/4;
   }
 
   public function infoAuditoria($dia){
@@ -692,8 +696,11 @@ class informesController extends Controller
     ->join('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
     ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
     ->where('b.fecha',$dia)->get()->pluck('codigo');
+    $jugadores = DB::table('importacion_estado_jugador as iej')->select('plat.codigo')
+    ->join('plataforma as plat','plat.id_plataforma','=','iej.id_plataforma')
+    ->where('iej.fecha_importacion',$dia)->get()->pluck('codigo');
     return ['total' => $this->estado_dia($dia),
-    'producidos' => $producidos,'producidos_jugadores' => $producidos_jugadores,'beneficios' => $beneficios];
+    'producidos' => $producidos,'producidos_jugadores' => $producidos_jugadores,'beneficios' => $beneficios,'jugadores' => $jugadores];
   }
   private function nf($s,$d = 2){//Formatea el numero con digitos en MYSQL
     return "FORMAT($s,$d,'es_AR')";
