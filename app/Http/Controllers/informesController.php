@@ -709,10 +709,6 @@ class informesController extends Controller
     ]);
   }
   public function buscarJugadores(Request $request){
-    $sort_by = [
-      'orden' => 'asc',
-      'columna' => 'codigo',
-    ];
     $reglas = [];
     if(!is_null($request->plataforma)) $reglas[] = ['p.id_plataforma','=',$request->plataforma];
     if(!is_null($request->codigo)) $reglas[] = ['dj.codigo','LIKE',$request->codigo];
@@ -735,6 +731,13 @@ class informesController extends Controller
     if(!is_null($request->fecha_alta_hasta)) $reglas[] = ['dj.fecha_alta','<=',$request->fecha_alta_hasta];
     if(!is_null($request->fecha_ultimo_movimiento_desde)) $reglas[] = ['ej.fecha_ultimo_movimiento','>=',$request->fecha_ultimo_movimiento_desde];
     if(!is_null($request->fecha_ultimo_movimiento_hasta)) $reglas[] = ['ej.fecha_ultimo_movimiento','<=',$request->fecha_ultimo_movimiento_hasta];
+
+    $sort_by = [
+      'orden' => 'asc',
+      'columna' => 'codigo',
+    ];
+
+    if(!is_null($request->sort_by)) $sort_by = $request->sort_by;
     //Retorno el ultimo estado del jugador
     $ret = DB::table('datos_jugador as dj')
     ->select('p.codigo as plataforma','dj.*','ej.*')
