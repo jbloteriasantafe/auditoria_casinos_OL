@@ -521,6 +521,7 @@ $('#btn-guardarImportacion').on('click', function(e){
   const formData = new FormData();
   formData.append('id_plataforma', $('#plataformaImportacion').val());
   formData.append('fecha', $('#fechaImportacion_hidden').val());
+  formData.append('md5',$('#modalImportacion').find('.hashCalculado').val());
   
   //Si subió archivo lo guarda
   if($('#modalImportacion #archivo').attr('data-borrado') == 'false' && $('#modalImportacion #archivo')[0].files[0] != null){

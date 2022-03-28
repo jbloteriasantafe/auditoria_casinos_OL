@@ -248,6 +248,7 @@ class ImportacionController extends Controller
         'id_plataforma' => 'required|exists:plataforma,id_plataforma',
         'fecha' => 'required|date',
         'archivo' => 'required|mimes:csv,txt',
+        'md5' => 'required|string|max:32',
     ], self::$errores, self::$atributos)->after(function($validator){})->validate();
 
     return DB::transaction(function() use ($request){
@@ -269,7 +270,7 @@ class ImportacionController extends Controller
         $i->delete();
       }
 
-      return LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->fecha,$request->id_plataforma);
+      return LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
     });
   }
 

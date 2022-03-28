@@ -461,11 +461,11 @@ class LectorCSVController extends Controller
     $pdo->exec($query);
   }
 
-  public function importarJugadores($archivo,$fecha,$id_plataforma){
+  public function importarJugadores($archivo,$md5,$fecha,$id_plataforma){
     $importacion = new ImportacionEstadoJugador;
     $importacion->id_plataforma = $id_plataforma;
     $importacion->fecha_importacion = $fecha;
-    $importacion->md5 = "CALCULAR MD5";//@TODO
+    $importacion->md5 = $md5;
     $importacion->save();
     $this->importarJugadoresTemporal($importacion->id_importacion_estado_jugador,$archivo);
     //Inserto datos si no estan repetidos

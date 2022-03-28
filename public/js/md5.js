@@ -6,6 +6,16 @@ function md5(input,file){
         progress = (progress + 1)%4;
     },100);
 
+    if(typeof SparkMD5 !== 'undefined'){//Si esta sparkmd5 importado lo uso para hashear desde el cliente
+        const file_reader = new FileReader();
+        file_reader.onload = function(){
+            input.val(SparkMD5.hash(file_reader.result)).change();
+            clearInterval(loading);
+        };
+        file_reader.readAsText(file);
+        return;
+    }
+
     var formData = new FormData();
     formData.append('archivo',file);
 
