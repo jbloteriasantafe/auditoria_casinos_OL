@@ -51,11 +51,16 @@ opacity: 1;
 background-color: #4CAF50;
 }
 #tablaJugadores th, #tablaJugadores td,#modalHistorial .cuerpo th,#modalHistorial .cuerpo td{
-  width: 9.09%;
   padding: 0px;
   margin: 0px;
   font-size: 95%;
   text-align: center;
+}
+#tablaJugadores th, #tablaJugadores td{
+  width: 9.09%;
+}
+#modalHistorial .cuerpo th,#modalHistorial .cuerpo td{
+  width: 10%;
 }
 </style>
 @endsection
@@ -63,7 +68,6 @@ background-color: #4CAF50;
 @section('contenidoVista')
 
 @section('columnas_jugador_thead')
-<th value="plataforma">PLATAFORMA<i class='fa fa-sort'></i></th>
 <th value="codigo">CÓDIGO<i class='fa fa-sort'></i></th>
 <th value="fecha_alta">F. ALTA<i class='fa fa-sort'></i></th>
 <th value="fecha_nacimiento">F. NACIMIENTO<i class='fa fa-sort'></i></th>
@@ -71,12 +75,11 @@ background-color: #4CAF50;
 <th value="localidad">LOCALIDAD<i class='fa fa-sort'></i></th>
 <th value="provincia" >PROVINCIA<i class='fa fa-sort'></i></th>
 <th value="estado">ESTADO<i class='fa fa-sort'></i></th>
-<th value="fecha_ae">F. AE<i class='fa fa-sort'></i></th>
+<th value="fecha_autoexclusion">F. AE<i class='fa fa-sort'></i></th>
 <th value="fecha_ultimo_movimiento" >F. ULTIMO MOV.<i class='fa fa-sort'></i></th>
 @endsection
 
 @section('columnas_jugador_tbody')
-<td class="plataforma">PLATAFORMA</td>
 <td class="codigo">CÓDIGO</td>
 <td class="fecha_alta">F. ALTA</td>             
 <td class="fecha_nacimiento">F. NACIMIENTO</td>
@@ -84,7 +87,7 @@ background-color: #4CAF50;
 <td class="localidad">LOCALIDAD</td>
 <td class="provincia">PROVINCIA</td>
 <td class="estado">ESTADO</td>
-<td class="fecha_ae">F. AE</td>
+<td class="fecha_autoexclusion">F. AE</td>
 <td class="fecha_ultimo_movimiento">F. ULTIMO MOV.</td>
 @endsection
 
@@ -101,7 +104,7 @@ background-color: #4CAF50;
               <div class="col-md-2">
                 <h5>Plataformas</h5>
                 <select id="buscadorPlataforma" class="form-control">
-                  <option >-Todas las plataformas-</option>
+                  <option data-codigo="" value="">-Todas las plataformas-</option>
                   @foreach ($plataformas as $p)
                   <option id="{{$p->id_plataforma}}" value="{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}">{{$p->nombre}}</option>
                   @endforeach
@@ -217,6 +220,7 @@ background-color: #4CAF50;
           <table id="tablaJugadores" class="table table-fixed tablesorter">
             <thead>
               <tr>
+                <th value="plataforma">PLATAFORMA<i class='fa fa-sort'></i></th>
                 @yield('columnas_jugador_thead')
                 <th>ACCIÓN</th>
               </tr>
@@ -323,7 +327,7 @@ background-color: #4CAF50;
                 <table class="table table-fixed">
                   <thead>
                     <tr>
-                      <th value="fecha_importacion">FECHA <i class='fa fa-sort'></i></th>
+                      <th value="fecha_importacion">F. IMPORTACIÓN<i class='fa fa-sort'></i></th>
                       @yield('columnas_jugador_thead')
                     </tr>
                   </thead>
@@ -425,6 +429,7 @@ background-color: #4CAF50;
 
 <table hidden>
   <tr id="moldeTablaJugadores">
+    <td class="plataforma">PLATAFORMA</td>
     @yield('columnas_jugador_tbody')
     <td><button class="btn historia" type="button" title="VER ESTADOS ANTERIORES"><i class="fa fa-fw fa-user-clock"></i></button></td>
   </tr>
@@ -453,9 +458,9 @@ background-color: #4CAF50;
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionInformeEstadoJuegosJugadores.js" charset="utf-8"></script>
+<script src="/js/seccionInformeEstadoJuegosJugadores.js?2" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
-<script src="/js/md5.js" charset="utf-8"></script>
+<script src="/js/md5.js?2" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->
 <script src="/js/fileinput.min.js" type="text/javascript"></script>
 <script src="/js/locales/es.js" type="text/javascript"></script>

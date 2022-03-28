@@ -16,6 +16,6 @@ class EstadoJugador extends Model
     return $this->belongsTo('App\DatosJugador','id_datos_jugador','id_datos_jugador');
   }
   public function importacion(){
-    return $this->belongsTo('App\ImportacionEstadoJugador','id_datos_jugador','id_datos_jugador');
+    return $this->belongsTo('App\ImportacionEstadoJugador','id_importacion_estado_jugador','id_importacion_estado_jugador');
   }
 }

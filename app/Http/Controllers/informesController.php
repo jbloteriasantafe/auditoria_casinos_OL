@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\CacheController;
 use App\CategoriaJuego;
+use App\EstadoJugador;
 
 class informesController extends Controller
 {
@@ -703,33 +704,68 @@ class informesController extends Controller
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Juegos/Jugadores','informeEstadoJuegosJugadores');
     return view('seccionInformeEstadoJuegosJugadores' , [
       'plataformas' => $usuario->plataformas,
-      'estados'     => ['Pending','New','Enabled','Disabled','Autoexcluded','Suspended'],
-      'sexos'       => ['Hombre','Mujer','Otro'],
+      'estados'     => DB::table('estado_jugador')->select('estado')->distinct()->get()->pluck('estado'),
+      'sexos'       => DB::table('datos_jugador')->select('sexo')->distinct()->get()->pluck('sexo'),
     ]);
   }
-  private function obtenerJugador($id_jugador){
-    return [
-      'id_jugador' => -1,'plataforma' => 'XXX','codigo' => '999','estado' => 'EEE','fecha_nacimiento' => '1900-01-01','sexo' => 'MFO',
-      'localidad' => 'LOC','provincia' => 'PROV','fecha_autoexclusion' => '1900-01-02','fecha_alta'=>'1900-01-03','fecha_ultimo_movimiento' => '1900-01-04',
-      'fecha_importacion' => '1900-01-01',
-    ];
-  }
   public function buscarJugadores(Request $request){
-    $total = 100;
-    $data = [];
-    for($i = 0;$i<$total;$i++){
-      $data[] = $this->obtenerJugador(-1);
+    $sort_by = [
+      'orden' => 'asc',
+      'columna' => 'codigo',
+    ];
+    $reglas = [];
+    if(!is_null($request->plataforma)) $reglas[] = ['p.id_plataforma','=',$request->plataforma];
+    if(!is_null($request->codigo)) $reglas[] = ['dj.codigo','LIKE',$request->codigo];
+    if(!is_null($request->estado)) $reglas[] = ['ej.estado','LIKE',$request->estado];
+    {
+      $edad_sql = DB::raw("DATEDIFF(CURDATE(),dj.fecha_nacimiento)/365.25");//@HACK: aproximado...
+      if(!empty($request->edad_desde)){
+        $reglas[] = [$edad_sql,'>=',$request->edad_desde];
+      }
+      if(!empty($request->edad_hasta)){
+        $reglas[] = [$edad_sql,'<=',$request->edad_hasta];
+      }
     }
-    return ['data' => array_slice($data,($request->page-1)*$request->page_size,$request->page_size),'total' => $total];
+    if(!is_null($request->genero))    $reglas[] = ['dj.sexo','LIKE',$request->genero];
+    if(!is_null($request->localidad)) $reglas[] = ['dj.localidad','LIKE',$request->localidad];
+    if(!is_null($request->provincia)) $reglas[] = ['dj.provincia','LIKE',$request->provincia];
+    if(!is_null($request->fecha_autoexclusion_desde)) $reglas[] = ['ej.fecha_autoexclusion','>=',$request->fecha_autoexclusion_desde];
+    if(!is_null($request->fecha_autoexclusion_hasta)) $reglas[] = ['ej.fecha_autoexclusion','<=',$request->fecha_autoexclusion_hasta];
+    if(!is_null($request->fecha_alta_desde)) $reglas[] = ['dj.fecha_alta','>=',$request->fecha_alta_desde];
+    if(!is_null($request->fecha_alta_hasta)) $reglas[] = ['dj.fecha_alta','<=',$request->fecha_alta_hasta];
+    if(!is_null($request->fecha_ultimo_movimiento_desde)) $reglas[] = ['ej.fecha_ultimo_movimiento','>=',$request->fecha_ultimo_movimiento_desde];
+    if(!is_null($request->fecha_ultimo_movimiento_hasta)) $reglas[] = ['ej.fecha_ultimo_movimiento','<=',$request->fecha_ultimo_movimiento_hasta];
+    //Retorno el ultimo estado del jugador
+    $ret = DB::table('datos_jugador as dj')
+    ->select('p.codigo as plataforma','dj.*','ej.*')
+    ->join('estado_jugador as ej','ej.id_datos_jugador','=','dj.id_datos_jugador')
+    ->join('importacion_estado_jugador as iej','iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
+    ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
+    ->whereRaw('iej.id_importacion_estado_jugador = (
+      select iej2.id_importacion_estado_jugador
+      from estado_jugador ej2
+      join importacion_estado_jugador iej2 on (iej2.id_importacion_estado_jugador = ej2.id_importacion_estado_jugador)
+      where ej2.id_datos_jugador = dj.id_datos_jugador
+      order by iej2.fecha_importacion desc
+      limit 1      
+    )')->where($reglas)
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
+    ->paginate($request->page_size);
+
+    return $ret;
   }
   public function historialJugador(Request $request){
-    //$request := {id_jugador,page,page_size,sort_by: {columna, orden}}
-    $total = 100;
-    $data = [];
-    for($i = 0;$i<$total;$i++){
-      $data[] = $this->obtenerJugador(-1);
-    }
-    return ['data' => array_slice($data,($request->page-1)*$request->page_size,$request->page_size),'total' => $total];
+    //$request := {id_estado_jugador,page,page_size,sort_by: {columna, orden}}
+    $ej = EstadoJugador::find($request->id_estado_jugador);
+    $dj = $ej->datos;
+    $iej = $ej->importacion;
+    return DB::table('datos_jugador as dj')->select('dj.*','ej.*','iej.*')
+    ->join('estado_jugador as ej','ej.id_datos_jugador','=','dj.id_datos_jugador')
+    ->join('importacion_estado_jugador as iej','iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
+    ->where('dj.codigo','=',$dj->codigo)
+    ->where('iej.id_plataforma','=',$iej->id_plataforma)
+    ->orderBy('iej.fecha_importacion','desc')
+    ->paginate($request->page_size);
   }
 }
 

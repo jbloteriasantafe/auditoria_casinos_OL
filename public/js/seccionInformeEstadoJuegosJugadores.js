@@ -130,10 +130,16 @@ function clickIndice(e, pageNumber, tam,async = true) {
 
 function llenarFila(fila,jugador){
   const convertir_fecha = function(fecha){
-    if(fecha === null || fecha.length == 0) return '-';
+    if(fecha == null || fecha.length == 0) return '-';
     yyyymmdd = fecha.split('-');
     return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
   }
+  const convertir_fechahora = function(fechahora){
+    if(fechahora == null || fechahora.length == 0) return '-';
+    const aux = fechahora.split(' ');
+    return convertir_fecha(aux[0])+' '+aux[1];
+  }
+  fila.find('.fecha_importacion').text(convertir_fecha(jugador.fecha_importacion)).attr('title',jugador.fecha_importacion);
   fila.find('.plataforma').text(jugador.plataforma);
   fila.find('.codigo').text(jugador.codigo).attr('title',jugador.codigo);
   fila.find('.estado').text(jugador.estado).attr('title',jugador.estado);
@@ -141,10 +147,10 @@ function llenarFila(fila,jugador){
   fila.find('.sexo').text(jugador.sexo).attr('title',jugador.sexo);
   fila.find('.localidad').text(jugador.localidad).attr('title',jugador.localidad);
   fila.find('.provincia').text(jugador.provincia).attr('title',jugador.provincia);
-  fila.find('.fecha_autoexclusion').text(convertir_fecha(jugador.fecha_autoexclusion)).attr('title',jugador.fecha_autoexclusion);
-  fila.find('.fecha_alta').text(convertir_fecha(jugador.fecha_alta)).attr('title',jugador.fecha_alta);
+  fila.find('.fecha_autoexclusion').text(convertir_fechahora(jugador.fecha_autoexclusion)).attr('title',jugador.fecha_autoexclusion);
+  fila.find('.fecha_alta').text(convertir_fechahora(jugador.fecha_alta)).attr('title',jugador.fecha_alta);
   fila.find('.fecha_ultimo_movimiento').text(convertir_fecha(jugador.fecha_ultimo_movimiento)).attr('title',jugador.fecha_ultimo_movimiento);
-  fila.find('button').val(jugador.id_jugador);
+  fila.find('button').val(jugador.id_estado_jugador);
   return fila;
 }
 
@@ -175,7 +181,7 @@ function obtenerVal(obj){
       if(obj.is('[data-busq-attr]')){
         const opcion = filtro.find('option:selected');
         const atributo = obj.attr('data-busq-attr');
-        if(opcion.is(atributo)){
+        if(opcion.is(`[${atributo}]`)){
           valor = opcion.attr(atributo);
         }
       }
@@ -381,12 +387,12 @@ function limpiarFiltros(){
 
 //@TODO: 
 // -paginar/ordenar el modal de historial
-function mostrarHistorial(id_jugador,pagina){
-  $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_jugador);
+function mostrarHistorial(id_estado_jugador,pagina){
+  $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_estado_jugador);
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   const formData = {
-    id_jugador: id_jugador,
+    id_estado_jugador: id_estado_jugador,
     page: pagina,
     page_size: 30,
     sort_by: {
