@@ -464,15 +464,14 @@ $(document).on('click', '#modalHistorial .cuerpo tr th[value]', function(e) {
   mostrarHistorial($('#modalHistorial').find('.prevPreview').val(),$('#modalHistorial').find('.previewPage').val());
 });
 
-$('#btn-importar-jugadores').click(function(e){
-  e.preventDefault();
+function reiniciarModalImportar(){
   ocultarErrorValidacion($('#modalImportacion').find('input,select'));
   $('#modalImportacion').find('.modal-footer').children().show();
   $('#mensajeExito').hide();
   //Mostrar: rowArchivo
   $('#modalImportacion').find('#datosImportacion,#mensajeError,#mensajeInvalido,#iconoCarga,#btn-guardarImportacion').hide();
   $('#modalImportacion #fechaImportacion').data('datetimepicker').reset();
-  $('#modalImportacion #plataformaImportacion').val("");
+  $('#modalImportacion').find('#plataformaImportacion,.hashCalculado,.hashRecibido').val("");
   //Ocultar: mensajes, iconoCarga
   $('#modalImportacion #archivo')[0].files[0] = null;
   $('#modalImportacion #archivo').attr('data-borrado','false');
@@ -495,6 +494,12 @@ $('#btn-importar-jugadores').click(function(e){
     },
     allowedFileExtensions: ['csv','txt'],
   });
+  $('#animacionImportando').hide();
+}
+
+$('#btn-importar-jugadores').click(function(e){
+  e.preventDefault();
+  reiniciarModalImportar();
   $('#modalImportacion').modal('show');
 });
 
@@ -507,9 +512,7 @@ $('#modalImportacion #archivo').on('fileerror', function(event, data, msg) {
   $('#btn-guardarProducido').hide();
 });
 
-$('#modalImportacion #archivo').on('fileclear', function(event) {
-  reiniciarModalImportarProducido();
-});
+$('#modalImportacion #archivo').on('fileclear',reiniciarModalImportar);
 
 $('#modalImportacion #archivo').on('fileselect', function(event) {
   $('#modalImportacionProducidos #archivo').attr('data-borrado','false');
@@ -549,6 +552,15 @@ $('#btn-guardarImportacion').on('click', function(e){
     formData.append('archivo' , $('#modalImportacion #archivo')[0].files[0]);
   }
   ocultarErrorValidacion($('#modalImportacion').find('input,select'));
+
+  let progress = 0;
+  $('#animacionImportando').show();
+  const loading = setInterval(function(){
+      const message = ['―','/','|','\\'];
+      $('#animacionImportando').text(message[progress]);
+      progress = (progress + 1)%4;
+  },100);
+
   $.ajax({
     type: "POST",
     url: 'informeEstadoJuegosJugadores/importarJugadores',
@@ -557,6 +569,8 @@ $('#btn-guardarImportacion').on('click', function(e){
     contentType:false,
     cache:false,
     success: function (data) {
+      clearInterval(loading);
+      $('#animacionImportando').hide();
       $('#btn-buscar').click();
       $('#modalImportacion').modal('hide');
       $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN');
@@ -564,6 +578,8 @@ $('#btn-guardarImportacion').on('click', function(e){
       $('#mensajeExito').show();
     },
     error: function (data) {
+      clearInterval(loading);
+      $('#animacionImportando').hide();
       console.log(data);
       mensajeError('Error al subir el archivo');
       const response = data.responseJSON;

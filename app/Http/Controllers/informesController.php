@@ -745,18 +745,23 @@ class informesController extends Controller
     ];
 
     if(!is_null($request->sort_by)) $sort_by = $request->sort_by;
+
     //Retorno el ultimo estado del jugador
+    $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas->map(function($c){
+      return $c->id_plataforma;
+    });
+
     $ret = DB::table('datos_jugador as dj')
     ->selectRaw('p.codigo as plataforma,dj.codigo,dj.fecha_alta,dj.fecha_nacimiento,dj.sexo,
-                dj.localidad,dj.provincia,ej.estado,ej.fecha_autoexclusion,
-                ej.fecha_ultimo_movimiento,ej.id_estado_jugador')
+    dj.localidad,dj.provincia,ej.estado,ej.fecha_autoexclusion,
+    ej.fecha_ultimo_movimiento,ej.id_estado_jugador')
     ->join('estado_jugador as ej','ej.id_datos_jugador','=','dj.id_datos_jugador')
     ->join('importacion_estado_jugador as iej','iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
     ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
-    ->where($reglas)->where('iej.es_ultima_importacion',1)
+    ->where('ej.es_ultimo_estado_del_jugador',1)
+    ->where($reglas)->whereIn('p.id_plataforma',$plataformas)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
-
     return $ret;
   }
   public function historialJugador(Request $request){

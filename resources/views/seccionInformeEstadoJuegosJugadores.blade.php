@@ -400,6 +400,7 @@ background-color: #4CAF50;
               </div>
             </div>
           </div>
+          <div class="row" id="animacionImportando" style="text-align: center;" hidden>&nbsp;</div>
           <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
             <div class="col-xs-12" align="center">
               <i class="fa fa-fw fa-exclamation-triangle"></i>
@@ -458,7 +459,7 @@ background-color: #4CAF50;
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionInformeEstadoJuegosJugadores.js?2" charset="utf-8"></script>
+<script src="/js/seccionInformeEstadoJuegosJugadores.js?3" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?2" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->

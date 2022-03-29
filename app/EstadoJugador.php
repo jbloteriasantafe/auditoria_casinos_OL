@@ -9,7 +9,7 @@ class EstadoJugador extends Model
   protected $connection = 'mysql';
   protected $table = 'estado_jugador';
   protected $primaryKey = 'id_estado_jugador';
-  protected $visible = array('id_estado_jugador','id_importacion_estado_jugador','id_datos_jugador','estado','fecha_autoexclusion','fecha_ultimo_movimiento');
+  protected $visible = array('id_estado_jugador','id_importacion_estado_jugador','id_datos_jugador','estado','fecha_autoexclusion','fecha_ultimo_movimiento','es_ultimo_estado_del_jugador');
   public $timestamps = false;
 
   public function datos(){

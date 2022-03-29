@@ -504,16 +504,24 @@ class LectorCSVController extends Controller
     }
 
     DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$importacion->id_importacion_estado_jugador)->delete();
+    
+    //@SLOW, como puedo hacerlo mas rapido?
+    $err = DB::statement("UPDATE estado_jugador ej
+    JOIN importacion_estado_jugador iej ON iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
+    JOIN datos_jugador dj ON dj.id_datos_jugador = ej.id_datos_jugador
+    JOIN (
+      SELECT dj_max.codigo,iej_max.id_plataforma,MAX(iej_max.fecha_importacion) as fecha_importacion
+      FROM datos_jugador dj_max
+      JOIN estado_jugador ej_max on ej_max.id_datos_jugador = dj_max.id_datos_jugador
+      JOIN importacion_estado_jugador iej_max on iej_max.id_importacion_estado_jugador = ej_max.id_importacion_estado_jugador
+      GROUP BY dj_max.codigo,iej_max.id_plataforma
+    ) max_fecha ON (max_fecha.codigo = dj.codigo AND max_fecha.id_plataforma = iej.id_plataforma)
+    SET ej.es_ultimo_estado_del_jugador = (iej.fecha_importacion = max_fecha.fecha_importacion)");
 
-    //Util para la busqueda en la pantalla principal
-    DB::statement("UPDATE importacion_estado_jugador SET es_ultima_importacion = 0");
-    foreach(Plataforma::all() as $p){
-      $ultimo = ImportacionEstadoJugador::where('id_plataforma','=',$p->id_plataforma)->orderBy('fecha_importacion','desc')->take(1)->get()->first();
-      if(!is_null($ultimo)){
-        $ultimo->es_ultima_importacion = 1;
-        $ultimo->save();
-      }
+    if(!$err){
+      throw new \Exception('Error al actualizar los estados de los jugadores - 2');
     }
+
     return 1;
   }
 }
