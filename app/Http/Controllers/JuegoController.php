@@ -69,7 +69,7 @@ class JuegoController extends Controller
     $variables_simples = [
       "nombre_juego","cod_identificacion","cod_juego","denominacion_juego",
       "porcentaje_devolucion","movil","escritorio","codigo_operador","proveedor",
-      "id_tipo_moneda","id_categoria_juego","deleted_at","updated_at","created_at",
+      "id_tipo_moneda","id_categoria_juego",
       "motivo","id_usuario",
     ];
 
@@ -98,7 +98,7 @@ class JuegoController extends Controller
     }
 
     $logs = DB::table('log_juego as lj')
-    ->selectRaw('lj.id_juego,'
+    ->selectRaw('lj.id_juego,lj.fecha as updated_at,'
       .implode(',',array_map($clearnull,$variables_simples)).','
       .implode(',',$q_plats).','
       .implode(',',$q_certs)

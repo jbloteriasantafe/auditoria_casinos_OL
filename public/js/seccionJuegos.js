@@ -260,7 +260,7 @@ $(document).on('click','.historia',function(){
       $('#selectLogJuego').attr('disabled',false).empty();
       for(const idx in data){
         const j = data[idx];
-        const option = $('<option>').text(idx).data('data',j);
+        const option = $('<option>').text(j.juego.updated_at).data('data',j);
         $('#selectLogJuego').append(option);
       }
       $('#selectLogJuego').val($('#selectLogJuego option').first().val()).change();

@@ -15,10 +15,9 @@ class Juego extends Model
   protected $visible = array(
     'id_juego','nombre_juego','cod_juego','codigo_operador','proveedor',
     'denominacion_contable','denominacion_juego','porcentaje_devolucion', 'escritorio','movil',
-    'id_unidad_medida','id_tipo_moneda','id_categoria_juego','deleted_at'
+    'id_unidad_medida','id_tipo_moneda','id_categoria_juego','created_at','updated_at','deleted_at'
   );
   public $timestamps = true;
-  protected $dates = ['deleted_at'];
   protected $appends = [];
 
   public function gliSoft(){
