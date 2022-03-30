@@ -238,31 +238,33 @@ $('#btn-eliminarModal').click(function (e) {
     });
 });
 
+$('#selectLogJuego').change(function(e){
+  const data = $(this).find('option:selected').data('data');
+  mostrarJuego(data.juego,data.certificados,data.plataformas);
+});
+
 $(document).on('click','.historia',function(){
   const id_juego = $(this).val();
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: "GET",
     url: "/juegos/obtenerLogs/" + id_juego,
     success: function (data) {
-      $('#modalLogs .columna tr').not('.ejemplo').remove();
-      $('#modalLogs .cuerpo tr').not('.ejemplo').remove();
-      data.forEach((val,idx) => {
-        const col = $('#modalLogs .columna .ejemplo').clone().removeClass('ejemplo').show();
-        const cuerpo = $('#modalLogs .cuerpo .ejemplo').clone().removeClass('ejemplo').show();
-        col.find('.fecha').text(val['fecha']);
-        col.attr('data-idx',idx);
-        cuerpo.find('.json').empty().append(estilizarJSON(val['json']));
-        cuerpo.attr('data-idx',idx);
-        $('#modalLogs .columna tbody').append(col);
-        $('#modalLogs .cuerpo tbody').append(cuerpo);
-      });
-      $('tr[data-idx="0"]').find('.verLog').click();
-      $('#modalLogs').modal('show');
+      $('#modalJuego .modal-title').text('HISTORIAL');
+      $('#modalJuego .modal-header').attr('style','background-color: darkgrey; color: #fff');
+      $('#btn-guardar').removeClass('btn-warningModificar');
+      $('#btn-guardar').val("historial").hide();
+      $('#boton-salir').text('SALIR');
+      habilitarControles(false);
+      $('#modalJuego #motivo').prop('readonly',true).parent().toggle(true);
+      $('#selectLogJuego').attr('disabled',false).empty();
+      for(const idx in data){
+        const j = data[idx];
+        const option = $('<option>').text(idx).data('data',j);
+        $('#selectLogJuego').append(option);
+      }
+      $('#selectLogJuego').val($('#selectLogJuego option').first().val()).change();
+      $('#modalJuego').modal('show');
     },
     error: function (data) {
       console.log(data);
@@ -597,7 +599,6 @@ function habilitarControles(habilitado){
   $('#modalJuego #motivo').prop('readonly',!habilitado).parent().toggle(habilitado);
 }
 
-
 function mostrarJuego(juego, certificados,plataformas){
   ocultarErrorValidacion($('#modalJuego input'));
   ocultarErrorValidacion($('#modalJuego select'));
@@ -613,7 +614,8 @@ function mostrarJuego(juego, certificados,plataformas){
   $('#escritorio').prop('checked',juego.escritorio == 1);
   $('#movil').prop('checked',juego.movil == 1);
 
-  for (var i = 0; i < certificados.length; i++){
+  $('#listaSoft').children().not('#soft_mod').remove();
+  for (let i = 0; i < certificados.length; i++){
     let fila = agregarRenglonCertificado();
     const cert = certificados[i];
     fila.find('.codigo').val(cert.nro_archivo)
@@ -628,6 +630,7 @@ function mostrarJuego(juego, certificados,plataformas){
   $('#denominacion_juego').val(juego.denominacion_juego);
   $('#porcentaje_devolucion').val(juego.porcentaje_devolucion);
   $('#tipo_moneda').val(juego.id_tipo_moneda);
+  $('#motivo').val(juego.motivo);
 }
 
 function agregarRenglonCertificado(){

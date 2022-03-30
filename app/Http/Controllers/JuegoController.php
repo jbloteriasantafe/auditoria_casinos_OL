@@ -63,7 +63,84 @@ class JuegoController extends Controller
   }
 
   public function obtenerLogs($id){
-    return LogJuego::where('id_juego','=',$id)->orderBy('fecha','desc')->get();
+    $clearnull = function($s){
+      return "IF(lj.json->>'\$.$s' = 'null',NULL,lj.json->>'\$.$s') as $s";
+    };
+    $variables_simples = [
+      "nombre_juego","cod_identificacion","cod_juego","denominacion_juego",
+      "porcentaje_devolucion","movil","escritorio","codigo_operador","proveedor",
+      "id_tipo_moneda","id_categoria_juego","deleted_at","updated_at","created_at",
+      "motivo","id_usuario",
+    ];
+
+    $maximo_plataformas = max(DB::table('plataforma_tiene_juego')
+    ->selectRaw('id_juego,COUNT(distinct id_plataforma) as cantidad')
+    ->groupBy('id_juego')
+    ->get()->pluck('cantidad')->toArray());
+    $q_plats = [];
+    for($i=0;$i<$maximo_plataformas;$i++){
+      $accesor = "\$.plataformas[$i]";
+      $q_plats[] = "IF(lj.json->>'$accesor' REGEXP '^[0-9]+$',lj.json->>'$accesor',lj.json->>'$accesor.id_plataforma') as plat_$i";
+      $q_plats[] = "IF(lj.json->>'$accesor' REGEXP '^[0-9]+$',NULL,
+        IF(lj.json->>'$accesor.id_estado_juego' = 'null',NULL,lj.json->>'$accesor.id_estado_juego')
+      ) as plat_estado_$i";
+    }
+
+    $maximo_certs = max(DB::table('juego_glisoft')
+    ->selectRaw('id_juego,COUNT(distinct id_gli_soft) as cantidad')
+    ->groupBy('id_juego')
+    ->get()->pluck('cantidad')->toArray());
+
+    $q_certs = [];
+    for($i=0;$i<$maximo_certs;$i++){
+      $accesor = "\$.certificados[$i]";
+      $q_certs[] = "IF(lj.json->>'$accesor' = 'null',NULL,lj.json->>'$accesor') as cert_$i";
+    }
+
+    $logs = DB::table('log_juego as lj')
+    ->selectRaw('lj.id_juego,'
+      .implode(',',array_map($clearnull,$variables_simples)).','
+      .implode(',',$q_plats).','
+      .implode(',',$q_certs)
+    )
+    ->where('lj.id_juego','=',$id)
+    ->orderby('fecha','desc')->get()->toArray();
+
+    $ret = [$this->obtenerJuego($id)];//Empiezo con el actual... antes no se logeaba cuando hacia guardarJuego... mala mia, saldran duplicados (?)
+    foreach($logs as &$l){
+      $fila = [];
+      $fila['juego'] = $l;
+
+      $plataformas = [];
+      for($i=0;$i<$maximo_plataformas;$i++){
+        $id_plataforma = $l->{"plat_$i"};
+        $id_estado_juego = $l->{"plat_estado_$i"};
+        if(!is_null($id_plataforma) && !is_null($id_estado_juego)){
+          $plat = Plataforma::find($id_plataforma);
+          if(!is_null($plat)){
+            $plat = $plat->toArray();
+            $plat['id_estado_juego'] = $id_estado_juego;
+            $plataformas[] = $plat;
+          }
+        }
+      }
+      $fila['plataformas'] = $plataformas;
+
+      $certificados = [];
+      for($i=0;$i<$maximo_certs;$i++){
+        $id_gli_soft = $l->{"cert_$i"};
+        if(!is_null($id_gli_soft)){
+          $gli = GliSoft::find($id_gli_soft);
+          if(!is_null($gli)){
+            $certificados[] = $gli;  
+          }
+        }
+      }
+      $fila['certificados'] = $certificados;
+
+      $ret[] = $fila;
+    }
+    return $ret;
   }
 
   public function guardarJuego(Request $request){

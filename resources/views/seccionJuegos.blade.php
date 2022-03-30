@@ -205,6 +205,13 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
           <div class="modal-body">
             <div id="juegoPlegado" class="row">
                 <div class="row">
+                  <div class="col-md-6">
+                    <h5>Historia</h5>
+                    <select id="selectLogJuego" class="form-control">
+                    </select>
+                  </div>
+                </div>
+                <div class="row">
                   <div class="row">
                     <div class="col-md-12">
                       <div class="col-md-6">
