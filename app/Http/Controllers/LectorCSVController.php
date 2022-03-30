@@ -486,9 +486,30 @@ class LectorCSVController extends Controller
     if(!$err){
       throw new \Exception('Error al importar datos del jugador');
     }
+
+    //Pongo "ultimo estado" en 0 todos los estados con fecha de importacion menor a la que se inserta
+    //Hago un JOIN con jugadores_temporal para solo afectar los jugadores que se van a insertar
+    $err = DB::statement("UPDATE estado_jugador ej
+    JOIN datos_jugador dj on dj.id_datos_jugador = ej.id_datos_jugador
+    JOIN importacion_estado_jugador iej on iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
+    JOIN jugadores_temporal jt on jt.codigo = dj.codigo AND jt.id_importacion_estado_jugador = ?
+    SET ej.es_ultimo_estado_del_jugador = 0
+    WHERE ej.es_ultimo_estado_del_jugador = 1 AND iej.fecha_importacion < ? AND iej.id_plataforma = ?",
+      [$importacion->id_importacion_estado_jugador,$fecha,$id_plataforma]
+    );
+    if(!$err){
+      throw new \Exception('Error al resetear los "ultimos estados" de los jugadores');
+    }
     
-    $err = DB::statement("INSERT INTO estado_jugador (id_importacion_estado_jugador,id_datos_jugador,estado,fecha_autoexclusion,fecha_ultimo_movimiento)
-    SELECT jt.id_importacion_estado_jugador,dj.id_datos_jugador,jt.estado,jt.fecha_autoexclusion,jt.fecha_ultimo_movimiento
+    $err = DB::statement("INSERT INTO estado_jugador (id_importacion_estado_jugador,id_datos_jugador,estado,fecha_autoexclusion,fecha_ultimo_movimiento,es_ultimo_estado_del_jugador)
+    SELECT jt.id_importacion_estado_jugador,dj.id_datos_jugador,jt.estado,jt.fecha_autoexclusion,jt.fecha_ultimo_movimiento,
+    (NOT EXISTS (
+      SELECT ej_max.id_estado_jugador
+      FROM datos_jugador dj_max
+      JOIN estado_jugador ej_max on ej_max.id_datos_jugador = dj_max.id_datos_jugador
+      JOIN importacion_estado_jugador iej_max on iej_max.id_importacion_estado_jugador = ej_max.id_importacion_estado_jugador
+      WHERE dj_max.codigo = jt.codigo AND iej_max.id_plataforma = ? AND iej_max.fecha_importacion > ?
+    )) as es_ultimo_estado_del_jugador
     FROM jugadores_temporal jt
     JOIN datos_jugador dj FORCE INDEX (idx_datosjugador_codigo) ON (
           dj.codigo = jt.codigo 
@@ -498,15 +519,16 @@ class LectorCSVController extends Controller
       AND dj.localidad = jt.localidad
       AND dj.provincia = jt.provincia
     )
-    WHERE jt.id_importacion_estado_jugador = ?",[$importacion->id_importacion_estado_jugador]);
+    WHERE jt.id_importacion_estado_jugador = ?",[$id_plataforma,$fecha,$importacion->id_importacion_estado_jugador]);
     if(!$err){
       throw new \Exception('Error al importar estados del jugador');
     }
 
     DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$importacion->id_importacion_estado_jugador)->delete();
     
-    //@SLOW, como puedo hacerlo mas rapido?
-    $err = DB::statement("UPDATE estado_jugador ej
+    //Este comando sirve para poner correctamente todos los "estados ultimos" por si alguna razon fallara o se editara la BD manualmente
+    //Lo dejo de referencia/emergencia, era muy lento para usarse en producción ya que reocrre todos los estados de la BD
+    /*$err = DB::statement("UPDATE estado_jugador ej
     JOIN importacion_estado_jugador iej ON iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
     JOIN datos_jugador dj ON dj.id_datos_jugador = ej.id_datos_jugador
     JOIN (
@@ -519,9 +541,8 @@ class LectorCSVController extends Controller
     SET ej.es_ultimo_estado_del_jugador = (iej.fecha_importacion = max_fecha.fecha_importacion)");
 
     if(!$err){
-      throw new \Exception('Error al actualizar los estados de los jugadores - 2');
-    }
-
+      throw new \Exception('Error al actualizar los estados de los jugadores');
+    }*/
     return 1;
   }
 }
