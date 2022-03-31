@@ -66,7 +66,7 @@ class JuegoController extends Controller
     $logs = DB::table('juego_log_norm as lj')
     ->selectRaw('*')
     ->where('lj.id_juego','=',$id)
-    ->orderby('deleted_at','desc')->get()->toArray();
+    ->orderby('updated_at','desc')->get()->toArray();
 
     //Empiezo con el actual... antes no se logeaba cuando hacia guardarJuego... mala mia, saldran duplicados (?)
     $ret = [$this->obtenerJuego($id)];
@@ -134,40 +134,39 @@ class JuegoController extends Controller
     })->validate();
 
     $juego = new Juego;
-    DB::transaction(function() use($juego,$request){
-      $juego->nombre_juego = $request->nombre_juego;
-      $juego->cod_juego = $request->cod_juego;
-      $juego->denominacion_juego = $request->denominacion_juego;
-      $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
-      $juego->escritorio = $request->escritorio;
-      $juego->movil = $request->movil;
-      $juego->codigo_operador = $request->codigo_operador;
-      $juego->proveedor = $request->proveedor;
-      $juego->id_tipo_moneda = $request->id_tipo_moneda;
-      $juego->id_categoria_juego = $request->id_categoria_juego;
+    $log  = new LogJuego;
+    DB::transaction(function() use($juego,$log,$request){
+      foreach(['nombre_juego','cod_juego','denominacion_juego','porcentaje_devolucion','escritorio',
+               'movil','codigo_operador','proveedor','id_tipo_moneda','id_categoria_juego'] as $attr){
+        $juego->{$attr} = $request->{$attr};
+        $log->{$attr} = $request->{$attr};//Se guarda todo lo que mando en un log nuevo siempre
+      }
       $juego->save();
+
+      $updated_at = date('Y-m-d H:i:s');//@HACK: No puedo usar el updated_at del juego por la transacción, me agarra el valor anterior...
+      $log->id_juego   = $juego->id_juego;
+      $log->motivo     = $request->motivo ?? '';
+      $log->created_at = $updated_at;
+      $log->updated_at = $updated_at;
+      $log->deleted_at = null;
+      $log->save();
       
       $syncarr = [];
       foreach($request->plataformas as $p){
         if(!is_null($p['id_estado_juego'])) $syncarr[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
       }
+
       $juego->plataformas()->sync($syncarr);
+      $log->plataformas()->sync($syncarr);
   
-      foreach($juego->gliSoft as $gli){
-        $juego->gliSoft()->detach($gli->id_gli_soft);
-      }
       if(isset($request->certificados)){
         $juego->setearGliSofts($request->certificados,True);
+        $log->setearCertificados($request->certificados,True);
       }
-      $juego->save();
 
-      $log = new LogJuego;
-      $log->id_juego = $juego->id_juego;
-      $log->fecha = date('Y-m-d h:i:s');
-      $rqst = $request->all();
-      $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
-      $log->json = $rqst;
+      $juego->save();
       $log->save();
+
       CacheController::getInstancia()->invalidarDependientes('juego');
     });
 
@@ -227,24 +226,38 @@ class JuegoController extends Controller
 
 
     $juego = Juego::find($request->id_juego);
-
-    DB::transaction(function() use($request,$juego,$plataformas_usuario){
-      $juego->nombre_juego= $request->nombre_juego;
-      $juego->cod_juego= $request->cod_juego;
-      $juego->denominacion_juego = $request->denominacion_juego;
-      $juego->porcentaje_devolucion = $request->porcentaje_devolucion;
-      $juego->escritorio = $request->escritorio;
-      $juego->movil = $request->movil;
-      $juego->codigo_operador = $request->codigo_operador;
-      $juego->proveedor = $request->proveedor;
-      $juego->id_tipo_moneda = $request->id_tipo_moneda;
-      $juego->id_categoria_juego = $request->id_categoria_juego;
+    $log = new LogJuego;
+    DB::transaction(function() use($request,$log,$juego,$plataformas_usuario){
+      foreach(['nombre_juego','cod_juego','denominacion_juego','porcentaje_devolucion','escritorio',
+      'movil','codigo_operador','proveedor','id_tipo_moneda','id_categoria_juego'] as $attr){
+        $juego->{$attr} = $request->{$attr};
+        $log->{$attr} = $request->{$attr};//Se guarda todo lo que mando en un log nuevo siempre
+      }
       $juego->save();
+
+      $updated_at = date('Y-m-d H:i:s');//@HACK: No puedo usar el updated_at del juego por la transacción, me agarra el valor anterior...
+      $log->id_juego   = $request->id_juego;
+      $log->motivo     = $request->motivo ?? '';
+      $log->created_at = $updated_at;
+      $log->updated_at = $updated_at;
+      $log->deleted_at = null;
+      $log->save();
+
+      $log_anterior = LogJuego::where('id_juego',$juego->id_juego)->whereNull('deleted_at')
+      ->where('id_juego_log_norm','<>',$log->id_juego_log_norm)
+      ->orderBy('updated_at','desc')->take(1)
+      ->get()->first();
+
+      if(!is_null($log_anterior)){
+        $log_anterior->deleted_at = $updated_at;
+        $log_anterior->save();
+      }
 
       $plataformas_enviadas = [];
       foreach($request->plataformas as $p){
         if(!is_null($p['id_estado_juego'])) $plataformas_enviadas[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
       }
+
       $syncarr = [];
       foreach(Plataforma::all() as $p){
         $id = $p->id_plataforma;
@@ -266,22 +279,22 @@ class JuegoController extends Controller
           if(!is_null($relacion)) $syncarr[$id] = ['id_estado_juego' =>  $relacion->id_estado_juego];
         }
       }
-      $juego->plataformas()->sync($syncarr);
 
+      $juego->plataformas()->sync($syncarr);
+      $log->plataformas()->sync($syncarr);
+  
       foreach($juego->gliSoft as $gli){
         $juego->gliSoft()->detach($gli->id_gli_soft);
       }
+
       if(isset($request->certificados)){
         $juego->setearGliSofts($request->certificados,True);
+        $log->setearGliSofts($request->certificados,True);
       }
+
       $juego->save();
-      $log = new LogJuego;
-      $log->id_juego = $juego->id_juego;
-      $log->fecha = date('Y-m-d h:i:s');
-      $rqst = $request->all();
-      $rqst['id_usuario'] = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
-      $log->json = $rqst;
       $log->save();
+
       CacheController::getInstancia()->invalidarDependientes('juego');
     });
 

@@ -47,7 +47,7 @@ class Juego extends Model
   }
 
   public function logs(){
-    return $this->hasMany('App\LogJuego','id_juego','id_juego');
+    return $this->hasMany('App\LogJuego','id_juego','id_juego')->withTrashed();
   }
 
   public static function boot(){
@@ -62,5 +62,4 @@ class Juego extends Model
   public function getId(){
     return $this->id_juego;
   }
-
 }
