@@ -96,6 +96,8 @@ Route::get('permiso/{id}','PermisoController@getPermiso');
 /***********
 Juegos
 ***********/
+
+Route::get('/migrarLog','JuegoController@migrarLogJuegos');
 Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_juegos'], function () {
   Route::get('/','JuegoController@buscarTodo');
   Route::get('/{id}','JuegoController@buscarTodo');
@@ -105,7 +107,6 @@ Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_ju
   Route::post('/modificarJuego','JuegoController@modificarJuego');
   Route::delete('/eliminarJuego/{id}','JuegoController@eliminarJuego');
   Route::post('/buscar','JuegoController@buscarJuegos');
-  Route::get('/obtenerValor/{tipo}/{id}','JuegoController@obtenerValor');
   Route::post('/generarDiferenciasEstadosJuegos','JuegoController@generarDiferenciasEstadosJuegos');
 });
 
