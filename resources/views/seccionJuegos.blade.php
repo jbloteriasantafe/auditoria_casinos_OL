@@ -205,26 +205,24 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
           <div class="modal-body">
             <div id="juegoPlegado" class="row">
                 <div class="row">
-                  <div class="col-md-6">
-                    <h5>Historia</h5>
-                    <select id="selectLogJuego" class="form-control">
-                    </select>
-                  </div>
-                </div>
-                <div class="row">
                   <div class="row">
                     <div class="col-md-12">
-                      <div class="col-md-6">
+                      <div class="col-md-4">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
-                      <div class="col-md-6">
+                      <div class="col-md-4">
                         <h5>Categoría</h5>
                         <select id="selectCategoria" class="form-control">
                           <option value="">- Seleccionar -</option>
                           @foreach($categoria_juego as $c)
                           <option value="{{$c->id_categoria_juego}}">{{$c->nombre}}</option>
                           @endforeach
+                        </select>
+                      </div>
+                      <div class="col-md-4">
+                        <h5>Historia</h5>
+                        <select id="selectLogJuego" class="form-control">
                         </select>
                       </div>
                       <div class="col-md-4" id="tipos">
@@ -274,21 +272,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <i class="fa fa-fw fa-link"></i>
                       </button>
                       <div id="listaSoft" class="pre-scrollable" style="margin-top:15px;max-height: 150px;">
-                        <div id="soft_mod" class="row col-md-12" hidden>
-                          <div class="col-md-10">
-                            <input class="codigo form-control" value="" list="datalistCertificados">
-                          </div>
-                          <div class="col-md-1">
-                            <button class="btn btn-link verCertificado">
-                              <i class="fa fa-fw fa-search"></i>
-                            </button>
-                          </div>
-                          <div class="col-md-1">
-                            <button class="btn borrarFila borrarCertificado">
-                              <i class="fa fa-fw fa-trash"></i>
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -414,6 +397,37 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
       </div>
     </div>
 
+<table hidden>
+  <tr id="moldeFilaJuego">
+    <td class="col-xs-3 nombre_juego">JUEGO</td>
+    <td class="col-xs-1 categoria">CATEGORIA</td>
+    <td class="col-xs-1 estado">ESTADO</td>
+    <td class="col-xs-2 codigo_juego">CODIGO</td>
+    <td class="col-xs-3 codigo_certif">CERTIFICADOS</td>
+    <td class="col-xs-2">
+      <button title="VER MÁS" class="btn btn-info detalle"><i class="fa fa-fw fa-search-plus"></i></button>
+      <button title="MODIFICAR" class="btn btn-warning modificar"><i class="fa fa-fw fa-pencil-alt"></i></button>
+      <button title="ELIMINAR" class="btn btn-danger eliminar"><i class="fa fa-fw fa-trash-alt"></i></button>
+    </td>
+  </tr>
+</table>
+<div hidden>
+  <div id="moldeCertificado" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;">
+    <div class="col-md-10">
+      <input class="codigo form-control" value="" list="datalistCertificados">
+    </div>
+    <div class="col-md-1">
+      <button class="btn btn-link verCertificado">
+        <i class="fa fa-fw fa-search"></i>
+      </button>
+    </div>
+    <div class="col-md-1">
+      <button class="btn borrarFila borrarCertificado">
+        <i class="fa fa-fw fa-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
 
@@ -441,5 +455,5 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
     <script src="/js/fileinput.min.js" type="text/javascript"></script>
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionJuegos.js" charset="utf-8"></script>
+    <script src="/js/seccionJuegos.js?2" charset="utf-8"></script>
     @endsection
