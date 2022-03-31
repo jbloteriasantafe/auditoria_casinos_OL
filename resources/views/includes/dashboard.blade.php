@@ -515,7 +515,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
     <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
-    <script type="text/javascript" src="/js/menuHeader_y_Desplegable.js?3" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/menuHeader_y_Desplegable.js?4" charset="utf-8"></script>
     @section('scripts')
     @show
   </body>

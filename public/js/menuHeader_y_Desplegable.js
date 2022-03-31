@@ -3,18 +3,21 @@ $(document).ready(function(){
   $('#barraMenuPrincipal > .dropdown > .dropdown-toggle:not(.no_abrir_en_mouseenter)').mouseenter(function(e){
     $(this).click();
   });*/
-  $('#barraMenuPrincipal > .card > .dropdown-menu a').mouseenter(function(e){
+  function toggleSubmenu(e){//@TODO: ver porque se mueve el fondo si se desplegan muchos submenues
     e.preventDefault();
     e.stopPropagation();
     const submenu = $(this).next('ul');
     $(this).closest('ul.dropdown-menu')//voy para el menu de arriba
     .find('ul.dropdown-menu').not(submenu).hide();//escondo todos los submenues menos el propio
     submenu.toggle();//Toggleo el submenu
-  });
+    $(this).blur();
+  }
+  $('#barraMenuPrincipal > .card a.desplegar-menu').mouseenter(toggleSubmenu).click(toggleSubmenu);
   $(document).on('hidden.bs.dropdown','.dropdown',function(e){
     //Escondo todos los submenues cuando se esconde un menu de 1er nivel
     $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
   });
+  
   $(document).on('click','#menuDesplegable .menu_con_opciones > span,#menuDesplegable .menu_con_opciones_desplegado > span',function(e){
     if($(this).parent().hasClass('menu_con_opciones_desplegado')){//Si esta desplegado solo escondo todo lo por debajo
       //Submenues
