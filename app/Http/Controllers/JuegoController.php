@@ -69,7 +69,10 @@ class JuegoController extends Controller
     ->orderby('updated_at','desc')->get()->toArray();
 
     //Empiezo con el actual... antes no se logeaba cuando hacia guardarJuego... mala mia, saldran duplicados (?)
-    $ret = [$this->obtenerJuego($id)];
+    $juego = $this->obtenerJuego($id);
+    $juego['juego'] = $juego['juego']->toArray();
+    $juego['juego']['updated_at'] = 'ACTUAL ' . $juego['juego']['updated_at'];
+    $ret = [$juego];
     foreach($logs as &$l){
       $ret[] = [
         'juego' => $l, 
@@ -161,7 +164,7 @@ class JuegoController extends Controller
   
       if(isset($request->certificados)){
         $juego->setearGliSofts($request->certificados,True);
-        $log->setearCertificados($request->certificados,True);
+        $log->setearGliSofts($request->certificados,True);
       }
 
       $juego->save();
