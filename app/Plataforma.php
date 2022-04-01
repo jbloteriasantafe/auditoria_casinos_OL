@@ -18,6 +18,9 @@ class Plataforma extends Model
   public function juegos(){
     return $this->belongsToMany('App\Juego','plataforma_tiene_juego','id_plataforma','id_juego')->withPivot('id_estado_juego');
   }
+  public function logs(){
+    return $this->belongsToMany('App\LogJuego','plataforma_tiene_juego_log_norm','id_plataforma','id_juego')->withPivot('id_estado_juego')->withTrashed();
+  }
   public function expedientes(){
     return $this->belongsToMany('App\Expediente','expediente_tiene_plataforma','id_plataforma','id_expediente');
   }

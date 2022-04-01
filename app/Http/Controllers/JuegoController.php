@@ -57,32 +57,28 @@ class JuegoController extends Controller
       return response()->json(['acceso'=>['']],422);
     }
 
-    return ['juego' => $juego , 'certificados' => $juego->gliSoft ,
-            'plataformas' => DB::table('plataforma_tiene_juego')->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
-            ->where('id_juego',$id)->get()];
+    return [
+      'juego' => $juego , 
+      'certificados' => $juego->gliSoft ,
+      'plataformas' => DB::table('plataforma_tiene_juego')->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+      ->where('id_juego',$id)->get()
+    ];
   }
 
   public function obtenerLogs($id){
-    $logs = DB::table('juego_log_norm as lj')
-    ->selectRaw('*')
-    ->where('lj.id_juego','=',$id)
-    ->orderby('updated_at','desc')->get()->toArray();
-
     //Empiezo con el actual... antes no se logeaba cuando hacia guardarJuego... mala mia, saldran duplicados (?)
     $juego = $this->obtenerJuego($id);
+    $logs = $juego['juego']->logs()->orderBy('updated_at','desc')->get();
     $juego['juego'] = $juego['juego']->toArray();
     $juego['juego']['updated_at'] = 'ACTUAL ' . $juego['juego']['updated_at'];
     $ret = [$juego];
     foreach($logs as &$l){
       $ret[] = [
         'juego' => $l, 
-
-        'certificados' => DB::table('juego_log_norm_glisoft as jgl')->selectRaw('gl.*')
-        ->join('gli_soft as gl','gl.id_gli_soft','=','jgl.id_gli_soft')
-        ->where('jgl.id_juego_log_norm','=',$l->id_juego_log_norm)->get(),
-
-        'plataformas' => DB::table('plataforma_tiene_juego_log_norm')->selectRaw('*')
-        ->where('id_juego_log_norm',$l->id_juego_log_norm)->get()
+        'certificados' => $l->gliSoft,
+        'plataformas' => DB::table('plataforma_tiene_juego')->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+        ->where('id_juego',$id)->get(),
+        'usuario' => $l->usuario,
       ];
     }
     return $ret;
@@ -152,6 +148,7 @@ class JuegoController extends Controller
       $log->created_at = $updated_at;
       $log->updated_at = $updated_at;
       $log->deleted_at = null;
+      $log->id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->save();
       
       $syncarr = [];
@@ -244,6 +241,7 @@ class JuegoController extends Controller
       $log->created_at = $updated_at;
       $log->updated_at = $updated_at;
       $log->deleted_at = null;
+      $log->id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->save();
 
       $log_anterior = LogJuego::where('id_juego',$juego->id_juego)->whereNull('deleted_at')
