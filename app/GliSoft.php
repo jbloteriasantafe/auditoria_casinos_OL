@@ -3,14 +3,16 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GliSoft extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'gli_soft';
   protected $primaryKey = 'id_gli_soft';
-  protected $visible = array('id_gli_soft','observaciones','nro_archivo','id_archivo','id_laboratorio');
-  public $timestamps = false;
+  protected $visible = array('id_gli_soft','observaciones','nro_archivo','id_archivo','id_laboratorio','created_at','updated_at','created_at');
+  public $timestamps = true;
 
   public function archivo(){
       return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
@@ -48,5 +50,4 @@ class GliSoft extends Model
   public function getId(){
     return $this->id_gli_soft;
   }
-
 }

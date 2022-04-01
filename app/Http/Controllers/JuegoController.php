@@ -347,18 +347,19 @@ class JuegoController extends Controller
 
     $sort_by = $request->sort_by;
 
-    $resultados=DB::table('juego')
-                  ->select('juego.*')
-                  ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(gli_soft.nro_archivo, '-')) separator ', ') as certificados")
-                  ->leftjoin('juego_glisoft as jgl','jgl.id_juego','=','juego.id_juego')
-                  ->leftjoin('gli_soft','gli_soft.id_gli_soft','=','jgl.id_gli_soft')
-                  ->leftjoin('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego.id_juego')
-                  ->leftjoin('plataforma_tiene_casino','plataforma_tiene_juego.id_plataforma','=','plataforma_tiene_casino.id_plataforma')
-                  ->when($sort_by,function($query) use ($sort_by){
-                                  return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                              })
-                  ->whereNull('juego.deleted_at')
-                  ->where($reglas);
+    $resultados = DB::table('juego')
+    ->selectRaw("juego.*,GROUP_CONCAT(DISTINCT(IFNULL(gli_soft.nro_archivo, '-')) separator ', ') as certificados")
+    ->leftjoin('juego_glisoft as jgl','jgl.id_juego','=','juego.id_juego')
+    ->leftjoin('gli_soft',function($j){
+      return $j->on('gli_soft.id_gli_soft','=','jgl.id_gli_soft')->wherenull('gli_soft.deleted_at');
+    })
+    ->leftjoin('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego.id_juego')
+    ->leftjoin('plataforma_tiene_casino','plataforma_tiene_juego.id_plataforma','=','plataforma_tiene_casino.id_plataforma')
+    ->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
+    ->whereNull('juego.deleted_at')
+    ->where($reglas);
     
     $plataformas_usuario = [];
     foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas as $p){

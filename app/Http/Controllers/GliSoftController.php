@@ -118,7 +118,7 @@ class GliSoftController extends Controller
     ->join('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
     ->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
     ->join('juego','juego.id_juego','=','juego_glisoft.id_juego')
-    ->whereNull('juego.deleted_at')
+    ->whereNull('juego.deleted_at')->whereNull('gli_soft.deleted_at')
     ->where('gli_soft.id_gli_soft',$id)
     ->distinct()->get();
     return ['glisoft' => $glisoft ,
@@ -323,6 +323,7 @@ class GliSoftController extends Controller
     ->leftJoin('plataforma_tiene_juego','plataforma_tiene_juego.id_juego','=','juego_glisoft.id_juego')
     ->leftJoin('expediente_tiene_gli_sw','expediente_tiene_gli_sw.id_gli_soft','=','gli_soft.id_gli_soft')
     ->leftJoin('expediente','expediente.id_expediente','=','expediente_tiene_gli_sw.id_Expediente')
+    ->whereNull('gli_soft.deleted_at')
     ->where($reglas);
     if($request->id_plataforma == 0){
       $resultados = $resultados->where(function ($q) use($plats_ids){
@@ -534,45 +535,12 @@ class GliSoftController extends Controller
   }
 
   public function eliminarGLI(Request $request,$id){
-    $GLI=GliSoft::find($id);
-    $se_borro = false;
-    if(is_null($GLI)) return ['gli' => null,'se_borro' => false];
-
-    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $plataformas = $user->plataformas;
-    $pats = array();
-    foreach($plataformas as $p){
-      $plats [] = $p->id_plataforma;
-    }
-
-    $juegos_accesibles = DB::table('gli_soft as gl')->select('j.id_juego')
-    ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
-    ->join('juego as j','j.id_juego','=','jgl.id_juego')
-    ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
-    ->where('gl.id_gli_soft',$GLI->id_gli_soft)
-    ->whereIn('pj.id_plataforma',$plats)->get();
-
-    DB::transaction(function() use ($GLI,$juegos_accesibles,&$se_borro){
-      foreach($juegos_accesibles as $j){
-        $juego = Juego::withTrashed()->find($j->id_juego);
-        $juego->gliSoft()->detach($GLI->id_gli_soft);
-        $juego->save();
-      }
-      $GLI->save();
-      if($GLI->juegos()->count() == 0){//Si el GLI no tiene mas juegos, lo borro
-        $GLI->expedientes()->sync([]);
-        $archivo = $GLI->archivo;
-        $GLI->archivo()->dissociate();
-        $GLI->save();
-        $GLI->delete();
-        if(!empty($archivo)){
-          $archivo->delete();
-        }
-        $se_borro = true;
-      }
+    return DB::transaction(function() use ($id){
+      $GLI = GliSoft::find($id);
+      if(is_null($GLI)) return ['gli' => null,'se_borro' => false];
+      $GLI->delete();
+      return ['gli' => $GLI,'se_borro' => true];
     });
-
-    return ['gli' => $GLI,'se_borro' => $se_borro];
   }
 
   public function gliSoftsPorPlataformas($plataformas){
@@ -583,19 +551,22 @@ class GliSoftController extends Controller
     $gli_softs = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
     ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
     ->join('plataforma_tiene_juego as pj','pj.id_juego','=','jgl.id_juego')
-    ->whereIn('pj.id_plataforma',$plats_ids)
+    ->whereIn('pj.id_plataforma',$plats_ids)->whereNull('gl.deleted_at')
     ->groupBy('gl.id_gli_soft')
     ->get();
+
     $ret = [];
     foreach($gli_softs as $gl){
       $ret[]=GliSoft::find($gl->id_gli_soft);
     }
+
     $gli_softs_sin_plat = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
     ->leftjoin('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
     ->leftjoin('plataforma_tiene_juego as pj','pj.id_juego','=','jgl.id_juego')
-    ->whereNull('pj.id_plataforma')
+    ->whereNull('pj.id_plataforma')->whereNull('gl.deleted_at')
     ->groupBy('gl.id_gli_soft')
     ->get();
+    
     foreach($gli_softs_sin_plat as $gl){
       $ret[]=GliSoft::find($gl->id_gli_soft);
     }
