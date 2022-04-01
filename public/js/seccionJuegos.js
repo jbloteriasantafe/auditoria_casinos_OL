@@ -74,8 +74,9 @@ $(document).on('click','.detalle',function(){
     url: "/juegos/obtenerLogs/" + id_juego,
     success: function (data) {
       for(const idx in data){
-        const j = data[idx];
-        const option = $('<option>').text(j.juego.updated_at).data('data',j);
+        const log = data[idx];
+        const usuario = log?.usuario?.nombre ?? '';
+        const option = $('<option>').text(log.juego.updated_at+' - '+usuario).data('data',log);
         $('#selectLogJuego').append(option);
       }
       $('#selectLogJuego').val($('#selectLogJuego option').first().val()).change();
