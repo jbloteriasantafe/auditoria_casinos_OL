@@ -1,11 +1,5 @@
 $(document).ready(function(){
-  $('#gestionarJuegos').attr('aria-expanded','true');
-  $('#gestionarJuegos').removeClass();
-  $('#gestionarJuegos').addClass('subMenu2 collapse in');
-  $('#gestionarJuegos').siblings('div.opcionesHover').attr('aria-expanded','true');
   $('.tituloSeccionPantalla').text('Certificados de Software');
-  $('#opcGliSoft').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
-  $('#opcGliSoft').addClass('opcionesSeleccionado');
   
   const url = window.location.pathname.split("/");
   if(url.length >= 3) {

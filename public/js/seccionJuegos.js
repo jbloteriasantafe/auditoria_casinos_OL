@@ -339,7 +339,7 @@ function crearFilaJuego(juego){
   const codigojuego   = juego.cod_juego ?? '-';
   const categoria_aux = $(`#buscadorCategoria option[value="${juego.id_categoria_juego}"]`);
   const categoria     = categoria_aux.length > 0? categoria_aux.text() : '-';
-  const estado        = juego.estado.length > 0? juego.estado : '-';
+  const estado        = juego.estado? juego.estado : '-';
 
   fila.find('.nombre_juego').text(juego.nombre_juego).attr('title',juego.nombre_juego);
   fila.find('.categoria').text(categoria).attr('title',categoria);
