@@ -402,9 +402,17 @@ class informesController extends Controller
   public function obtenerJuegosFaltantes(Request $request){
     $columna = empty($request->columna)? 'dp.cod_juego' : $request->columna;
     $orden   =   empty($request->orden)? 'asc' : $request->orden;
+
+    //2022-04-01 Octavio: BPLAY reporto un producido todo en "0", la idea es que no se muestre si no tuvo movimientos, lo filtro
+    //Me quedo con la función porque en MySQL no se puede referenciar la columna por el alias
+    $numericos_distinto_de_cero = array_map(function($s){ 
+      return preg_split("/[[:blank:]]+/",$s)[0] . '<> 0'; 
+    },array_slice(self::$obtenerJuegosFaltantesSelect,2));
+    
     $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw(implode(",",self::$obtenerJuegosFaltantesSelect))
     ->groupBy('dp.cod_juego')
+    ->havingRaw(implode(' AND ',$numericos_distinto_de_cero))
     ->orderByRaw($columna.' '.$orden)->get();
 
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
