@@ -406,7 +406,7 @@ class informesController extends Controller
     //2022-04-01 Octavio: BPLAY reporto un producido todo en "0", la idea es que no se muestre si no tuvo movimientos, lo filtro
     //Me quedo con la función porque en MySQL no se puede referenciar la columna por el alias
     $numericos_distinto_de_cero = array_map(function($s){ 
-      $columna = preg_split("/[[:blank:]]+/",$s)[0];
+      $columna = explode(" ",$s,2)[0];
       return "(($columna) <> 0)";
     },array_slice(self::$obtenerJuegosFaltantesSelect,2));
     
