@@ -134,19 +134,19 @@ class JuegoController extends Controller
 
     $juego = new Juego;
     $log  = new LogJuego;
-    DB::transaction(function() use($juego,$log,$request){
+    DB::transaction(function() use(&$juego,&$log,$request){
       foreach(['nombre_juego','cod_juego','denominacion_juego','porcentaje_devolucion','escritorio',
                'movil','codigo_operador','proveedor','id_tipo_moneda','id_categoria_juego'] as $attr){
         $juego->{$attr} = $request->{$attr};
         $log->{$attr} = $request->{$attr};//Se guarda todo lo que mando en un log nuevo siempre
       }
+      $juego->touch();//Fuerza cambio en update_at
       $juego->save();
 
-      $updated_at = date('Y-m-d H:i:s');//@HACK: No puedo usar el updated_at del juego por la transacción, me agarra el valor anterior...
       $log->id_juego   = $juego->id_juego;
       $log->motivo     = $request->motivo ?? '';
-      $log->created_at = $updated_at;
-      $log->updated_at = $updated_at;
+      $log->created_at = $juego->updated_at;
+      $log->updated_at = $juego->updated_at;
       $log->deleted_at = null;
       $log->id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->save();
@@ -227,19 +227,19 @@ class JuegoController extends Controller
 
     $juego = Juego::find($request->id_juego);
     $log = new LogJuego;
-    DB::transaction(function() use($request,$log,$juego,$plataformas_usuario){
+    DB::transaction(function() use($request,&$log,&$juego,$plataformas_usuario){
       foreach(['nombre_juego','cod_juego','denominacion_juego','porcentaje_devolucion','escritorio',
       'movil','codigo_operador','proveedor','id_tipo_moneda','id_categoria_juego'] as $attr){
         $juego->{$attr} = $request->{$attr};
         $log->{$attr} = $request->{$attr};//Se guarda todo lo que mando en un log nuevo siempre
       }
+      $juego->touch();//Fuerza cambio en update_at
       $juego->save();
 
-      $updated_at = date('Y-m-d H:i:s');//@HACK: No puedo usar el updated_at del juego por la transacción, me agarra el valor anterior...
       $log->id_juego   = $request->id_juego;
       $log->motivo     = $request->motivo ?? '';
-      $log->created_at = $updated_at;
-      $log->updated_at = $updated_at;
+      $log->created_at = $juego->updated_at;
+      $log->updated_at = $juego->updated_at;
       $log->deleted_at = null;
       $log->id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $log->save();
@@ -250,7 +250,7 @@ class JuegoController extends Controller
       ->get()->first();
 
       if(!is_null($log_anterior)){
-        $log_anterior->deleted_at = $updated_at;
+        $log_anterior->deleted_at = $juego->updated_at;
         $log_anterior->save();
       }
 
