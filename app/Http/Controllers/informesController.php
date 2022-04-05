@@ -418,17 +418,15 @@ class informesController extends Controller
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
 
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw("'TOTAL' as cod_juego,".implode(",",array_slice(self::$obtenerJuegosFaltantesSelect,1)))
+    ->selectRaw("'TOTAL' as cod_juego, COUNT(distinct dp.cod_juego) as count,".implode(",",array_slice(self::$obtenerJuegosFaltantesSelect,1)))
     ->groupBy(DB::raw('"constant"'))->get();
 
-    $count = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw("COUNT(distinct dp.cod_juego) as total")
-    ->groupBy(DB::raw('"constant"'))
-    ->get()->first();
+    $count = $total->first()? $total->first()->count : 0;
 
-    $count = $count? $count->total : 0;
-
-    return ['data' => $juegos_faltantes->merge($total), 'total' => $count];
+    return ['data' => $juegos_faltantes->merge($total->map(function($r){
+      unset($r->count);
+      return $r;
+    })), 'total' => $count];
   }
 
   public static $obtenerJugadoresFaltantesSelect =
@@ -471,15 +469,15 @@ class informesController extends Controller
     ->orderByRaw($columna.' '.$orden)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
 
-    $total = (clone $q)->selectRaw("'TOTAL' as jugador,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
+    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
     ->groupBy(DB::raw('"constant"'))->get();
 
-    $count = (clone $q)->selectRaw("COUNT(distinct dpj.jugador) as total")
-    ->groupBy(DB::raw('"constant"'))->get()->first();
+    $count = $total->first()? $total->first()->count : 0;
 
-    $count = $count? $count->total : 0;
-
-    return ['data' => $jugadores_faltantes->merge($total), 'total' => $count];
+    return ['data' => $jugadores_faltantes->merge($total->map(function($r){
+      unset($r->count);
+      return $r;
+    })), 'total' => $count];
   }
 
   public static $obtenerAlertasJuegosSelect =
