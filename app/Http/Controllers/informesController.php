@@ -452,7 +452,8 @@ class informesController extends Controller
     ->leftJoin('importacion_estado_jugador as iej',function($j){
       return $j->on('iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
       ->on('iej.id_plataforma','=','pj.id_plataforma');
-    })->where('pj.id_plataforma',$request->id_plataforma);;
+    })->where('pj.id_plataforma',$request->id_plataforma)
+    ->take(100);//@HACK!!, agregar paginado o bug??
 
     if(!empty($fecha_desde)) $ret = $q->where('pj.fecha','>=',$request->fecha_desde);
     if(!empty($fecha_hasta)) $ret = $q->where('pj.fecha','<=',$request->fecha_hasta);
