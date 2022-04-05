@@ -423,6 +423,51 @@ class informesController extends Controller
     return $juegos_faltantes->merge($total);
   }
 
+  public static $obtenerJugadoresFaltantesSelect =
+  [ "dpj.jugador as jugador",
+    "SUM(dpj.apuesta_efectivo)   as apuesta_efectivo"  ,"SUM(dpj.apuesta_bono)               as apuesta_bono",
+    "SUM(dpj.apuesta)            as apuesta"           ,"SUM(dpj.premio_efectivo)            as premio_efectivo",
+    "SUM(dpj.premio_bono)        as premio_bono"       ,"SUM(dpj.premio)                     as premio",
+    "SUM(dpj.beneficio_efectivo) as beneficio_efectivo","SUM(dpj.beneficio_bono)             as beneficio_bono" ,
+    "SUM(dpj.beneficio)          as beneficio"         ,"100*AVG(dpj.premio)/AVG(dpj.apuesta) as pdev"
+  ];
+
+  public function obtenerJugadoresFaltantes(Request $request){
+    $columna = empty($request->columna)? 'dpj.jugador' : $request->columna;
+    $orden   =   empty($request->orden)? 'asc' : $request->orden;
+
+    //2022-04-01 Octavio: BPLAY reporto un producido todo en "0", la idea es que no se muestre si no tuvo movimientos, lo filtro
+    //Me quedo con la función porque en MySQL no se puede referenciar la columna por el alias
+    $numericos_distinto_de_cero = array_map(function($s){ 
+      $columna = explode(" ",$s,2)[0];
+      return "(($columna) <> 0)";
+    },array_slice(self::$obtenerJugadoresFaltantesSelect,1));
+    
+    $q = DB::table('producido_jugadores as pj')
+    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+    ->leftJoin('datos_jugador as dj','dj.codigo','=','dpj.jugador')
+    ->leftJoin('estado_jugador as ej',function($j){
+      return $j->on('ej.id_datos_jugador','=','dj.id_datos_jugador')->where('ej.es_ultimo_estado_del_jugador','=',1);
+    })
+    ->leftJoin('importacion_estado_jugador as iej',function($j){
+      return $j->on('iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
+      ->on('iej.id_plataforma','=','pj.id_plataforma');
+    })->where('pj.id_plataforma',$request->id_plataforma);;
+
+    if(!empty($fecha_desde)) $ret = $q->where('pj.fecha','>=',$request->fecha_desde);
+    if(!empty($fecha_hasta)) $ret = $q->where('pj.fecha','<=',$request->fecha_hasta);
+
+    $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadoresFaltantesSelect))
+    ->groupBy('dpj.jugador')
+    ->havingRaw(implode(' OR ',$numericos_distinto_de_cero))
+    ->orderByRaw($columna.' '.$orden)->get();
+
+    $total = (clone $q)->selectRaw("'TOTAL' as jugador,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
+    ->groupBy(DB::raw('"constant"'))->get();
+
+    return $jugadores_faltantes->merge($total);
+  }
+
   public static $obtenerAlertasJuegosSelect =
   [
     'p.fecha as fecha','dp.cod_juego as codigo','cj.nombre as categoria',

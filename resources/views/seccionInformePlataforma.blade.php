@@ -11,6 +11,7 @@ $separar_sql = function($col){
   return ['sql' => trim($vals[0]),'alias' => trim($vals[1])];
 };
 $juegosFaltantesSelect  = array_map($separar_sql,informesController::$obtenerJuegosFaltantesSelect);
+$jugadoresFaltantesSelect  = array_map($separar_sql,informesController::$obtenerJugadoresFaltantesSelect);
 $alertasJuegosSelect    = array_map($separar_sql,informesController::$obtenerAlertasJuegosSelect);
 $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadoresSelect);
 ?>
@@ -49,6 +50,13 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
   width: {{100.0/count($juegosFaltantesSelect)}}%;
 }
 
+#jugadoresFaltantesConMovimientos th,
+#jugadoresFaltantesConMovimientos td {
+  text-align: right;
+  padding: 0px;
+  width: {{100.0/count($jugadoresFaltantesSelect)}}%;
+}
+
 #divAlertasDiariasJuegos th,
 #divAlertasDiariasJuegos td {
   text-align: right;
@@ -66,6 +74,8 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
 #juegosFaltantesConMovimientos th,
 #juegosFaltantesConMovimientos td.cod_juego,
 #juegosFaltantesConMovimientos td.categoria,
+#jugadoresFaltantesConMovimientos th,
+#jugadorestantesConMovimientos td.jugador,
 #divAlertasDiariasJuegos th,
 #divAlertasDiariasJuegos td.fecha,
 #divAlertasDiariasJuegos td.codigo,
@@ -144,6 +154,9 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
             <div class="tab" style="width: 15%;" div-asociado="#divJuegosFaltantesConMovimientos">
               <h4>JUEGOS FALTANTES C/ MOV</h4>
             </div>
+            <div class="tab" style="width: 15%;" div-asociado="#divJugadoresFaltantesConMovimientos">
+              <h4>JUGADORES FALTANTES C/ MOV</h4>
+            </div>
             <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiariasJuegos">
               <h4>ALERTAS DIARIAS (JUEGOS)</h4>
             </div>
@@ -173,6 +186,25 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
                         <thead>
                           <tr>
                             @foreach($juegosFaltantesSelect as $idx => $columna)
+                            <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
+                            @if($idx == 0)
+                            estado="asc" class="activa"
+                            @endif
+                            >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
+                            @endforeach
+                          </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                      </table>
+                    </div>
+                </div>
+                <div id="divJugadoresFaltantesConMovimientos" class="row tabContent">
+                    <div id="jugadoresFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
+                      <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
+                        <thead>
+                          <tr>
+                            @foreach($jugadoresFaltantesSelect as $idx => $columna)
                             <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
                             @if($idx == 0)
                             estado="asc" class="activa"
@@ -313,6 +345,11 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
 <table hidden>
   <tr id="filaEjemploJuegosFaltantesConMovimientos">
     @foreach($juegosFaltantesSelect as $idx => $columna)
+    <td class="{{$columna['alias']}}">XXX</td>
+    @endforeach
+  </tr>
+  <tr id="filaEjemploJugadoresFaltantesConMovimientos">
+    @foreach($jugadoresFaltantesSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>

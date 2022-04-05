@@ -229,6 +229,7 @@ Route::group(['prefix' => 'informePlataforma','middleware' =>'tiene_permiso:ver_
   Route::get('/obtenerClasificacion','informesController@obtenerClasificacion');
   Route::get('/obtenerPdevs','informesController@obtenerPdevs');
   Route::get('/obtenerJuegosFaltantes','informesController@obtenerJuegosFaltantes');
+  Route::get('/obtenerJugadoresFaltantes','informesController@obtenerJugadoresFaltantes');
   Route::get('/obtenerAlertasJuegos','informesController@obtenerAlertasJuegos');
   Route::get('/obtenerAlertasJugadores','informesController@obtenerAlertasJugadores');
   Route::get('/obtenerEvolucionCategorias','informesController@obtenerEvolucionCategorias');

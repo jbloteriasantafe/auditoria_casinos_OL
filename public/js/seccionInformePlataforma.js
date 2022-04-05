@@ -56,6 +56,23 @@ $(document).ready(function(){
     });
   });
 
+  $('#jugadoresFaltantesConMovimientos table').data('buscar',
+  function(){
+    GET('#jugadoresFaltantesConMovimientos tbody','obtenerJugadoresFaltantes',sortBy('#jugadoresFaltantesConMovimientos'),function(data){
+      for(const jidx in data){
+        const j = data[jidx];
+        const fila = $('#filaEjemploJugadoresFaltantesConMovimientos').clone().removeAttr('id');
+        for(const k in j){
+          let val = digits(j[k],k.indexOf('pdev') != -1? 3 : 2);
+          if(k == 'jugador') val = j[k];
+          fila.find('.'+k).text(val).attr('title',val);
+        }
+        $('#jugadoresFaltantesConMovimientos tbody').append(fila);
+      }
+      convertirLinks($('#jugadoresFaltantesConMovimientos tbody .jugador'),$('#buscadorPlataforma').val(),'jugador');
+    });
+  });
+
   $('#buscadorPlataforma').change();
 });
 
@@ -114,6 +131,7 @@ $('#btn-buscar').click(function(e){
   $('#graficos').empty();
   $('#tablas').empty();
   $('#juegosFaltantesConMovimientos tbody').empty();
+  $('#jugadoresFaltantesConMovimientos tbody').empty();
   {
     let titulo = $('#buscadorPlataforma option:selected').text() + ' ';
     const desde = $('#fecha_desde').val();
@@ -139,6 +157,7 @@ $('#btn-buscar').click(function(e){
   });
 
   $('#juegosFaltantesConMovimientos table').data('buscar')();
+  $('#jugadoresFaltantesConMovimientos table').data('buscar')();
 
   $('#btn-buscarAlertasJuegos').click();
   $('#btn-buscarAlertasJugadores').click();
