@@ -424,7 +424,9 @@ class informesController extends Controller
     $count = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw("COUNT(distinct dp.cod_juego) as total")
     ->groupBy(DB::raw('"constant"'))
-    ->get()->first()->total;
+    ->get()->first();
+
+    $count = $count? $count->total : 0;
 
     return ['data' => $juegos_faltantes->merge($total), 'total' => $count];
   }
@@ -473,7 +475,9 @@ class informesController extends Controller
     ->groupBy(DB::raw('"constant"'))->get();
 
     $count = (clone $q)->selectRaw("COUNT(distinct dpj.jugador) as total")
-    ->groupBy(DB::raw('"constant"'))->get()->first()->total;
+    ->groupBy(DB::raw('"constant"'))->get()->first();
+
+    $count = $count? $count->total : 0;
 
     return ['data' => $jugadores_faltantes->merge($total), 'total' => $count];
   }
