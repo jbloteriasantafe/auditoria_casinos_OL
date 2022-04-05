@@ -39,42 +39,50 @@ $(document).ready(function(){
     minView: 2
   });
 
-  $('#juegosFaltantesConMovimientos table').data('buscar',
-  function(){
-    GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',sortBy('#juegosFaltantesConMovimientos'),function(data){
-      for(const jidx in data){
-        const j = data[jidx];
-        const fila = $('#filaEjemploJuegosFaltantesConMovimientos').clone().removeAttr('id');
-        for(const k in j){
-          let val = digits(j[k],k.indexOf('pdev') != -1? 3 : 2);
-          if(k == 'cod_juego') val = j[k];//@HACK en bplay los codigos de juegos son números
-          fila.find('.'+k).text(val).attr('title',val);
-        }
-        $('#juegosFaltantesConMovimientos tbody').append(fila);
-      }
-      convertirLinks($('#juegosFaltantesConMovimientos tbody .cod_juego'),$('#buscadorPlataforma').val(),'juego');
+  $('#juegosFaltantesConMovimientos table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#juegosFaltantesConMovimientos`), };
+    $('#juegosFaltantesConMovimientos tbody').empty();
+    GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',formData,function(data){
+      const total = data.total;
+      if(total == 0) return;
+      generarTablaFaltantes('Juego',data.data,formData.page,Math.ceil(total/formData.page_size));
     });
-  });
+  })
+  .data('buscar')(1);
 
-  $('#jugadoresFaltantesConMovimientos table').data('buscar',
-  function(){
-    GET('#jugadoresFaltantesConMovimientos tbody','obtenerJugadoresFaltantes',sortBy('#jugadoresFaltantesConMovimientos'),function(data){
-      for(const jidx in data){
-        const j = data[jidx];
-        const fila = $('#filaEjemploJugadoresFaltantesConMovimientos').clone().removeAttr('id');
-        for(const k in j){
-          let val = digits(j[k],k.indexOf('pdev') != -1? 3 : 2);
-          if(k == 'jugador') val = j[k];
-          fila.find('.'+k).text(val).attr('title',val);
-        }
-        $('#jugadoresFaltantesConMovimientos tbody').append(fila);
-      }
-      convertirLinks($('#jugadoresFaltantesConMovimientos tbody .jugador'),$('#buscadorPlataforma').val(),'jugador');
+  $('#jugadoresFaltantesConMovimientos table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#jugadoresFaltantesConMovimientos`), };
+    $('#jugadoresFaltantesConMovimientos tbody').empty();
+    GET('#jugadoresFaltantesConMovimientos tbody','obtenerJugadoresFaltantes',formData,function(data){
+      const total = data.total;
+      if(total == 0) return;
+      generarTablaFaltantes('Jugador',data.data,formData.page,Math.ceil(total/formData.page_size));
     });
-  });
+  })
+  .data('buscar')(1);
 
   $('#buscadorPlataforma').change();
 });
+
+function generarTablaFaltantes(tipo,faltantes,page,pages){
+  const div = $('#div'+tipo+'FaltantesConMovimientos');
+  const fila = $('#molde'+tipo+'FaltantesConMovimientos').clone().removeAttr('id').show();
+  for(const falidx in faltantes){
+    const fltnt = faltantes[falidx];
+    const f = fila.clone().css('display','block');//Lo pone como table-row, por algun motivo y se ve mal
+    for(const columna in fltnt){
+      let val = digits(fltnt[columna],columna.indexOf('pdev') != -1? 3 : 2);
+      if(columna == 'jugador' || columna == 'codigo') val = fltnt[columna];
+      f.find('.'+columna).text(val).attr('title',val);
+    }
+    div.find('tbody').append(f);
+  }
+  div.find('.previewPage').val(page).data('old_val',page);
+  div.find('.previewTotal').val(pages);
+  div.find('.prevPreview').attr('disabled',page <= 1);
+  div.find('.nextPreview').attr('disabled',page >= pages);
+  convertirLinks(div.find('tbody').find('.cod_juego,.jugador'),$('#buscadorPlataforma').val(),tipo.toLowerCase());
+}
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
@@ -351,16 +359,30 @@ function generarTablaAlertas(tipo,moneda,alertas,page,pages,sort_by){
   }
 }
 
+function rebuscar($this,next){
+  if($this.closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
+    generarAlertasDiarias('Juegos',next);
+    return;
+  }
+  if($this.closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
+    generarAlertasDiarias('Jugadores',next);
+    return;
+  }
+  if($this.closest('#divJuegoFaltantesConMovimientos').length > 0){
+    $('#juegosFaltantesConMovimientos table').data('buscar')(next);
+    return;
+  }
+  if($this.closest('#divJugadorFaltantesConMovimientos').length > 0){
+    $('#jugadoresFaltantesConMovimientos table').data('buscar')(next);
+    return;
+  }
+}
+
 $(document).on('click','.prevPreview,.nextPreview',function(e){
   e.preventDefault();
   const p = parseInt($(this).closest('.paginado').find('.previewPage').val());
   const next = p + ($(this).hasClass('nextPreview')? 1 : -1);
-  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
-    generarAlertasDiarias('Juegos',next);
-  }
-  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
-    generarAlertasDiarias('Jugadores',next);
-  }
+  rebuscar($(this),next);
 });
 
 $(document).on('focusin','.previewPage',function(e){
@@ -375,12 +397,7 @@ $(document).on('change','.previewPage',function(e){
     $(this).val(old);
     return;
   }
-  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
-    generarAlertasDiarias('Juegos',val);
-  }
-  if($(this).closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
-    generarAlertasDiarias('Jugadores',val);
-  }
+  rebuscar($(this),val)
 });
 
 $('#tabEvolucionCategorias').click(function(e){

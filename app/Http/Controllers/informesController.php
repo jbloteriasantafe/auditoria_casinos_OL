@@ -414,13 +414,19 @@ class informesController extends Controller
     ->selectRaw(implode(",",self::$obtenerJuegosFaltantesSelect))
     ->groupBy('dp.cod_juego')
     ->havingRaw(implode(' OR ',$numericos_distinto_de_cero))
-    ->orderByRaw($columna.' '.$orden)->get();
+    ->orderByRaw($columna.' '.$orden)
+    ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
 
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw("'TOTAL' as cod_juego,".implode(",",array_slice(self::$obtenerJuegosFaltantesSelect,1)))
     ->groupBy(DB::raw('"constant"'))->get();
 
-    return $juegos_faltantes->merge($total);
+    $count = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+    ->selectRaw("COUNT(distinct dp.cod_juego) as total")
+    ->groupBy(DB::raw('"constant"'))
+    ->get()->first()->total;
+
+    return ['data' => $juegos_faltantes->merge($total), 'total' => $count];
   }
 
   public static $obtenerJugadoresFaltantesSelect =
@@ -460,12 +466,16 @@ class informesController extends Controller
     $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadoresFaltantesSelect))
     ->groupBy('dpj.jugador')
     ->havingRaw(implode(' OR ',$numericos_distinto_de_cero))
-    ->orderByRaw($columna.' '.$orden)->get();
+    ->orderByRaw($columna.' '.$orden)
+    ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
 
     $total = (clone $q)->selectRaw("'TOTAL' as jugador,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
     ->groupBy(DB::raw('"constant"'))->get();
 
-    return $jugadores_faltantes->merge($total);
+    $count = (clone $q)->selectRaw("COUNT(distinct dpj.jugador) as total")
+    ->groupBy(DB::raw('"constant"'))->get()->first()->total;
+
+    return ['data' => $jugadores_faltantes->merge($total), 'total' => $count];
   }
 
   public static $obtenerAlertasJuegosSelect =

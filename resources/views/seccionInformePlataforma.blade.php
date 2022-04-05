@@ -44,14 +44,16 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
 }
 
 #juegosFaltantesConMovimientos th,
-#juegosFaltantesConMovimientos td {
+#juegosFaltantesConMovimientos td,
+#moldeJuegoFaltantesConMovimientos td {
   text-align: right;
   padding: 0px;
   width: {{100.0/count($juegosFaltantesSelect)}}%;
 }
 
 #jugadoresFaltantesConMovimientos th,
-#jugadoresFaltantesConMovimientos td {
+#jugadoresFaltantesConMovimientos td,
+#moldeJugadorFaltantesConMovimientos td {
   text-align: right;
   padding: 0px;
   width: {{100.0/count($jugadoresFaltantesSelect)}}%;
@@ -151,10 +153,10 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
             <div class="tab" style="width: 10%;" div-asociado="#divTablas">
               <h4>% DEVS</h4>
             </div>
-            <div class="tab" style="width: 15%;" div-asociado="#divJuegosFaltantesConMovimientos">
+            <div class="tab" style="width: 15%;" div-asociado="#divJuegoFaltantesConMovimientos">
               <h4>JUEGOS FALTANTES C/ MOV</h4>
             </div>
-            <div class="tab" style="width: 15%;" div-asociado="#divJugadoresFaltantesConMovimientos">
+            <div class="tab" style="width: 15%;" div-asociado="#divJugadorFaltantesConMovimientos">
               <h4>JUGADORES FALTANTES C/ MOV</h4>
             </div>
             <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiariasJuegos">
@@ -180,43 +182,65 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
                     <h5>PORCENTAJES DE DEVOLUCION</h5>
                     <div id="tablas" class="col-md-12"></div>
                 </div>
-                <div id="divJuegosFaltantesConMovimientos" class="row tabContent">
-                    <div id="juegosFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
-                      <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
-                        <thead>
-                          <tr>
-                            @foreach($juegosFaltantesSelect as $idx => $columna)
-                            <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
-                            @if($idx == 0)
-                            estado="asc" class="activa"
-                            @endif
-                            >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
-                            @endforeach
-                          </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                      </table>
+                <div id="divJuegoFaltantesConMovimientos" class="row tabContent">
+                  <div id="juegosFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
+                    <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
+                      <thead>
+                        <tr>
+                          @foreach($juegosFaltantesSelect as $idx => $columna)
+                          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
+                          @if($idx == 0)
+                          estado="asc" class="activa"
+                          @endif
+                          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
+                          @endforeach
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                    <div class="row paginado">
+                      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
+                      <div class="col-md-4">
+                        <div class="input-group">
+                          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
+                          <span class="input-group-addon">/</span>
+                          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
+                        </div>
+                      </div>
+                      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
                     </div>
+                  </div>
                 </div>
-                <div id="divJugadoresFaltantesConMovimientos" class="row tabContent">
-                    <div id="jugadoresFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
-                      <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
-                        <thead>
-                          <tr>
-                            @foreach($jugadoresFaltantesSelect as $idx => $columna)
-                            <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
-                            @if($idx == 0)
-                            estado="asc" class="activa"
-                            @endif
-                            >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
-                            @endforeach
-                          </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                      </table>
+                <div id="divJugadorFaltantesConMovimientos" class="row tabContent">
+                  <div id="jugadoresFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
+                    <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
+                      <thead>
+                        <tr>
+                          @foreach($jugadoresFaltantesSelect as $idx => $columna)
+                          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
+                          @if($idx == 0)
+                          estado="asc" class="activa"
+                          @endif
+                          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
+                          @endforeach
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                    <div class="row paginado">
+                      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
+                      <div class="col-md-4">
+                        <div class="input-group">
+                          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
+                          <span class="input-group-addon">/</span>
+                          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
+                        </div>
+                      </div>
+                      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
                     </div>
+                  </div>
                 </div>
                 <div id="divAlertasDiariasJuegos" class="row tabContent">
                   <div class="row" id="inputsAlertas">
@@ -302,7 +326,6 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
   </table>
 </div>
 
-
 <div id="moldeAlertaJugadores" class="row tablaAlertas tablaAlertasJugadores" style="border: 1px solid #eee;"  hidden>
   <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
   <div class="row">
@@ -342,13 +365,14 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
   </table>
 </div>
 
+
 <table hidden>
-  <tr id="filaEjemploJuegosFaltantesConMovimientos">
+  <tr id="moldeJuegoFaltantesConMovimientos">
     @foreach($juegosFaltantesSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>
-  <tr id="filaEjemploJugadoresFaltantesConMovimientos">
+  <tr id="moldeJugadorFaltantesConMovimientos">
     @foreach($jugadoresFaltantesSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
@@ -400,7 +424,7 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionInformePlataforma.js?2" charset="utf-8"></script>
+    <script src="js/seccionInformePlataforma.js?3" charset="utf-8"></script>
 
     <!-- Highchart -->
     <script src="js/highcharts.js"></script>
