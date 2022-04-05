@@ -77,7 +77,7 @@ class JuegoController extends Controller
         'juego' => $l, 
         'certificados' => $l->gliSoft,
         'plataformas' => 
-        DB::table('plataforma_tiene_juego_log_norm')->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego.id_plataforma')
+        DB::table('plataforma_tiene_juego_log_norm')->join('plataforma','plataforma.id_plataforma','=','plataforma_tiene_juego_log_norm.id_plataforma')
         ->where('id_juego_log_norm',$l->id_juego_log_norm)->get(),
         'usuario' => $l->usuario,
       ];
