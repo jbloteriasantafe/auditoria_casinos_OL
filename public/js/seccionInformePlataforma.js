@@ -14,11 +14,8 @@ function convertirLinks(tds,id_plataforma,modo){
 }
 
 $(document).ready(function(){
-  $('#informesAuditoria').removeClass().addClass('subMenu2 collapse in');
   $('.tituloSeccionPantalla').text('Informe de Plataforma');
-  $('#opcInformePlataforma').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
-  $('#opcInformePlataforma').addClass('opcionesSeleccionado');
-  $('#dtpFechaDesde').datetimepicker({
+  const iso_dtp = {
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -27,93 +24,53 @@ $(document).ready(function(){
     pickerPosition: "bottom-left",
     startView: 4,
     minView: 2
-  });
-  $('#dtpFechaHasta').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    showClear: true,
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2
-  });
+  };
+  $('#dtpFechaDesde').datetimepicker(iso_dtp);
+  $('#dtpFechaHasta').datetimepicker(iso_dtp);
 
-  $('#juegosFaltantesConMovimientos table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#juegosFaltantesConMovimientos`), };
-    $('#juegosFaltantesConMovimientos tbody').empty();
-    GET('#juegosFaltantesConMovimientos tbody','obtenerJuegosFaltantes',formData,function(data){
-      const total = data.total;
-      if(total == 0) return;
-      generarTablaFaltantes('Juego',data.data,formData.page,Math.ceil(total/formData.page_size));
+  $('#juegoFaltantesConMovimientos table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#juegoFaltantesConMovimientos`), };
+    $('#juegoFaltantesConMovimientos tbody').empty();
+    GET('#juegoFaltantesConMovimientos tbody','obtenerJuegosFaltantes',formData,function(data){
+      generarTablaPaginada('Juego','FaltantesConMovimientos',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
     });
-  })
-  .data('buscar')();
+  });
 
-  $('#jugadoresFaltantesConMovimientos table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#jugadoresFaltantesConMovimientos`), };
-    $('#jugadoresFaltantesConMovimientos tbody').empty();
-    GET('#jugadoresFaltantesConMovimientos tbody','obtenerJugadoresFaltantes',formData,function(data){
-      const total = data.total;
-      if(total == 0) return;
-      generarTablaFaltantes('Jugador',data.data,formData.page,Math.ceil(total/formData.page_size));
+  $('#jugadorFaltantesConMovimientos table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#jugadorFaltantesConMovimientos`), };
+    $('#jugadorFaltantesConMovimientos tbody').empty();
+    GET('#jugadorFaltantesConMovimientos tbody','obtenerJugadoresFaltantes',formData,function(data){
+      generarTablaPaginada('Jugador','FaltantesConMovimientos',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
     });
-  })
-  .data('buscar')();
+  });
 
-  $('#juegosAlertasDiarias table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#juegosAlertasDiarias`),
+  $('#juegoAlertasDiarias table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#juegoAlertasDiarias`),
       beneficio_alertas: $('#inputBeneficioJuegos').val(),
       pdev_alertas: $('#inputPdevJuegos').val(),
     };
-    $('#juegosAlertasDiarias tbody').empty();
-    GET('#juegosAlertasDiarias tbody','obtenerAlertasJuegos',formData,function(data){
-      const total = data.total;
-      if(total == 0) return;
-      generarTablaAlertas('Juego',data.data,formData.page,Math.ceil(total/formData.page_size));
+    $('#juegoAlertasDiarias tbody').empty();
+    GET('#juegoAlertasDiarias tbody','obtenerAlertasJuegos',formData,function(data){
+      generarTablaPaginada('Juego','AlertasDiarias',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
     });
-  })
-  .data('buscar')();
+  });
 
-  $('#jugadoresAlertasDiarias table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#jugadoresAlertasDiarias`),
+  $('#jugadorAlertasDiarias table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#jugadorAlertasDiarias`),
       beneficio_alertas: $('#inputBeneficioJugadores').val(),
     };
-    $('#jugadoresAlertasDiarias tbody').empty();
-    GET('#jugadoresAlertasDiarias tbody','obtenerAlertasJugadores',formData,function(data){
-      const total = data.total;
-      if(total == 0) return;
-      generarTablaAlertas('Jugador',data.data,formData.page,Math.ceil(total/formData.page_size));
+    $('#jugadorAlertasDiarias tbody').empty();
+    GET('#jugadorAlertasDiarias tbody','obtenerAlertasJugadores',formData,function(data){
+      generarTablaPaginada('Jugador','AlertasDiarias',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
     });
-  })
-  .data('buscar')();
+  });
 
   $('#buscadorPlataforma').change();
 });
 
-function generarTablaFaltantes(tipo,faltantes,page,pages){
-  const div = $('#div'+tipo+'FaltantesConMovimientos');
-  const fila = $('#molde'+tipo+'FaltantesConMovimientos').clone().removeAttr('id').show();
-  for(const falidx in faltantes){
-    const fltnt = faltantes[falidx];
-    const f = fila.clone().css('display','block');//Lo pone como table-row, por algun motivo y se ve mal
-    for(const columna in fltnt){
-      let val = digits(fltnt[columna],columna.indexOf('pdev') != -1? 3 : 2);
-      if(columna == 'jugador' || columna == 'cod_jugador') val = fltnt[columna];
-      f.find('.'+columna).text(val).attr('title',val);
-    }
-    div.find('tbody').append(f);
-  }
-  div.find('.previewPage').val(page).data('old_val',page);
-  div.find('.previewTotal').val(pages);
-  div.find('.prevPreview').attr('disabled',page <= 1);
-  div.find('.nextPreview').attr('disabled',page >= pages);
-  convertirLinks(div.find('tbody').find('.cod_juego,.jugador'),$('#buscadorPlataforma').val(),tipo.toLowerCase());
-}
-
-function generarTablaAlertas(tipo,faltantes,page,pages){
-  const div = $('#div'+tipo+'AlertasDiarias');
-  const fila = $('#molde'+tipo+'AlertasDiarias').clone().removeAttr('id').show();
+function generarTablaPaginada(tipo,tipo2,faltantes,page,pages){
+  const div = $('#div'+tipo+tipo2);
+  const fila = $('#molde'+tipo+tipo2).clone().removeAttr('id').show();
   for(const falidx in faltantes){
     const fltnt = faltantes[falidx];
     const f = fila.clone().css('display','block');//Lo pone como table-row, por algun motivo y se ve mal
@@ -185,8 +142,8 @@ $('#btn-buscar').click(function(e){
 
   $('#graficos').empty();
   $('#tablas').empty();
-  $('#juegosFaltantesConMovimientos tbody').empty();
-  $('#jugadoresFaltantesConMovimientos tbody').empty();
+  $('#juegoFaltantesConMovimientos tbody').empty();
+  $('#jugadorFaltantesConMovimientos tbody').empty();
   {
     let titulo = $('#buscadorPlataforma option:selected').text() + ' ';
     const desde = $('#fecha_desde').val();
@@ -211,10 +168,10 @@ $('#btn-buscar').click(function(e){
     }
   });
 
-  $('#juegosFaltantesConMovimientos table').data('buscar')();
-  $('#jugadoresFaltantesConMovimientos table').data('buscar')();
-  $('#juegosAlertasDiarias table').data('buscar')();
-  $('#jugadoresAlertasDiarias table').data('buscar')();
+  $('#juegoFaltantesConMovimientos table').data('buscar')();
+  $('#jugadorFaltantesConMovimientos table').data('buscar')();
+  $('#juegoAlertasDiarias table').data('buscar')();
+  $('#jugadorAlertasDiarias table').data('buscar')();
 });
 
 function setearEstadoColumna(col,estado){
@@ -336,29 +293,29 @@ $('.tab').click(function(){
 
 $('#btn-buscarAlertasJuegos').click(function(e){
   e.preventDefault();
-  $('#juegosAlertasDiarias table').data('buscar')();
+  $('#juegoAlertasDiarias table').data('buscar')();
 });
 
 $('#btn-buscarAlertasJugadores').click(function(e){
   e.preventDefault();
-  $('#jugadoresAlertasDiarias table').data('buscar')();
+  $('#jugadorAlertasDiarias table').data('buscar')();
 });
 
 function rebuscar($this,next){
   if($this.closest('#divJugadorAlertasDiarias').length > 0){
-    $('#jugadoresAlertasDiarias table').data('buscar')(next);
+    $('#jugadorAlertasDiarias table').data('buscar')(next);
     return;
   }
   if($this.closest('#divJuegoAlertasDiarias').length > 0){
-    $('#juegosAlertasDiarias table').data('buscar')(next);
+    $('#juegoAlertasDiarias table').data('buscar')(next);
     return;
   }
   if($this.closest('#divJuegoFaltantesConMovimientos').length > 0){
-    $('#juegosFaltantesConMovimientos table').data('buscar')(next);
+    $('#juegoFaltantesConMovimientos table').data('buscar')(next);
     return;
   }
   if($this.closest('#divJugadorFaltantesConMovimientos').length > 0){
-    $('#jugadoresFaltantesConMovimientos table').data('buscar')(next);
+    $('#jugadorFaltantesConMovimientos table').data('buscar')(next);
     return;
   }
 }

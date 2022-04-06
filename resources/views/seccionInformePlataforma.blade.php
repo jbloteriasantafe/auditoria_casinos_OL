@@ -10,10 +10,10 @@ $separar_sql = function($col){
   $vals = explode(' as ',$col);
   return ['sql' => trim($vals[0]),'alias' => trim($vals[1])];
 };
-$juegosFaltantesSelect = array_map($separar_sql,informesController::$obtenerJuegosFaltantesSelect);
-$jugadoresFaltantesSelect = array_map($separar_sql,informesController::$obtenerJugadoresFaltantesSelect);
-$juegosAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJuegosSelect);
-$jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadoresSelect);
+$juegoFaltantesSelect = array_map($separar_sql,informesController::$obtenerJuegosFaltantesSelect);
+$jugadorFaltantesSelect = array_map($separar_sql,informesController::$obtenerJugadoresFaltantesSelect);
+$juegoAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJuegosSelect);
+$jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadoresSelect);
 ?>
 
 @section('estilos')
@@ -43,48 +43,48 @@ $jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obt
   max-height: 650px;
 }
 
-#juegosFaltantesConMovimientos th,
-#juegosFaltantesConMovimientos td,
+#juegoFaltantesConMovimientos th,
+#juegoFaltantesConMovimientos td,
 #moldeJuegoFaltantesConMovimientos td {
   text-align: right;
   padding: 0px;
-  width: {{100.0/count($juegosFaltantesSelect)}}%;
+  width: {{100.0/count($juegoFaltantesSelect)}}%;
 }
 
-#jugadoresFaltantesConMovimientos th,
-#jugadoresFaltantesConMovimientos td,
+#jugadorFaltantesConMovimientos th,
+#jugadorFaltantesConMovimientos td,
 #moldeJugadorFaltantesConMovimientos td {
   text-align: right;
   padding: 0px;
-  width: {{100.0/count($jugadoresFaltantesSelect)}}%;
+  width: {{100.0/count($jugadorFaltantesSelect)}}%;
 }
 
-#juegosAlertasDiarias th,
-#juegosAlertasDiarias td {
+#juegoAlertasDiarias th,
+#juegoAlertasDiarias td {
   text-align: right;
   padding: 0px;
-  width: {{100.0/count($juegosAlertasDiariasSelect)}}%;
+  width: {{100.0/count($juegoAlertasDiariasSelect)}}%;
 }
 
-#jugadoresAlertasDiarias th,
-#jugadoresAlertasDiarias td {
+#jugadorAlertasDiarias th,
+#jugadorAlertasDiarias td {
   text-align: right;
   padding: 0px;
-  width: {{100.0/count($jugadoresAlertasDiariasSelect)}}%;
+  width: {{100.0/count($jugadorAlertasDiariasSelect)}}%;
 }
 
-#juegosFaltantesConMovimientos th,
-#juegosFaltantesConMovimientos td.cod_juego,
-#juegosFaltantesConMovimientos td.categoria,
-#jugadoresFaltantesConMovimientos th,
-#jugadoresFaltantesConMovimientos td.jugador,
-#juegosAlertasDiarias th,
-#juegosAlertasDiarias td.fecha,
-#juegosAlertasDiarias td.cod_juego,
-#juegosAlertasDiarias td.categoria,
-#jugadoresAlertasDiarias th,
-#jugadoresAlertasDiarias td.fecha,
-#jugadoresAlertasDiarias td.jugador {
+#juegoFaltantesConMovimientos th,
+#juegoFaltantesConMovimientos td.cod_juego,
+#juegoFaltantesConMovimientos td.categoria,
+#jugadorFaltantesConMovimientos th,
+#jugadorFaltantesConMovimientos td.jugador,
+#juegoAlertasDiarias th,
+#juegoAlertasDiarias td.fecha,
+#juegoAlertasDiarias td.cod_juego,
+#juegoAlertasDiarias td.categoria,
+#jugadorAlertasDiarias th,
+#jugadorAlertasDiarias td.fecha,
+#jugadorAlertasDiarias td.jugador {
   text-align: center;/*Casos especiales donde se visualiza mejor alineado en el centro*/
 }
 
@@ -183,11 +183,11 @@ $jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obt
                     <div id="tablas" class="col-md-12"></div>
                 </div>
                 <div id="divJuegoFaltantesConMovimientos" class="row tabContent">
-                  <div id="juegosFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
+                  <div id="juegoFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
                     <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
                       <thead>
                         <tr>
-                          @foreach($juegosFaltantesSelect as $idx => $columna)
+                          @foreach($juegoFaltantesSelect as $idx => $columna)
                           <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
                           @if($idx == 0)
                           estado="asc" class="activa"
@@ -213,11 +213,11 @@ $jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obt
                   </div>
                 </div>
                 <div id="divJugadorFaltantesConMovimientos" class="row tabContent">
-                  <div id="jugadoresFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
+                  <div id="jugadorFaltantesConMovimientos" class="col-md-12" style="padding: 0px !important;">
                     <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
                       <thead>
                         <tr>
-                          @foreach($jugadoresFaltantesSelect as $idx => $columna)
+                          @foreach($jugadorFaltantesSelect as $idx => $columna)
                           <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
                           @if($idx == 0)
                           estado="asc" class="activa"
@@ -257,11 +257,11 @@ $jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obt
                       <button id="btn-buscarAlertasJuegos" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
                     </div>
                   </div>
-                  <div id="juegosAlertasDiarias" class="col-md-12" style="padding: 0px !important;">
+                  <div id="juegoAlertasDiarias" class="col-md-12" style="padding: 0px !important;">
                     <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
                       <thead>
                         <tr>
-                          @foreach($juegosAlertasDiariasSelect as $idx => $columna)
+                          @foreach($juegoAlertasDiariasSelect as $idx => $columna)
                           <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
                           @if($idx == 0)
                           estado="asc" class="activa"
@@ -297,11 +297,11 @@ $jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obt
                       <button id="btn-buscarAlertasJugadores" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
                     </div>
                   </div>
-                  <div id="jugadoresAlertasDiarias" class="col-md-12" style="padding: 0px !important;">
+                  <div id="jugadorAlertasDiarias" class="col-md-12" style="padding: 0px !important;">
                     <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
                       <thead>
                         <tr>
-                          @foreach($jugadoresAlertasDiariasSelect as $idx => $columna)
+                          @foreach($jugadorAlertasDiariasSelect as $idx => $columna)
                           <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
                           @if($idx == 0)
                           estado="asc" class="activa"
@@ -341,22 +341,22 @@ $jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obt
 
 <table hidden>
   <tr id="moldeJuegoFaltantesConMovimientos">
-    @foreach($juegosFaltantesSelect as $idx => $columna)
+    @foreach($juegoFaltantesSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>
   <tr id="moldeJugadorFaltantesConMovimientos">
-    @foreach($jugadoresFaltantesSelect as $idx => $columna)
+    @foreach($jugadorFaltantesSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>
   <tr id="moldeJuegoAlertasDiarias">
-    @foreach($juegosAlertasDiariasSelect as $idx => $columna)
+    @foreach($juegoAlertasDiariasSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>
   <tr id="moldeJugadorAlertasDiarias">
-    @foreach($jugadoresAlertasDiariasSelect as $idx => $columna)
+    @foreach($jugadorAlertasDiariasSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>
