@@ -413,12 +413,19 @@ class informesController extends Controller
     $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw(implode(",",self::$obtenerJuegosFaltantesSelect))
     ->groupBy('dp.cod_juego')
-    ->havingRaw(implode(' OR ',$numericos_distinto_de_cero))
+    ->havingRaw('('.implode(' OR ',$numericos_distinto_de_cero).')')
     ->orderByRaw($columna.' '.$orden)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
 
+    $numericos_distinto_de_cero2 = array_map(function($s){//Saco las funciones de agregacion para que cuente correctamente en un group by total...
+      $s = str_replace("SUM(","(",$s);
+      $s = str_replace("AVG(","(",$s);
+      return $s;
+    },$numericos_distinto_de_cero);
+
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
     ->selectRaw("'TOTAL' as cod_juego, COUNT(distinct dp.cod_juego) as count,".implode(",",array_slice(self::$obtenerJuegosFaltantesSelect,1)))
+    ->whereRaw('('.implode(' OR ',$numericos_distinto_de_cero2).')')
     ->groupBy(DB::raw('"constant"'))->get();
 
     $count = $total->first()? $total->first()->count : 0;
@@ -464,13 +471,21 @@ class informesController extends Controller
 
     $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadoresFaltantesSelect))
     ->groupBy('dpj.jugador')
-    ->havingRaw(implode(' OR ',$numericos_distinto_de_cero))
+    ->havingRaw('('.implode(' OR ',$numericos_distinto_de_cero).')')
     ->orderByRaw($columna.' '.$orden)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
 
-    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
-    ->groupBy(DB::raw('"constant"'))->get();
+    $numericos_distinto_de_cero2 = array_map(function($s){//Saco las funciones de agregacion para que cuente correctamente en un group by total...
+      $s = str_replace("SUM(","(",$s);
+      $s = str_replace("AVG(","(",$s);
+      return $s;
+    },$numericos_distinto_de_cero);
 
+    //No tira nada en el de prueba pero funciona en el de producción... creo que faltan importar detalles producidos jugadores
+    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
+    ->whereRaw('('.implode(' OR ',$numericos_distinto_de_cero2).')')
+    ->groupBy(DB::raw('"constant"'))->get();
+    
     $count = $total->first()? $total->first()->count : 0;
 
     return ['data' => $jugadores_faltantes->merge($total->map(function($r){
