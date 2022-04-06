@@ -10,10 +10,10 @@ $separar_sql = function($col){
   $vals = explode(' as ',$col);
   return ['sql' => trim($vals[0]),'alias' => trim($vals[1])];
 };
-$juegosFaltantesSelect  = array_map($separar_sql,informesController::$obtenerJuegosFaltantesSelect);
-$jugadoresFaltantesSelect  = array_map($separar_sql,informesController::$obtenerJugadoresFaltantesSelect);
-$alertasJuegosSelect    = array_map($separar_sql,informesController::$obtenerAlertasJuegosSelect);
-$alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadoresSelect);
+$juegosFaltantesSelect = array_map($separar_sql,informesController::$obtenerJuegosFaltantesSelect);
+$jugadoresFaltantesSelect = array_map($separar_sql,informesController::$obtenerJugadoresFaltantesSelect);
+$juegosAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJuegosSelect);
+$jugadoresAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadoresSelect);
 ?>
 
 @section('estilos')
@@ -59,18 +59,18 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
   width: {{100.0/count($jugadoresFaltantesSelect)}}%;
 }
 
-#divAlertasDiariasJuegos th,
-#divAlertasDiariasJuegos td {
+#juegosAlertasDiarias th,
+#juegosAlertasDiarias td {
   text-align: right;
   padding: 0px;
-  width: {{100.0/count($alertasJuegosSelect)}}%;
+  width: {{100.0/count($juegosAlertasDiariasSelect)}}%;
 }
 
-#divAlertasDiariasJugadores th,
-#divAlertasDiariasJugadores td {
+#jugadoresAlertasDiarias th,
+#jugadoresAlertasDiarias td {
   text-align: right;
   padding: 0px;
-  width: {{100.0/count($alertasJugadoresSelect)}}%;
+  width: {{100.0/count($jugadoresAlertasDiariasSelect)}}%;
 }
 
 #juegosFaltantesConMovimientos th,
@@ -78,13 +78,13 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
 #juegosFaltantesConMovimientos td.categoria,
 #jugadoresFaltantesConMovimientos th,
 #jugadoresFaltantesConMovimientos td.jugador,
-#divAlertasDiariasJuegos th,
-#divAlertasDiariasJuegos td.fecha,
-#divAlertasDiariasJuegos td.codigo,
-#divAlertasDiariasJuegos td.categoria,
-#divAlertasDiariasJugadores th,
-#divAlertasDiariasJugadores td.fecha,
-#divAlertasDiariasJugadores td.jugador {
+#juegosAlertasDiarias th,
+#juegosAlertasDiarias td.fecha,
+#juegosAlertasDiarias td.cod_juego,
+#juegosAlertasDiarias td.categoria,
+#jugadoresAlertasDiarias th,
+#jugadoresAlertasDiarias td.fecha,
+#jugadoresAlertasDiarias td.jugador {
   text-align: center;/*Casos especiales donde se visualiza mejor alineado en el centro*/
 }
 
@@ -159,10 +159,10 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
             <div class="tab" style="width: 15%;" div-asociado="#divJugadorFaltantesConMovimientos">
               <h4>JUGADORES FALTANTES C/ MOV</h4>
             </div>
-            <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiariasJuegos">
+            <div class="tab" style="width: 10%;" div-asociado="#divJuegoAlertasDiarias">
               <h4>ALERTAS DIARIAS (JUEGOS)</h4>
             </div>
-            <div class="tab" style="width: 10%;" div-asociado="#divAlertasDiariasJugadores">
+            <div class="tab" style="width: 10%;" div-asociado="#divJugadorAlertasDiarias">
               <h4>ALERTAS DIARIAS (JUGADORES)</h4>
             </div>
             <div id="tabEvolucionCategorias" class="tab" style="width: 10%;" div-asociado="#divEvolucionCategorias">
@@ -242,7 +242,7 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
                     </div>
                   </div>
                 </div>
-                <div id="divAlertasDiariasJuegos" class="row tabContent">
+                <div id="divJuegoAlertasDiarias" class="row tabContent">
                   <div class="row" id="inputsAlertas">
                     <div class="col-md-2">
                       <h5>BENEFICIO ≷</h5>
@@ -257,10 +257,36 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
                       <button id="btn-buscarAlertasJuegos" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
                     </div>
                   </div>
-                  <br>
-                  <div class="row" id="loadingAlertasDiariasJuegos"></div>
+                  <div id="juegosAlertasDiarias" class="col-md-12" style="padding: 0px !important;">
+                    <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
+                      <thead>
+                        <tr>
+                          @foreach($juegosAlertasDiariasSelect as $idx => $columna)
+                          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
+                          @if($idx == 0)
+                          estado="asc" class="activa"
+                          @endif
+                          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
+                          @endforeach
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                    <div class="row paginado">
+                      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
+                      <div class="col-md-4">
+                        <div class="input-group">
+                          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
+                          <span class="input-group-addon">/</span>
+                          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
+                        </div>
+                      </div>
+                      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
+                    </div>
+                  </div>
                 </div>
-                <div id="divAlertasDiariasJugadores" class="row tabContent">
+                <div id="divJugadorAlertasDiarias" class="row tabContent">
                   <div class="row" id="inputsAlertas">
                     <div class="col-md-2">
                       <h5>BENEFICIO ≷</h5>
@@ -271,8 +297,34 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
                       <button id="btn-buscarAlertasJugadores" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
                     </div>
                   </div>
-                  <br>
-                  <div class="row" id="loadingAlertasDiariasJugadores"></div>
+                  <div id="jugadoresAlertasDiarias" class="col-md-12" style="padding: 0px !important;">
+                    <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
+                      <thead>
+                        <tr>
+                          @foreach($jugadoresAlertasDiariasSelect as $idx => $columna)
+                          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
+                          @if($idx == 0)
+                          estado="asc" class="activa"
+                          @endif
+                          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
+                          @endforeach
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                    <div class="row paginado">
+                      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
+                      <div class="col-md-4">
+                        <div class="input-group">
+                          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
+                          <span class="input-group-addon">/</span>
+                          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
+                        </div>
+                      </div>
+                      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div id="divEvolucionCategorias" class="row tabContent">
@@ -287,85 +339,6 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
   </div>
 </div>
 
-<div id="moldeAlertaJuegos" class="row tablaAlertas tablaAlertasJuegos" style="border: 1px solid #eee;" hidden>
-  <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
-  <div class="row">
-    <table class="col-md-12 table table-fixed">
-      <thead>
-        <tr>
-          @foreach($alertasJuegosSelect as $idx => $columna)
-          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
-          @if($idx == 0)
-          estado="asc" class="activa"
-          @endif
-          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
-          @endforeach
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-    <div class="row paginado">
-      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
-      <div class="col-md-4">
-        <div class="input-group">
-          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
-          <span class="input-group-addon">/</span>
-          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
-        </div>
-      </div>
-      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
-    </div>
-  </div>
-  <table hidden>
-    <tr class="moldeFilaAlerta">
-      @foreach($alertasJuegosSelect as $idx => $columna)
-      <td class="{{$columna['alias']}}">XXX</td>
-      @endforeach
-    </tr>
-  </table>
-</div>
-
-<div id="moldeAlertaJugadores" class="row tablaAlertas tablaAlertasJugadores" style="border: 1px solid #eee;"  hidden>
-  <h5>ALERTAS <span class="moneda">MONEDA</span></h5>
-  <div class="row">
-    <table class="col-md-12 table table-fixed">
-      <thead>
-        <tr>
-          @foreach($alertasJugadoresSelect as $idx => $columna)
-          <th value="{{$columna['sql']}}" class="{{$columna['alias']}}"
-          @if($idx == 0)
-          estado="asc" class="activa"
-          @endif
-          >{{$convertir_a_nombre($columna['alias'])}}<i class="fa fa-sort"></i></th>
-          @endforeach
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-    <div class="row paginado">
-      <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
-      <div class="col-md-4">
-        <div class="input-group">
-          <input class="form-control previewPage" type="number" style="text-align: center;" value="9">
-          <span class="input-group-addon">/</span>
-          <input class="form-control previewTotal" type="number" style="text-align: center;" value="99" disabled="disabled">
-        </div>
-      </div>
-      <div class="col-md-1"><button type="button" class="btn btn-link nextPreview"><i class="fas fa-arrow-right"></i></button></div>
-    </div>
-  </div>
-  <table hidden>
-    <tr class="moldeFilaAlerta">
-      @foreach($alertasJugadoresSelect as $idx => $columna)
-      <td class="{{$columna['alias']}}">XXX</td>
-      @endforeach
-    </tr>
-  </table>
-</div>
-
-
 <table hidden>
   <tr id="moldeJuegoFaltantesConMovimientos">
     @foreach($juegosFaltantesSelect as $idx => $columna)
@@ -374,6 +347,16 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
   </tr>
   <tr id="moldeJugadorFaltantesConMovimientos">
     @foreach($jugadoresFaltantesSelect as $idx => $columna)
+    <td class="{{$columna['alias']}}">XXX</td>
+    @endforeach
+  </tr>
+  <tr id="moldeJuegoAlertasDiarias">
+    @foreach($juegosAlertasDiariasSelect as $idx => $columna)
+    <td class="{{$columna['alias']}}">XXX</td>
+    @endforeach
+  </tr>
+  <tr id="moldeJugadorAlertasDiarias">
+    @foreach($jugadoresAlertasDiariasSelect as $idx => $columna)
     <td class="{{$columna['alias']}}">XXX</td>
     @endforeach
   </tr>
@@ -424,7 +407,7 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionInformePlataforma.js?3" charset="utf-8"></script>
+    <script src="js/seccionInformePlataforma.js?4" charset="utf-8"></script>
 
     <!-- Highchart -->
     <script src="js/highcharts.js"></script>

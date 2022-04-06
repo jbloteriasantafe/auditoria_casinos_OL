@@ -48,7 +48,7 @@ $(document).ready(function(){
       generarTablaFaltantes('Juego',data.data,formData.page,Math.ceil(total/formData.page_size));
     });
   })
-  .data('buscar')(1);
+  .data('buscar')();
 
   $('#jugadoresFaltantesConMovimientos table').data('buscar',function(page = 1){
     const formData = { page: page, page_size: 30, ...sortBy(`#jugadoresFaltantesConMovimientos`), };
@@ -59,7 +59,34 @@ $(document).ready(function(){
       generarTablaFaltantes('Jugador',data.data,formData.page,Math.ceil(total/formData.page_size));
     });
   })
-  .data('buscar')(1);
+  .data('buscar')();
+
+  $('#juegosAlertasDiarias table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#juegosAlertasDiarias`),
+      beneficio_alertas: $('#inputBeneficioJuegos').val(),
+      pdev_alertas: $('#inputPdevJuegos').val(),
+    };
+    $('#juegosAlertasDiarias tbody').empty();
+    GET('#juegosAlertasDiarias tbody','obtenerAlertasJuegos',formData,function(data){
+      const total = data.total;
+      if(total == 0) return;
+      generarTablaAlertas('Juego',data.data,formData.page,Math.ceil(total/formData.page_size));
+    });
+  })
+  .data('buscar')();
+
+  $('#jugadoresAlertasDiarias table').data('buscar',function(page = 1){
+    const formData = { page: page, page_size: 30, ...sortBy(`#jugadoresAlertasDiarias`),
+      beneficio_alertas: $('#inputBeneficioJugadores').val(),
+    };
+    $('#jugadoresAlertasDiarias tbody').empty();
+    GET('#jugadoresAlertasDiarias tbody','obtenerAlertasJugadores',formData,function(data){
+      const total = data.total;
+      if(total == 0) return;
+      generarTablaAlertas('Jugador',data.data,formData.page,Math.ceil(total/formData.page_size));
+    });
+  })
+  .data('buscar')();
 
   $('#buscadorPlataforma').change();
 });
@@ -67,6 +94,26 @@ $(document).ready(function(){
 function generarTablaFaltantes(tipo,faltantes,page,pages){
   const div = $('#div'+tipo+'FaltantesConMovimientos');
   const fila = $('#molde'+tipo+'FaltantesConMovimientos').clone().removeAttr('id').show();
+  for(const falidx in faltantes){
+    const fltnt = faltantes[falidx];
+    const f = fila.clone().css('display','block');//Lo pone como table-row, por algun motivo y se ve mal
+    for(const columna in fltnt){
+      let val = digits(fltnt[columna],columna.indexOf('pdev') != -1? 3 : 2);
+      if(columna == 'jugador' || columna == 'cod_jugador') val = fltnt[columna];
+      f.find('.'+columna).text(val).attr('title',val);
+    }
+    div.find('tbody').append(f);
+  }
+  div.find('.previewPage').val(page).data('old_val',page);
+  div.find('.previewTotal').val(pages);
+  div.find('.prevPreview').attr('disabled',page <= 1);
+  div.find('.nextPreview').attr('disabled',page >= pages);
+  convertirLinks(div.find('tbody').find('.cod_juego,.jugador'),$('#buscadorPlataforma').val(),tipo.toLowerCase());
+}
+
+function generarTablaAlertas(tipo,faltantes,page,pages){
+  const div = $('#div'+tipo+'AlertasDiarias');
+  const fila = $('#molde'+tipo+'AlertasDiarias').clone().removeAttr('id').show();
   for(const falidx in faltantes){
     const fltnt = faltantes[falidx];
     const f = fila.clone().css('display','block');//Lo pone como table-row, por algun motivo y se ve mal
@@ -166,9 +213,8 @@ $('#btn-buscar').click(function(e){
 
   $('#juegosFaltantesConMovimientos table').data('buscar')();
   $('#jugadoresFaltantesConMovimientos table').data('buscar')();
-
-  $('#btn-buscarAlertasJuegos').click();
-  $('#btn-buscarAlertasJugadores').click();
+  $('#juegosAlertasDiarias table').data('buscar')();
+  $('#jugadoresAlertasDiarias table').data('buscar')();
 });
 
 function setearEstadoColumna(col,estado){
@@ -288,84 +334,23 @@ $('.tab').click(function(){
   $($(this).attr('div-asociado')).show();
 });
 
-function generarAlertasDiarias(tipo,page){
-  const beneficio_alertas = $('#inputBeneficio'+tipo).val() == ""? "0" : $('#inputBeneficio'+tipo).val();
-  const pdev_alertas = $('#inputPdev'+tipo).val() == ""? "0" : $('#inputPdev'+tipo).val();
-  const page_size = 30;
-  const sort_by = sortBy(`#divAlertasDiarias${tipo}`);
-  const data = { beneficio_alertas: beneficio_alertas, pdev_alertas: pdev_alertas, 
-    page: page, page_size: page_size,
-    ...sort_by,
-  };
-
-  $(`#divAlertasDiarias${tipo} .tablaAlertas`).remove();
-  GET('#loadingAlertasDiarias'+tipo,'obtenerAlertas'+tipo,data,function(data){
-    const alertas = data.data;
-    const total = data.total;
-    if(total == 0) return;
-    generarTablaAlertas(tipo,'ARS',alertas,page,Math.ceil(total/page_size),sort_by);
-
-    $(`#divAlertasDiarias${tipo} table`).data('buscar',function(){//Necesario porque el event handler lo usa para los orderBy 
-      generarAlertasDiarias(tipo,page);
-    });
-  });
-}
-
 $('#btn-buscarAlertasJuegos').click(function(e){
   e.preventDefault();
-  generarAlertasDiarias('Juegos',1);
+  $('#juegosAlertasDiarias table').data('buscar')();
 });
 
 $('#btn-buscarAlertasJugadores').click(function(e){
   e.preventDefault();
-  generarAlertasDiarias('Jugadores',1);
+  $('#jugadoresAlertasDiarias table').data('buscar')();
 });
 
-function generarTablaAlertas(tipo,moneda,alertas,page,pages,sort_by){
-  const div = $('#moldeAlerta'+tipo).clone().removeAttr('id').show();
-  div.find('.moneda').text(moneda)
-  const fila = div.find('.moldeFilaAlerta').clone().removeClass('moldeFilaAlerta');
-  for(const aidx in alertas){
-    const a = alertas[aidx];
-    const f = fila.clone();
-    for(const columna in a){
-      let val = digits(a[columna],columna.indexOf('pdev') != -1? 3 : 2);
-      //@HACK, en BPLAY y CCO los IDs de jugadores son todos numeros por lo que no lo detecta el chequeo común
-      // En BPLAY los codigos de juegos son numeros tambien
-      if(columna == 'jugador' || columna == 'cod_juego') val = a[columna];
-      f.find('.'+columna).text(val).attr('title',val);
-    }
-    div.find('tbody').append(f);
-  }
-  div.find('.previewPage').val(page).data('old_val',page);
-  div.find('.previewTotal').val(pages);
-  div.find('.prevPreview').attr('disabled',page <= 1);
-  div.find('.nextPreview').attr('disabled',page >= pages);
-  $('#divAlertasDiarias'+tipo).append(div);
-  //Pongo de vuelta el ordenamiento porque borramos la tabla entera y lo perdemos
-  //Tengo que hacerlo despues del append
-  if(sort_by && sort_by.columna){//Hay columna activa
-    const columna = $(`#divAlertasDiarias${tipo} table th`).filter(function(){
-      return $(this).attr('value') == sort_by.columna;
-    });
-    setearEstadoColumna(columna,sort_by.orden);
-  }
-  const modo = tipo == 'Juegos'? 'juego' : (tipo == 'Jugadores'? 'jugador' : null);
-  if(modo != null){
-    let td = null;
-    if(modo == 'juego')        td = 'codigo';
-    else if(modo == 'jugador') td = 'jugador';
-    if(td != null) convertirLinks($(`#divAlertasDiarias${tipo} tbody .${td}`),$('#buscadorPlataforma').val(),modo);
-  }
-}
-
 function rebuscar($this,next){
-  if($this.closest('.tablaAlertas').hasClass('tablaAlertasJuegos')){
-    generarAlertasDiarias('Juegos',next);
+  if($this.closest('#divJugadorAlertasDiarias').length > 0){
+    $('#jugadoresAlertasDiarias table').data('buscar')(next);
     return;
   }
-  if($this.closest('.tablaAlertas').hasClass('tablaAlertasJugadores')){
-    generarAlertasDiarias('Jugadores',next);
+  if($this.closest('#divJuegoAlertasDiarias').length > 0){
+    $('#juegosAlertasDiarias table').data('buscar')(next);
     return;
   }
   if($this.closest('#divJuegoFaltantesConMovimientos').length > 0){

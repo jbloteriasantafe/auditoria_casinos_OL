@@ -485,7 +485,7 @@ class informesController extends Controller
     $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
     ->whereRaw('('.implode(' OR ',$numericos_distinto_de_cero2).')')
     ->groupBy(DB::raw('"constant"'))->get();
-    
+
     $count = $total->first()? $total->first()->count : 0;
 
     return ['data' => $jugadores_faltantes->merge($total->map(function($r){
@@ -496,7 +496,7 @@ class informesController extends Controller
 
   public static $obtenerAlertasJuegosSelect =
   [
-    'p.fecha as fecha','dp.cod_juego as codigo','cj.nombre as categoria',
+    'p.fecha as fecha','dp.cod_juego as cod_juego','cj.nombre as categoria',
     'dp.apuesta as apuesta','dp.premio as premio','dp.beneficio as beneficio',
     '100*dp.premio/dp.apuesta as pdev',
     'j.porcentaje_devolucion as pdev_juego'
