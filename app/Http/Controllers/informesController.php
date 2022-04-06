@@ -528,7 +528,7 @@ class informesController extends Controller
     $total = (clone $query)->selectRaw('COUNT(dp.id_detalle_producido) as total')
     ->groupBy(DB::raw('"constant"'))->get()->first();
 
-    return ['data' => $data, 'total' => $total ?? 0];
+    return ['data' => $data, 'total' => $total->total ?? 0];
   }
 
   public static $obtenerAlertasJugadorSelect =
@@ -565,7 +565,7 @@ class informesController extends Controller
     $total = (clone $query)->selectRaw('COUNT(dp.id_detalle_producido_jugadores) as total')
     ->groupBy(DB::raw('"constant"'))->get()->first();
 
-    return ['data' => $data, 'total' => $total ?? 0];
+    return ['data' => $data, 'total' => $total->total ?? 0];
   }
 
   public function obtenerEvolucionCategorias(Request $request){
