@@ -30,9 +30,7 @@ $(document).ready(function(){
 
   ['Juego','Jugador'].forEach(function(tipo1){
     ['FaltantesConMovimientos','AlertasDiarias'].forEach(function (tipo2){
-      const tipo1_l = tipo1.toLowerCase();
-      const div = $(`#${tipo1_l}${tipo2}`);
-
+      const div = $(`#${tipo1}${tipo2}`);
       div.data('buscar',function(page = 1){
         const formData = { 
           page: page, page_size: 30, 
@@ -147,10 +145,9 @@ $('#btn-buscar').click(function(e){
     }
   });
 
-  $('#juegoFaltantesConMovimientos').data('buscar')();
-  $('#jugadorFaltantesConMovimientos').data('buscar')();
-  $('#juegoAlertasDiarias').data('buscar')();
-  $('#jugadorAlertasDiarias').data('buscar')();
+  $('.paginadoInformePlataforma').each(function(){
+    $(this).data('buscar')();
+  })
 });
 
 function setearEstadoColumna(col,estado){
@@ -270,10 +267,10 @@ $('.tab').click(function(){
   $($(this).attr('div-asociado')).show();
 });
 
-$('#btn-buscarPaginado').click(function(e){
+$(document).on('click','#btn-buscarPaginado',function(e){
   e.preventDefault();
-  $(this).closest('.tabContent').find('table').parent().data('buscar')();
-});
+  $(this).closest('.tabContent').find('.paginadoInformePlataforma').data('buscar')();
+})
 
 $(document).on('click','.prevPreview,.nextPreview',function(e){
   e.preventDefault();
