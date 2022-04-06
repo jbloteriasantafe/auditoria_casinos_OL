@@ -28,40 +28,24 @@ $(document).ready(function(){
   $('#dtpFechaDesde').datetimepicker(iso_dtp);
   $('#dtpFechaHasta').datetimepicker(iso_dtp);
 
-  $('#juegoFaltantesConMovimientos table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#juegoFaltantesConMovimientos`), };
-    $('#juegoFaltantesConMovimientos tbody').empty();
-    GET('#juegoFaltantesConMovimientos tbody','obtenerJuegosFaltantes',formData,function(data){
-      generarTablaPaginada('Juego','FaltantesConMovimientos',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
-    });
-  });
+  ['Juego','Jugador'].forEach(function(tipo1){
+    ['FaltantesConMovimientos','AlertasDiarias'].forEach(function (tipo2){
+      const tipo1_l = tipo1.toLowerCase();
+      const div = $(`#${tipo1_l}${tipo2}`);
 
-  $('#jugadorFaltantesConMovimientos table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#jugadorFaltantesConMovimientos`), };
-    $('#jugadorFaltantesConMovimientos tbody').empty();
-    GET('#jugadorFaltantesConMovimientos tbody','obtenerJugadoresFaltantes',formData,function(data){
-      generarTablaPaginada('Jugador','FaltantesConMovimientos',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
-    });
-  });
-
-  $('#juegoAlertasDiarias table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#juegoAlertasDiarias`),
-      beneficio_alertas: $('#inputBeneficioJuegos').val(),
-      pdev_alertas: $('#inputPdevJuegos').val(),
-    };
-    $('#juegoAlertasDiarias tbody').empty();
-    GET('#juegoAlertasDiarias tbody','obtenerAlertasJuegos',formData,function(data){
-      generarTablaPaginada('Juego','AlertasDiarias',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
-    });
-  });
-
-  $('#jugadorAlertasDiarias table').data('buscar',function(page = 1){
-    const formData = { page: page, page_size: 30, ...sortBy(`#jugadorAlertasDiarias`),
-      beneficio_alertas: $('#inputBeneficioJugadores').val(),
-    };
-    $('#jugadorAlertasDiarias tbody').empty();
-    GET('#jugadorAlertasDiarias tbody','obtenerAlertasJugadores',formData,function(data){
-      generarTablaPaginada('Jugador','AlertasDiarias',data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
+      div.data('buscar',function(page = 1){
+        const formData = { 
+          page: page, page_size: 30, 
+          columna: div.find('.activa').attr('value'),
+          orden: div.find('.activa').attr('estado'),
+          beneficio_alertas: div.parent().find('#inputBeneficio').val(),
+          pdev_alertas: div.parent().find('#inputPdev').val(),
+        };
+        div.find('tbody').empty();
+        GET(div.find('tbody'),`obtener${tipo1}${tipo2}`,formData,function(data){
+          generarTablaPaginada(tipo1,tipo2,data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
+        });
+      });
     });
   });
 
@@ -95,7 +79,7 @@ $('#btn-ayuda').click(function(e){
 
 function GET(loadingselect,url,data,success,error=function(x){}){
   let midx = 0;
-  const loading = setInterval(function(){const m = ['―','/','|','\\'];$(loadingselect).text(m[midx%4]);midx++;},100);
+  const loading = setInterval(function(){const m = ['―','/','|','\\'];loadingselect.text(m[midx%4]);midx++;},100);
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
   const data_default = {
     id_plataforma: $('#buscadorPlataforma').val(),
@@ -116,12 +100,12 @@ function GET(loadingselect,url,data,success,error=function(x){}){
     },
     success: function(data){
       clearInterval(loading);
-      $(loadingselect).empty();
+      loadingselect.empty();
       success(data);
     },
     error: function(data){
       clearInterval(loading);
-      $(loadingselect).text('ERROR DE CARGA');
+      loadingselect.text('ERROR DE CARGA');
       error(data);
     },
   });
@@ -130,11 +114,6 @@ $('#buscadorPlataforma').change(function(e){
   e.preventDefault();
   $('#btn-buscar').attr('disabled',$(this).val() == "");
 })
-
-function sortBy(select){
-  const activa = $(`${select} .activa`);
-  return {columna: activa.attr('value'),orden: activa.attr('estado')};
-}
 
 $('#btn-buscar').click(function(e){
   const id = $('#buscadorPlataforma').val();
@@ -155,23 +134,23 @@ $('#btn-buscar').click(function(e){
   $('.tabContent').hide();
   $('.tab').eq(0).click();
 
-  GET('#graficos','obtenerClasificacion',{},function(data){
+  GET($('#graficos'),'obtenerClasificacion',{},function(data){
     for(const clasificacion in data){
       setTimeout(function(){
         generarGraficos(clasificacion,data[clasificacion]);
       },250);
     }
   });
-  GET('#tablas','obtenerPdevs',{},function(data){
+  GET($('#tablas'),'obtenerPdevs',{},function(data){
     for(const clasificacion in data){
       generarTabla(clasificacion,data[clasificacion]);
     }
   });
 
-  $('#juegoFaltantesConMovimientos table').data('buscar')();
-  $('#jugadorFaltantesConMovimientos table').data('buscar')();
-  $('#juegoAlertasDiarias table').data('buscar')();
-  $('#jugadorAlertasDiarias table').data('buscar')();
+  $('#juegoFaltantesConMovimientos').data('buscar')();
+  $('#jugadorFaltantesConMovimientos').data('buscar')();
+  $('#juegoAlertasDiarias').data('buscar')();
+  $('#jugadorAlertasDiarias').data('buscar')();
 });
 
 function setearEstadoColumna(col,estado){
@@ -189,7 +168,7 @@ function obtenerProximoEstadoColumna(col){
 $(document).on('click','tr th[value]',function(e){
   const estado = obtenerProximoEstadoColumna($(this));
   setearEstadoColumna($(this),estado);
-  $(this).closest('table').data('buscar')();
+  $(this).closest('table').parent().data('buscar')();
 });
 
 //Opacidad del modal al minimizar
@@ -291,40 +270,16 @@ $('.tab').click(function(){
   $($(this).attr('div-asociado')).show();
 });
 
-$('#btn-buscarAlertasJuegos').click(function(e){
+$('#btn-buscarPaginado').click(function(e){
   e.preventDefault();
-  $('#juegoAlertasDiarias table').data('buscar')();
+  $(this).closest('.tabContent').find('table').parent().data('buscar')();
 });
-
-$('#btn-buscarAlertasJugadores').click(function(e){
-  e.preventDefault();
-  $('#jugadorAlertasDiarias table').data('buscar')();
-});
-
-function rebuscar($this,next){
-  if($this.closest('#divJugadorAlertasDiarias').length > 0){
-    $('#jugadorAlertasDiarias table').data('buscar')(next);
-    return;
-  }
-  if($this.closest('#divJuegoAlertasDiarias').length > 0){
-    $('#juegoAlertasDiarias table').data('buscar')(next);
-    return;
-  }
-  if($this.closest('#divJuegoFaltantesConMovimientos').length > 0){
-    $('#juegoFaltantesConMovimientos table').data('buscar')(next);
-    return;
-  }
-  if($this.closest('#divJugadorFaltantesConMovimientos').length > 0){
-    $('#jugadorFaltantesConMovimientos table').data('buscar')(next);
-    return;
-  }
-}
 
 $(document).on('click','.prevPreview,.nextPreview',function(e){
   e.preventDefault();
   const p = parseInt($(this).closest('.paginado').find('.previewPage').val());
   const next = p + ($(this).hasClass('nextPreview')? 1 : -1);
-  rebuscar($(this),next);
+  $(this).closest('.tabContent').find('table').parent().data('buscar')(next);
 });
 
 $(document).on('focusin','.previewPage',function(e){
@@ -339,12 +294,12 @@ $(document).on('change','.previewPage',function(e){
     $(this).val(old);
     return;
   }
-  rebuscar($(this),val)
+  $(this).closest('.tabContent').find('table').parent().data('buscar')(val);
 });
 
 $('#tabEvolucionCategorias').click(function(e){
   e.preventDefault();
-  GET('#divEvolucionCategorias','obtenerEvolucionCategorias',{},function(data){
+  GET($('#divEvolucionCategorias'),'obtenerEvolucionCategorias',{},function(data){
     setTimeout(function(){
       generarEvolucionCategorias(data);
     },250);

@@ -10,10 +10,10 @@ $separar_sql = function($col){
   $vals = explode(' as ',$col);
   return ['sql' => trim($vals[0]),'alias' => trim($vals[1])];
 };
-$juegoFaltantesSelect = array_map($separar_sql,informesController::$obtenerJuegosFaltantesSelect);
-$jugadorFaltantesSelect = array_map($separar_sql,informesController::$obtenerJugadoresFaltantesSelect);
-$juegoAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJuegosSelect);
-$jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadoresSelect);
+$juegoFaltantesSelect = array_map($separar_sql,informesController::$obtenerJuegoFaltantesSelect);
+$jugadorFaltantesSelect = array_map($separar_sql,informesController::$obtenerJugadorFaltantesSelect);
+$juegoAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJuegoSelect);
+$jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadorSelect);
 ?>
 
 @section('estilos')
@@ -243,18 +243,18 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
                   </div>
                 </div>
                 <div id="divJuegoAlertasDiarias" class="row tabContent">
-                  <div class="row" id="inputsAlertas">
+                  <div class="row">
                     <div class="col-md-2">
                       <h5>BENEFICIO ≷</h5>
-                      <input id="inputBeneficioJuegos" type="number" class="form-control" value="150000" style="text-align: center;"/>
+                      <input id="inputBeneficio" type="number" class="form-control" value="150000" style="text-align: center;"/>
                     </div>
                     <div class="col-md-2">
                       <h5>JUEGO %DEV ±</h5>
-                      <input id="inputPdevJuegos" type="number" class="form-control" value="0" style="text-align: center;"/>
+                      <input id="inputPdev" type="number" class="form-control" value="0" style="text-align: center;"/>
                     </div>
                     <div class="col-md-2">
                       <h5>&nbsp;</h5>
-                      <button id="btn-buscarAlertasJuegos" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
+                      <button id="btn-buscarPaginado" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
                     </div>
                   </div>
                   <div id="juegoAlertasDiarias" class="col-md-12" style="padding: 0px !important;">
@@ -287,14 +287,14 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
                   </div>
                 </div>
                 <div id="divJugadorAlertasDiarias" class="row tabContent">
-                  <div class="row" id="inputsAlertas">
+                  <div class="row">
                     <div class="col-md-2">
                       <h5>BENEFICIO ≷</h5>
-                      <input id="inputBeneficioJugadores" type="number" class="form-control" value="150000" style="text-align: center;"/>
+                      <input id="inputBeneficio" type="number" class="form-control" value="150000" style="text-align: center;"/>
                     </div>
                     <div class="col-md-2">
                       <h5>&nbsp;</h5>
-                      <button id="btn-buscarAlertasJugadores" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
+                      <button id="btn-buscarPaginado" class="btn btn-infoBuscar" type="button" style="width:100%;">BUSCAR</button>
                     </div>
                   </div>
                   <div id="jugadorAlertasDiarias" class="col-md-12" style="padding: 0px !important;">

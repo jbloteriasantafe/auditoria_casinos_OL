@@ -390,7 +390,7 @@ class informesController extends Controller
   }
 
   //No encontre mejor forma de hacerlo... necesito la consulta para ordernar desde el front
-  public static $obtenerJuegosFaltantesSelect =
+  public static $obtenerJuegoFaltantesSelect =
   [ "dp.cod_juego as cod_juego"                       ,"GROUP_CONCAT(distinct dp.categoria SEPARATOR ', ') as categoria",
     "SUM(dp.apuesta_efectivo)   as apuesta_efectivo"  ,"SUM(dp.apuesta_bono)               as apuesta_bono",
     "SUM(dp.apuesta)            as apuesta"           ,"SUM(dp.premio_efectivo)            as premio_efectivo",
@@ -399,7 +399,7 @@ class informesController extends Controller
     "SUM(dp.beneficio)          as beneficio"         ,"100*AVG(dp.premio)/AVG(dp.apuesta) as pdev"
   ];
 
-  public function obtenerJuegosFaltantes(Request $request){
+  public function obtenerJuegoFaltantesConMovimientos(Request $request){
     $columna = empty($request->columna)? 'dp.cod_juego' : $request->columna;
     $orden   =   empty($request->orden)? 'asc' : $request->orden;
 
@@ -408,10 +408,10 @@ class informesController extends Controller
     $numericos_distinto_de_cero = array_map(function($s){ 
       $columna = explode(" ",$s,2)[0];
       return "(($columna) <> 0)";
-    },array_slice(self::$obtenerJuegosFaltantesSelect,2));
+    },array_slice(self::$obtenerJuegoFaltantesSelect,2));
     
     $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw(implode(",",self::$obtenerJuegosFaltantesSelect))
+    ->selectRaw(implode(",",self::$obtenerJuegoFaltantesSelect))
     ->groupBy('dp.cod_juego')
     ->havingRaw('('.implode(' OR ',$numericos_distinto_de_cero).')')
     ->orderByRaw($columna.' '.$orden)
@@ -424,7 +424,7 @@ class informesController extends Controller
     },$numericos_distinto_de_cero);
 
     $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw("'TOTAL' as cod_juego, COUNT(distinct dp.cod_juego) as count,".implode(",",array_slice(self::$obtenerJuegosFaltantesSelect,1)))
+    ->selectRaw("'TOTAL' as cod_juego, COUNT(distinct dp.cod_juego) as count,".implode(",",array_slice(self::$obtenerJuegoFaltantesSelect,1)))
     ->whereRaw('('.implode(' OR ',$numericos_distinto_de_cero2).')')
     ->groupBy(DB::raw('"constant"'))->get();
 
@@ -436,7 +436,7 @@ class informesController extends Controller
     })), 'total' => $count];
   }
 
-  public static $obtenerJugadoresFaltantesSelect =
+  public static $obtenerJugadorFaltantesSelect =
   [ "dpj.jugador as jugador",
     "SUM(dpj.apuesta_efectivo)   as apuesta_efectivo"  ,"SUM(dpj.apuesta_bono)               as apuesta_bono",
     "SUM(dpj.apuesta)            as apuesta"           ,"SUM(dpj.premio_efectivo)            as premio_efectivo",
@@ -445,7 +445,7 @@ class informesController extends Controller
     "SUM(dpj.beneficio)          as beneficio"         ,"100*AVG(dpj.premio)/AVG(dpj.apuesta) as pdev"
   ];
 
-  public function obtenerJugadoresFaltantes(Request $request){
+  public function obtenerJugadorFaltantesConMovimientos(Request $request){
     $columna = empty($request->columna)? 'dpj.jugador' : $request->columna;
     $orden   =   empty($request->orden)? 'asc' : $request->orden;
 
@@ -454,7 +454,7 @@ class informesController extends Controller
     $numericos_distinto_de_cero = array_map(function($s){ 
       $columna = explode(" ",$s,2)[0];
       return "(($columna) <> 0)";
-    },array_slice(self::$obtenerJugadoresFaltantesSelect,1));
+    },array_slice(self::$obtenerJugadorFaltantesSelect,1));
     
     $q = DB::table('producido_jugadores as pj')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
@@ -469,7 +469,7 @@ class informesController extends Controller
     if(!empty($fecha_desde)) $ret = $q->where('pj.fecha','>=',$request->fecha_desde);
     if(!empty($fecha_hasta)) $ret = $q->where('pj.fecha','<=',$request->fecha_hasta);
 
-    $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadoresFaltantesSelect))
+    $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadorFaltantesSelect))
     ->groupBy('dpj.jugador')
     ->havingRaw('('.implode(' OR ',$numericos_distinto_de_cero).')')
     ->orderByRaw($columna.' '.$orden)
@@ -482,7 +482,7 @@ class informesController extends Controller
     },$numericos_distinto_de_cero);
 
     //No tira nada en el de prueba pero funciona en el de producción... creo que faltan importar detalles producidos jugadores
-    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadoresFaltantesSelect,1)))
+    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadorFaltantesSelect,1)))
     ->whereRaw('('.implode(' OR ',$numericos_distinto_de_cero2).')')
     ->groupBy(DB::raw('"constant"'))->get();
 
@@ -494,7 +494,7 @@ class informesController extends Controller
     })), 'total' => $count];
   }
 
-  public static $obtenerAlertasJuegosSelect =
+  public static $obtenerAlertasJuegoSelect =
   [
     'p.fecha as fecha','dp.cod_juego as cod_juego','cj.nombre as categoria',
     'dp.apuesta as apuesta','dp.premio as premio','dp.beneficio as beneficio',
@@ -502,7 +502,7 @@ class informesController extends Controller
     'j.porcentaje_devolucion as pdev_juego'
   ];
 
-  public function obtenerAlertasJuegos(Request $request){
+  public function obtenerJuegoAlertasDiarias(Request $request){
     $alertas = [];
 
     $columna = !empty($request->columna)? DB::raw($request->columna) : 'p.fecha';
@@ -521,24 +521,23 @@ class informesController extends Controller
     ->whereRaw('ABS((100*dp.premio/dp.apuesta) - j.porcentaje_devolucion) >='.$request->pdev_alertas);
 
     $data = (clone $query)
-    ->selectRaw(implode(',',self::$obtenerAlertasJuegosSelect))
+    ->selectRaw(implode(',',self::$obtenerAlertasJuegoSelect))
     ->orderBy($columna,$orden)->orderBy($columna2,$orden2)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
-    $alertas['data'] = $data;
 
     $total = (clone $query)->selectRaw('COUNT(dp.id_detalle_producido) as total')
     ->groupBy(DB::raw('"constant"'))->get()->first();
-    $alertas['total'] = is_null($total)? 0 : $total->total;
-    return $alertas;
+
+    return ['data' => $data, 'total' => $total ?? 0];
   }
 
-  public static $obtenerAlertasJugadoresSelect =
+  public static $obtenerAlertasJugadorSelect =
   [
     'p.fecha as fecha','dp.jugador as jugador','dp.apuesta as apuesta',
     'dp.premio as premio','dp.beneficio as beneficio','100*dp.premio/dp.apuesta as pdev'
   ];
 
-  public function obtenerAlertasJugadores(Request $request){
+  public function obtenerJugadorAlertasDiarias(Request $request){
     $alertas = [];
 
     $columna = !empty($request->columna)? DB::raw($request->columna) : 'p.fecha';
@@ -559,15 +558,14 @@ class informesController extends Controller
     if(!empty($request->fecha_hasta)) $query = $query->where('p.fecha','<=',$request->fecha_hasta);
 
     $data = (clone $query)
-    ->selectRaw('p.fecha, dp.jugador, dp.apuesta, dp.premio, dp.beneficio, IF(dp.apuesta = 0,"",ROUND(100*dp.premio/dp.apuesta,3)) as pdev')
+    ->selectRaw(implode(',',self::$obtenerAlertasJugadorSelect))
     ->orderBy($columna,$orden)->orderBy($columna2,$orden2)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
-    $alertas['data'] = $data;
 
     $total = (clone $query)->selectRaw('COUNT(dp.id_detalle_producido_jugadores) as total')
     ->groupBy(DB::raw('"constant"'))->get()->first();
-    $alertas['total'] = is_null($total)? 0 : $total->total;
-    return $alertas;
+
+    return ['data' => $data, 'total' => $total ?? 0];
   }
 
   public function obtenerEvolucionCategorias(Request $request){

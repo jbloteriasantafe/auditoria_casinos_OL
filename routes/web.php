@@ -228,10 +228,10 @@ Route::group(['prefix' => 'informePlataforma','middleware' =>'tiene_permiso:ver_
   Route::get('/' , 'informesController@informePlataforma');
   Route::get('/obtenerClasificacion','informesController@obtenerClasificacion');
   Route::get('/obtenerPdevs','informesController@obtenerPdevs');
-  Route::get('/obtenerJuegosFaltantes','informesController@obtenerJuegosFaltantes');
-  Route::get('/obtenerJugadoresFaltantes','informesController@obtenerJugadoresFaltantes');
-  Route::get('/obtenerAlertasJuegos','informesController@obtenerAlertasJuegos');
-  Route::get('/obtenerAlertasJugadores','informesController@obtenerAlertasJugadores');
+  Route::get('/obtenerJuegoFaltantesConMovimientos','informesController@obtenerJuegoFaltantesConMovimientos');
+  Route::get('/obtenerJugadorFaltantesConMovimientos','informesController@obtenerJugadorFaltantesConMovimientos');
+  Route::get('/obtenerJuegoAlertasDiarias','informesController@obtenerJuegoAlertasDiarias');
+  Route::get('/obtenerJugadorAlertasDiarias','informesController@obtenerJugadorAlertasDiarias');
   Route::get('/obtenerEvolucionCategorias','informesController@obtenerEvolucionCategorias');
 });
 
