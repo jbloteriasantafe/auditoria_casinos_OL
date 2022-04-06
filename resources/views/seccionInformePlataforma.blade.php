@@ -77,7 +77,7 @@ $alertasJugadoresSelect = array_map($separar_sql,informesController::$obtenerAle
 #juegosFaltantesConMovimientos td.cod_juego,
 #juegosFaltantesConMovimientos td.categoria,
 #jugadoresFaltantesConMovimientos th,
-#jugadorestantesConMovimientos td.jugador,
+#jugadoresFaltantesConMovimientos td.jugador,
 #divAlertasDiariasJuegos th,
 #divAlertasDiariasJuegos td.fecha,
 #divAlertasDiariasJuegos td.codigo,

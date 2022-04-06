@@ -72,7 +72,7 @@ function generarTablaFaltantes(tipo,faltantes,page,pages){
     const f = fila.clone().css('display','block');//Lo pone como table-row, por algun motivo y se ve mal
     for(const columna in fltnt){
       let val = digits(fltnt[columna],columna.indexOf('pdev') != -1? 3 : 2);
-      if(columna == 'jugador' || columna == 'codigo') val = fltnt[columna];
+      if(columna == 'jugador' || columna == 'cod_jugador') val = fltnt[columna];
       f.find('.'+columna).text(val).attr('title',val);
     }
     div.find('tbody').append(f);
