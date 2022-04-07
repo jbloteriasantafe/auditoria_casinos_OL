@@ -7,7 +7,7 @@ $convertir_a_nombre = function($str){
 <div id="div{{$id}}" class="row tabContent">
   {{$botones}}
   <div id="{{$id}}" class="paginadoInformePlataforma col-md-12" style="padding: 0px !important;">
-    <table class="col-md-12 table table-fixed tablesorter" style="padding: 0px !important;">
+    <table class="col-md-12 table table-fixed tablesorter tablaPaginada" style="padding: 0px !important;">
       <thead>
         <tr>
           @foreach($columnas as $idx => $col)
@@ -22,6 +22,13 @@ $convertir_a_nombre = function($str){
       <tbody>
       </tbody>
     </table>
+    <table hidden>
+      <tr class="moldeFila">
+        @foreach($columnas as $idx => $col)
+        <td class="{{$col['alias']}}">XXX</td>
+        @endforeach
+      </tr>
+    </table>
     <div class="row paginado">
       <div class="col-md-1 col-md-offset-3"><button type="button" class="btn btn-link prevPreview" disabled="disabled"><i class="fas fa-arrow-left"></i></button></div>
       <div class="col-md-4">
@@ -35,11 +42,3 @@ $convertir_a_nombre = function($str){
     </div>
   </div>
 </div>
-
-<table hidden>
-  <tr id="molde{{$id}}">
-    @foreach($columnas as $idx => $col)
-    <td class="{{$col['alias']}}">XXX</td>
-    @endforeach
-  </tr>
-</table>
