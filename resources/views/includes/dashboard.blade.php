@@ -217,7 +217,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 $opciones['algun_permiso'] = $opciones['algun_permiso'] ?? [];
                 $opciones['divli_style']   = $opciones['divli_style']   ?? '';
                 $opciones['link_style']    = $opciones['link_style']    ?? '';
-                $opciones['link']          = $opciones['divli_style']   ?? '#';
+                $opciones['link']          = $opciones['link']          ?? '#';
                 $opciones['hijos']         = $opciones['hijos']         ?? [];
                 $hijos = &$opciones['hijos'];
                 if(!is_null($hijos)) foreach($hijos as $op => &$h){
@@ -269,7 +269,11 @@ $id_usuario = $usuario['usuario']->id_usuario;
             };
             ?>
           </nav>
-          @component('includes.barraMenuPrincipal',['UC' => UsuarioController::getInstancia(),'opciones' => $opciones])
+          @component('includes.barraMenuPrincipal',[
+            'usuario' => UsuarioController::getInstancia()->quienSoy()['usuario'],
+            'tiene_imagen' => UsuarioController::getInstancia()->tieneImagen(),
+            'opciones' => $opciones ?? [],
+          ])
           @endcomponent
         </header>
         <div style="width:100%;position: absolute;z-index: 3;">

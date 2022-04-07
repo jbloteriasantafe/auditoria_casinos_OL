@@ -1,45 +1,3 @@
-<?php
-  /*$parseOpcion = function($opciones,$primer_nivel = false) use (&$parseOpcion){
-    $lista = "";
-    foreach($opciones as $op => $datos){      
-      $divli_style = $datos['divli_style'] ?? '';
-      $link_style  = $datos['link_style']  ?? '';
-      $link        = $datos['link']        ?? '#';
-      
-      //Reemplazar las strings por algun templateado/view??
-      //https://www.w3schools.com/Bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
-      if(count($datos['hijos'] ?? []) == 0){
-        $open  = "<li style='$divli_style'><a tabindex='-1' href='$link' style='$link_style;'>";
-        $close = '</a></li>';
-        if($primer_nivel){
-          $open  = "<div class='card' style='$divli_style'><a tabindex='-1' href='$link' style='$link_style'>";
-          $close = '</a></div>';
-        }
-        $lista .= "$open $op $close";
-      }
-      else if ($primer_nivel){
-        $submenu = $parseOpcion($datos['hijos']);
-        $lista .= "<div class='card dropdown' style='$divli_style'>
-          <a class='dropdown-toggle' data-toggle='dropdown' style='$link_style'>$op</a>
-          <ul class='dropdown-menu'>
-          $submenu
-          </ul>
-        </div>";
-      }
-      else {
-        $submenu = $parseOpcion($datos['hijos']);
-        $lista .= "<li class='dropdown-submenu' style='$divli_style'>
-          <a class='desplegar-menu' tabindex='-1' href='#' style='$link_style'>$op</a>
-          <ul class='dropdown-menu'>
-          $submenu
-          </ul>
-        </li>";
-      }
-    }
-    return $lista;
-  };*/
-  $usuario = $UC->quienSoy()['usuario'];
-?>
 <ul id="barraMenuPrincipal">
   <div class="card" style="width: 8vw; flex: unset;">
     <?php $fondoOL = '/img/tarjetas/banner_OL'.(rand(0,1) + 1).'.jpg'; ?>
@@ -50,7 +8,7 @@
   <div class="card" style="width: 8vw; flex: unset;">
     <a tabindex="-1" href="/configCuenta">
       <?php
-      $img_user = $UC->tieneImagen() ? '/usuarios/imagen' : '/img/img_user.jpg';
+      $img_user = $tiene_imagen ? '/usuarios/imagen' : '/img/img_user.jpg';
       ?>
       <span>
         <img src='{{$img_user}}' class='img-circle' style="width: 2vw;">
@@ -64,7 +22,7 @@
     @show
     <span class="tituloSeccionPantalla" style="text-align: center;">---</span>
   </div>
-  @foreach(($opciones ?? []) as $op => $datos)
+  @foreach($opciones as $op => $datos)
     @if(count($datos['hijos']) == 0)
       @component('includes.barraMenuPrincipal_link',[
         'primer_nivel' => true,
