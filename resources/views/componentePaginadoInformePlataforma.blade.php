@@ -4,9 +4,11 @@ $convertir_a_nombre = function($str){
 };
 ?>
 
-<div id="div{{$id}}" class="row tabContent">
-  {{$botones}}
-  <div id="{{$id}}" class="paginadoInformePlataforma col-md-12" style="padding: 0px !important;">
+<div id="{{$id}}" class="row tabContent">
+  <div class="botonesPaginadoInformePlataforma">
+    {{$botones}}
+  </div>
+  <div class="divTablaPaginada col-md-12" style="padding: 0px !important;">
     <table class="col-md-12 table table-fixed tablesorter tablaPaginada" style="padding: 0px !important;">
       <thead>
         <tr>

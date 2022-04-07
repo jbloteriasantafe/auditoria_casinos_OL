@@ -17,7 +17,7 @@ $(document).ready(function(){
 
   ['Juego','Jugador'].forEach(function(tipo1){
     ['FaltantesConMovimientos','AlertasDiarias'].forEach(function (tipo2){
-      crearPaginado(tipo1+tipo2,tipo1,'obtener'+tipo1+tipo2);
+      crearPaginado($(`#div${tipo1}${tipo2}`),tipo1,`obtener${tipo1}${tipo2}`);
     });
   });
 
@@ -97,7 +97,7 @@ $('#btn-buscar').click(function(e){
     }
   });
 
-  $('.paginadoInformePlataforma').each(function(){
+  $('.divTablaPaginada').each(function(){
     $(this).data('buscar')();
   })
 });
@@ -277,14 +277,14 @@ function generarEvolucionCategorias(graphs) {
 
 $(document).on('click','#btn-buscarPaginado',function(e){
   e.preventDefault();
-  $(this).closest('.tabContent').find('.paginadoInformePlataforma').data('buscar')();
+  $(this).closest('.tabContent').find('.divTablaPaginada').data('buscar')();
 })
 
 $(document).on('click','.prevPreview,.nextPreview',function(e){
   e.preventDefault();
   const p = parseInt($(this).closest('.paginado').find('.previewPage').val());
   const next = p + ($(this).hasClass('nextPreview')? 1 : -1);
-  $(this).closest('.tabContent').find('.paginadoInformePlataforma').data('buscar')(next);
+  $(this).closest('.tabContent').find('.divTablaPaginada').data('buscar')(next);
 });
 
 $(document).on('focusin','.previewPage',function(e){
@@ -299,7 +299,7 @@ $(document).on('change','.previewPage',function(e){
     $(this).val(old);
     return;
   }
-  $(this).closest('.tabContent').find('table').parent().data('buscar')(val);
+  $(this).closest('.tabContent').find('.divTablaPaginada').data('buscar')(val);
 });
 
 function digits(n,dig = 2){
@@ -308,18 +308,18 @@ function digits(n,dig = 2){
   return ret == "NaN"? n : ret;
 }
 
-function crearPaginado(id,tipo,url){
-  const div = $(`#div${id}`);
-  div.find('.paginadoInformePlataforma').data('buscar',function(page = 1){
+function crearPaginado(div,tipo,url){
+  div.find('.divTablaPaginada').data('buscar',function(page = 1){
+    const tabla = div.find('.tablaPaginada');
     const formData = { 
       page: page, page_size: 30, 
-      columna: div.find('.activa').attr('value'),
-      orden: div.find('.activa').attr('estado'),
-      beneficio_alertas: div.parent().find('#inputBeneficio').val(),
-      pdev_alertas: div.parent().find('#inputPdev').val(),
+      columna: tabla.find('.activa').attr('value'),
+      orden: tabla.find('.activa').attr('estado'),
+      beneficio_alertas: div.find('#inputBeneficio').val(),
+      pdev_alertas: div.find('#inputPdev').val(),
     };
-    div.find('.tablaPaginada').find('tbody').empty();
-    GET(div.find('.tablaPaginada').find('tbody'),url,formData,function(data){
+    tabla.find('tbody').empty();
+    GET(tabla.find('tbody'),url,formData,function(data){
       generarTablaPaginada(div,tipo,data.data ?? [],formData.page,Math.ceil(data.total/formData.page_size));
     });
   });
@@ -327,6 +327,7 @@ function crearPaginado(id,tipo,url){
 
 function generarTablaPaginada(div,tipo,data,page,pages){
   const molde = div.find('.moldeFila').clone().removeClass('moldeFila').css('display','block');
+  const tbody = div.find('.tablaPaginada').find('tbody');
   for(const didx in data){
     const d = data[didx];
     const f = molde.clone();//Lo pone como table-row, por algun motivo y se ve mal
@@ -335,13 +336,13 @@ function generarTablaPaginada(div,tipo,data,page,pages){
       if(columna == 'jugador' || columna == 'cod_juego') val = d[columna];
       f.find('.'+columna).text(val).attr('title',val);
     }
-    div.find('.tablaPaginada').find('tbody').append(f);
+    tbody.append(f);
   }
   div.find('.previewPage').val(page).data('old_val',page);
   div.find('.previewTotal').val(pages);
   div.find('.prevPreview').attr('disabled',page <= 1);
   div.find('.nextPreview').attr('disabled',page >= pages);
-  div.find('.tablaPaginada').find('tbody').find('.cod_juego,.jugador').each(function(){
+  tbody.find('.cod_juego,.jugador').each(function(){
     const codigo = $(this).text();
     if(codigo == 'TOTAL') return;//@HACK: Se rompe si hay un juego/jugador con ID Total (lol)
     const modo = tipo.toLowerCase();

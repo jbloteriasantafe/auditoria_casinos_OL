@@ -43,51 +43,39 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
   max-height: 650px;
 }
 
-#JuegoFaltantesConMovimientos th,
-#JuegoFaltantesConMovimientos td,
-#moldeJuegoFaltantesConMovimientos td {
+.tablaPaginada td {
   text-align: right;
-  padding: 0px;
+  padding: 0px !important;
+}
+
+.tablaPaginada th,
+.tablaPaginada td.cod_juego,/*Casos especiales donde se visualiza mejor alineado en el centro*/
+.tablaPaginada td.categoria,
+.tablaPaginada td.jugador,
+.tablaPaginada td.fecha {
+  text-align: center;
+  padding: 0px !important;
+}
+
+#divJuegoFaltantesConMovimientos .tablaPaginada th,
+#divJuegoFaltantesConMovimientos .tablaPaginada td{
   width: {{100.0/count($juegoFaltantesSelect)}}%;
 }
 
-#JugadorFaltantesConMovimientos th,
-#JugadorFaltantesConMovimientos td,
-#moldeJugadorFaltantesConMovimientos td {
-  text-align: right;
-  padding: 0px;
+#divJugadorFaltantesConMovimientos .tablaPaginada th,
+#divJugadorFaltantesConMovimientos .tablaPaginada td{
   width: {{100.0/count($jugadorFaltantesSelect)}}%;
 }
 
-#JuegoAlertasDiarias th,
-#JuegoAlertasDiarias td {
-  text-align: right;
-  padding: 0px;
+#divJuegoAlertasDiarias .tablaPaginada th,
+#divJuegoAlertasDiarias .tablaPaginada td {
   width: {{100.0/count($juegoAlertasDiariasSelect)}}%;
 }
 
-#JugadorAlertasDiarias th,
-#JugadorAlertasDiarias td {
-  text-align: right;
-  padding: 0px;
+#divJugadorAlertasDiarias .tablaPaginada th,
+#divJugadorAlertasDiarias .tablaPaginada td {
   width: {{100.0/count($jugadorAlertasDiariasSelect)}}%;
 }
-
-#JuegoFaltantesConMovimientos th,
-#JuegoFaltantesConMovimientos td.cod_juego,
-#JuegoFaltantesConMovimientos td.categoria,
-#JugadorFaltantesConMovimientos th,
-#JugadorFaltantesConMovimientos td.jugador,
-#JuegoAlertasDiarias th,
-#JuegoAlertasDiarias td.fecha,
-#JuegoAlertasDiarias td.cod_juego,
-#JuegoAlertasDiarias td.categoria,
-#JugadorAlertasDiarias th,
-#JugadorAlertasDiarias td.fecha,
-#JugadorAlertasDiarias td.jugador {
-  text-align: center;/*Casos especiales donde se visualiza mejor alineado en el centro*/
-}
-
 </style>
 @endsection
 
@@ -184,7 +172,7 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
                 </div>
                 @component('componentePaginadoInformePlataforma',
                 [
-                  'id' => 'JuegoFaltantesConMovimientos',
+                  'id' => 'divJuegoFaltantesConMovimientos',
                   'columnas' => $juegoFaltantesSelect
                 ])
                   @slot('botones')
@@ -192,7 +180,7 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
                 @endcomponent
                 @component('componentePaginadoInformePlataforma',
                 [
-                  'id' => 'JugadorFaltantesConMovimientos',
+                  'id' => 'divJugadorFaltantesConMovimientos',
                   'columnas' => $jugadorFaltantesSelect
                 ])
                   @slot('botones')
@@ -200,7 +188,7 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
                 @endcomponent
                 @component('componentePaginadoInformePlataforma',
                 [
-                  'id' => 'JuegoAlertasDiarias',
+                  'id' => 'divJuegoAlertasDiarias',
                   'columnas' => $juegoAlertasDiariasSelect
                 ])
                   @slot('botones')
@@ -222,7 +210,7 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
                 @endcomponent
                 @component('componentePaginadoInformePlataforma',
                 [
-                  'id' => 'JugadorAlertasDiarias',
+                  'id' => 'divJugadorAlertasDiarias',
                   'columnas' => $jugadorAlertasDiariasSelect
                 ])
                   @slot('botones')
