@@ -1,3 +1,69 @@
+<style>
+#barraMenuPrincipal {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0px;
+  margin: 0px;
+  font-family: Roboto-Regular;
+}
+#barraMenuPrincipal .card {
+  height: inherit;
+  flex: 1;
+  display: flex;/*Esto es para que si hay varias entradas en el card se organizen una despues de la otra (icono de ayuda)*/
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+#barraMenuPrincipal a,#btn-ayuda{
+  color: white;
+  background-color: rgb(38, 50, 56);
+  border-right:  1px solid rgba(255,255,255,0.15);
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  text-decoration: none;
+  width: 100%;/*Estos hacen que ocupen todo el div*/
+  height: 100%;
+  display: flex;/*Estos centran verticalmente*/
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+#barraMenuPrincipal div:hover,#barraMenuPrincipal a:hover,
+#barraMenuPrincipal div:focus,#barraMenuPrincipal a:focus {
+  background-color: #185891 !important;
+  cursor: pointer;
+}
+#barraMenuPrincipal img {
+  width: 1em;
+}
+#barraMenuPrincipal svg {
+  max-height: 2em;
+  fill: white;
+  stroke: white;
+}
+#barraMenuPrincipal .dropdown-submenu {
+  position: relative;
+}
+#barraMenuPrincipal .dropdown-menu {
+  padding: 0px;
+  margin: 0px;
+  border: 0px;
+  width: 100%;
+}
+#barraMenuPrincipal .dropdown-submenu .dropdown-menu {
+  top: 10%;
+  left: 100%;
+}
+#botonMenuDesplegable {
+  color: #fff;
+  background-color: rgb(38, 50, 56);
+  border-color: rgb(0,0,0,0.5);
+}
+</style>
+
 <ul id="barraMenuPrincipal">
   <div class="card" style="width: 8vw; flex: unset;">
     <?php $fondoOL = '/img/tarjetas/banner_OL'.(rand(0,1) + 1).'.jpg'; ?>

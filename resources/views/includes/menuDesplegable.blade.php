@@ -1,3 +1,112 @@
+<style>
+#menuDesplegable {
+  background-color: #263238;
+  color: #fff;
+  font-family: Roboto-Regular;
+  font-size: 1.25em;
+}
+#menuDesplegable ul {
+  box-shadow: inset 0 0 0 100vw rgba(255,255,255,0.04);
+  padding-left:    0px;
+  margin-left:     10px;
+  margin-bottom:   10px;
+  border-left:   3px solid #185891db;
+  border-right:  3px solid #00000000;
+  border-top:    2px solid #00000000;
+  border-bottom: 2px solid #00000000;
+  list-style-type: none;
+}
+#menuDesplegable > ul{/*Lo saco al borde izq para el primer nivel*/
+  border-left:   3px solid #00000000;
+}
+#menuDesplegable li {
+  text-align: left;
+  padding: 2px;
+}
+#menuDesplegable .enlace {
+  text-decoration: none;
+  color: rgba(190,190,255,0.85);
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  text-align: center;
+}
+#menuDesplegable .enlace > a, #menuDesplegable .menu_con_opciones > span, #menuDesplegable .menu_con_opciones_desplegado > span,#menuDesplegable .desactivado > span{
+  display: block;
+  width: 100%;
+}
+#menuDesplegable .desactivado {
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  background: repeating-linear-gradient(45deg,
+      rgba(  0,  0,  0,0.05),
+      rgba(255,255,255,0.05) 5px,
+      rgba(  0,  0,  0,0.05) 5px,
+      rgba(255,255,255,0.05) 5px
+  );
+  font-style: italic;
+}
+#menuDesplegable .menu_con_opciones > span{
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-weight: bold;
+}
+#menuDesplegable .menu_con_opciones > ul{
+  display: none;
+}
+#menuDesplegable .menu_con_opciones_desplegado > span{
+  border-bottom: 3px solid #185891db;
+}
+#menuDesplegable a {
+  color: white;
+  text-decoration: none;
+  background: repeating-linear-gradient(45deg,
+    rgba(  0,  0,  0,0.05),
+    rgba(24, 88, 145,0.5)  5px,
+    rgba(  0,  0,  0,0.05) 5px,
+    rgba(24, 88, 145,0.5)  5px
+  );
+}
+#menuDesplegable .opcion_actual a{
+  background: repeating-linear-gradient(45deg,
+    rgba(  0,  0,  0,0.05),
+    rgba(61, 106, 41,0.5) 5px,
+    rgba(  0,  0,  0,0.05) 5px,
+    rgba(61, 106, 41,0.5) 5px
+  );
+}
+#menuDesplegable .enlace > a:hover, #menuDesplegable .menu_con_opciones > span:hover, #menuDesplegable .menu_con_opciones_desplegado > span:hover,#menuDesplegable .desactivado > span:hover{
+  cursor: pointer;
+  background-color: #185891;
+}
+
+#menuDesplegable .menu_con_opciones_desplegado > ul {
+  animation-name: mostrarse;
+  animation-duration: 0.11s;
+  animation-timing-function: ease-out;
+}
+#menuDesplegable .menu_con_opciones_desplegado > span {
+  text-align: left;
+  animation-name: mover;
+  animation-duration: 0.08s;
+  animation-timing-function: linear;
+}
+@keyframes mostrarse {
+  from {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
+  }
+  to {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
+@keyframes mover {/*Bastante @HACK, si el texto overflowea en varias lineas seguro se ve horrible, pero para una linea funciona*/
+  from {
+    transform: translate(30%);
+  }
+  to {
+    transform: translate(0%);
+  }
+}
+</style>
+
 <div style="width:100%;position: absolute;z-index: 3;">
   <aside id="menuDesplegable" style="height: 100vh;width: 15%;float: left;overflow-y: scroll;" hidden>
     <ul class="menu_con_opciones_desplegado" style="margin-top: 5%;">
