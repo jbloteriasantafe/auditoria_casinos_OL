@@ -1,9 +1,9 @@
 @if($link != '#')
 <li class='enlace'>
-  <a href='{{$link}}'>{{$op}}</a>
+  <a href='{{$link}}'>{!! $op !!}</a>
 </li>
 @else
 <li class='desactivado'>
-  <span>{{$op}}</span>
+  <span>{!! $op !!}</span>
 </li>
 @endif
