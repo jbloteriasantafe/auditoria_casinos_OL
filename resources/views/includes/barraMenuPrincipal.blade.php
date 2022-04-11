@@ -82,3 +82,26 @@
     </a>
   </div>
 </ul>
+
+<script type="module">
+$(document).ready(function(){
+  /* Deshabilito desplegar el menu principal en hover
+  $('#barraMenuPrincipal > .dropdown > .dropdown-toggle:not(.no_abrir_en_mouseenter)').mouseenter(function(e){
+    $(this).click();
+  });*/
+  function toggleSubmenu(e){//@TODO: ver porque se mueve el fondo si se desplegan muchos submenues
+    e.preventDefault();
+    e.stopPropagation();
+    const submenu = $(this).next('ul');
+    $(this).closest('ul.dropdown-menu')//voy para el menu de arriba
+    .find('ul.dropdown-menu').not(submenu).hide();//escondo todos los submenues menos el propio
+    submenu.toggle();//Toggleo el submenu
+    $(this).blur();
+  }
+  $('#barraMenuPrincipal > .card > * a').mouseenter(toggleSubmenu).click(toggleSubmenu);
+  $(document).on('hidden.bs.dropdown','.dropdown',function(e){
+    //Escondo todos los submenues cuando se esconde un menu de 1er nivel
+    $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
+  });
+});
+</script>
