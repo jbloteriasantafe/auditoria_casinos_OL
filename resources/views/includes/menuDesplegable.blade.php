@@ -5,6 +5,19 @@
   font-family: Roboto-Regular;
   font-size: 1.25em;
 }
+#menuDesplegable.visible {
+  animation-name: mostrarse_horizontal;
+  animation-duration: 0.03s;
+  animation-timing-function: ease-in
+}
+@keyframes  mostrarse_horizontal {
+  from {
+    clip-path: polygon(0% 0%, 0% 100%, 0% 100%, 0% 0%);
+  }
+  to {
+    clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%);
+  }
+}
 #menuDesplegable ul {
   box-shadow: inset 0 0 0 100vw rgba(255,255,255,0.04);
   padding-left:    0px;
@@ -110,6 +123,11 @@
 <div style="width:100%;position: absolute;z-index: 3;">
   <aside id="menuDesplegable" style="height: 100vh;width: 15%;float: left;overflow-y: scroll;" hidden>
     <ul class="menu_con_opciones_desplegado" style="margin-top: 5%;">
+    @if(!is_null($tarjeta_css))
+    <div style="{{$tarjeta_css}};">
+      <a>&nbsp;</a>
+    </div>
+    @endif
     @foreach($opciones as $op => $datos)
       @if(count($datos['hijos']) == 0)
         @component('includes.menuDesplegable_link',[
@@ -166,7 +184,7 @@ $(document).ready(function(){
     //Desplego la opcion
     opcion_actual.closest('.menu_con_opciones').children('span').click();
     //Muestro el menu
-    $($(this).attr('data-toggle')).toggle();
+    $($(this).attr('data-toggle')).toggle().toggleClass('visible');
   });
 })
 </script>

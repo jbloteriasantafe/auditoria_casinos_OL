@@ -58,11 +58,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <!-- Mesaje de notificación -->
     <link rel="stylesheet" href="/css/mensajeExito.css">
     <link rel="stylesheet" href="/css/mensajeError.css">
-    <link rel="stylesheet" href="/css/menuHeader_y_Desplegable.css?2">
-
     @section('estilos')
     @show
-
   </head>
   <body>
 
@@ -255,7 +252,20 @@ $id_usuario = $usuario['usuario']->id_usuario;
           ])
           @endcomponent
         </header>
+        @php
+          //Fisico
+          /*
+          $casinos_ids = $usuario['usuario']->casinos->map(function($c){return $c->id_casino;})->toArray();
+          $cas_random = $casinos_ids[array_rand($casinos_ids,1)];
+          $tarjetas = [1 => '/img/tarjetas/banner_MEL.jpg',2 => '/img/tarjetas/banner_CSF.jpg',3 => '/img/tarjetas/banner_ROS.jpg'];
+          $tarjeta = $tarjetas[$cas_random] ?? null;
+          $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;background-size: contain;background-repeat: space" : null;
+          */
+          //Online
+          $tarjeta_css = null;
+        @endphp
         @component('includes.menuDesplegable',[
+          'tarjeta_css' => $tarjeta_css,
           'opciones' => $opciones ?? [],
         ])
         @endcomponent
@@ -400,7 +410,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
     <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
-    <script type="text/javascript" src="/js/menuHeader_y_Desplegable.js?4" charset="utf-8"></script>
     @section('scripts')
     @show
   </body>

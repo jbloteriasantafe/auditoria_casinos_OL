@@ -18,6 +18,19 @@
   align-items: center;
   align-content: center;
 }
+#barraMenuPrincipal .card.open > ul {
+  animation-name: mostrarse;
+  animation-duration: 0.05s;
+  animation-timing-function: ease-out
+}
+@keyframes mostrarse {
+  from {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
+  }
+  to {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
 #barraMenuPrincipal a,#btn-ayuda{
   color: white;
   background-color: rgb(38, 50, 56);
