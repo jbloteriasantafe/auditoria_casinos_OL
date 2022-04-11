@@ -37,9 +37,8 @@
         'primer_nivel' => true,
         'divli_style'  => $datos['divli_style'],
         'link_style'   => $datos['link_style'],
-        'link'         => $datos['link'],
-        'op'           => $op,
         'hijos'        => $datos['hijos'],
+        'op'           => $op,
       ])
       @endcomponent
     @endif

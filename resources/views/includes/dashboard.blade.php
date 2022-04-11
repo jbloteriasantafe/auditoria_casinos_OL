@@ -246,27 +246,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
               $aux = ['hijos' => $opciones];
               $opciones = $filtrar_permisos('',$aux)['hijos'];
             }
-
-            $parseOpcionDesplegable = function($opciones) use (&$parseOpcionDesplegable){
-              $lista = "";
-              foreach($opciones as $op => $datos){
-                if(isset($datos['link'])){
-                  $link  = $datos['link'];
-                  $lista.= "<li class='enlace'><a href='$link'>$op</a></li>";
-                }
-                else if(!isset($datos['hijos']) || count($datos['hijos']) == 0){
-                  $lista.= "<li class='desactivado'><span>$op</span></li>";
-                }
-                else{
-                  $lista.="<li class='menu_con_opciones'><span>$op</span>";
-                  $lista.="<ul>";
-                  $lista.=$parseOpcionDesplegable($datos['hijos']);
-                  $lista.="</ul>";
-                  $lista.="</li>";
-                }
-              }
-              return $lista;
-            };
             ?>
           </nav>
           @component('includes.barraMenuPrincipal',[
@@ -276,24 +255,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
           ])
           @endcomponent
         </header>
-        <div style="width:100%;position: absolute;z-index: 3;">
-          <aside id="menuDesplegable" style="height: 100vh;width: 15%;float: left;overflow-y: scroll;" hidden>
-            <ul class="menu_con_opciones_desplegado" style="margin-top: 5%;">
-            {!! $parseOpcionDesplegable($opciones ?? []) !!}
-            </ul>
-          </aside>
-          <div style="float: left;">
-            <button id="botonMenuDesplegable" type="button" class="btn" 
-              data-toggle="#menuDesplegable,#oscurecerContenido,#botonDerecha,#botonIzquierda" 
-              style="z-index: 4;position: absolute;">
-              <i id="botonDerecha" class="fa fa-fw fa-solid fa-arrow-right"></i>
-              <i id="botonIzquierda" class="fa fa-fw fa-solid fa-arrow-left" style="display: none;"></i>
-            </button>
-          </div>
-          <div id="oscurecerContenido" style="position:absolute;z-index: 3;height: 100%;left: 15%;width: 100%;float:left;background: rgba(0,0,0,0.2);" hidden>
-            &nbsp;
-          </div>
-        </div>
+        @component('includes.menuDesplegable',[
+          'opciones' => $opciones ?? [],
+        ])
+        @endcomponent
 
         <!-- Vista de secciones -->
         <main class="contenedorVistaPrincipal">
