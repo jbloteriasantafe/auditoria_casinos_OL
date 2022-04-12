@@ -70,10 +70,21 @@
   top: 10%;
   left: 100%;
 }
-#botonMenuDesplegable {
-  color: #fff;
-  background-color: rgb(38, 50, 56);
-  border-color: rgb(0,0,0,0.5);
+#barraMenuPrincipal .texto_con_icono{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: left;
+  align-items: center;
+  align-content: center;
+}
+#barraMenuPrincipal .texto_con_icono svg{
+  width: unset;
+  height: unset;
+}
+#barraMenuPrincipal .texto_con_icono i{
+  font-size: 125%;
+  line-height: 2em;
 }
 </style>
 
@@ -108,6 +119,7 @@
         'divli_style'  => $datos['divli_style'],
         'link_style'   => $datos['link_style'],
         'link'         => $datos['link'],
+        'icono'        => $datos['icono'],
         'op'           => $op,
       ])
       @endcomponent
@@ -117,6 +129,7 @@
         'divli_style'  => $datos['divli_style'],
         'link_style'   => $datos['link_style'],
         'hijos'        => $datos['hijos'],
+        'icono'        => $datos['icono'],
         'op'           => $op,
       ])
       @endcomponent
@@ -124,10 +137,13 @@
   @endforeach
   <div class="card dropdown" style="width: 5%;flex: unset;"  onclick="markNotificationAsRead('{{count($usuario->unreadNotifications)}}')">
     <a class="dropdown-toggle no_abrir_en_mouseenter" type="button" data-toggle="dropdown">
-      <span>
-        <i class="far fa-bell"></i>
-        <span class="badge" style="background: white;color: black;text-align: center;">{{count($usuario->unreadNotifications)}}</span>
-      </span>
+      @component('includes.barraMenuPrincipal_texto_con_icono',[
+        'icono' => '<i class="far fa-bell" style="font-size: 100%;"></i>
+                    <span class="badge" style="background: white;color: black;text-align: center;">'.
+                    count($usuario->unreadNotifications).
+                    '</span>',
+      ])
+      @endcomponent
     </a>
     <ul class="dropdown-menu" style="max-height: 300px; overflow-y:auto; width:350px;">
       @forelse ($usuario->unreadNotifications as $notif)
@@ -146,18 +162,27 @@
   @if($usuario->es_superusuario || $usuario->es_auditor)
   <div class="card" style="width:5%;flex: unset;">
     <a id="ticket" tabindex="-1" href="#">
-      <span><i id="ticket" class="far fa-envelope"></i></span>
+      @component('includes.barraMenuPrincipal_texto_con_icono',[
+        'icono' => '<i id="ticket" class="far fa-envelope"></i>',
+      ])
+      @endcomponent
     </a>
   </div>
   @endif
   <div class="card" style="width:5%;flex: unset;">
     <a id="calendario" tabindex="-1" href="/calendario_eventos">
-      <span><i  class="far fa-fw fa-calendar-alt"></i></span>
+      @component('includes.barraMenuPrincipal_texto_con_icono',[
+        'icono' => '<i  class="far fa-fw fa-calendar-alt"></i>',
+      ])
+      @endcomponent
     </a>
   </div>
   <div class="card" style="width:5%;flex: unset;">
-    <a class="etiquetaLogoSalida"  tabindex="-1" href="#">
-      <span><img src="/img/logos/salida.png"></span>
+    <a class="etiquetaLogoSalida" tabindex="-1" href="#">
+      @component('includes.barraMenuPrincipal_texto_con_icono',[
+        'icono' => '<img src="/img/logos/salida.png">',
+      ])
+      @endcomponent
     </a>
   </div>
 </ul>
@@ -177,7 +202,8 @@ $(document).ready(function(){
     submenu.toggle();//Toggleo el submenu
     $(this).blur();
   }
-  $('#barraMenuPrincipal > .card > * a').mouseenter(toggleSubmenu).click(toggleSubmenu);
+  $('#barraMenuPrincipal > .card > * a.desplegar-menu').mouseenter(toggleSubmenu).click(toggleSubmenu);
+  $('#barraMenuPrincipal > .card > * a.enlace').mouseenter(toggleSubmenu);
   $(document).on('hidden.bs.dropdown','.dropdown',function(e){
     //Escondo todos los submenues cuando se esconde un menu de 1er nivel
     $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();

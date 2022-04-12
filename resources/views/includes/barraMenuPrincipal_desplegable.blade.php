@@ -6,7 +6,11 @@
 @else
 <li class='dropdown-submenu' style='{{$divli_style}};'>
   <a class='desplegar-menu' style='{{$link_style}};'>
-    {!! $op !!}
+    @component('includes.barraMenuPrincipal_texto_con_icono',[
+      'icono' => $icono,
+      'op' => $op,
+    ])
+    @endcomponent
   </a>
 @endif
 <ul class='dropdown-menu'>
@@ -17,6 +21,7 @@
         'divli_style'  => $datos['divli_style'],
         'link_style'   => $datos['link_style'],
         'link'         => $datos['link'],
+        'icono'        => $datos['icono'],
         'op'           => $op,
       ])
       @endcomponent
@@ -26,6 +31,7 @@
         'divli_style'  => $datos['divli_style'],
         'link_style'   => $datos['link_style'],
         'hijos'        => $datos['hijos'],
+        'icono'        => $datos['icono'],
         'op'           => $op,
       ])
       @endcomponent

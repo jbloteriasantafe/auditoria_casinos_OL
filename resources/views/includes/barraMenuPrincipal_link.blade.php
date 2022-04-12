@@ -3,8 +3,12 @@
 @else
 <li style='{{$divli_style}};'>
 @endif
-  <a tabindex='-1' href='{{$link}}' style='{{$link_style}};'>
-    {!! $op !!}
+  <a class="enlace" tabindex='-1' href='{{$link}}' style='{{$link_style}};'>
+    @component('includes.barraMenuPrincipal_texto_con_icono',[
+      'icono' => $icono,
+      'op' => $op,
+    ])
+    @endcomponent
   </a>
 @if($primer_nivel)
 </div>

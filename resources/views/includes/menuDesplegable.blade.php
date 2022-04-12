@@ -118,6 +118,11 @@
     transform: translate(0%);
   }
 }
+#botonMenuDesplegable {
+  color: #fff;
+  background-color: rgb(38, 50, 56);
+  border-color: rgb(0,0,0,0.5);
+}
 </style>
 
 <div style="width:100%;position: absolute;z-index: 3;">

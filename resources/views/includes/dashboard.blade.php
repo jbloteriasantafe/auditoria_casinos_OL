@@ -69,8 +69,12 @@ $id_usuario = $usuario['usuario']->id_usuario;
         <header>
           <nav>
             <?php
+            $get_svg = function($nombre){
+              return file_get_contents(resource_path()."/assets/svg/$nombre.svg");
+            };
             $gestion_hijos = [
               'Usuarios' => [
+                'icono' => $get_svg('usuario'),
                 'hijos' => [
                   'Gestionar usuarios' => [
                     'link' => '/usuarios',
@@ -87,6 +91,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Expedientes' => [
+                'icono' => $get_svg('expedientes'),
                 'hijos' => [
                   'Gestionar expedientes' => [
                     'link' => '/expedientes',
@@ -107,6 +112,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Juegos' => [
+                'icono' => $get_svg('maquinas'),
                 'hijos' => [
                   'Juegos' => [
                     'link' => '/juegos',
@@ -119,6 +125,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Autoexclusión' => [
+                'icono' => $get_svg('usuario'),
                 'link' => 'http://'.($_SERVER['SERVER_ADDR'] ?? $_SERVER['REMOTE_ADDR']).':8000/autoexclusion',
                 'link_style' => 'color: #aaf;text-decoration: underline;',
                 'algun_permiso' => ['ver_seccion_ae_alta'],
@@ -126,10 +133,12 @@ $id_usuario = $usuario['usuario']->id_usuario;
             ];
             $auditoria_hijos = [
               'Importación Diaria' => [
+                'icono' => $get_svg('expedientes'),
                 'link' => '/importaciones',
                 'algun_permiso' => ['ver_seccion_importaciones'],
               ],
               'Validación' => [
+                'icono' => '<i class="fa fa-check-square"></i>',
                 'hijos' => [
                   'Producidos' => [
                     'link' => '/producidos',
@@ -142,6 +151,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Informes Auditoria' => [
+                'icono' => $get_svg('informes'),
                 'hijos' => [
                   'Plataforma' => [
                     'link' => '/informePlataforma',
@@ -160,6 +170,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
             ];
             $estadisticas_hijos = [
               'Informes' => [
+                'icono' => $get_svg('informes'),
                 'hijos' => [
                   'Juegos' => [
                     'link' => '/informesJuegos',
@@ -172,6 +183,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 ]
               ],
               'Tablero' => [
+                'icono' => $get_svg('tablero_control'),
                 'hijos' => [
                   'Generales' => [
                     //'link' => '/estadisticasGenerales',
@@ -215,6 +227,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 $opciones['divli_style']   = $opciones['divli_style']   ?? '';
                 $opciones['link_style']    = $opciones['link_style']    ?? '';
                 $opciones['link']          = $opciones['link']          ?? '#';
+                $opciones['icono']         = $opciones['icono']         ?? '';
                 $opciones['hijos']         = $opciones['hijos']         ?? [];
                 $hijos = &$opciones['hijos'];
                 if(!is_null($hijos)) foreach($hijos as $op => &$h){
