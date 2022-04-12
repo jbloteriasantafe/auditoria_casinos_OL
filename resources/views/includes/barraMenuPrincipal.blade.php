@@ -66,6 +66,10 @@
   border: 0px;
   width: 100%;
 }
+#barraMenuPrincipal .enlace,#barraMenuPrincipal .desplegar-menu {
+  padding: 0px;
+  line-height: 2em;
+}
 #barraMenuPrincipal .dropdown-submenu .dropdown-menu {
   top: 10%;
   left: 100%;
