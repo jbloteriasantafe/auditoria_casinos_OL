@@ -1,9 +1,9 @@
 <style>
 #menuDesplegable {
-  background-color: #263238;
   color: #fff;
   font-family: Roboto-Regular;
   font-size: 1.25em;
+  background-color: {{$fondo}};
 }
 #menuDesplegable.visible {
   animation-name: mostrarse_horizontal;
@@ -120,8 +120,8 @@
 }
 #botonMenuDesplegable {
   color: #fff;
-  background-color: rgb(38, 50, 56);
   border-color: rgb(0,0,0,0.5);
+  background-color: {{$fondo}};
 }
 </style>
 

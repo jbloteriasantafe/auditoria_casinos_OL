@@ -33,7 +33,6 @@
 }
 #barraMenuPrincipal a,#btn-ayuda{
   color: white;
-  background-color: rgb(38, 50, 56);
   border-right:  1px solid rgba(255,255,255,0.15);
   border-bottom: 1px solid rgba(255,255,255,0.15);
   text-decoration: none;
@@ -43,6 +42,7 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
+  background-color: {{$fondo}};
 }
 #barraMenuPrincipal div:hover,#barraMenuPrincipal a:hover,
 #barraMenuPrincipal div:focus,#barraMenuPrincipal a:focus {

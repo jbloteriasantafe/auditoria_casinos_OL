@@ -256,12 +256,14 @@ $id_usuario = $usuario['usuario']->id_usuario;
               $aux = ['hijos' => $opciones];
               $opciones = $filtrar_permisos('',$aux)['hijos'];
             }
+            $fondo = '#292639';//rgb(38, 50, 56)
             ?>
           </nav>
           @component('includes.barraMenuPrincipal',[
             'usuario' => UsuarioController::getInstancia()->quienSoy()['usuario'],
             'tiene_imagen' => UsuarioController::getInstancia()->tieneImagen(),
             'opciones' => $opciones ?? [],
+            'fondo' => $fondo ?? "black",
           ])
           @endcomponent
         </header>
@@ -280,6 +282,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
         @component('includes.menuDesplegable',[
           'tarjeta_css' => $tarjeta_css,
           'opciones' => $opciones ?? [],
+          'fondo' => $fondo ?? "black",
         ])
         @endcomponent
 
