@@ -161,8 +161,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="informePlataforma"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'informeContableJuego')
                                             <a href="informeContableJuego"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'informeEstadoJuegosJugadores')
-                                            <a href="informeEstadoJuegosJugadores"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
+                                          @elseif($visitada->ruta == 'informeEstadoJugadores')
+                                            <a href="informeEstadoJugadores"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'juegos')
                                             <a href="juegos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'certificadoSoft')

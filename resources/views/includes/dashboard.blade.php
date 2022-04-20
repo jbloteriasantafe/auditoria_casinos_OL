@@ -101,8 +101,12 @@ $auditoria_hijos = [
         'link' => '/informeContableJuego',
         'algun_permiso' => ['ver_seccion_informecontable'],
       ],
+      '<span>Juegos</span><small>[estado]</small>' => [
+        'link' => '/informeEstadoJuegos',
+        'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
+      ],
       '<span>Jugadores</span><small>[estado]</small>' => [
-        'link' => '/informeEstadoJuegosJugadores',
+        'link' => '/informeEstadoJugadores',
         'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
       ]
     ]

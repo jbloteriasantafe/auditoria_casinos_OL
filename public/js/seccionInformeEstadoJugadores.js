@@ -81,7 +81,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
 
   $.ajax({
     type: 'GET',
-    url: 'informeEstadoJuegosJugadores/buscarJugadores',
+    url: 'informeEstadoJugadores/buscarJugadores',
     data: formData,
     async: async,
     dataType: 'json',
@@ -293,7 +293,7 @@ function exportarCSV(){
     date_s += (mes < 10? '0' : '') + mes + (dia < 10? '0' : '') + dia;
     date_s += date.toTimeString().split(' ')[0].replaceAll(':','');//Le saco el timezone y los dos puntos al tiempo
   }
-  a.download = 'informeAE-'+date_s+'.csv';
+  a.download = 'jugadoresBusqueda-'+date_s+'.csv';
   mostrarColumnas(borrar_col);
 }
 
@@ -401,7 +401,7 @@ function mostrarHistorial(id_estado_jugador,pagina){
   };
   $.ajax({
     type: "GET",
-    url: '/informeEstadoJuegosJugadores/historial',
+    url: '/informeEstadoJugadores/historial',
     data: formData,
     success: function (data) {
       $('#modalHistorial .cuerpo  tbody').empty();
@@ -563,7 +563,7 @@ $('#btn-guardarImportacion').on('click', function(e){
 
   $.ajax({
     type: "POST",
-    url: 'informeEstadoJuegosJugadores/importarJugadores',
+    url: 'informeEstadoJugadores/importarJugadores',
     data: formData,
     processData: false,
     contentType:false,

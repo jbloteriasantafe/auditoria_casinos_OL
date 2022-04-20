@@ -784,10 +784,10 @@ class informesController extends Controller
     return "FORMAT($s,$d,'es_AR')";
   }
 
-  public function informeEstadoJuegosJugadores(){
+  public function informeEstadoJugadores(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Juegos/Jugadores','informeEstadoJuegosJugadores');
-    return view('seccionInformeEstadoJuegosJugadores' , [
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Jugadores','informeEstadoJugadores');
+    return view('seccionInformeEstadoJugadores' , [
       'plataformas' => $usuario->plataformas,
       'estados'     => DB::table('estado_jugador')->select('estado')->distinct()->get()->pluck('estado'),
       'sexos'       => DB::table('datos_jugador')->select('sexo')->distinct()->get()->pluck('sexo'),
@@ -858,6 +858,32 @@ class informesController extends Controller
     ->where('iej.id_plataforma','=',$iej->id_plataforma)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
+  }
+  public function informeEstadoJuegos(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Juego','informeEstadoJuegos');
+    return view('seccionInformeEstadoJuegos' , [
+      'plataformas' => $usuario->plataformas,
+      'estados'     => DB::table('estado_juego')->select('nombre')->get()->pluck('nombre')->toArray(),
+    ]);
+  }
+  public function buscarJuegos(Request $request){
+    return [
+      'total' => 2,
+      'data' => [[
+        'plataforma' => 'PPPPP',
+        'codigo' => 'CCCCC',
+        'estado' => 'EEEEE',
+      ],
+      [
+        'plataforma' => 'PPPPP2',
+        'codigo' => 'CCCCC2',
+        'estado' => 'EEEEE2',
+      ]]
+    ];
+  }
+  public function historialJuego(Request $request){
+    return [];
   }
 }
 

@@ -245,11 +245,17 @@ Route::group(['prefix' => 'informeContableJuego','middleware' =>'tiene_permiso:v
   Route::get('{id_plataforma}/{modo}/{codigo}','informesController@informeContableJuego');
 });
 
-Route::group(['prefix' => 'informeEstadoJuegosJugadores','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
-  Route::get('/','informesController@informeEstadoJuegosJugadores');
+Route::group(['prefix' => 'informeEstadoJugadores','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
+  Route::get('/','informesController@informeEstadoJugadores');
   Route::get('/buscarJugadores','informesController@buscarJugadores');
   Route::get('/historial','informesController@historialJugador');
   Route::post('/importarJugadores','ImportacionController@importarJugadores');
+});
+Route::group(['prefix' => 'informeEstadoJuegos','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
+  Route::get('/','informesController@informeEstadoJuegos');
+  Route::get('/buscarJuegos','informesController@buscarJuegos');
+  Route::get('/historial','informesController@historialJuego');
+  Route::post('/importarJuegos','ImportacionController@importarJuegos');
 });
 
 //@TODO: Agregar y asignar privilegios para esta sección
