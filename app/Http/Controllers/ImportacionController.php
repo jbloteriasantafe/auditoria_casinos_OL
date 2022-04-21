@@ -7,6 +7,7 @@ use App\Producido;
 use App\ProducidoJugadores;
 use App\BeneficioMensual;
 use App\ImportacionEstadoJugador;
+use App\ImportacionEstadoJuego;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\LectorCSVController;
@@ -271,6 +272,37 @@ class ImportacionController extends Controller
       }
 
       return LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+    });
+  }
+
+  public function importarEstadosJuegos(Request $request){
+    Validator::make($request->all(),[
+        'id_plataforma' => 'required|exists:plataforma,id_plataforma',
+        'fecha' => 'required|date',
+        'archivo' => 'required|mimes:csv,txt',
+        'md5' => 'required|string|max:32',
+    ], self::$errores, self::$atributos)->after(function($validator){})->validate();
+
+    return DB::transaction(function() use ($request){
+      $importaciones = ImportacionEstadoJuego::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
+      foreach($importaciones as $i){
+        $i->estados()->delete();
+        DB::table('juego_importado_temporal')->where('id_importacion_estado_juego','=',$i->id_importacion_estado_juego)->delete();
+      }
+      //Borro los datos sin estados
+      DB::table('datos_juego_importado')
+      ->select('datos_juego_importado.*')
+      ->whereRaw('NOT EXISTS(
+        select id_estado_juego_importado
+        from estado_juego_importado
+        where estado_juego_importado.id_datos_juego_importado = datos_juego_importado.id_datos_juego_importado
+      )')->delete();
+
+      foreach($importaciones as $i){
+        $i->delete();
+      }
+
+      return LectorCSVController::getInstancia()->importarEstadosJuegos($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
     });
   }
 

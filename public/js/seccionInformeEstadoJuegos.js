@@ -122,14 +122,7 @@ function llenarFila(fila,jugador){
   fila.find('.plataforma').text(jugador.plataforma);
   fila.find('.codigo').text(jugador.codigo).attr('title',jugador.codigo);
   fila.find('.estado').text(jugador.estado).attr('title',jugador.estado);
-  fila.find('.fecha_nacimiento').text(convertir_fecha(jugador.fecha_nacimiento)).attr('title',jugador.fecha_nacimiento);
-  fila.find('.sexo').text(jugador.sexo).attr('title',jugador.sexo);
-  fila.find('.localidad').text(jugador.localidad).attr('title',jugador.localidad);
-  fila.find('.provincia').text(jugador.provincia).attr('title',jugador.provincia);
-  fila.find('.fecha_autoexclusion').text(convertir_fechahora(jugador.fecha_autoexclusion)).attr('title',jugador.fecha_autoexclusion);
-  fila.find('.fecha_alta').text(convertir_fechahora(jugador.fecha_alta)).attr('title',jugador.fecha_alta);
-  fila.find('.fecha_ultimo_movimiento').text(convertir_fecha(jugador.fecha_ultimo_movimiento)).attr('title',jugador.fecha_ultimo_movimiento);
-  fila.find('button').val(jugador.id_estado_jugador);
+  fila.find('button').val(jugador.id_estado_juego_importado);
   return fila;
 }
 
@@ -364,8 +357,8 @@ function limpiarFiltros(){
   $('#collapseFiltros .no_contesta').prop('checked',true).change().prop('checked',false).change();
 }
 
-function mostrarHistorial(id_estado_jugador,pagina){
-  $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_estado_jugador);
+function mostrarHistorial(id_estado_juego_importado,pagina){
+  $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_estado_juego_importado);
 
   const sort_by =  { columna: $('#modalHistorial .cuerpo .activa').attr('value'), orden: $('#modalHistorial .cuerpo .activa').attr('estado') };
   sort_by.columna = sort_by.columna ?? 'fecha_importacion';
@@ -373,7 +366,7 @@ function mostrarHistorial(id_estado_jugador,pagina){
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   const formData = {
-    id_estado_jugador: id_estado_jugador,
+    id_estado_juego_importado: id_estado_juego_importado,
     page: pagina,
     page_size: 30,
     sort_by: sort_by,
@@ -542,7 +535,7 @@ $('#btn-guardarImportacion').on('click', function(e){
 
   $.ajax({
     type: "POST",
-    url: 'informeEstadoJuegos/importarJuegos',
+    url: 'informeEstadoJuegos/importarEstadosJuegos',
     data: formData,
     processData: false,
     contentType:false,

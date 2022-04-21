@@ -9,6 +9,7 @@ use Validator;
 use App\DatosJugador;
 use App\EstadoJugador;
 use App\ImportacionEstadoJugador;
+use App\ImportacionEstadoJuego;
 use App\Plataforma;
 use App\Producido;
 use App\ProducidoJugadores;
@@ -542,6 +543,109 @@ class LectorCSVController extends Controller
 
     if(!$err){
       throw new \Exception('Error al actualizar los estados de los jugadores');
+    }*/
+    return 1;
+  }
+
+  private function importarEstadosJuegosTemporal($id_importacion_estado_juego,$archivo){
+    $query = sprintf("LOAD DATA local INFILE '%s'
+    INTO TABLE juego_importado_temporal
+    CHARACTER SET latin1
+    FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '\"'
+    ESCAPED BY '\"'
+    LINES TERMINATED BY '\\r\\n'
+    IGNORE 1 LINES
+    (@GameCode,@GameName,@IsPublised,@GameCategory,@Technology)
+    SET id_importacion_estado_juego = %d,
+                        codigo = @GameCode,
+                        nombre = @GameName,
+                        estado = @IsPublised,
+                     categoria = @GameCategory,
+                    tecnologia = @Technology",
+      $archivo->getRealPath(),$id_importacion_estado_juego
+    );
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
+    $pdo->exec($query);
+  }
+
+  public function importarEstadosJuegos($archivo,$md5,$fecha,$id_plataforma){
+    $importacion = new ImportacionEstadoJuego;
+    $importacion->id_plataforma = $id_plataforma;
+    $importacion->fecha_importacion = $fecha;
+    $importacion->md5 = $md5;
+    $importacion->save();
+    $this->importarEstadosJuegosTemporal($importacion->id_importacion_estado_juego,$archivo);
+    //Inserto datos si no estan repetidos
+    $err = DB::statement("INSERT INTO datos_juego_importado (codigo,nombre,categoria,tecnologia)
+    SELECT jt.codigo,jt.nombre,jt.categoria,jt.tecnologia
+    FROM juego_importado_temporal jt
+    WHERE jt.id_importacion_estado_juego = ? AND NOT EXISTS (
+      SELECT dj.id_datos_juego_importado
+      FROM datos_juego_importado dj FORCE INDEX (idx_datosjuego_codigo)
+      WHERE dj.codigo   = jt.codigo 
+      AND dj.nombre     = jt.nombre 
+      AND dj.categoria  = jt.categoria
+      AND dj.tecnologia = jt.tecnologia
+    )",[$importacion->id_importacion_estado_juego]);
+    if(!$err){
+      throw new \Exception('Error al importar datos del juego');
+    }
+
+    //Pongo "ultimo estado" en 0 todos los estados con fecha de importacion menor a la que se inserta
+    //Hago un JOIN con juegos temporal para solo afectar los juegos que se van a insertar
+    $err = DB::statement("UPDATE estado_juego_importado ej
+    JOIN datos_juego_importado dj on dj.id_datos_juego_importado = ej.id_datos_juego_importado
+    JOIN importacion_estado_juego iej on iej.id_importacion_estado_juego = ej.id_importacion_estado_juego
+    JOIN juego_importado_temporal jt on jt.codigo = dj.codigo AND jt.id_importacion_estado_juego = ?
+    SET ej.es_ultimo_estado_del_juego = 0
+    WHERE ej.es_ultimo_estado_del_juego = 1 AND iej.fecha_importacion < ? AND iej.id_plataforma = ?",
+      [$importacion->id_importacion_estado_juego,$fecha,$id_plataforma]
+    );
+    if(!$err){
+      throw new \Exception('Error al resetear los "ultimos estados" de los juegos');
+    }
+    
+    $err = DB::statement("INSERT INTO estado_juego_importado (id_importacion_estado_juego,id_datos_juego_importado,estado,es_ultimo_estado_del_juego)
+    SELECT jt.id_importacion_estado_juego,dj.id_datos_juego_importado,jt.estado,
+    (NOT EXISTS (
+      SELECT ej_max.id_estado_juego_importado
+      FROM datos_juego_importado dj_max
+      JOIN estado_juego_importado ej_max on ej_max.id_datos_juego_importado = dj_max.id_datos_juego_importado
+      JOIN importacion_estado_juego iej_max on iej_max.id_importacion_estado_juego = ej_max.id_importacion_estado_juego
+      WHERE dj_max.codigo = jt.codigo AND iej_max.id_plataforma = ? AND iej_max.fecha_importacion > ?
+    )) as es_ultimo_estado_del_juego
+    FROM juego_importado_temporal jt
+    JOIN datos_juego_importado dj FORCE INDEX (idx_datosjuego_codigo) ON (
+          dj.codigo = jt.codigo 
+      AND dj.nombre = jt.nombre 
+      AND dj.categoria = jt.categoria 
+      AND dj.tecnologia = jt.tecnologia
+    )
+    WHERE jt.id_importacion_estado_juego = ?",[$id_plataforma,$fecha,$importacion->id_importacion_estado_juego]);
+    if(!$err){
+      throw new \Exception('Error al importar estados del juego');
+    }
+
+    DB::table('juego_importado_temporal')->where('id_importacion_estado_juego','=',$importacion->id_importacion_estado_juego)->delete();
+    
+    //Este comando sirve para poner correctamente todos los "estados ultimos" por si alguna razon fallara o se editara la BD manualmente
+    //Lo dejo de referencia/emergencia, era muy lento para usarse en producción ya que reocrre todos los estados de la BD
+    /*$err = DB::statement("UPDATE estado_juego_importado ej
+    JOIN importacion_estado_juego iej ON iej.id_importacion_estado_juego = ej.id_importacion_estado_juego
+    JOIN datos_juego_importado dj ON dj.id_datos_juego_importado = ej.id_datos_juego_importado
+    JOIN (
+      SELECT dj_max.codigo,iej_max.id_plataforma,MAX(iej_max.fecha_importacion) as fecha_importacion
+      FROM datos_juego_importado dj_max
+      JOIN estado_juego_importado ej_max on ej_max.id_datos_juego_importado = dj_max.id_datos_juego_importado
+      JOIN importacion_estado_juego iej_max on iej_max.id_importacion_estado_juego = ej_max.id_importacion_estado_juego
+      GROUP BY dj_max.codigo,iej_max.id_plataforma
+    ) max_fecha ON (max_fecha.codigo = dj.codigo AND max_fecha.id_plataforma = iej.id_plataforma)
+    SET ej.es_ultimo_estado_del_juego = (iej.fecha_importacion = max_fecha.fecha_importacion)");
+
+    if(!$err){
+      throw new \Exception('Error al actualizar los estados de los juegos');
     }*/
     return 1;
   }

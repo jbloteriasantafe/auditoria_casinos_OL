@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\CacheController;
 use App\CategoriaJuego;
 use App\EstadoJugador;
+use App\EstadoJuegoImportado;
 
 class informesController extends Controller
 {
@@ -868,22 +869,50 @@ class informesController extends Controller
     ]);
   }
   public function buscarJuegos(Request $request){
-    return [
-      'total' => 2,
-      'data' => [[
-        'plataforma' => 'PPPPP',
-        'codigo' => 'CCCCC',
-        'estado' => 'EEEEE',
-      ],
-      [
-        'plataforma' => 'PPPPP2',
-        'codigo' => 'CCCCC2',
-        'estado' => 'EEEEE2',
-      ]]
+    $reglas = [];
+    if(!is_null($request->plataforma)) $reglas[] = ['p.id_plataforma','=',$request->plataforma];
+    if(!is_null($request->codigo)) $reglas[] = ['dj.codigo','LIKE',$request->codigo];
+    if(!is_null($request->estado)) $reglas[] = ['ej.estado','LIKE',$request->estado];
+    
+    $sort_by = [
+      'orden' => 'asc',
+      'columna' => 'codigo',
     ];
+
+    if(!is_null($request->sort_by)) $sort_by = $request->sort_by;
+
+    //Retorno el ultimo estado del jugador
+    $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas->map(function($c){
+      return $c->id_plataforma;
+    });
+
+    $ret = DB::table('datos_juego_importado as dj')
+    ->selectRaw('p.codigo as plataforma,dj.codigo,ej.estado,ej.id_estado_juego_importado')
+    ->join('estado_juego_importado as ej','ej.id_datos_juego_importado','=','dj.id_datos_juego_importado')
+    ->join('importacion_estado_juego as iej','iej.id_importacion_estado_juego','=','ej.id_importacion_estado_juego')
+    ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
+    ->where('ej.es_ultimo_estado_del_juego',1)
+    ->where($reglas)->whereIn('p.id_plataforma',$plataformas)
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
+    ->paginate($request->page_size);
+    return $ret;
   }
   public function historialJuego(Request $request){
-    return [];
+    //$request := {id_estado_juego_importado,page,page_size,sort_by: {columna, orden}}
+    $ej = EstadoJuegoImportado::find($request->id_estado_juego_importado);
+    $dj = $ej->datos;
+    $iej = $ej->importacion;
+    $sort_by = $request->sort_by ?? [
+      'orden' => 'desc',
+      'columna' => 'fecha_importacion',
+    ];
+    return DB::table('datos_juego_importado as dj')->select('dj.*','ej.*','iej.*')
+    ->join('estado_juego_importado as ej','ej.id_datos_juego_importado','=','dj.id_datos_juego_importado')
+    ->join('importacion_estado_juego as iej','iej.id_importacion_estado_juego','=','ej.id_importacion_estado_juego')
+    ->where('dj.codigo','=',$dj->codigo)
+    ->where('iej.id_plataforma','=',$iej->id_plataforma)
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
+    ->paginate($request->page_size);
   }
 }
 
