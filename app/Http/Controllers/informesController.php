@@ -867,14 +867,20 @@ class informesController extends Controller
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Juego','informeEstadoJuegos');
     return view('seccionInformeEstadoJuegos' , [
       'plataformas' => $usuario->plataformas,
-      'estados'     => DB::table('estado_juego')->select('nombre')->get()->pluck('nombre')->toArray(),
+      'estados'     => DB::table('estado_juego_importado')->select('estado')->distinct()->get()->pluck('estado')->toArray(),
+      'categorias'  => DB::table('datos_juego_importado')->select('categoria')->distinct()->get()->pluck('categoria')->toArray(),
+      'tecnologias'  => DB::table('datos_juego_importado')->select('tecnologia')->distinct()->get()->pluck('tecnologia')->toArray(),
     ]);
   }
   public function buscarJuegos(Request $request){
     $reglas = [];
     if(!is_null($request->plataforma)) $reglas[] = ['p.id_plataforma','=',$request->plataforma];
-    if(!is_null($request->codigo)) $reglas[] = ['dj.codigo','LIKE',$request->codigo];
-    if(!is_null($request->estado)) $reglas[] = ['ej.estado','LIKE',$request->estado];
+    if(!is_null($request->codigo)) $reglas[] = ['dj.codigo','LIKE','%'.$request->codigo.'%'];
+    if(!is_null($request->nombre)) $reglas[] = ['dj.nombre','LIKE','%'.$request->nombre.'%'];
+    //Le agrego un keyword porque a veces han mandado este campo vacio
+    if($request->estado != "!!TODO!!") $reglas[] = [DB::raw('TRIM(ej.estado)'),'=',DB::raw("TRIM('$request->estado')")];
+    if($request->categoria != "!!TODO!!") $reglas[] = [DB::raw('TRIM(dj.categoria)'),'=',DB::raw("TRIM('$request->categoria0)")];
+    if($request->tecnologia != "!!TODO!!") $reglas[] = [DB::raw('TRIM(dj.tecnologia)'),'=',DB::raw("TRIM('$request->tecnologia')")];
     
     $sort_by = [
       'orden' => 'asc',

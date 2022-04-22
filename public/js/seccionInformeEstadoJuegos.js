@@ -45,6 +45,9 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
   const formData = {
     plataforma:  $('#buscadorPlataforma').val(),
     codigo:      $('#buscadorCodigo').val(),
+    nombre:      $('#buscadorNombre').val(),
+    categoria:   $('#buscadorCategoria').val(),
+    tecnologia:  $('#buscadorTecnologia').val(),
     estado:      $('#buscadorEstado').val(),
     page: page_number,
     sort_by: sort_by,

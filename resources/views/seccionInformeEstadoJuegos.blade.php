@@ -70,16 +70,16 @@ background-color: #4CAF50;
 @section('columnas_jugador_thead')
 <th value="codigo">CÓDIGO<i class='fa fa-sort'></i></th>
 <th value="nombre">NOMBRE<i class='fa fa-sort'></i></th>
-<th value="categoria">CATEGORIA<i class='fa fa-sort'></i></th>
-<th value="tecnologia">TECNOLOGIA<i class='fa fa-sort'></i></th>
+<th value="categoria">CATEGORÍA<i class='fa fa-sort'></i></th>
+<th value="tecnologia">TECNOLOGÍA<i class='fa fa-sort'></i></th>
 <th value="estado">ESTADO<i class='fa fa-sort'></i></th>
 @endsection
 
 @section('columnas_jugador_tbody')
 <td class="codigo">CÓDIGO</td>
 <td class="nombre">NOMBRE</td>
-<td class="categoria">CATEGORIA</td>
-<td class="tecnologia">TECNOLOGIA</td>
+<td class="categoria">CATEGORÍA</td>
+<td class="tecnologia">TECNOLOGÍA</td>
 <td class="estado">ESTADO</td>
 @endsection
 
@@ -106,12 +106,34 @@ background-color: #4CAF50;
                 <h5>CÓDIGO</h5>
                 <input class="form-control" id="buscadorCodigo" >
               </div>
-              <div class="col-md-3">
+              <div class="col-md-2">
+                <h5>NOMBRE</h5>
+                <input class="form-control" id="buscadorNombre" >
+              </div>
+              <div class="col-md-2">
+                <h5>CATEGORIA</h5>
+                <select id="buscadorCategoria" class="form-control">
+                  <option value="!!TODO!!">- Todas las categorías -</option>
+                  @foreach($categorias as $c)
+                  <option>{{$c}}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-2">
+                <h5>TECNOLOGÍA</h5>
+                <select id="buscadorTecnologia" class="form-control">
+                  <option value="!!TODO!!">- Todas las tecnologías -</option>
+                  @foreach($tecnologias as $t)
+                  <option>{{$t}}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-2">
                 <h5>Estado</h5>
                 <select id="buscadorEstado" class="form-control">
-                  <option value="" selected>- Todos los estados -</option>
+                  <option value="!!TODO!!" selected>- Todos los estados -</option>
                   @foreach($estados as $e)
-                  <option value="{{$e}}">{{$e}}</option>
+                  <option>{{$e}}</option>
                   @endforeach
                 </select>
               </div>
