@@ -889,7 +889,7 @@ class informesController extends Controller
     });
 
     $ret = DB::table('datos_juego_importado as dj')
-    ->selectRaw('p.codigo as plataforma,dj.codigo,ej.estado,ej.id_estado_juego_importado')
+    ->selectRaw('p.codigo as plataforma,dj.codigo,dj.nombre,dj.categoria,dj.tecnologia,ej.estado,ej.id_estado_juego_importado')
     ->join('estado_juego_importado as ej','ej.id_datos_juego_importado','=','dj.id_datos_juego_importado')
     ->join('importacion_estado_juego as iej','iej.id_importacion_estado_juego','=','ej.id_importacion_estado_juego')
     ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
@@ -961,14 +961,11 @@ class informesController extends Controller
       if(is_null($estado_esperado)) $estado_esperado = "No existe";
       else $estado_esperado = $estado_esperado->nombre;
        
-      $estado_t = $e->estado == "True"  || $e->estado == "TRUE"  || $e->estado == "HABILITADO-ACTIVO";
-      $estado_f = $e->estado == "False" || $e->estado == "FALSE" || $e->estado == "HABILITADO-INACTIVO";
-      $estado_recibido = $estado_t? "Activo" : ($estado_f? "Inactivo" : $e->estado);
-      if($estado_esperado != $estado_recibido){
+      if($estado_esperado != $e->estado){
         $resultado[$estado_esperado][] = [
           "juego" => $datos->nombre,
           "codigo" => $datos->codigo,
-          "estado_recibido" => $estado_recibido,
+          "estado_recibido" => $e->estado,
         ];
       }
     }

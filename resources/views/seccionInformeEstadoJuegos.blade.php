@@ -57,10 +57,10 @@ background-color: #4CAF50;
   text-align: center;
 }
 #tablaJuegos th, #tablaJuegos td{
-  width: 25%;
+  width: 14.285%;
 }
 #modalHistorial .cuerpo th,#modalHistorial .cuerpo td{
-  width: 33.33%;
+  width: 16.666%;
 }
 </style>
 @endsection
@@ -69,11 +69,17 @@ background-color: #4CAF50;
 
 @section('columnas_jugador_thead')
 <th value="codigo">CÓDIGO<i class='fa fa-sort'></i></th>
+<th value="nombre">NOMBRE<i class='fa fa-sort'></i></th>
+<th value="categoria">CATEGORIA<i class='fa fa-sort'></i></th>
+<th value="tecnologia">TECNOLOGIA<i class='fa fa-sort'></i></th>
 <th value="estado">ESTADO<i class='fa fa-sort'></i></th>
 @endsection
 
 @section('columnas_jugador_tbody')
 <td class="codigo">CÓDIGO</td>
+<td class="nombre">NOMBRE</td>
+<td class="categoria">CATEGORIA</td>
+<td class="tecnologia">TECNOLOGIA</td>
 <td class="estado">ESTADO</td>
 @endsection
 
@@ -147,13 +153,13 @@ background-color: #4CAF50;
       <div class="col-lg-12">
         <a id="btn-importar-juegos" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/gestion_usuarios_white.png"><center>
+            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
             <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
             <div class="row">
               <div class="col-xs-12">
                 <center>
                   <h5 class="txtLogo">+</h5>
-                  <h4 class="txtNuevo">IMPORTAR JUEGOS</h4>
+                  <h4 class="txtNuevo">IMPORTAR ESTADOS JUEGOS</h4>
                 </center>
               </div>
             </div>

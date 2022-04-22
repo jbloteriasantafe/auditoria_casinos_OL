@@ -550,7 +550,7 @@ class LectorCSVController extends Controller
   private function importarEstadosJuegosTemporal($id_importacion_estado_juego,$archivo){
     $query = sprintf("LOAD DATA local INFILE '%s'
     INTO TABLE juego_importado_temporal
-    CHARACTER SET latin1
+    CHARACTER SET UTF8
     FIELDS TERMINATED BY ','
     OPTIONALLY ENCLOSED BY '\"'
     ESCAPED BY '\"'
@@ -606,9 +606,15 @@ class LectorCSVController extends Controller
     if(!$err){
       throw new \Exception('Error al resetear los "ultimos estados" de los juegos');
     }
-    
+
     $err = DB::statement("INSERT INTO estado_juego_importado (id_importacion_estado_juego,id_datos_juego_importado,estado,es_ultimo_estado_del_juego)
-    SELECT jt.id_importacion_estado_juego,dj.id_datos_juego_importado,jt.estado,
+    SELECT jt.id_importacion_estado_juego,dj.id_datos_juego_importado,
+    IFNULL(
+      (SELECT estado_juego.nombre
+       FROM estado_juego
+       WHERE estado_juego.conversiones LIKE CONCAT('%|',jt.estado,'|%')
+       LIMIT 1),
+      jt.estado) as estado,
     (NOT EXISTS (
       SELECT ej_max.id_estado_juego_importado
       FROM datos_juego_importado dj_max

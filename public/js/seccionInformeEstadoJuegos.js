@@ -10,13 +10,15 @@ $(document).ready(function(){
     format: 'yyyy-mm-dd hh:ii:ss',
     minView: 0,
   };
-
-  $('#dtpFechaSistema').datetimepicker(ddmmyyhhiiss_dtp);
-  $('#dtpFechaImportacionEstados').datetimepicker({
+  const ddmmyy_dtp = {
     ...ddmmyyhhiiss_dtp,
     format: 'yyyy-mm-dd',
     minView: 2,
-  });
+  };
+
+  $('#dtpFechaSistema').datetimepicker(ddmmyyhhiiss_dtp);
+  $('#dtpFechaImportacionEstados').datetimepicker(ddmmyy_dtp);
+  $('#fechaImportacion').datetimepicker(ddmmyy_dtp);
   $('.tituloSeccionPantalla').text('Estado de Juegos');
   $('#btn-buscar').trigger('click');
 });
@@ -104,14 +106,13 @@ function llenarFila(fila,jugador){
     yyyymmdd = fecha.split('-');
     return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
   }
-  const convertir_fechahora = function(fechahora){
-    if(fechahora == null || fechahora.length == 0) return '-';
-    const aux = fechahora.split(' ');
-    return convertir_fecha(aux[0])+' '+aux[1];
-  }
+  console.log(jugador);
   fila.find('.fecha_importacion').text(convertir_fecha(jugador.fecha_importacion)).attr('title',jugador.fecha_importacion);
   fila.find('.plataforma').text(jugador.plataforma);
   fila.find('.codigo').text(jugador.codigo).attr('title',jugador.codigo);
+  fila.find('.nombre').text(jugador.nombre).attr('title',jugador.nombre);
+  fila.find('.categoria').text(jugador.categoria).attr('title',jugador.categoria);
+  fila.find('.tecnologia').text(jugador.tecnologia).attr('title',jugador.tecnologia);
   fila.find('.estado').text(jugador.estado).attr('title',jugador.estado);
   fila.find('button').val(jugador.id_estado_juego_importado);
   return fila;
