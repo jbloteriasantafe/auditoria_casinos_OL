@@ -1,30 +1,21 @@
 $(document).ready(function(){
-  const ddmmyy_dtp = {
+  const ddmmyyhhiiss_dtp = {
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'dd/mm/yy',
     pickerPosition: "bottom-left",
     startView: 2,
-    minView: 2,
-    ignoreReadonly: true
+    ignoreReadonly: true,
+    format: 'yyyy-mm-dd hh:ii:ss',
+    minView: 0,
   };
 
-  $('#dtpFechaAutoexclusionD').datetimepicker(ddmmyy_dtp);
-  $('#dtpFechaAutoexclusionH').datetimepicker(ddmmyy_dtp);
-  $('#dtpFechaAltaD').datetimepicker(ddmmyy_dtp);
-  $('#dtpFechaAltaH').datetimepicker(ddmmyy_dtp);
-  $('#dtpFechaUltimoMovimientoD').datetimepicker(ddmmyy_dtp);
-  $('#dtpFechaUltimoMovimientoH').datetimepicker(ddmmyy_dtp);
-  $('#fechaImportacion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    startView: 2,
+  $('#dtpFechaSistema').datetimepicker(ddmmyyhhiiss_dtp);
+  $('#dtpFechaImportacionEstados').datetimepicker({
+    ...ddmmyyhhiiss_dtp,
+    format: 'yyyy-mm-dd',
     minView: 2,
-    pickerPosition: "top-right",
   });
   $('.tituloSeccionPantalla').text('Estado de Juegos');
   $('#btn-buscar').trigger('click');
@@ -576,3 +567,76 @@ function mensajeError(msg){
     $('#mensajeError').modal('hide')
   }, 3000);
 }
+
+$('#btn-informe-diferencias').click(function(e){
+  e.preventDefault();
+  reiniciarModalVerificarEstados();
+  $('#modalVerificarEstados').modal('show');
+});
+
+$('#btn-verificarEstados').click(function(){
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+
+  let progress = 0;
+  $('#animacionGenerando').show();
+  const loading = setInterval(function(){
+    const message = ['―','/','|','\\'];
+    $('#animacionGenerando').text(message[progress]);
+    progress = (progress + 1)%4;
+  },100);
+
+  const formData = new FormData();
+  formData.append("id_plataforma",$('#plataformaVerificarEstado').val());
+  formData.append("fecha_sistema",$('#fechaSistema').val());
+  formData.append("cambio_fecha_sistema",$('#fechaSistema').data("cambio_fecha_sistema")? 1 : 0);
+  formData.append("fecha_importacion",$('#fechaImportacionEstados').val());
+
+  $.ajax({
+    type: "POST",
+    url: "/informeEstadoJuegos/generarDiferenciasEstadosJuegos",
+    data: formData,
+    processData: false,
+    contentType:false,
+    cache:false,
+    responseType: "blob",
+    success: function (data) {//https://stackoverflow.com/questions/2805330/opening-pdf-string-in-new-window-with-javascript
+      clearInterval(loading);
+      $('#animacionGenerando').empty().append('&nbsp;').hide();
+      const byteCharacters = atob(data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const file = new Blob([byteArray], { type: 'application/pdf;base64' });
+      const fileURL = window.URL.createObjectURL(file);
+      $('#resultado_diferencias').attr('href',fileURL);
+      const codigo_plat = $('#plataformaVerificarEstado option').filter(function(){
+        return $(this).val() == formData.id_plataforma;
+      }).attr('data-codigo');
+      $('#resultado_diferencias').attr('download',`Diferencias-Estados-${codigo_plat}-${formData.fecha_sistema}-${formData.fecha_importacion}.pdf`);
+      $('#resultado_diferencias').show();
+      $('#resultado_diferencias_span').click();//El evento click sobre el <a> no hace nada
+    },
+    error: function (data) {
+      console.log(data);
+      clearInterval(loading);
+      $('#animacionGenerando').text('ERROR');
+      mensajeError(data.responseJSON["errores"]);
+    }
+  });
+});
+
+function reiniciarModalVerificarEstados(){
+  $('#plataformaVerificarEstado').val("");
+  $('#animacionGenerando').empty().append('&nbsp;').hide();
+  $('#resultado_diferencias').attr('href','#').removeAttr('download').hide();
+  const fecha = new Date();
+  $('#dtpFechaSistema').data('datetimepicker').setDate(fecha);
+  $('#fechaSistema').data('cambio_fecha_sistema',false);
+  $('#dtpFechaImportacionEstados').data('datetimepicker').setDate(fecha);
+}
+
+$('#fechaSistema').change(function(){
+  $(this).data('cambio_fecha_sistema',true);
+});

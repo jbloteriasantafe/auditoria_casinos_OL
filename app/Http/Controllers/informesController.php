@@ -20,6 +20,8 @@ use App\Http\Controllers\CacheController;
 use App\CategoriaJuego;
 use App\EstadoJugador;
 use App\EstadoJuegoImportado;
+use App\ImportacionEstadoJuego;
+use App\EstadoJuego;
 
 class informesController extends Controller
 {
@@ -913,6 +915,79 @@ class informesController extends Controller
     ->where('iej.id_plataforma','=',$iej->id_plataforma)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
+  }
+
+  public function generarDiferenciasEstadosJuegos(Request $request){
+    //Esto se puede pasar a usar una tabla temporal y hacerlo por SQL si demora mucho, no deberia porque pocas deberian reportar diferencias
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if($user->plataformas()->where('plataforma.id_plataforma',$request->id_plataforma)->count() <= 0)
+      return response()->json(["errores" => ["No puede acceder a la plataforma"]],422);
+    
+    $importacion = ImportacionEstadoJuego::where('fecha_importacion','=',$request->fecha_importacion)
+    ->where('id_plataforma','=',$request->id_plataforma)->get()->first();
+    if(is_null($importacion)){
+      return response()->json(["errores" => ["No existe la importacion"]],422);
+    }
+
+    //Los que esperaba que estaban activos, inactivos, ausentes
+    $resultado = ["No existe" => []];
+    foreach(EstadoJuego::all() as $e){
+      $resultado[$e->nombre] = [];
+    }
+
+    $query = null;
+    if(!$request->cambio_fecha_sistema){
+      $query = DB::table('plataforma_tiene_juego')
+      ->select('estado_juego.nombre')
+      ->join('juego','juego.id_juego','=','plataforma_tiene_juego.id_juego')
+      ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
+      ->where('plataforma_tiene_juego.id_plataforma','=',$request->id_plataforma);
+    }
+    else{
+      $query = DB::table('plataforma_tiene_juego_log_norm')
+      ->select('estado_juego.nombre')
+      ->join('juego_log_norm','juego_log_norm.id_juego_log_norm','=','plataforma_tiene_juego_log_norm.id_juego_log_norm')
+      ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego_log_norm.id_estado_juego')
+      ->where('plataforma_tiene_juego_log_norm.id_plataforma','=',$request->id_plataforma)
+      ->where('juego_log_norm.created_at','<=',$request->fecha_sistema)
+      ->where(function($q) use (&$request){
+        return $q->whereNull('juego_log_norm.deleted_at')->orWhere('juego_log_norm.deleted_at','>=',$request->fecha_sistema);
+      });
+    }
+
+    foreach($importacion->estados as $e){
+      $datos = $e->datos;
+      $estado_esperado = (clone $query)->where('cod_juego','=',$datos->codigo)->first();
+      if(is_null($estado_esperado)) $estado_esperado = "No existe";
+      else $estado_esperado = $estado_esperado->nombre;
+       
+      $estado_t = $e->estado == "True"  || $e->estado == "TRUE"  || $e->estado == "HABILITADO-ACTIVO";
+      $estado_f = $e->estado == "False" || $e->estado == "FALSE" || $e->estado == "HABILITADO-INACTIVO";
+      $estado_recibido = $estado_t? "Activo" : ($estado_f? "Inactivo" : $e->estado);
+      if($estado_esperado != $estado_recibido){
+        $resultado[$estado_esperado][] = [
+          "juego" => $datos->nombre,
+          "codigo" => $datos->codigo,
+          "estado_recibido" => $estado_recibido,
+        ];
+      }
+    }
+
+    foreach($resultado as &$v){
+      usort($v,function($a,$b){
+        return strnatcmp($a["juego"],$b["juego"])?? strnatcmp($a["codigo"],$b["codigo"]);
+      });
+    }
+
+    $plataforma = Plataforma::find($request->id_plataforma)->codigo;
+    $view = View::make('planillaDiferenciasEstadosJuegos',compact('resultado','plataforma'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    return base64_encode($dompdf->output());
   }
 }
 

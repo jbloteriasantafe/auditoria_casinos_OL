@@ -72,10 +72,22 @@ $gestion_hijos = [
   ]
 ];
 $auditoria_hijos = [
-  'Importación Diaria' => [
+  'Importaciones' => [
     'icono' => $icono_expedientes,
-    'link' => '/importaciones',
-    'algun_permiso' => ['ver_seccion_importaciones'],
+    'hijos' => [
+      'Importación Diaria Contable'  => [
+        'link' => '/importaciones',
+        'algun_permiso' => ['ver_seccion_importaciones'],
+      ],
+      '<span>Juegos</span><small>[estado]</small>' => [
+        'link' => '/informeEstadoJuegos',
+        'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
+      ],
+      '<span>Jugadores</span><small>[estado]</small>' => [
+        'link' => '/informeEstadoJugadores',
+        'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
+      ]
+    ],
   ],
   'Validación' => [
     'icono' => '<i class="fa fa-check-square"></i>',
@@ -101,14 +113,6 @@ $auditoria_hijos = [
         'link' => '/informeContableJuego',
         'algun_permiso' => ['ver_seccion_informecontable'],
       ],
-      '<span>Juegos</span><small>[estado]</small>' => [
-        'link' => '/informeEstadoJuegos',
-        'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
-      ],
-      '<span>Jugadores</span><small>[estado]</small>' => [
-        'link' => '/informeEstadoJugadores',
-        'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado
-      ]
     ]
   ]
 ];

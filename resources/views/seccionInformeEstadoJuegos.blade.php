@@ -143,69 +143,44 @@ background-color: #4CAF50;
     </div> 
   </div>
   <div class="col-md-2 col-sm-3">
-    <a id="btn-importar-juegos" style="text-decoration: none;">
-      <div class="panel panel-default panelBotonNuevo">
-        <center><img class="imgNuevo" src="/img/logos/gestion_usuarios_white.png"><center>
-        <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
-        <div class="row">
-          <div class="col-xs-12">
-            <center>
-              <h5 class="txtLogo">+</h5>
-              <h4 class="txtNuevo">IMPORTAR JUEGOS</h4>
-            </center>
+    <div class="row">
+      <div class="col-lg-12">
+        <a id="btn-importar-juegos" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/gestion_usuarios_white.png"><center>
+            <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
+            <div class="row">
+              <div class="col-xs-12">
+                <center>
+                  <h5 class="txtLogo">+</h5>
+                  <h4 class="txtNuevo">IMPORTAR JUEGOS</h4>
+                </center>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <a href="" id="btn-informe-diferencias" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+          <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
+          <div class="row">
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo">-</h5>
+                <h4 class="txtNuevo">INFORME DIFERENCIAS</h4>
+              </center>
+            </div>
           </div>
         </div>
+        </a>
       </div>
-    </a>
+    </div>
   </div>
 </div>
-
-@if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_despacho)
-<div class="row">
-  <div class="panel panel-default" style="width: 100%;">
-  <div class="panel-heading">
-    <h4>EXPORTAR</h4>
-    <button type="button" class="btn btn-light" id="agregarCSV">Agregar</button>
-    <button type="button" class="btn btn-light" id="limpiarCSV">Limpiar</button>
-    <input type="checkbox" class="form-check-input" id="columnasCSV" checked>
-    <span>Borrar columnas innecesarias</span>
-    <a type="button" class="btn btn-light" id="descargarCSV">Descargar</a>
-  </div>
-  <div class="panel-body" style="height: 400px;overflow-y: auto;overflow-x: auto;">
-  <style>
-  #tablaCSV th,#tablaCSV td{
-    font-size: 95%;
-    padding: 0px;
-    margin: 0px;
-    width: 9.09%;
-  }
-  </style>
-  <table id="tablaCSV" class="table table-responsive table-bordered">
-    <thead>
-      <tr>
-        <th class="plataforma"   data-busq="#buscadorPlataforma" data-busq-attr='data-codigo'>Plataforma</th>
-        <th class="codigo"       data-busq="#buscadorCodigo">Código</th>
-        <th class="estado"       data-busq="#buscadorEstado">Estado</th>
-        <th class="cant">CANT.</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="filaTablaCSV" style="display: none">
-        <td class="plataforma"   data-busq="#buscadorPlataforma" data-busq-attr='data-codigo'>Plataforma</td>
-        <td class="codigo"       data-busq="#buscadorCodigo">Código</td>
-        <td class="estado"       data-busq="#buscadorEstado">Estado</td>
-        <td class="cant">CANT.</td>
-      </tr>
-    </tbody>
-  </table>
-  </div>
-  <div class="panel-footer" style="background: white;">
-    <button type="button" class="btn btn-light" id="importarCSV">Importar Busqueda</button>
-    <input type="file" id="importarCSVinput" style="display: none;" accept=".csv">
-  </div>
-  </div>
-</div>  <!-- row tabla -->
-@endif
 
 <div class="modal fade" id="modalHistorial" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" style="width: 90%;">
@@ -323,11 +298,68 @@ background-color: #4CAF50;
   </div>
 </div>
 
+<div class="modal fade" id="modalVerificarEstados" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizarVerificarEstados" type="button" class="close" 
+        data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerificarEstados" style="position:relative; right:20px; top:5px">
+          <i class="fa fa-minus"></i>
+        </button>
+        <h3 class="modal-title">| VERIFICAR ESTADOS DE JUEGOS</h3>
+      </div>
+      <div  id="colapsadoVerificarEstados" class="collapse in">
+        <div class="modal-body modalCuerpo">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Fecha de estado del sistema</h5>
+              <div class="input-group date" id="dtpFechaSistema">
+                <input type="text" class="form-control" data-date-format="yyyy-mm-dd hh:ii:ss" id="fechaSistema" autocomplete="off" style="background-color: rgb(255,255,255);">
+                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h5>Fecha de la importación</h5>
+              <div class="input-group date" id="dtpFechaImportacionEstados">
+                <input type="text" class="form-control" data-date-format="yyyy-mm-dd" id="fechaImportacionEstados" autocomplete="off" style="background-color: rgb(255,255,255);">
+                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <h5 style="text-align: center">PLATAFORMA</h5>
+              <select id="plataformaVerificarEstado" class="form-control">
+                <option value="">Seleccione</option>
+                @foreach ($plataformas as $plataforma)
+                <option value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="row" id="animacionGenerando" style="text-align: center;" hidden>&nbsp;</div>
+          <div class="row" style="text-align: center;">
+            <a href="#" target="_blank"  id="resultado_diferencias"
+            class="btn" type="button" style="font-weight: bold;">
+              <span id="resultado_diferencias_span">Descargar PDF</span><!-- Necesito un span para triggerear el click -->
+            </a>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-successAceptar" id="btn-verificarEstados">VERIFICAR</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <table hidden>
   <tr id="moldeTablaJuegos">
     <td class="plataforma">PLATAFORMA</td>
     @yield('columnas_jugador_tbody')
-    <td><button class="btn historia" type="button" title="VER ESTADOS ANTERIORES"><i class="fa fa-fw fa-user-clock"></i></button></td>
+    <td><button class="btn historia" type="button" title="VER ESTADOS ANTERIORES"><i class="fa fa-fw fa-clock"></i></button></td>
   </tr>
   <tr  id="moldeCuerpoHistorial">
     <td class="fecha_importacion">9999-99-99</td>

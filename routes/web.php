@@ -256,6 +256,7 @@ Route::group(['prefix' => 'informeEstadoJuegos','middleware' =>'tiene_permiso:ve
   Route::get('/buscarJuegos','informesController@buscarJuegos');
   Route::get('/historial','informesController@historialJuego');
   Route::post('/importarEstadosJuegos','ImportacionController@importarEstadosJuegos');
+  Route::post('/generarDiferenciasEstadosJuegos','informesController@generarDiferenciasEstadosJuegos');
 });
 
 //@TODO: Agregar y asignar privilegios para esta sección
