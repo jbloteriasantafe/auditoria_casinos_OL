@@ -935,53 +935,52 @@ class informesController extends Controller
       return response()->json(["errores" => ["No existe la importacion"]],422);
     }
 
+    $tabla_juego = 'juego';
+    $tabla_plataforma_juego = 'plataforma_tiene_juego';
+    $id_tabla_juego = 'id_juego';
+    $condicion_join = function($j){
+      return $j->on('j.cod_juego','=','dji.codigo')->whereNull('j.deleted_at');
+    };
+    if($request->cambio_fecha_sistema){
+      $tabla_juego = 'juego_log_norm';
+      $tabla_plataforma_juego = 'plataforma_tiene_juego_log_norm';
+      $id_tabla_juego = 'id_juego_log_norm';
+      $fecha_sistema = $request->fecha_sistema;
+      $condicion_join = function($j) use ($fecha_sistema){
+        //Fue creado antes y se borro despues (o no se borro)
+        return $j->on('j.cod_juego','=','dji.codigo')->where('j.created_at','<=',$fecha_sistema)->where(function ($q) use ($fecha_sistema){
+          return $q->where('j.deleted_at','>=',$fecha_sistema)->orWhereNull('j.deleted_at');
+        });
+      };
+    }
+
+    $query = DB::table('importacion_estado_juego as iej')
+    ->select('dji.nombre','dji.codigo','eji.estado as estado_recibido',DB::raw('IFNULL(ej.nombre,"No existe") as estado_esperado'))
+    ->join('estado_juego_importado as eji','eji.id_importacion_estado_juego','=','iej.id_importacion_estado_juego')
+    ->join('datos_juego_importado as dji','dji.id_datos_juego_importado','=','eji.id_datos_juego_importado')//FIN datos importacion
+    ->leftJoin("$tabla_juego as j",$condicion_join)
+    ->leftJoin("$tabla_plataforma_juego as pj",function($j) use ($id_tabla_juego){//Me quedo solo con los de la plataforma y saco el estado
+      return $j->on('pj.id_plataforma','=','iej.id_plataforma')->on("pj.$id_tabla_juego",'=',"j.$id_tabla_juego");
+    })
+    ->leftJoin('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
+    ->where('iej.fecha_importacion','=',$request->fecha_importacion)
+    ->where('iej.id_plataforma','=',$request->id_plataforma)
+    ->where(function ($w){
+      return $w->whereRaw('LOCATE(CONCAT("|",eji.estado,"|"),ej.conversiones) = 0')->orWhereNull('ej.nombre');
+    })
+    ->orderBy('dji.nombre','asc')->orderBy('dji.codigo','asc');
+
     //Los que esperaba que estaban activos, inactivos, ausentes
     $resultado = ["No existe" => []];
     foreach(EstadoJuego::all() as $e){
       $resultado[$e->nombre] = [];
     }
-
-    $query = null;
-    if(!$request->cambio_fecha_sistema){
-      $query = DB::table('plataforma_tiene_juego')
-      ->select('estado_juego.nombre')
-      ->join('juego','juego.id_juego','=','plataforma_tiene_juego.id_juego')
-      ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego.id_estado_juego')
-      ->where('plataforma_tiene_juego.id_plataforma','=',$request->id_plataforma);
+    foreach($query->get() as $e){
+      $resultado[$e->estado_esperado][] = [
+        "juego" => $e->nombre,"codigo" => $e->codigo, "estado_recibido" => $e->estado_recibido,
+      ];
     }
-    else{
-      $query = DB::table('plataforma_tiene_juego_log_norm')
-      ->select('estado_juego.nombre')
-      ->join('juego_log_norm','juego_log_norm.id_juego_log_norm','=','plataforma_tiene_juego_log_norm.id_juego_log_norm')
-      ->join('estado_juego','estado_juego.id_estado_juego','=','plataforma_tiene_juego_log_norm.id_estado_juego')
-      ->where('plataforma_tiene_juego_log_norm.id_plataforma','=',$request->id_plataforma)
-      ->where('juego_log_norm.created_at','<=',$request->fecha_sistema)
-      ->where(function($q) use (&$request){
-        return $q->whereNull('juego_log_norm.deleted_at')->orWhere('juego_log_norm.deleted_at','>=',$request->fecha_sistema);
-      });
-    }
-
-    foreach($importacion->estados as $e){
-      $datos = $e->datos;
-      $estado_esperado = (clone $query)->where('cod_juego','=',$datos->codigo)->first();
-      if(is_null($estado_esperado)) $estado_esperado = "No existe";
-      else $estado_esperado = $estado_esperado->nombre;
-       
-      if($estado_esperado != $e->estado){
-        $resultado[$estado_esperado][] = [
-          "juego" => $datos->nombre,
-          "codigo" => $datos->codigo,
-          "estado_recibido" => $e->estado,
-        ];
-      }
-    }
-
-    foreach($resultado as &$v){
-      usort($v,function($a,$b){
-        return strnatcmp($a["juego"],$b["juego"])?? strnatcmp($a["codigo"],$b["codigo"]);
-      });
-    }
-
+  
     $plataforma = Plataforma::find($request->id_plataforma)->codigo;
     $view = View::make('planillaDiferenciasEstadosJuegos',compact('resultado','plataforma'));
     $dompdf = new Dompdf();

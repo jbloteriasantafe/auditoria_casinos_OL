@@ -616,9 +616,15 @@ $('#btn-verificarEstados').click(function(){
       const fileURL = window.URL.createObjectURL(file);
       $('#resultado_diferencias').attr('href',fileURL);
       const codigo_plat = $('#plataformaVerificarEstado option').filter(function(){
-        return $(this).val() == formData.id_plataforma;
+        return $(this).val() == formData.get("id_plataforma");
       }).attr('data-codigo');
-      $('#resultado_diferencias').attr('download',`Diferencias-Estados-${codigo_plat}-${formData.fecha_sistema}-${formData.fecha_importacion}.pdf`);
+      const fechaSistema = formData.get("fecha_sistema").slice(0,10).split("-").map(function(val,idx){
+        return idx == 0? val.slice(2) : val;
+      }).join("") + formData.get("fecha_sistema").slice(11).split(":").join("");
+      const fechaImportacion = formData.get("fecha_importacion").split("-").map(function(val,idx){
+        return idx == 0? val.slice(2) : val;
+      }).join("");
+      $('#resultado_diferencias').attr('download',`Diferencias-Estados-${codigo_plat}-${fechaSistema}-${fechaImportacion}.pdf`);
       $('#resultado_diferencias').show();
       $('#resultado_diferencias_span').click();//El evento click sobre el <a> no hace nada
     },

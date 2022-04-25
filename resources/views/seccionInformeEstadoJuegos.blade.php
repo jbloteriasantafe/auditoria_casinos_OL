@@ -414,7 +414,7 @@ background-color: #4CAF50;
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionInformeEstadoJuegos.js" charset="utf-8"></script>
+<script src="/js/seccionInformeEstadoJuegos.js?2" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?2" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->
