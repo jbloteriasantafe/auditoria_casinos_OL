@@ -34,7 +34,7 @@ tr:nth-child(even) {
   <?php 
   $widths = ["fecha" => "33.33","drop" => "33.33","utilidad" => "33.33"];
   if($cotizacionDefecto != 1){
-    $widths = ["fecha" => "25","drop" => "25","cotizacion" => "25","utilidad" => "25"];
+    $widths = ["fecha" => "20","drop" => "20","utilidad" => "20","cotizacion" => "20","conversion" => "20"];
   }
   ?>
   <head>
@@ -62,10 +62,11 @@ tr:nth-child(even) {
       <tr>
         <th class="tablaInicio center" width="{{$widths['fecha']}}%">FECHA</th>
         <th class="tablaInicio center" width="{{$widths['drop']}}%">DROP</th>
+        <th class="tablaInicio center" width="{{$widths['utilidad']}}%">UTILIDAD</th>
         @if($cotizacionDefecto != 1)
         <th class="tablaInicio center" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
+        <th class="tablaInicio center" width="{{$widths['conversion']}}%">CONVERSION</th>
         @endif
-        <th class="tablaInicio center" width="{{$widths['utilidad']}}%">UTILIDAD</th>
       </tr>
       <?php $ultima_cotizacion = $cotizacionDefecto;?>
       @foreach ($dias as $d)
@@ -75,19 +76,21 @@ tr:nth-child(even) {
       <tr>
         <td class="tablaCampos center">{{$d->fecha}}</td>
         <td class="tablaCampos right">{{number_format($d->droop,2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->utilidad,2,",",".")}}</td>
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos right">{{number_format($ultima_cotizacion,3,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->utilidad*$ultima_cotizacion,2,",",".")}}</td>
         @endif
-        <td class="tablaCampos right">{{number_format($d->utilidad,2,",",".")}}</td>
       </tr>
       @endforeach
       <tr class="total">
         <td class="tablaCampos total center">{{$total->fecha}}</td>
         <td class="tablaCampos total right">{{number_format($total->droop,2,",",".")}}</td>
+        <td class="tablaCampos total right">{{number_format($total->utilidad,2,",",".")}}</td>
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total right">-</td>
-        @endif
         <td class="tablaCampos total right">{{number_format($total_beneficio,2,",",".")}}</td>
+        @endif
       </tr>
     </table>
     @if($cotizacionDefecto != 1)
