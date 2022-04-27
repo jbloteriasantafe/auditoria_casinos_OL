@@ -13,6 +13,7 @@ use App\ImportacionEstadoJuego;
 use App\Plataforma;
 use App\Producido;
 use App\ProducidoJugadores;
+use App\ProducidoPoker;
 use App\Beneficio;
 use App\BeneficioMensual;
 use App\DetalleProducido;
@@ -307,6 +308,95 @@ class LectorCSVController extends Controller
     'tipo_moneda' => $producido->tipo_moneda->descripcion,
     'cantidad_registros' => $producido->detalles()->count(),
     'jugadores_multiples_reportes' => $duplicados];
+  }
+
+  public function importarProducidoPoker($archivoCSV,$fecha,$plataforma,$moneda){
+    $producido = new ProducidoPoker;
+    $producido->id_plataforma = $plataforma;
+    $producido->fecha = $fecha;
+    $producido->id_tipo_moneda = $moneda;
+    $producido->droop    = 0;
+    $producido->utilidad = 0;
+    $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $producido->save();
+
+    $producidos_viejos = DB::table('producido_poker')->where([
+      ['id_producido_poker','<>',$producido->id_producido_poker],['id_plataforma','=',$producido->id_plataforma],['fecha','=',$producido->fecha]]
+    )->get();
+
+
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
+    
+    $prodCont = ProducidoController::getInstancia();
+    if($producidos_viejos != null){
+      foreach($producidos_viejos as $prod){
+        $prodCont->eliminarProducidoPoker($prod->id_producido_poker);
+      }
+    }
+
+    $path = $archivoCSV->getRealPath();
+
+    //No se puede usar sentencia preparada LOAD DATA por lo que busque
+    $query = sprintf("LOAD DATA local INFILE '%s'
+                      INTO TABLE producido_poker_temporal
+                      FIELDS TERMINATED BY ','
+                      OPTIONALLY ENCLOSED BY '\"'
+                      ESCAPED BY '\"'
+                      LINES TERMINATED BY '\\r\\n'
+                      IGNORE 1 LINES
+                      (@DateReport,@GameCode,@GameCategory,@Players,@TotalWagerCash,@TotalWagerBonus,@TotalWager,@GrossRevenueCash,@GrossRevenueBonus,@GrossRevenue)
+                       SET id_producido_poker = '%d',
+                       DateReport = @DateReport,
+                       GameCode = @GameCode,
+                       GameCategory = @GameCategory,
+                       Players = @Players,
+                       TotalWagerCash = REPLACE(@TotalWagerCash,',','.'),
+                       TotalWagerBonus = REPLACE(@TotalWagerBonus,',','.'),
+                       TotalWager = REPLACE(@TotalWager,',','.'),
+                       GrossRevenueCash = REPLACE(@GrossRevenueCash,',','.'),
+                       GrossRevenueBonus = REPLACE(@GrossRevenueBonus,',','.'),
+                       GrossRevenue = REPLACE(@GrossRevenue,',','.')
+                      ",$path,$producido->id_producido_poker);
+
+    $pdo->exec($query);
+
+    $query = $pdo->prepare("INSERT INTO detalle_producido_poker 
+    (id_producido_poker, cod_juego, categoria, jugadores, droop, utilidad)
+    SELECT id_producido_poker,GameCode as cod_juego,GameCategory as categoria,Players as jugadores,TotalWager  as droop,GrossRevenue as utilidad
+    FROM producido_poker_temporal
+    WHERE producido_poker_temporal.id_producido_poker = :id_producido_poker");
+    $query->execute([":id_producido_poker" => $producido->id_producido_poker]);
+
+    $query = $pdo->prepare("DELETE FROM producido_poker_temporal WHERE id_producido_poker = :id_producido_poker");
+    $query->execute([":id_producido_poker" => $producido->id_producido_poker]);
+
+    $query = $pdo->prepare("UPDATE 
+    producido_poker p,
+    (
+      SELECT SUM(dp.droop) as droop, SUM(dp.utilidad) as utilidad
+      FROM detalle_producido_poker dp
+      WHERE dp.id_producido_poker = :id_producido_poker1
+      GROUP BY dp.id_producido_poker
+    ) total
+    SET p.droop   = IFNULL(total.droop,0), p.utilidad   = IFNULL(total.utilidad,0)
+    WHERE p.id_producido_poker = :id_producido_poker2");
+
+    $query->execute([":id_producido_poker1" => $producido->id_producido_poker,":id_producido_poker2" => $producido->id_producido_poker]);
+
+    DB::connection()->enableQueryLog();
+
+    $duplicados = DB::table('detalle_producido_poker')->select('cod_juego',DB::raw('COUNT(distinct id_detalle_producido_poker) as veces'))
+    ->where('id_producido_poker','=',$producido->id_producido_poker)
+    ->groupBy('cod_juego')
+    ->havingRaw('COUNT(distinct id_detalle_producido_poker) > 1')->get()->count();
+
+    return ['id_producido_poker' => $producido->id_producido_poker,
+    'fecha' => $producido->fecha,
+    'plataforma' => $producido->plataforma->nombre,
+    'tipo_moneda' => $producido->tipo_moneda->descripcion,
+    'cantidad_registros' => $producido->detalles()->count(),
+    'juegos_multiples_reportes' => $duplicados];
   }
 
   public function importarBeneficio($archivoCSV,$fecha,$plataforma,$moneda){

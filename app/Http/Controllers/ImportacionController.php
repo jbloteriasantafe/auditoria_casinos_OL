@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Producido;
 use App\ProducidoJugadores;
+use App\ProducidoPoker;
 use App\BeneficioMensual;
 use App\ImportacionEstadoJugador;
 use App\ImportacionEstadoJuego;
@@ -78,6 +79,16 @@ class ImportacionController extends Controller
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
+  public function previewProducidoPoker(Request $request){
+    $producido = ProducidoPoker::find($request->id_producido_poker);
+    if(is_null($producido)) return response()->json("No existe el producido",422);
+    return ['producido_poker' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+    'cant_detalles' => $producido->detalles()->count(),
+    'detalles_producido'=> $producido->detalles()
+    ->select('cod_juego','categoria','jugadores','droop','utilidad')
+    ->skip($request->page*$request->size)->take($request->size)->get()];
+  }
+
   public function buscar(Request $request){
     $plataformas = [];
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -113,6 +124,12 @@ class ImportacionController extends Controller
       ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','beneficio_mensual.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
+    }
+    else if($request->tipo_archivo == "PRODPOKER"){
+      $resultados = DB::table('producido_poker')->select('producido_poker.id_producido_poker as id','producido_poker.fecha as fecha'
+      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
+      ->join('plataforma','producido_poker.id_plataforma','=','plataforma.id_plataforma')
+      ->join('tipo_moneda','producido_poker.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
     else return $resultados;
 
@@ -159,14 +176,17 @@ class ImportacionController extends Controller
       $producido = [];
       $prod_jug = [];
       $beneficio = [];
+      $prod_poker = [];
       foreach($beneficiosMensuales as $idmon => $bMensual){
         $producido[$idmon] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $prod_jug[$idmon]  = ProducidoJugadores::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $beneficio[$idmon] = !is_null($bMensual) && ($bMensual->beneficios()->where('fecha',$fecha)->count() >= 1);
+        $prod_poker[$idmon] = ProducidoPoker::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
       }
       $dia['producido'] = $producido;
       $dia['prod_jug']  = $prod_jug;
       $dia['beneficio'] = $beneficio;
+      $dia['prod_poker'] = $prod_poker;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
       $fecha = date('Y-m-d' , strtotime($fecha . ' + 1 days'));
@@ -183,25 +203,11 @@ class ImportacionController extends Controller
         'fecha' => 'nullable|date',
         'archivo' => 'required|mimes:csv,txt',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
-    ], array(), self::$atributos)->after(function($validator){
-        if($validator->getData()['fecha'] != null){
-          $reglas = Array();
-          $reglas[]=['fecha','=',$validator->getData()['fecha']];
-          $reglas[]=['id_plataforma','=',$validator->getData()['id_plataforma']];
-          if($validator->getData()['id_tipo_moneda'] != null){
-            $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
-          }
-          if(Producido::where($reglas)->count() > 0){
-            //$validator->errors()->add('producido_validado', 'El Producido para esa fecha ya está validado y no se puede reimportar.');
-          }
-        }
-    })->validate();
+    ], array(), self::$atributos)->after(function($validator){})->validate();
 
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
       $viejos = Producido::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
-      $prodCont = ProducidoController::getInstancia();
-      foreach($viejos as $p) $prodCont->eliminarProducido($p->id_producido);
       $ret = LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
       CacheController::getInstancia()->invalidarDependientes('producido');
     });
@@ -219,9 +225,24 @@ class ImportacionController extends Controller
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
       $viejos = ProducidoJugadores::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
-      $prodCont = ProducidoController::getInstancia();
-      foreach($viejos as $p) $prodCont->eliminarProducidoJugadores($p->id_producido_jugadores);
       $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      CacheController::getInstancia()->invalidarDependientes('producido');
+    });
+    return $ret;
+  }
+
+  public function importarProducidoPoker(Request $request){
+    Validator::make($request->all(),[
+        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
+        'fecha' => 'nullable|date',
+        'archivo' => 'required|mimes:csv,txt',
+        'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
+    ], array(), self::$atributos)->after(function($validator){})->validate();
+
+    $ret = null;
+    DB::transaction(function() use ($request,&$ret){
+      $viejos = ProducidoPoker::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
+      $ret = LectorCSVController::getInstancia()->importarProducidoPoker($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
       CacheController::getInstancia()->invalidarDependientes('producido');
     });
     return $ret;

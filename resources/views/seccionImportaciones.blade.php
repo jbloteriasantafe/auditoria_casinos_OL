@@ -26,7 +26,11 @@ $id_usuario = session('id_usuario');
     align-content: center;
   }
   #botonesImportar > *{
-    width: 100%;
+    /*flex: 1;*/
+    width: 50%;
+  }
+  #tablaVistaPrevia th {
+    text-align: center;
   }
 </style>
 @endsection
@@ -39,13 +43,11 @@ $id_usuario = session('id_usuario');
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
             <div class="backgroundNuevo"></div>
-            <div class="row">
-              <div class="col-xs-12">
-                <center>
-                  <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+P</span></h5>
-                  <h4 class="txtNuevo">IMPORTAR PRODUCIDOS</h4>
-                </center>
-              </div>
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo"><span style="font-size: 0.5em;position: relative;top: -3vh;">+P</span></h5>
+                <h4 class="txtNuevo">IMPORTAR PRODUCIDOS</h4>
+              </center>
             </div>
           </div>
         </a>
@@ -55,13 +57,11 @@ $id_usuario = session('id_usuario');
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
             <div class="backgroundNuevo"></div>
-            <div class="row">
-              <div class="col-xs-12">
-                <center>
-                  <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+PJ</span></h5>
-                  <h4 class="txtNuevo">IMPORTAR PRODUCIDOS JUGADORES</h4>
-                </center>
-              </div>
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo"><span style="font-size: 0.4em;position: relative;top: -3vh;">+PJ</span></h5>
+                <h4 class="txtNuevo"><span style="font-size: 0.9em">IMPORTAR PRODUCIDOS JUGADORES</span></h4>
+              </center>
             </div>
           </div>
         </a>
@@ -71,13 +71,25 @@ $id_usuario = session('id_usuario');
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
             <div class="backgroundNuevo"></div>
-            <div class="row">
-              <div class="col-xs-12">
-                <center>
-                  <h5 class="txtLogo"><span style="font-size:120px; position:relative; top:-8px;">+B</span></h5>
-                  <h4 class="txtNuevo">IMPORTAR BENEFICIOS</h4>
-                </center>
-              </div>
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo"><span style="font-size: 0.5em;position: relative;top: -3vh;">+B</span></h5>
+                <h4 class="txtNuevo">IMPORTAR BENEFICIOS</h4>
+              </center>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div> <!-- IMPORTAR PRODUCIDO POKER -->
+        <a href="" id="btn-importarProducidosPoker" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+            <div class="backgroundNuevo"></div>
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo"><span style="font-size: 0.3em;position: relative;top: -4vh;">+PPk</span></h5>
+                <h4 class="txtNuevo">IMPORTAR PRODUCIDOS POKER</h4>
+              </center>
             </div>
           </div>
         </a>
@@ -145,7 +157,7 @@ $id_usuario = session('id_usuario');
           #infoImportaciones td,#infoImportaciones th{
             padding: 0px;
             margin: 0px;
-            width: 25%;
+            width: 20%;
           }
         </style>
         <div style="height: 90%;overflow: auto;">
@@ -156,6 +168,7 @@ $id_usuario = session('id_usuario');
                 <th>PRODUCIDOS</th>
                 <th>PROD. JUGADORES</th>
                 <th>BENEFICIOS</th>
+                <th>PROD. POKER</th>
               </tr>
             </thead>
             <tbody>
@@ -164,6 +177,7 @@ $id_usuario = session('id_usuario');
                 <td class="producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
                 <td class="producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
                 <td class="beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="producido_poker"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
               </tr>
             </tbody>
           </table>
@@ -187,9 +201,10 @@ $id_usuario = session('id_usuario');
                               <div class="col-md-3">
                                   <h5>TIPO DE ARCHIVO</h5>
                                   <select id="tipo_archivo" class="form-control">
-                                          <option value="PRODUCIDO">PRODUCIDO</option>
-                                          <option value="PRODJUG">PROD. JUGADORES</option>
-                                          <option value="BENEFICIO">BENEFICIO</option>
+                                    <option value="PRODUCIDO">PRODUCIDO</option>
+                                    <option value="PRODJUG">PROD. JUGADORES</option>
+                                    <option value="BENEFICIO">BENEFICIO</option>
+                                    <option value="PRODPOKER">PROD. POKER</option>
                                   </select>
                               </div>
                               <div class="col-md-2">
@@ -576,7 +591,7 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js?4" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js?5" charset="utf-8"></script>
     <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->

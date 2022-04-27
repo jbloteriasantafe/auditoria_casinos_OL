@@ -8,6 +8,7 @@ use Validator;
 use App\Producido;
 use App\DetalleProducido;
 use App\ProducidoJugadores;
+use App\ProducidoPoker;
 use App\DetalleProducidoJugadores;
 use App\Plataforma;
 use App\TipoMoneda;
@@ -150,6 +151,20 @@ class ProducidoController extends Controller
       CacheController::getInstancia()->invalidarDependientes('producido');
     });
   }
+
+  public function eliminarProducidoPoker($id_producido_poker){
+    Validator::make(['id_producido_poker' => $id_producido_poker]
+                   ,['id_producido_poker' => 'required|exists:producido_poker,id_producido_poker']
+                   , [], self::$atributos)->after(function($validator){})->validate();
+
+    DB::transaction(function() use ($id_producido_poker){
+      $prod = ProducidoPoker::find($id_producido_poker);
+      foreach($prod->detalles as $d) $d->delete();
+      $prod->delete();
+      CacheController::getInstancia()->invalidarDependientes('producido');
+    });
+  }
+
 
   public function datosDetalle($id_detalle_producido){
     $d = DetalleProducido::find($id_detalle_producido);

@@ -113,6 +113,7 @@ function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
           moldeFilaImportacion.find('.producido').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.beneficio').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
+          moldeFilaImportacion.find('.producido_poker').addClass(data.arreglo[i].prod_poker[moneda]? 'true' : 'false');
           tablaBody.append(moldeFilaImportacion);
           moldeFilaImportacion.show();
         }
@@ -215,6 +216,14 @@ $(document).on('click','.planilla', function(){
     head.append($('<th>').addClass('col-xs-2').append('BENEFICIO'));
     actualizarPreviewBeneficios($(this).val(),0,30)
   }
+  else if(tipo_importacion == "PRODPOKER"){
+    head.append($('<th>').addClass('col-xs-3').append('JUEGO'));
+    head.append($('<th>').addClass('col-xs-3').append('CATEGORIA'));
+    head.append($('<th>').addClass('col-xs-2').append('JUGADORES'));
+    head.append($('<th>').addClass('col-xs-2').append('DROP'));
+    head.append($('<th>').addClass('col-xs-2').append('UTILIDAD'));
+    actualizarPreviewProducidosPoker($(this).val(),0,30);
+  }
 
   //Mostrar el modal de la vista previa
   $('#modalPlanilla').modal('show');
@@ -253,11 +262,7 @@ function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
 
 function actualizarPreviewProducidos(id_producido,page,size){
   $('#prevPreview').attr('disabled',page == 0);
-  $.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewProducido',
@@ -284,11 +289,7 @@ function actualizarPreviewProducidos(id_producido,page,size){
 
 function actualizarPreviewProducidosJugadores(id_producido_jugadores,page,size){
   $('#prevPreview').attr('disabled',page == 0);
-  $.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewProducidoJugadores',
@@ -313,6 +314,32 @@ function actualizarPreviewProducidosJugadores(id_producido_jugadores,page,size){
   });
 }
 
+function actualizarPreviewProducidosPoker(id_producido_poker,page,size){
+  $('#prevPreview').attr('disabled',page == 0);
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: 'POST',
+    url: 'importaciones/previewProducidoPoker',
+    data: {id_producido_poker: id_producido_poker,page: page,size: size},
+    dataType: 'json',
+    success: function (data) {
+      $('#previewPage').text(page+1);
+      const totales = Math.ceil(data.cant_detalles/size);
+      $('#previewTotal').text(totales);
+      $('#nextPreview').attr('disabled',(page+1) >= totales);
+      $('#modalPlanilla #fecha').val(convertirDate(data.producido_poker.fecha));
+      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
+      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
+      $('#tablaVistaPrevia tbody tr').remove();
+      for (var i = 0; i < data.detalles_producido.length; i++) {
+        agregarFilaDetalleProducidoPoker(data.detalles_producido[i]);
+      }
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
+}
 
 $('#prevPreview').click(function(){
   const id = parseInt($('#modalPlanilla').attr('data-id'));
@@ -322,8 +349,9 @@ $('#prevPreview').click(function(){
   const size = parseInt($('#modalPlanilla').attr('data-size'));
   const tipo = $('#modalPlanilla').attr('data-tipo');
   if(tipo == "PRODUCIDO") actualizarPreviewProducidos(id,page,size)
-  if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
+  else if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
   else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
+  else if(tipo == "PRODPOKER") actualizarPreviewProducidosPoker(id,page,size);
 });
 
 $('#nextPreview').click(function(){
@@ -336,6 +364,7 @@ $('#nextPreview').click(function(){
   if(tipo == "PRODUCIDO") actualizarPreviewProducidos(id,page,size)
   else if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
   else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
+  else if(tipo == "PRODPOKER") actualizarPreviewProducidosPoker(id,page,size);
 });
 
 $('#tipo_archivo').change(function(){$('#btn-buscarImportaciones').click();});
@@ -373,6 +402,9 @@ $('#btn-eliminarModal').click(function (e) {
     case 'BENEFICIO':
       url += "/eliminarBeneficioMensual/" + id_importacion;
       break;
+    case 'PRODPOKER':
+      url += "/eliminarProducidoPoker/" + id_importacion;
+      break;
     default:
       return;
   }
@@ -394,33 +426,51 @@ $('#btn-eliminarModal').click(function (e) {
 /*********************** PRODUCIDOS *********************************/
 function agregarFilaDetalleProducido(detprod) {
   var fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.cod_juego));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.categoria));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.jugadores));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.cod_juego).css('text-align','center'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.categoria).css('text-align','center'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.jugadores).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta_efectivo).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta_bono).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.apuesta).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio_efectivo).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio_bono).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.premio).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio_efectivo).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio_bono).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprod.beneficio).css('text-align','right'));
+  fila.find('td').each(function(){
+    $(this).attr('title',$(this).text());
+  });
   $('#tablaVistaPrevia tbody').append(fila);
 }
 function agregarFilaDetalleProducidoJugadores(detprodjug) {
   var fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-2').append(detprodjug.jugador));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.juegos));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio_efectivo));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio_bono));
-  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio));
+  fila.append($('<td>').addClass('col-xs-2').append(detprodjug.jugador).css('text-align','center'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.juegos).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta_efectivo).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta_bono).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.apuesta).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio_efectivo).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio_bono).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.premio).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio_efectivo).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio_bono).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(detprodjug.beneficio).css('text-align','right'));
+  fila.find('td').each(function(){
+    $(this).attr('title',$(this).text());
+  });
+  $('#tablaVistaPrevia tbody').append(fila);
+}
+function agregarFilaDetalleProducidoPoker(detprod) {
+  var fila = $('<tr>');
+  fila.append($('<td>').addClass('col-xs-3').append(detprod.cod_juego).css('text-align','center'));
+  fila.append($('<td>').addClass('col-xs-3').append(detprod.categoria).css('text-align','center'));
+  fila.append($('<td>').addClass('col-xs-2').append(detprod.jugadores).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(detprod.droop).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(detprod.utilidad).css('text-align','right'));
+  fila.find('td').each(function(){
+    $(this).attr('title',$(this).text());
+  });
   $('#tablaVistaPrevia tbody').append(fila);
 }
 
@@ -480,6 +530,15 @@ $('#btn-importarProducidosJugadores').click(function(e){
   $('#modalImportacionProducidos').data('modo','producido_jugadores').modal('show');
 });
 
+$('#btn-importarProducidosPoker').click(function(e){
+  e.preventDefault();
+  $('#modalImportacionProducidos .modal-title').text("| IMPORTAR PRODUCIDO POKER");
+  $('#modalImportacionProducidos').find('.modal-footer').children().show();
+  reiniciarModalImportarProducido();
+  $('#mensajeExito').hide();
+  $('#modalImportacionProducidos').data('modo','producido_poker').modal('show');
+});
+
 $('#btn-guardarProducido').on('click',function(e){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
@@ -507,6 +566,7 @@ $('#btn-guardarProducido').on('click',function(e){
   const url_modo = {
     'producido_juegos'    : 'importaciones/importarProducido',
     'producido_jugadores' : 'importaciones/importarProducidoJugadores',
+    'producido_poker' : 'importaciones/importarProducidoPoker',
   };
   const modo = $('#modalImportacionProducidos').data('modo');
   if(!(modo in url_modo)) return;
@@ -568,7 +628,7 @@ function procesarDatosProducidos(e) {
   //Limpio retorno de carro y saco las lineas sin nada.
   const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
   const columnas_modos = {//@TODO: Unificar beneficio
-    'producido_juegos' : 10, 'producido_jugadores' : 9,
+    'producido_juegos' : 10, 'producido_jugadores' : 9, 'producido_poker' : 10,
   }
   const modo = $('#modalImportacionProducidos').data('modo');
   const fail = function(){
@@ -592,7 +652,7 @@ function procesarDatosProducidos(e) {
     $('#fechaProducido input').attr('disabled',false);
     $('#fechaProducido span').show()
   }
-  else if (['producido_juegos','producido_jugadores'].includes(modo)) {//Si tiene filas, extraigo la fecha
+  else if (['producido_juegos','producido_jugadores','producido_poker'].includes(modo)) {//Si tiene filas, extraigo la fecha
     const date = allTextLines[1].split(',')[0].replaceAll('"','');//Saco las comillas
     $('#fechaProducido').data('datetimepicker').setDate(new Date(toIso(date)));
     $('#fechaProducido input').attr('disabled',true);
@@ -640,13 +700,16 @@ $('#btn-reintentarProducido').click(function(e) {
 /*********************** BENEFICIOS *********************************/
 function agregarFilaDetalleBeneficio(beneficio){
   const fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.fecha));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.jugadores));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.depositos));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.retiros));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.apuesta));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.premio));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.beneficio));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.fecha).css('text-align','center'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.jugadores).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.depositos).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.retiros).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.apuesta).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.premio).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.beneficio).css('text-align','right'));
+  fila.find('td').each(function(){
+    $(this).attr('title',$(this).text());
+  });
   $('#tablaVistaPrevia tbody').append(fila);
 }
 
