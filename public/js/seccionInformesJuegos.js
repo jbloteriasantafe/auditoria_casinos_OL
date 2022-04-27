@@ -39,6 +39,14 @@ $(document).on('click','.informe_completo',function(){
   window.open(`informesJuegos/informeCompleto/${anio}/${mes}/${plataforma}/${moneda}`,'_blank');
 });
 
+$(document).on('click','.planilla_poker',function(){
+  const anio = $(this).attr('data-anio');
+  const mes = $(this).attr('data-mes');
+  const plataforma = $(this).attr('data-plataforma');
+  const moneda = $(this).attr('data-moneda');
+  window.open(`informesJuegos/generarPlanillaPoker/${anio}/${mes}/${plataforma}/${moneda}`,'_blank');
+});
+
 $('.selectMoneda').change(function(){
   const moneda = $(this).val();
   const plataforma = $(this).attr('data-plataforma');

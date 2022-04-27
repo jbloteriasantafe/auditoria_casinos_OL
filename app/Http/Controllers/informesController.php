@@ -131,6 +131,64 @@ class informesController extends Controller
     return $dompdf->stream("beneficio_mensual_".$plataforma."_".$f[0].$f[1].".pdf", Array('Attachment'=>0));
   }
 
+  public function generarPlanillaPoker($anio,$mes,$id_plataforma,$id_tipo_moneda){
+    $dias = DB::table('producido_poker')->select(
+      DB::raw('CONCAT(LPAD(DAY(producido_poker.fecha)  ,2,"00"),"-",
+                      LPAD(MONTH(producido_poker.fecha),2,"00"),"-",
+                      YEAR(producido_poker.fecha)) as fecha'),
+    DB::raw('"" as jugadores'),'producido_poker.droop','producido_poker.utilidad','cotizacion.valor as cotizacion')
+    ->leftJoin('cotizacion',function($j){
+      return $j->on('cotizacion.fecha','=','producido_poker.fecha')->on('cotizacion.id_tipo_moneda','=','producido_poker.id_tipo_moneda');
+    })
+    ->where([['producido_poker.id_plataforma','=',$id_plataforma],['producido_poker.id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('producido_poker.fecha','=',$anio)
+    ->whereMonth('producido_poker.fecha','=',$mes)
+    ->orderBy('producido_poker.fecha','asc')->get();
+
+    $total = DB::table('producido_poker')->selectRaw('"" as jugadores,SUM(producido_poker.droop) as droop,SUM(producido_poker.utilidad) as utilidad,"" as cotizacion')
+    ->where([['producido_poker.id_plataforma','=',$id_plataforma],['producido_poker.id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('producido_poker.fecha','=',$anio)
+    ->whereMonth('producido_poker.fecha','=',$mes)
+    ->groupBy(DB::raw('"constant"'))->first();
+
+    if(is_null($total)){
+      $total = new \stdClass;
+      $total->jugadores = "";
+      $total->droop = 0;
+      $total->utilidad = 0;
+      $total->cotizacion = "";
+    }
+    $total->fecha = '##-'.str_pad($mes,2,"0",STR_PAD_LEFT).'-'.$anio;
+    $total->plataforma = Plataforma::find($id_plataforma)->nombre;
+    $total->moneda = TipoMoneda::find($id_tipo_moneda)->descripcion;
+    //Si no hubo ninguna en el mes me quedo con la ultima de la BD
+    $cotizacionDefecto = Cotizacion::where('id_tipo_moneda',$id_tipo_moneda)->orderBy('fecha','desc')->first();
+    if(is_null($cotizacionDefecto) || $id_tipo_moneda == 1) $cotizacionDefecto = 1.0;
+    else $cotizacionDefecto = $cotizacionDefecto->valor;
+
+    $total_beneficio = 0.00;
+    {
+      $ultima_cotizacion = $cotizacionDefecto;
+      foreach($dias as $d){
+        $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion; 
+        $total_beneficio += $ultima_cotizacion*$d->utilidad;
+      }
+    }
+
+    $mesTexto = $this->obtenerMes($mes);
+    $view = View::make('planillaInformesPoker',compact('mesTexto','dias','cotizacionDefecto','total_beneficio','total'));
+
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
+
   public function obtenerBeneficiosPorPlataforma(){
       $plataformas = Plataforma::all();
       $monedas = TipoMoneda::all();

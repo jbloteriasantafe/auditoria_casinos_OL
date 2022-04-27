@@ -268,6 +268,7 @@ Route::group(['prefix' => 'informesJuegos'],function(){
   Route::get('/generarPlanilla/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}/{simplificado}/{sin_ajuste?}','informesController@generarPlanilla');
   Route::get('/generarPlanillaSinAjuste/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@generarPlanillaSinAjuste');
   Route::get('/informeCompleto/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@informeCompleto');
+  Route::get('/generarPlanillaPoker/{year}/{mes}/{id_plataforma}/{id_tipo_moneda}','informesController@generarPlanillaPoker');
 });
 
 Route::group(['prefix' => 'informesGenerales'],function(){

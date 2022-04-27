@@ -9,7 +9,7 @@ class ProducidoPoker extends Model
   protected $connection = 'mysql';
   protected $table = 'producido_poker';
   protected $primaryKey = 'id_producido_poker';
-  protected $visible = array('id_producido_poker','fecha','id_plataforma','id_tipo_moneda','droop','utilidad','md5');
+  protected $visible = array('id_producido_poker','fecha','id_plataforma','id_tipo_moneda','jugadores','droop','utilidad','md5');
   public $timestamps = false;
   protected $appends = array('beneficio_calculado');
 

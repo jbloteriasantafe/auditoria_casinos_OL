@@ -37,6 +37,17 @@ class LectorCSVController extends Controller
   }
 
   public function importarProducido($archivoCSV,$fecha,$plataforma,$moneda){
+    $producidos_viejos = DB::table('producido')->where([
+      ['id_plataforma','=',$plataforma],['fecha','=',$fecha],['id_tipo_moneda','=',$moneda]]
+    )->get();
+
+    $prodCont = ProducidoController::getInstancia();
+    if($producidos_viejos != null){
+      foreach($producidos_viejos as $prod){
+        $prodCont->eliminarProducido($prod->id_producido);
+      }
+    }
+
     $producido = new Producido;
     $producido->id_plataforma = $plataforma;
     $producido->fecha = $fecha;
@@ -48,21 +59,9 @@ class LectorCSVController extends Controller
     $producido->diferencia_montos  = 0;
     $producido->save();
 
-    $producidos_viejos = DB::table('producido')->where([
-      ['id_producido','<>',$producido->id_producido],['id_plataforma','=',$producido->id_plataforma],['fecha','=',$producido->fecha]]
-    )->get();
-
-
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
     
-    $prodCont = ProducidoController::getInstancia();
-    if($producidos_viejos != null){
-      foreach($producidos_viejos as $prod){
-        $prodCont->eliminarProducido($prod->id_producido);
-      }
-    }
-
     $path = $archivoCSV->getRealPath();
 
     //No se puede usar sentencia preparada LOAD DATA por lo que busque
@@ -176,6 +175,17 @@ class LectorCSVController extends Controller
   }
 
   public function importarProducidoJugadores($archivoCSV,$fecha,$plataforma,$moneda){
+    $producidos_viejos = DB::table('producido_jugadores')->where([
+      ['id_plataforma','=',$plataforma],['fecha','=',$fecha],['id_tipo_moneda','=',$moneda]]
+    )->get();
+    
+    $prodCont = ProducidoController::getInstancia();
+    if($producidos_viejos != null){
+      foreach($producidos_viejos as $prod){
+        $prodCont->eliminarProducidoJugadores($prod->id_producido_jugadores);
+      }
+    }
+    
     $producido = new ProducidoJugadores;
     $producido->id_plataforma = $plataforma;
     $producido->fecha = $fecha;
@@ -187,19 +197,8 @@ class LectorCSVController extends Controller
     $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $producido->save();
 
-    $producidos_viejos = DB::table('producido_jugadores')->where([
-      ['id_producido_jugadores','<>',$producido->id_producido_jugadores],['id_plataforma','=',$producido->id_plataforma],['fecha','=',$producido->fecha]]
-    )->get();
-
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
-    
-    $prodCont = ProducidoController::getInstancia();
-    if($producidos_viejos != null){
-      foreach($producidos_viejos as $prod){
-        $prodCont->eliminarProducidoJugadores($prod->id_producido_jugadores);
-      }
-    }
 
     $path = $archivoCSV->getRealPath();
 
@@ -311,29 +310,28 @@ class LectorCSVController extends Controller
   }
 
   public function importarProducidoPoker($archivoCSV,$fecha,$plataforma,$moneda){
-    $producido = new ProducidoPoker;
-    $producido->id_plataforma = $plataforma;
-    $producido->fecha = $fecha;
-    $producido->id_tipo_moneda = $moneda;
-    $producido->droop    = 0;
-    $producido->utilidad = 0;
-    $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
-    $producido->save();
-
     $producidos_viejos = DB::table('producido_poker')->where([
-      ['id_producido_poker','<>',$producido->id_producido_poker],['id_plataforma','=',$producido->id_plataforma],['fecha','=',$producido->fecha]]
+      ['id_plataforma','=',$plataforma],['fecha','=',$fecha],['id_tipo_moneda','=',$moneda]]
     )->get();
-
-
-    $pdo = DB::connection('mysql')->getPdo();
-    DB::connection()->disableQueryLog();
-    
     $prodCont = ProducidoController::getInstancia();
     if($producidos_viejos != null){
       foreach($producidos_viejos as $prod){
         $prodCont->eliminarProducidoPoker($prod->id_producido_poker);
       }
     }
+
+    $producido = new ProducidoPoker;
+    $producido->id_plataforma = $plataforma;
+    $producido->fecha = $fecha;
+    $producido->id_tipo_moneda = $moneda;
+    $producido->jugadores = 0;
+    $producido->droop     = 0;
+    $producido->utilidad  = 0;
+    $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $producido->save();
+
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
 
     $path = $archivoCSV->getRealPath();
 
@@ -374,12 +372,12 @@ class LectorCSVController extends Controller
     $query = $pdo->prepare("UPDATE 
     producido_poker p,
     (
-      SELECT SUM(dp.droop) as droop, SUM(dp.utilidad) as utilidad
+      SELECT SUM(dp.jugadores) as jugadores,SUM(dp.droop) as droop, SUM(dp.utilidad) as utilidad
       FROM detalle_producido_poker dp
       WHERE dp.id_producido_poker = :id_producido_poker1
       GROUP BY dp.id_producido_poker
     ) total
-    SET p.droop   = IFNULL(total.droop,0), p.utilidad   = IFNULL(total.utilidad,0)
+    SET p.jugadores = IFNULL(total.jugadores,0), p.droop = IFNULL(total.droop,0), p.utilidad = IFNULL(total.utilidad,0)
     WHERE p.id_producido_poker = :id_producido_poker2");
 
     $query->execute([":id_producido_poker1" => $producido->id_producido_poker,":id_producido_poker2" => $producido->id_producido_poker]);
@@ -400,11 +398,21 @@ class LectorCSVController extends Controller
   }
 
   public function importarBeneficio($archivoCSV,$fecha,$plataforma,$moneda){
+    $fecha_aux = explode("-",$fecha);
+    $ben_viejos = DB::table('beneficio_mensual')->where([
+      ['id_plataforma','=',$plataforma],['id_tipo_moneda','=',$moneda]
+    ])->whereRaw('YEAR(fecha) = ? and MONTH(fecha) = ?',[$fecha_aux[0],$fecha_aux[1]])->get();
+    $benCont = BeneficioMensualController::getInstancia();
+    if($ben_viejos != null){
+      foreach($ben_viejos as $b){
+        $benCont->eliminarBeneficioMensual($b->id_beneficio_mensual);
+      }
+    }
+
     //Hay un "analogo conceptual" Producido <-> BeneficioMensual, DetalleProducido <-> Beneficio
     $benMensual = new BeneficioMensual;
     $benMensual->id_plataforma = $plataforma;
     $benMensual->id_tipo_moneda = $moneda;
-    $fecha_aux = explode("-",$fecha);
     $benMensual->fecha = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
     $benMensual->depositos = 0;$benMensual->retiros   = 0;
     $benMensual->apuesta   = 0;$benMensual->premio    = 0;$benMensual->beneficio = 0;
@@ -414,22 +422,9 @@ class LectorCSVController extends Controller
     $benMensual->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $benMensual->save();
     
-    //Verifico si ya existen con las mismas caracteristicas, differente ID y los borro
-    $ben_viejos = DB::table('beneficio_mensual')->where([
-      ['id_beneficio_mensual','<>',$benMensual->id_beneficio_mensual],['id_plataforma','=',$benMensual->id_plataforma],
-      ['id_tipo_moneda','=',$benMensual->id_tipo_moneda]
-    ])->whereRaw('YEAR(fecha) = ? and MONTH(fecha) = ?',[$fecha_aux[0],$fecha_aux[1]])->get();
-
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
     
-    $benCont = BeneficioMensualController::getInstancia();
-    if($ben_viejos != null){
-      foreach($ben_viejos as $b){
-        $benCont->eliminarBeneficioMensual($b->id_beneficio_mensual);
-      }
-    }
-
     $path = $archivoCSV->getRealPath();
     //DateReport es un quilombo porque no puedo usar REGEXP_REPLACE en el servidor de prueba porque es mysql 5.7
 

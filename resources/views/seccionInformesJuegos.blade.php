@@ -50,8 +50,8 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       @foreach($r["beneficios"] as $b)
                         <tr data-moneda="{{$b->id_tipo_moneda}}">
                           <td class="col-xs-4">{{$b->anio_mes}}</td>
-                          <td class="col-xs-4">{{$b->moneda}}</td>
-                          <td class="col-xs-4">
+                          <td class="col-xs-3" style="text-align: center;">{{$b->moneda}}</td>
+                          <td class="col-xs-5" style="text-align: right;">
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
                                     class="btn btn-info planilla" type="button">
@@ -72,10 +72,17 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                     class="btn btn-info informe_completo" type="button">
                               <i class="fa fa-fw fa-search-plus"></i>
                             </button>
+                            <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
+                                    data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
+                                    class="btn btn-info planilla_poker" type="button">
+                              <b style="color: black;font-size: 80%">Pk</b>
+                            </button>
                             @if(!$b->existe)
                             <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
-                              <i class="fa fa-exclamation" style="color: #FFA726;"></i>
+                              <i class="fa fa-exclamation" style="color: #FFA726;width: 1em;"></i>
                             </a>
+                            @else
+                            <a style="display: inline-block;width: 1em">&nbsp;</a>
                             @endif
                         </tr>
                       @endforeach
@@ -111,7 +118,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionInformesJuegos.js" charset="utf-8"></script>
+    <script src="js/seccionInformesJuegos.js?2" charset="utf-8"></script>
     <script>
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();
