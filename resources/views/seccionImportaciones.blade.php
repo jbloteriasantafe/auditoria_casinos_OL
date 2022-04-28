@@ -608,7 +608,7 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js?5" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js?6" charset="utf-8"></script>
     <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->

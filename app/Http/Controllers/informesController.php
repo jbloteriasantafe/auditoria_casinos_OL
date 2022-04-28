@@ -132,24 +132,24 @@ class informesController extends Controller
   }
 
   public function generarPlanillaPoker($anio,$mes,$id_plataforma,$id_tipo_moneda){
-    $dias = DB::table('producido_poker')->select(
-      DB::raw('CONCAT(LPAD(DAY(producido_poker.fecha)  ,2,"00"),"-",
-                      LPAD(MONTH(producido_poker.fecha),2,"00"),"-",
-                      YEAR(producido_poker.fecha)) as fecha'),
-    DB::raw('"" as jugadores'),'producido_poker.droop','producido_poker.utilidad','cotizacion.valor as cotizacion')
+    $dias = DB::table('beneficio_poker')->select(
+      DB::raw('CONCAT(LPAD(DAY(beneficio_poker.fecha)  ,2,"00"),"-",
+                      LPAD(MONTH(beneficio_poker.fecha),2,"00"),"-",
+                      YEAR(beneficio_poker.fecha)) as fecha'),
+    'beneficio_poker.jugadores','beneficio_poker.total_buy as droop','beneficio_poker.utilidad','cotizacion.valor as cotizacion')
+    ->join('beneficio_mensual_poker','beneficio_mensual_poker.id_beneficio_mensual_poker','=','beneficio_poker.id_beneficio_mensual_poker')
     ->leftJoin('cotizacion',function($j){
-      return $j->on('cotizacion.fecha','=','producido_poker.fecha')->on('cotizacion.id_tipo_moneda','=','producido_poker.id_tipo_moneda');
+      return $j->on('cotizacion.fecha','=','beneficio_poker.fecha')->on('cotizacion.id_tipo_moneda','=','beneficio_mensual_poker.id_tipo_moneda');
     })
-    ->where([['producido_poker.id_plataforma','=',$id_plataforma],['producido_poker.id_tipo_moneda','=',$id_tipo_moneda]])
-    ->whereYear('producido_poker.fecha','=',$anio)
-    ->whereMonth('producido_poker.fecha','=',$mes)
-    ->orderBy('producido_poker.fecha','asc')->get();
+    ->where([['beneficio_mensual_poker.id_plataforma','=',$id_plataforma],['beneficio_mensual_poker.id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('beneficio_poker.fecha','=',$anio)
+    ->whereMonth('beneficio_poker.fecha','=',$mes)
+    ->orderBy('beneficio_poker.fecha','asc')->get();
 
-    $total = DB::table('producido_poker')->selectRaw('"" as jugadores,SUM(producido_poker.droop) as droop,SUM(producido_poker.utilidad) as utilidad,"" as cotizacion')
-    ->where([['producido_poker.id_plataforma','=',$id_plataforma],['producido_poker.id_tipo_moneda','=',$id_tipo_moneda]])
-    ->whereYear('producido_poker.fecha','=',$anio)
-    ->whereMonth('producido_poker.fecha','=',$mes)
-    ->groupBy(DB::raw('"constant"'))->first();
+    $total = DB::table('beneficio_mensual_poker')->select(DB::raw('"" as jugadores'),'total_buy as droop','utilidad')
+    ->where([['beneficio_mensual_poker.id_plataforma','=',$id_plataforma],['beneficio_mensual_poker.id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('fecha','=',$anio)
+    ->whereMonth('fecha','=',$mes)->first();
 
     if(is_null($total)){
       $total = new \stdClass;

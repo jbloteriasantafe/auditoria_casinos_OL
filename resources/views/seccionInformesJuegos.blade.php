@@ -118,7 +118,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionInformesJuegos.js?2" charset="utf-8"></script>
+    <script src="js/seccionInformesJuegos.js?3" charset="utf-8"></script>
     <script>
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();
