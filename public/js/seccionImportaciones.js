@@ -424,11 +424,7 @@ $('#btn-eliminarModal').click(function (e) {
   var tipo_archivo = $(this).attr('data-tipo');
   console.log('Borrar ' + tipo_archivo + ': ' + id_importacion);
 
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  })
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
 
   let url = 'importaciones';
   switch(tipo_archivo){
@@ -444,21 +440,24 @@ $('#btn-eliminarModal').click(function (e) {
     case 'PRODPOKER':
       url += "/eliminarProducidoPoker/" + id_importacion;
       break;
+    case 'BENEFPOKER':
+      url += "/eliminarBeneficioMensualPoker/" + id_importacion;
+      break;
     default:
       return;
   }
 
   $.ajax({
-      type: "DELETE",
-      url: url,
-      success: function (data) {
-        $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
-        $('#monedaInfoImportacion').change();
-        $('#modalEliminar').modal('hide');
-      },
-      error: function (data) {
-        console.log('Error: ', data);
-      }
+    type: "DELETE",
+    url: url,
+    success: function (data) {
+      $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
+      $('#monedaInfoImportacion').change();
+      $('#modalEliminar').modal('hide');
+    },
+    error: function (data) {
+      console.log('Error: ', data);
+    }
   });
 });
 
