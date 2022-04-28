@@ -182,8 +182,12 @@ class ImportacionController extends Controller
     $fecha = $fecha->format('Y-m-d');
 
     $beneficiosMensuales = [];
+    $beneficiosMensualesPoker = [];
     foreach(TipoMoneda::all() as $moneda){
       $beneficiosMensuales[$moneda->id_tipo_moneda] = BeneficioMensual::where([
+        ['fecha',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',$moneda->id_tipo_moneda]
+      ])->first();
+      $beneficiosMensualesPoker[$moneda->id_tipo_moneda] = BeneficioMensualPoker::where([
         ['fecha',$fecha],['id_plataforma',$id_plataforma],['id_tipo_moneda',$moneda->id_tipo_moneda]
       ])->first();
     }
@@ -201,7 +205,7 @@ class ImportacionController extends Controller
         $prod_jug[$idmon]  = ProducidoJugadores::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $beneficio[$idmon] = !is_null($bMensual) && ($bMensual->beneficios()->where('fecha',$fecha)->count() >= 1);
         $prod_poker[$idmon] = ProducidoPoker::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
-        $benef_poker[$idmon] = rand(0,1);
+        $benef_poker[$idmon] = !is_null($beneficiosMensualesPoker[$idmon]) && ($beneficiosMensualesPoker[$idmon] ->beneficios()->where('fecha',$fecha)->count() >= 1);
       }
       $dia['producido'] = $producido;
       $dia['prod_jug']  = $prod_jug;
