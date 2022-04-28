@@ -114,6 +114,7 @@ function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
           moldeFilaImportacion.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.beneficio').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.producido_poker').addClass(data.arreglo[i].prod_poker[moneda]? 'true' : 'false');
+          moldeFilaImportacion.find('.beneficio_poker').addClass(data.arreglo[i].benef_poker[moneda]? 'true' : 'false');
           tablaBody.append(moldeFilaImportacion);
           moldeFilaImportacion.show();
         }
@@ -224,6 +225,19 @@ $(document).on('click','.planilla', function(){
     head.append($('<th>').addClass('col-xs-2').append('UTILIDAD'));
     actualizarPreviewProducidosPoker($(this).val(),0,30);
   }
+  else if(tipo_importacion == "BENEFPOKER"){
+    head.append($('<th>').addClass('col-xs-1').append('FECHA'));
+    head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
+    head.append($('<th>').addClass('col-xs-1').append('MESAS'));
+    head.append($('<th>').addClass('col-xs-1').append('BUY'));
+    head.append($('<th>').addClass('col-xs-1').append('REBUY'));
+    head.append($('<th>').addClass('col-xs-2').append('TOTALBUY'));
+    head.append($('<th>').addClass('col-xs-1').append('CASHOUT'));
+    head.append($('<th>').addClass('col-xs-1').append('OTROS PAGOS'));
+    head.append($('<th>').addClass('col-xs-1').append('BONUS'));
+    head.append($('<th>').addClass('col-xs-2').append('UTILIDAD'));
+    actualizarPreviewBeneficiosPoker($(this).val(),0,30);
+  }
 
   //Mostrar el modal de la vista previa
   $('#modalPlanilla').modal('show');
@@ -231,11 +245,7 @@ $(document).on('click','.planilla', function(){
 
 function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
   $('#prevPreview').attr('disabled',page == 0);
-  $.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewBeneficio',
@@ -252,6 +262,33 @@ function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
       $('#tablaVistaPrevia tbody tr').remove();
       for (var i = 0; i < data.beneficios.length; i++) {
         agregarFilaDetalleBeneficio(data.beneficios[i]);
+      }
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
+}
+
+function actualizarPreviewBeneficiosPoker(id_beneficio_mensual_poker,page,size){
+  $('#prevPreview').attr('disabled',page == 0);
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: 'POST',
+    url: 'importaciones/previewBeneficioPoker',
+    data: {id_beneficio_mensual_poker: id_beneficio_mensual_poker,page: page,size: size},
+    dataType: 'json',
+    success: function (data) {
+      $('#previewPage').text(page+1);
+      const totales = Math.ceil(data.cant_detalles/size);
+      $('#previewTotal').text(totales);
+      $('#nextPreview').attr('disabled',(page+1) >= totales);
+      $('#modalPlanilla #fecha').val(convertirDate(data.beneficio_mensual_poker.fecha));
+      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
+      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
+      $('#tablaVistaPrevia tbody tr').remove();
+      for (var i = 0; i < data.beneficios.length; i++) {
+        agregarFilaDetalleBeneficioPoker(data.beneficios[i]);
       }
     },
     error: function (data) {
@@ -352,6 +389,7 @@ $('#prevPreview').click(function(){
   else if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
   else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
   else if(tipo == "PRODPOKER") actualizarPreviewProducidosPoker(id,page,size);
+  else if(tipo == "BENEFPOKER") actualizarPreviewBeneficiosPoker(id,page,size);
 });
 
 $('#nextPreview').click(function(){
@@ -365,6 +403,7 @@ $('#nextPreview').click(function(){
   else if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
   else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
   else if(tipo == "PRODPOKER") actualizarPreviewProducidosPoker(id,page,size);
+  else if(tipo == "BENEFPOKER") actualizarPreviewBeneficiosPoker(id,page,size);
 });
 
 $('#tipo_archivo').change(function(){$('#btn-buscarImportaciones').click();});
@@ -712,6 +751,23 @@ function agregarFilaDetalleBeneficio(beneficio){
   });
   $('#tablaVistaPrevia tbody').append(fila);
 }
+function agregarFilaDetalleBeneficioPoker(beneficio){
+  const fila = $('<tr>');
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.fecha).css('text-align','center'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.jugadores).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.mesas).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.buy).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.rebuy).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.total_buy).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.cash_out).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.otros_pagos).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-1').append(beneficio.total_bonus).css('text-align','right'));
+  fila.append($('<td>').addClass('col-xs-2').append(beneficio.utilidad).css('text-align','right'));
+  fila.find('td').each(function(){
+    $(this).attr('title',$(this).text());
+  });
+  $('#tablaVistaPrevia tbody').append(fila);
+}
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
@@ -758,15 +814,22 @@ $('#btn-importarBeneficios').click(function(e){
   e.preventDefault();
   $('#modalImportacionBeneficios').find('.modal-footer').children().show();
   reiniciarModalImportarBeneficios();
+  $('#modalImportacionBeneficios .modal-title').text("| IMPORTAR BENEFICIO");
+  $('#modalImportacionBeneficios').data('modo','beneficio_juegos').modal('show');
+  $('#modalImportacionBeneficios').modal('show');
+});
+
+$('#btn-importarBeneficiosPoker').click(function(e){
+  e.preventDefault();
+  $('#modalImportacionBeneficios').find('.modal-footer').children().show();
+  reiniciarModalImportarBeneficios();
+  $('#modalImportacionBeneficios .modal-title').text("| IMPORTAR BENEFICIO POKER");
+  $('#modalImportacionBeneficios').data('modo','beneficio_poker').modal('show');
   $('#modalImportacionBeneficios').modal('show');
 });
 
 $('#btn-guardarBeneficio').on('click', function(e){
-  $.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
 
@@ -789,81 +852,101 @@ $('#btn-guardarBeneficio').on('click', function(e){
     formData.append('archivo' , $('#modalImportacionBeneficios #archivo')[0].files[0]);
   }
 
+  const urls = {'beneficio_juegos' : 'importaciones/importarBeneficio','beneficio_poker' : 'importaciones/importarBeneficioPoker'};
+  const modo = $('#modalImportacionBeneficios').data('modo');
+  if(!(modo in urls)) return;
+
   $.ajax({
-      type: "POST",
-      url: 'importaciones/importarBeneficio',
-      data: formData,
-      processData: false,
-      contentType:false,
-      cache:false,
-      beforeSend: function(data){
-        console.log('Empezó');
-        $('#modalImportacionBeneficios').find('.modal-footer').children().hide();
-        $('#modalImportacionBeneficios').find('.modal-body').children().hide();
-        $('#modalImportacionBeneficios').find('.modal-body').children('#iconoCarga').show();
-      },
-      complete: function(data){
-        console.log('Terminó');
-      },
-      success: function (data) {
-        $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
-        $('#modalImportacionBeneficios').modal('hide');
-        limpiarBodysImportaciones();
-        $('#plataformaInfoImportacion').change();
-        $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN BENEFICIO');
-        $('#mensajeExito p').text(data.dias + ' registro(s) del BENEFICIO fueron importados');
-        $('#mensajeExito').show();
-      },
-      error: function (data) {
-        //Mostrar: mensajeError
-        $('#modalImportacionBeneficios #mensajeError').show();
-        //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
-        $('#modalImportacionBeneficios #rowArchivo').hide();
-        $('#modalImportacionBeneficios #datosBeneficio').hide();
-        $('#modalImportacionBeneficios #mensajeInvalido').hide();
-        $('#modalImportacionBeneficios #iconoCarga').hide();
-        console.log('ERROR!');
-        console.log(data);
-      }
+    type: "POST",
+    url: urls[modo],
+    data: formData,
+    processData: false,
+    contentType:false,
+    cache:false,
+    beforeSend: function(data){
+      console.log('Empezó');
+      $('#modalImportacionBeneficios').find('.modal-footer').children().hide();
+      $('#modalImportacionBeneficios').find('.modal-body').children().hide();
+      $('#modalImportacionBeneficios').find('.modal-body').children('#iconoCarga').show();
+    },
+    complete: function(data){
+      console.log('Terminó');
+    },
+    success: function (data) {
+      $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
+      $('#modalImportacionBeneficios').modal('hide');
+      limpiarBodysImportaciones();
+      $('#plataformaInfoImportacion').change();
+      $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN BENEFICIO');
+      $('#mensajeExito p').text(data.dias + ' registro(s) del BENEFICIO fueron importados');
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      //Mostrar: mensajeError
+      $('#modalImportacionBeneficios #mensajeError').show();
+      //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
+      $('#modalImportacionBeneficios #rowArchivo').hide();
+      $('#modalImportacionBeneficios #datosBeneficio').hide();
+      $('#modalImportacionBeneficios #mensajeInvalido').hide();
+      $('#modalImportacionBeneficios #iconoCarga').hide();
+      console.log('ERROR!');
+      console.log(data);
+    }
   });
 });
 
+function procesarDatosProducidos(e) {
+  $('#monedaProducido').val(1);
+  $('#modalImportacionProducidos #mensajeInvalido').hide();
+  //Mostrar botón SUBIR
+  $('#btn-guardarProducido').show();
+  $('#datosProducido').show();
+}
 
 function procesarDatosBeneficios(e) {
   const csv = e.target.result;
   //Limpio retorno de carro y saco las lineas sin nada.
   const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
-  if(allTextLines.length > 0){
-    const columnas = allTextLines[0].split(',');
-    if (columnas.length == 16) {
-      //Si tiene filas, extraigo la fecha y moneda
-      if (allTextLines.length > 2) {//2 porque tiene la cabezera y el total si o si (supongo)
-        const date = allTextLines[1].split(',')[1].replaceAll('"','');//Saco las comillas
-        $('#fechaBeneficio').data('datetimepicker').setDate(new Date(toIso(date)));
-        $('#fechaBeneficio input').attr('disabled',true);
-        $('#fechaBeneficio span').hide();
-        const moneda = allTextLines[1].split(',')[2];
-        $(`#monedaBeneficio option:contains(${moneda})`).prop('selected',true)
-        $('#monedaBeneficio').attr('disabled',true);
-      }
-      else{
-        $('#fechaBeneficio input').attr('disabled',false);
-        $('#fechaBeneficio span').show();
-        $('#monedaBeneficio').attr('disabled',false);
-      }
-      $('#modalImportacionBeneficios #mensajeInvalido').hide();
-      //Mostrar botón SUBIR
-      $('#btn-guardarBeneficio').show();
-      $('#datosBeneficio').show();
-      return;
-    }
+  const columnas_modos = {
+    'beneficio_juegos' : 16, 'beneficio_poker' : 13,
   }
-  //Si no retorno arriba quiere decir que no era valido
-  $('#modalImportacionBeneficios #mensajeInvalido p').text('El archivo no contiene beneficios');
-  $('#modalImportacionBeneficios #mensajeInvalido').show();
-  $('#modalImportacionBeneficios #iconoCarga').hide();
-  //Ocultar botón de subida
-  $('#btn-guardarBeneficio').hide();
+  const modo = $('#modalImportacionBeneficios').data('modo');
+  const fail = function(){
+    //Si no retorno arriba quiere decir que no era valido
+    $('#modalImportacionBeneficios #mensajeInvalido p').text('El archivo no contiene beneficios');
+    $('#modalImportacionBeneficios #mensajeInvalido').show();
+    $('#modalImportacionBeneficios #iconoCarga').hide();
+    //Ocultar botón de subida
+    $('#btn-guardarBeneficio').hide();
+  };
+  if(allTextLines.length <= 0 ||!(modo in columnas_modos)){
+    return fail();
+  }
+  const columnas = columnas_modos[modo];
+  if(allTextLines[0].split(',').length != columnas){
+    return fail();
+  }
+  if(allTextLines.length == 2){
+    $('#fechaBeneficio input').attr('disabled',false);
+    $('#fechaBeneficio span').show();
+    $('#monedaBeneficio').attr('disabled',false);
+  }
+  else if (allTextLines.length > 2) {//Si tiene filas, extraigo la fecha
+    const date = allTextLines[1].split(',')[1].replaceAll('"','');//Saco las comillas
+    $('#fechaBeneficio').data('datetimepicker').setDate(new Date(toIso(date)));
+    $('#fechaBeneficio input').attr('disabled',true);
+    $('#fechaBeneficio span').hide();
+    const moneda = allTextLines[1].split(',')[2];
+    $(`#monedaBeneficio option:contains(${moneda})`).prop('selected',true)
+    $('#monedaBeneficio').attr('disabled',true);
+  }
+  else{
+    return fail();
+  }
+  $('#modalImportacionBeneficios #mensajeInvalido').hide();
+  //Mostrar botón SUBIR
+  $('#btn-guardarBeneficio').show();
+  $('#datosBeneficio').show();
 }
 
 //Eventos de la librería del input

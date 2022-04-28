@@ -94,6 +94,20 @@ $id_usuario = session('id_usuario');
           </div>
         </a>
       </div>
+      <div> <!-- IMPORTAR BENEFICIO POKER -->
+        <a href="" id="btn-importarBeneficiosPoker" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+            <div class="backgroundNuevo"></div>
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo"><span style="font-size: 0.3em;position: relative;top: -4vh;">+BPk</span></h5>
+                <h4 class="txtNuevo">IMPORTAR BENEFICIOS POKER</h4>
+              </center>
+            </div>
+          </div>
+        </a>
+      </div>
     </div>
   <!-- tabla info -->
   <div style="width: 75%;height: 100%;float: left;">
@@ -157,7 +171,7 @@ $id_usuario = session('id_usuario');
           #infoImportaciones td,#infoImportaciones th{
             padding: 0px;
             margin: 0px;
-            width: 20%;
+            width: 16.666%;
           }
         </style>
         <div style="height: 90%;overflow: auto;">
@@ -169,6 +183,7 @@ $id_usuario = session('id_usuario');
                 <th>PROD. JUGADORES</th>
                 <th>BENEFICIOS</th>
                 <th>PROD. POKER</th>
+                <th>BENEF. POKER</th>
               </tr>
             </thead>
             <tbody>
@@ -178,6 +193,7 @@ $id_usuario = session('id_usuario');
                 <td class="producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
                 <td class="beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
                 <td class="producido_poker"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="beneficio_poker"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
               </tr>
             </tbody>
           </table>
@@ -205,6 +221,7 @@ $id_usuario = session('id_usuario');
                                     <option value="PRODJUG">PROD. JUGADORES</option>
                                     <option value="BENEFICIO">BENEFICIO</option>
                                     <option value="PRODPOKER">PROD. POKER</option>
+                                    <option value="BENEFPOKER">BENEF. POKER</option>
                                   </select>
                               </div>
                               <div class="col-md-2">

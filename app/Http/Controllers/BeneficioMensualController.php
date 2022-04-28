@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Validator;
 use App\BeneficioMensual;
+use App\BeneficioMensualPoker;
 use App\Casino;
 /*
   LOGICA DE ESTIDISTCAS CUANDO SE OBTIENE BENEFICIO.
@@ -326,6 +327,14 @@ class BeneficioMensualController extends Controller
 
   public function eliminarBeneficioMensual($id_beneficio_mensual){
     $benMensual = BeneficioMensual::find($id_beneficio_mensual);
+    if(is_null($benMensual)) return;
+    foreach($benMensual->beneficios as $b){
+      $b->delete();
+    }
+    $benMensual->delete();
+  }
+  public function eliminarBeneficioMensualPoker($id_beneficio_mensual_poker){
+    $benMensual = BeneficioMensualPoker::find($id_beneficio_mensual_poker);
     if(is_null($benMensual)) return;
     foreach($benMensual->beneficios as $b){
       $b->delete();

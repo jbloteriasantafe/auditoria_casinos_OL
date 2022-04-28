@@ -7,6 +7,7 @@ use App\Producido;
 use App\ProducidoJugadores;
 use App\ProducidoPoker;
 use App\BeneficioMensual;
+use App\BeneficioMensualPoker;
 use App\ImportacionEstadoJugador;
 use App\ImportacionEstadoJuego;
 use App\TipoMoneda;
@@ -56,6 +57,17 @@ class ImportacionController extends Controller
     ->select('fecha','jugadores','depositos','retiros','apuesta','premio','beneficio')
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
+
+  public function previewBeneficioPoker(Request $request){
+    $benMensual = BeneficioMensualPoker::find($request->id_beneficio_mensual_poker);
+    if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
+    return ['beneficio_mensual_poker' => $benMensual, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
+    'cant_detalles' => $benMensual->beneficios()->count(),
+    'beneficios'=> $benMensual->beneficios()
+    ->select('fecha','jugadores','mesas','buy','rebuy','total_buy','cash_out','otros_pagos','total_bonus','utilidad')
+    ->skip($request->page*$request->size)->take($request->size)->get()];
+  }
+
 
   public function previewProducido(Request $request){
     $producido = Producido::find($request->id_producido);
@@ -131,6 +143,12 @@ class ImportacionController extends Controller
       ->join('plataforma','producido_poker.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','producido_poker.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
+    else if($request->tipo_archivo == "BENEFPOKER"){
+      $resultados = DB::table('beneficio_mensual_poker')->select('beneficio_mensual_poker.id_beneficio_mensual_poker as id','beneficio_mensual_poker.fecha as fecha'
+      ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
+      ->join('plataforma','beneficio_mensual_poker.id_plataforma','=','plataforma.id_plataforma')
+      ->join('tipo_moneda','beneficio_mensual_poker.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
+    }
     else return $resultados;
 
     $resultados = $resultados->where($reglas)
@@ -177,16 +195,19 @@ class ImportacionController extends Controller
       $prod_jug = [];
       $beneficio = [];
       $prod_poker = [];
+      $benef_poker = [];
       foreach($beneficiosMensuales as $idmon => $bMensual){
         $producido[$idmon] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $prod_jug[$idmon]  = ProducidoJugadores::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $beneficio[$idmon] = !is_null($bMensual) && ($bMensual->beneficios()->where('fecha',$fecha)->count() >= 1);
         $prod_poker[$idmon] = ProducidoPoker::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
+        $benef_poker[$idmon] = rand(0,1);
       }
       $dia['producido'] = $producido;
       $dia['prod_jug']  = $prod_jug;
       $dia['beneficio'] = $beneficio;
       $dia['prod_poker'] = $prod_poker;
+      $dia['benef_poker'] = $benef_poker;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
       $fecha = date('Y-m-d' , strtotime($fecha . ' + 1 days'));
@@ -261,6 +282,22 @@ class ImportacionController extends Controller
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
       $ret = LectorCSVController::getInstancia()->importarBeneficio($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+    });
+    return $ret;
+  }
+
+  public function importarBeneficioPoker(Request $request){
+    Validator::make($request->all(),[
+        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
+        'fecha' => 'nullable|date',
+        'archivo' => 'required|mimes:csv,txt',
+        'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
+    ], array(), self::$atributos)->after(function($validator){
+    })->validate();
+
+    $ret = null;
+    DB::transaction(function() use ($request,&$ret){
+      $ret = LectorCSVController::getInstancia()->importarBeneficioPoker($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
     });
     return $ret;
   }

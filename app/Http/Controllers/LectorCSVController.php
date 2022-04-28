@@ -16,6 +16,7 @@ use App\ProducidoJugadores;
 use App\ProducidoPoker;
 use App\Beneficio;
 use App\BeneficioMensual;
+use App\BeneficioMensualPoker;
 use App\DetalleProducido;
 use App\TipoMoneda;
 use App\Http\Controllers\ProducidoController;
@@ -520,6 +521,134 @@ class LectorCSVController extends Controller
 
     return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->fecha, 
     'bruto' => $benMensual->beneficio, 'dias' => $benMensual->beneficios()->count()]; 
+  }
+
+  public function importarBeneficioPoker($archivoCSV,$fecha,$plataforma,$moneda){
+    $fecha_aux = explode("-",$fecha);
+    $ben_viejos = DB::table('beneficio_mensual_poker')->where([
+      ['id_plataforma','=',$plataforma],['id_tipo_moneda','=',$moneda]
+    ])->whereRaw('YEAR(fecha) = ? and MONTH(fecha) = ?',[$fecha_aux[0],$fecha_aux[1]])->get();
+    $benCont = BeneficioMensualController::getInstancia();
+    if($ben_viejos != null){
+      foreach($ben_viejos as $b){
+        $benCont->eliminarBeneficioMensualPoker($b->id_beneficio_mensual);
+      }
+    }
+
+    $benMensual = new BeneficioMensualPoker;
+    $benMensual->id_plataforma = $plataforma;
+    $benMensual->id_tipo_moneda = $moneda;
+    $benMensual->fecha = $fecha_aux[0] . '-' . $fecha_aux[1] . '-01';
+    $benMensual->validado    = false;
+    $benMensual->jugadores   = 0;
+    $benMensual->mesas       = 0;
+    $benMensual->buy         = 0;
+    $benMensual->rebuy       = 0;
+    $benMensual->total_buy   = 0;
+    $benMensual->total_bonus = 0;
+    $benMensual->cash_out    = 0;
+    $benMensual->otros_pagos = 0;
+    $benMensual->utilidad    = 0;
+    $benMensual->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $benMensual->save();
+    
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
+    
+    $path = $archivoCSV->getRealPath();
+    //DateReport es un quilombo porque no puedo usar REGEXP_REPLACE en el servidor de prueba porque es mysql 5.7
+
+    //No se puede usar sentencia preparada LOAD DATA por lo que busque
+    $query = sprintf("LOAD DATA local INFILE '%s'
+    INTO TABLE beneficio_poker_temporal
+    FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '\"'
+    ESCAPED BY '\"'
+    LINES TERMINATED BY '\\r\\n'
+    IGNORE 1 LINES
+    (@Total,@DateReport,@Currency,@TotalPlayers,@TotalBuy,@ReBuy,@TotalBonus,@Rake,@DateTimeUpdated,@TotalCashout,@TotalTable,@Buy,@OtherPayments)
+     SET id_beneficio_mensual_poker = %d,
+     Total                  = @Total,
+     DateReport             = CONCAT(
+      SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',-1),'-',
+      LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',2),'/',-1),2,'00'),'-',
+      LPAD(SUBSTRING_INDEX(SUBSTRING_INDEX(@DateReport, ' ', 1),'/',1),2,'00')
+     ),
+     Currency        = @Currency,
+     TotalPlayers    = @TotalPlayers,
+     TotalBuy        = @TotalBuy,
+     ReBuy           = @ReBuy,
+     TotalBonus      = @TotalBonus,
+     Rake            = @Rake,
+     DateTimeUpdated = @DateTimeUpdated,
+     TotalCashout    = @TotalCashout,
+     TotalTable      = @TotalTable,
+     Buy             = @Buy,
+     OtherPayments   = @OtherPayments",$path,$benMensual->id_beneficio_mensual_poker);
+    $pdo->exec($query);
+
+    //La ultima comparacion en el WHERE es para ignorar la ultima linea
+    $query = $pdo->prepare("INSERT INTO beneficio_poker 
+    (
+      id_beneficio_mensual_poker,
+      fecha,
+      jugadores,
+      mesas,
+      buy,
+      rebuy,
+      total_buy,
+      cash_out,
+      otros_pagos,
+      total_bonus,
+      utilidad,
+      observacion
+    )
+    SELECT
+    id_beneficio_mensual_poker, 
+    DateReport    as fecha,
+    TotalPlayers  as jugadores,
+    TotalTable    as mesas,
+    Buy           as buy,
+    ReBuy         as rebuy,
+    TotalBuy      as total_buy,
+    TotalCashout  as cash_out,
+    OtherPayments as otros_pagos,
+    TotalBonus    as total_bonus,
+    Rake          as utilidad,
+    ''            as observacion
+    FROM beneficio_poker_temporal
+    WHERE beneficio_poker_temporal.id_beneficio_mensual_poker = :id_beneficio_mensual_poker AND beneficio_poker_temporal.Total = ''");
+    $query->execute([":id_beneficio_mensual_poker" => $benMensual->id_beneficio_mensual_poker]);
+
+    $query = $pdo->prepare("DELETE FROM beneficio_poker_temporal WHERE id_beneficio_mensual_poker = :id_beneficio_mensual_poker");
+    $query->execute([":id_beneficio_mensual_poker" => $benMensual->id_beneficio_mensual_poker]);
+
+    //Lo updateo por SQL porque son DECIMAL y no se si hay error de casteo si lo hago en PHP (pasa a float?)
+    $query = $pdo->prepare("UPDATE beneficio_mensual_poker bm,
+    (
+      SELECT SUM(b.jugadores) as jugadores, SUM(b.mesas) as mesas,
+             SUM(b.buy) as buy, SUM(b.rebuy) as rebuy, SUM(b.total_buy) as total_buy,
+             SUM(b.cash_out) as cash_out, SUM(b.otros_pagos) as otros_pagos, SUM(b.total_bonus) as total_bonus, SUM(b.utilidad) as utilidad
+      FROM beneficio_poker b
+      WHERE b.id_beneficio_mensual_poker = :id_beneficio_mensual_poker1
+      GROUP BY b.id_beneficio_mensual_poker
+    ) total
+    SET bm.jugadores = IFNULL(total.jugadores,0),bm.mesas = IFNULL(total.mesas,0),
+        bm.buy = IFNULL(total.buy,0),bm.rebuy = IFNULL(total.rebuy,0),
+        bm.total_buy = IFNULL(total.total_buy,0),bm.cash_out  = IFNULL(total.cash_out,0),
+        bm.otros_pagos = IFNULL(total.otros_pagos,0),bm.total_bonus = IFNULL(total.total_bonus,0), bm.utilidad = IFNULL(total.utilidad,0)
+    WHERE bm.id_beneficio_mensual_poker = :id_beneficio_mensual_poker2");
+    $query->execute([":id_beneficio_mensual_poker1" => $benMensual->id_beneficio_mensual_poker,":id_beneficio_mensual_poker2" => $benMensual->id_beneficio_mensual_poker]);
+
+    //Actualizo la entidad
+    $benMensual = BeneficioMensualPoker::find($benMensual->id_beneficio_mensual_poker);
+
+    DB::connection()->enableQueryLog();
+
+    $pdo = null;
+
+    return [ 'id_beneficio_mensual_poker' => $benMensual->id_beneficio_mensual_poker, 'fecha' => $benMensual->fecha, 
+    'bruto' => $benMensual->utilidad, 'dias' => $benMensual->beneficios()->count()]; 
   }
 
   private function importarJugadoresTemporal($id_importacion_estado_jugador,$archivo){
