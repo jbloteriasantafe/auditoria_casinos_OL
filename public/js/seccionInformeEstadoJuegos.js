@@ -482,7 +482,7 @@ $('#modalImportacion #archivo').on('fileerror', function(event, data, msg) {
 $('#modalImportacion #archivo').on('fileclear',reiniciarModalImportar);
 
 $('#modalImportacion #archivo').on('fileselect', function(event) {
-  $('#modalImportacionProducidos #archivo').attr('data-borrado','false');
+  $('#modalImportacion #archivo').attr('data-borrado','false');
   let reader = new FileReader();
   reader.onload = procesarDatosJuegos;
   reader.readAsText($('#modalImportacion #archivo')[0].files[0]);

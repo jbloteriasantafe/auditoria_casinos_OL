@@ -377,7 +377,7 @@ $id_usuario = session('id_usuario');
     </div>
 
     <!-- Modal Producido -->
-    <div class="modal fade" id="modalImportacionProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modalImportacionDiario" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
@@ -390,7 +390,7 @@ $id_usuario = session('id_usuario');
 
                 <div class="modal-body modalCuerpo">
 
-                  <div id="rowArchivo" class="row" style="">
+                  <div id="rowArchivo" class="row">
                           <div class="col-xs-12">
                               <h5>ARCHIVO</h5>
                               <div class="zona-file">
@@ -469,7 +469,7 @@ $id_usuario = session('id_usuario');
     </div>
 
     <!-- Modal Beneficio -->
-    <div class="modal fade" id="modalImportacionBeneficios" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modalImportacionMensual" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
@@ -483,7 +483,7 @@ $id_usuario = session('id_usuario');
                 <div class="modal-body modalCuerpo">
 
 
-                  <div id="rowArchivo" class="row" style="">
+                  <div id="rowArchivo" class="row">
                           <div class="col-xs-12">
                               <h5>ARCHIVO</h5>
                               <div class="zona-file">
@@ -562,30 +562,37 @@ $id_usuario = session('id_usuario');
           </div>
     </div>
 
-    <!-- Modal ErrorVisado -->
-    <div class="modal fade" id="modalErrorVisado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-           <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <h3 class="modal-titleEliminar">DENEGADO</h3>
-              </div>
+    <table hidden>
+      <?php 
+      $to_header = function($s){
+        if($s == "droop") return "DROP";
+        return str_replace("_"," ",strtoupper($s));
+      };
 
-              <div class="modal-body franjaRojaModal">
-                <p>No es posible importar contadores ya que existen relevamientos visados para la plataforma y fecha seleccionado</p>
-              </div>
-
-              <div class="modal-footer">
-                
-                <button type="button" class="btn btn-default" data-dismiss="modal">ACEPTAR</button>
-              </div>
-          </div>
-        </div>
-  </div>
-
-    
-
-    
+      $cols_juegos = ['cod_juego' => 'center','categoria' => 'center','jugadores' => 'right','apuesta_efectivo' => 'right','apuesta_bono' => 'right',
+               'apuesta' => 'right','premio_efectivo' => 'right','premio_bono' => 'right','premio' => 'right','beneficio_efectivo' => 'right',
+               'beneficio_bono' => 'right','beneficio' => 'right'];
+      $cols_jugadores = ['jugador' => 'center','juegos' => 'right','apuesta_efectivo' => 'right','apuesta_bono' => 'right',
+      'apuesta' => 'right','premio_efectivo' => 'right','premio_bono' => 'right','premio' => 'right','beneficio_efectivo' => 'right',
+      'beneficio_bono' => 'right','beneficio' => 'right'];
+      $cols_poker = ['cod_juego' => 'center','categoria' => 'center','jugadores' => 'right','droop' => 'right','utilidad' => 'right'];
+      $cols_b_juegos = ['fecha' => 'center','jugadores' => 'right','depositos' => 'right','retiros' => 'right','apuesta' => 'right','premio' => 'right','beneficio' => 'right'];
+      $cols = ['producido_juegos' => $cols_juegos,'producido_jugadores' => $cols_jugadores,'producido_poker' => $cols_poker,'beneficio_juegos' => $cols_b_juegos];
+      ?>
+      @foreach($cols as $modo => $cols_modo)
+      <tr class="moldeDiario {{$modo}}">
+        @foreach($cols_modo as $col => $align)
+        <td data-atributo="{{$col}}" style="text-align: {{$align}};width: {{100/count($cols_modo)}}%;">{{$col}}</td>
+        @endforeach
+      </tr>
+      <tr class="moldeDiarioHeader {{$modo}}">
+        @foreach($cols_modo as $col => $align)
+        <th data-atributo="{{$col}}" style="text-align: center;width: {{100/count($cols_modo)}}%;">{{$to_header($col)}}</th>
+        @endforeach
+      </tr>
+      @endforeach
+    </table>
+  
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection
@@ -608,7 +615,7 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js?6" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js?7" charset="utf-8"></script>
     <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->
@@ -622,12 +629,4 @@ $id_usuario = session('id_usuario');
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
-    @if ($id_usuario == 5)
-    <script type="text/javascript">
-        $('#modal_javi').modal('show');
-        console.log('Anda');
-    </script>
-    @endif
-
     @endsection

@@ -260,25 +260,6 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 </div> <!-- panel -->
               </div>
             </div>
-
-            @if ($id_usuario == 00)
-
-            <div id="modal_javi" class="modal fade" role="dialog">
-              <div class="modal-dialog modal-lg">
-
-                <!-- Modal content-->
-                <div class="modal-content">
-                  <div class="modal-body" style="text-align:center;">
-                    <img src="/img/alvaro_rivera.png" alt="" style="display:inline; margin-top: 20px; margin-bottom:20px;">
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            @endif
-
-
             <meta name="_token" content="{!! csrf_token() !!}" />
 @endsection
 
@@ -302,13 +283,5 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <script src='/js/fullcalendar.min.js'></script>
     <script src='/js/locale-all.js'></script>
     <script src="/js/gcal.min.js" charset="utf-8"></script>
-
     <script src="js/seccionInicio.js"></script>
-
-    @if ($id_usuario == 5)
-    <script type="text/javascript">
-        $('#modal_javi').modal('show');
-        console.log('Anda');
-    </script>
-    @endif
 @endsection
