@@ -517,7 +517,7 @@ class LectorCSVController extends Controller
     $benCont = BeneficioMensualController::getInstancia();
     if($ben_viejos != null){
       foreach($ben_viejos as $b){
-        $benCont->eliminarBeneficioMensualPoker($b->id_beneficio_mensual);
+        $benCont->eliminarBeneficioMensualPoker($b->id_beneficio_mensual_poker);
       }
     }
 
