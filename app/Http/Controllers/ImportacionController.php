@@ -15,7 +15,6 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\LectorCSVController;
 use Illuminate\Support\Facades\DB;
 use Validator;
-use App\Plataforma;
 use App\Http\Controllers\CacheController;
 
 class ImportacionController extends Controller

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Log;
 use Illuminate\Support\Facades\DB;
-use Response;
 
 class LogController extends Controller
 {

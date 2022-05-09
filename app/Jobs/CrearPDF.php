@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 use View;
 use Dompdf\Dompdf;
-use PDF;
 
 class CrearPDF implements ShouldQueue
 {

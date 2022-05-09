@@ -10,11 +10,8 @@ use App\DetalleProducido;
 use App\ProducidoJugadores;
 use App\ProducidoPoker;
 use App\DetalleProducidoJugadores;
-use App\Plataforma;
 use App\TipoMoneda;
 use App\Juego;
-use View;
-use Dompdf\Dompdf;
 use App\PdfParalelo;
 use App\Http\Controllers\CacheController;
 

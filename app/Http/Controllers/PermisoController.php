@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Rol;
 use App\Permiso;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Validator;
 use Illuminate\Support\Facades\DB;
 

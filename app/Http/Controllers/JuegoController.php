@@ -3,19 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Juego;
-use App\Casino;
 use App\GliSoft;
-use App\Usuario;
 use App\TipoMoneda;
 use App\CategoriaJuego;
 use App\EstadoJuego;
 use App\LogJuego;
 use App\Plataforma;
 use Validator;
-use Storage;
 use View;
 use Dompdf\Dompdf;
 use App\Http\Controllers\CacheController;

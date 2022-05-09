@@ -3,25 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use App\Expediente;
-use App\Disposicion;
 use App\Plataforma;
 use App\Nota;
-use Validator;
 
 class NotaController extends Controller
 {
-  private static $atributos = [
-    'id_expediente' => 'Expediente',
-    'id_estado_juego' => 'Estado del juego',
-    'id_plataforma' => 'Plataforma',
-    'fecha' => 'Fecha de creación de nota',
-    'disposiciones' => 'Disposiciones',
-    'disposiciones.*.nro_disposicion' => 'Nro Disposición',
-    'disposiciones.*.nro_disposicion_anio' => 'Nro Disposición Año'
-  ];
   private static $instance;
 
   public static function getInstancia() {
@@ -120,7 +107,8 @@ class NotaController extends Controller
     ->orderBy('nota.identificacion','asc')
     ->where($reglas);
     if(!empty($request->fecha)){
-        $resultados = $resultados->whereYear('fecha_iniciacion' , '=' ,$fecha[0])->whereMonth('fecha_iniciacion','=', $fecha[1]);
+      $fecha = explode('-',$request->fecha);
+      $resultados = $resultados->whereYear('fecha_iniciacion' , '=' ,$fecha[0])->whereMonth('fecha_iniciacion','=', $fecha[1]);
     }
 
     $sort_by = $request->sort_by;

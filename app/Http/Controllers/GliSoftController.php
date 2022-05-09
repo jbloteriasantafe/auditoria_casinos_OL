@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Response;
 use App\GliSoft;
 use App\Archivo;
-use App\Casino;
 use App\Plataforma;
 use Illuminate\Support\Facades\DB;
 use App\Juego;
@@ -147,8 +146,8 @@ class GliSoftController extends Controller
       }
     })->fails();
     if($fail) return "Certificado o archivo inexistente";
-    return Response::make(base64_decode($archivo->archivo), 200, [ 'Content-Type' => 'application/pdf',
-    'Content-Disposition' => 'inline; filename="'. $archivo->nombre_archivo  . '"']);
+    return Response::make(base64_decode($archivo ? $archivo->archivo : null), 200, [ 'Content-Type' => 'application/pdf',
+    'Content-Disposition' => 'inline; filename="'. ($archivo ? $archivo->nombre_archivo : "")  . '"']);
   }
 
   //METODO QUE RESPONDEN A GUARDAR

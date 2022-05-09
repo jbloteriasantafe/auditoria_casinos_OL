@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Cotizacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use DateTime;
 use Validator;
 
 class CotizacionController extends Controller

@@ -10,11 +10,7 @@ use App\TipoMoneda;
 use App\Beneficio;
 use View;
 use Dompdf\Dompdf;
-use App\AjusteBeneficio;
-use App\Producido;
 use App\BeneficioMensual;
-use App\Porcentaje;
-use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Validation\Rule;
 
 class BeneficioController extends Controller

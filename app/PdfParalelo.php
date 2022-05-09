@@ -4,10 +4,6 @@ namespace App;
 
 use DateTime;
 use Illuminate\Support\Facades\Storage;
-use View;
-use Dompdf\Dompdf;
-use PDF;
-
 
 class PdfParalelo{
     private static function fingerprint(){//Deberia ser unico cada vez que se llama a menos que llame mas de una vez por decisegundo..

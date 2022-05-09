@@ -15,7 +15,6 @@ use Validator;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Mesas\Turnos\TurnosController;
 use App\Http\Controllers\UsuarioController;
-use App\Usuario;
 
 class CasinoController extends Controller
 {
@@ -112,10 +111,10 @@ class CasinoController extends Controller
     $fichas_nuevas = $this->crearFichas($request['fichas_nuevas']);
 
     //TODO: Hardcodeado
-    if(!array_key_exists('fichas_pesos',$request)  && !isset($request['fichas_pesos']) ){
+    if(!array_key_exists('fichas_pesos',$request->all())  && !isset($request['fichas_pesos']) ){
       $request['fichas_pesos'] = array();
     }
-    if(!array_key_exists('fichas_dolares',$request) && !isset($request['fichas_dolares']) ){
+    if(!array_key_exists('fichas_dolares',$request->all()) && !isset($request['fichas_dolares']) ){
       $request['fichas_dolares'] = array();
     }
 
@@ -164,7 +163,7 @@ class CasinoController extends Controller
     $casino->save();
 
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if($usuario == null || !$this->usuarioTieneCasino($usuario,$id)){
+    if($usuario == null || !$this->usuarioTieneCasino($usuario,$request->id_casino)){
       return ['error' => 'El usuario no tiene accesso a ese casino'];
     }
 
@@ -179,10 +178,10 @@ class CasinoController extends Controller
 
 
     //TODO: Hardcodeado
-    if(!array_key_exists('fichas_pesos',$request) && !isset($request['fichas_pesos'])){
+    if(!array_key_exists('fichas_pesos',$request->all()) && !isset($request['fichas_pesos'])){
       $request['fichas_pesos'] = array();
     }
-    if(!array_key_exists('fichas_dolares',$request) && !isset($request['fichas_dolares'])){
+    if(!array_key_exists('fichas_dolares',$request->all()) && !isset($request['fichas_dolares'])){
       $request['fichas_dolares'] = array();
     }
 
@@ -240,7 +239,7 @@ private function asociarTurnos($turnos, $casino){
 
   private function usuarioTieneCasino($usuario,$id){
     foreach($usuario->casinos as $casino){
-        if($casino->id_casino == $id_casino){
+        if($casino->id_casino == $id){
             return true;
         }
     }
@@ -249,7 +248,7 @@ private function asociarTurnos($turnos, $casino){
 
   public function meses(Request $request,$id_casino){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if($usuario == null || !$this->usuarioTieneCasino($usuario,$id)){
+    if($usuario == null || !$this->usuarioTieneCasino($usuario,$id_casino)){
       return ['error' => 'El usuario no tiene accesso a ese casino'];
     }
 

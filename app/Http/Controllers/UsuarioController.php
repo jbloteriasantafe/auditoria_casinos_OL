@@ -7,13 +7,11 @@ use Response;
 use App\Usuario;
 use App\Rol;
 use App\Plataforma;
-use App\Relevamiento;
 use App\SecRecientes;
 use App\Http\Controllers\Controller;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Contracts\View\View;
 
 class UsuarioController extends Controller
 {

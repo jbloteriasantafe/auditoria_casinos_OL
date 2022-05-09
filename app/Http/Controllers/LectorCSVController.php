@@ -1,30 +1,16 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use DateTime;
-use PDO;
-use Validator;
-use App\DatosJugador;
-use App\EstadoJugador;
 use App\ImportacionEstadoJugador;
 use App\ImportacionEstadoJuego;
-use App\Plataforma;
 use App\Producido;
 use App\ProducidoJugadores;
 use App\ProducidoPoker;
-use App\Beneficio;
 use App\BeneficioMensual;
 use App\BeneficioMensualPoker;
-use App\DetalleProducido;
-use App\TipoMoneda;
 use App\Http\Controllers\ProducidoController;
 use App\Http\Controllers\BeneficioMensualController;
-
-use Exception;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class LectorCSVController extends Controller
 {

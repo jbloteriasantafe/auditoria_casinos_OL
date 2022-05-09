@@ -4,18 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Validator;
 use App\TipoMoneda;
 use App\Plataforma;
-use App\Beneficio;
 use View;
 use Dompdf\Dompdf;
 use App\Juego;
 use \Datetime;
 use App\BeneficioMensual;
 use App\Cotizacion;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\CacheController;
 use App\CategoriaJuego;
 use App\EstadoJugador;
