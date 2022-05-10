@@ -318,13 +318,13 @@ $(document).on('click','.borrar',function(){
 $('#btn-eliminarModal').click(function (e) {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
 
-  const snakeCase = $(this).attr('data-tipo').val().toLowerCase().replace(/([-_][a-z])/g, function(group){//producido_juegos -> producidoJuegos
+  const camelCase = $(this).attr('data-tipo').val().toLowerCase().replace(/([-_][a-z])/g, function(group){//producido_juegos -> producidoJuegos
     return group.toUpperCase().replace('-', '').replace('_', ''); 
   });
   const id_importacion = $(this).val();
   $.ajax({
     type: "DELETE",
-    url: 'importaciones/'+snakeCase[0].toUpperCase()+snakeCase.slice(1)+'/'+id_importacion,
+    url: 'importaciones/'+camelCase[0].toUpperCase()+camelCase.slice(1)+'/'+id_importacion,
     success: function (data) {
       $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
       $('#monedaInfoImportacion').change();
