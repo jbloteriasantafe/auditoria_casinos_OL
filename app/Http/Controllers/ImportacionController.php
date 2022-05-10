@@ -48,32 +48,32 @@ class ImportacionController extends Controller
   }
 
   public function previewBeneficio(Request $request){
-    $benMensual = BeneficioMensual::find($request->id_beneficio_mensual);
+    $benMensual = BeneficioMensual::find($request->id);
     if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
-    return ['beneficio_mensual' => $benMensual, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
+    return ['fecha' => $benMensual->fecha, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
     'cant_detalles' => $benMensual->beneficios()->count(),
-    'beneficios'=> $benMensual->beneficios()
+    'detalles'=> $benMensual->beneficios()
     ->select('fecha','jugadores','depositos','retiros','apuesta','premio','beneficio')
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
   public function previewBeneficioPoker(Request $request){
-    $benMensual = BeneficioMensualPoker::find($request->id_beneficio_mensual_poker);
+    $benMensual = BeneficioMensualPoker::find($request->id);
     if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
-    return ['beneficio_mensual_poker' => $benMensual, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
+    return ['fecha' => $benMensual->fecha, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
     'cant_detalles' => $benMensual->beneficios()->count(),
-    'beneficios'=> $benMensual->beneficios()
+    'detalles'=> $benMensual->beneficios()
     ->select('fecha','jugadores','mesas','buy','rebuy','total_buy','cash_out','otros_pagos','total_bonus','utilidad')
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
 
   public function previewProducido(Request $request){
-    $producido = Producido::find($request->id_producido);
+    $producido = Producido::find($request->id);
     if(is_null($producido)) return response()->json("No existe el producido",422);
-    return ['producido' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+    return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
     'cant_detalles' => $producido->detalles()->count(),
-    'detalles_producido'=> $producido->detalles()
+    'detalles'=> $producido->detalles()
     ->select('cod_juego','categoria','jugadores',
     'apuesta_efectivo','apuesta_bono','apuesta',
     'premio_efectivo','premio_bono','premio',
@@ -82,20 +82,20 @@ class ImportacionController extends Controller
   }
 
   public function previewProducidoJugadores(Request $request){
-    $producido = ProducidoJugadores::find($request->id_producido_jugadores);
+    $producido = ProducidoJugadores::find($request->id);
     if(is_null($producido)) return response()->json("No existe el producido",422);
-    return ['producido_jugadores' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+    return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
     'cant_detalles' => $producido->detalles()->count(),
-    'detalles_producido_jugadores'=> $producido->detalles()
+    'detalles'=> $producido->detalles()
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }
 
   public function previewProducidoPoker(Request $request){
-    $producido = ProducidoPoker::find($request->id_producido_poker);
+    $producido = ProducidoPoker::find($request->id);
     if(is_null($producido)) return response()->json("No existe el producido",422);
-    return ['producido_poker' => $producido, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+    return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
     'cant_detalles' => $producido->detalles()->count(),
-    'detalles_producido'=> $producido->detalles()
+    'detalles' => $producido->detalles()
     ->select('cod_juego','categoria','jugadores','droop','utilidad')
     ->skip($request->page*$request->size)->take($request->size)->get()];
   }

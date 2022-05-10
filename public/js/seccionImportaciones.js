@@ -150,19 +150,19 @@ function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewBeneficio',
-    data: {id_beneficio_mensual: id_beneficio_mensual,page: page,size: size},
+    data: {id: id_beneficio_mensual,page: page,size: size},
     dataType: 'json',
     success: function (data) {
       $('#previewPage').text(page+1);
       const totales = Math.ceil(data.cant_detalles/size);
       $('#previewTotal').text(totales);
       $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.beneficio_mensual.fecha));
+      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
       $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
       $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.beneficios.length; i++) {
-        agregarFilaDetalleBeneficio(data.beneficios[i]);
+      for (var i = 0; i < data.detalles.length; i++) {
+        agregarFilaDetalle('beneficio_juegos',data.detalles[i]);
       }
     },
     error: function (data) {
@@ -177,19 +177,19 @@ function actualizarPreviewBeneficiosPoker(id_beneficio_mensual_poker,page,size){
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewBeneficioPoker',
-    data: {id_beneficio_mensual_poker: id_beneficio_mensual_poker,page: page,size: size},
+    data: {id: id_beneficio_mensual_poker,page: page,size: size},
     dataType: 'json',
     success: function (data) {
       $('#previewPage').text(page+1);
       const totales = Math.ceil(data.cant_detalles/size);
       $('#previewTotal').text(totales);
       $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.beneficio_mensual_poker.fecha));
+      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
       $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
       $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.beneficios.length; i++) {
-        agregarFilaDetalleBeneficioPoker(data.beneficios[i]);
+      for (var i = 0; i < data.detalles.length; i++) {
+        agregarFilaDetalle('beneficio_poker',data.detalles[i]);
       }
     },
     error: function (data) {
@@ -204,19 +204,19 @@ function actualizarPreviewProducidos(id_producido,page,size){
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewProducido',
-    data: {id_producido: id_producido,page: page,size: size},
+    data: {id: id_producido,page: page,size: size},
     dataType: 'json',
     success: function (data) {
       $('#previewPage').text(page+1);
       const totales = Math.ceil(data.cant_detalles/size);
       $('#previewTotal').text(totales);
       $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
+      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
       $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
       $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.detalles_producido.length; i++) {
-        agregarFilaDetalleProducido(data.detalles_producido[i]);
+      for (var i = 0; i < data.detalles.length; i++) {
+        agregarFilaDetalle('producido_juegos',data.detalles[i]);
       }
     },
     error: function (data) {
@@ -231,19 +231,19 @@ function actualizarPreviewProducidosJugadores(id_producido_jugadores,page,size){
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewProducidoJugadores',
-    data: {id_producido_jugadores: id_producido_jugadores,page: page,size: size},
+    data: {id: id_producido_jugadores,page: page,size: size},
     dataType: 'json',
     success: function (data) {
       $('#previewPage').text(page+1);
       const totales = Math.ceil(data.cant_detalles/size);
       $('#previewTotal').text(totales);
       $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.producido_jugadores.fecha));
+      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
       $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
       $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.detalles_producido_jugadores.length; i++) {
-        agregarFilaDetalleProducidoJugadores(data.detalles_producido_jugadores[i]);
+      for (var i = 0; i < data.detalles.length; i++) {
+        agregarFilaDetalle('producido_jugadores',data.detalles[i]);
       }
     },
     error: function (data) {
@@ -258,19 +258,19 @@ function actualizarPreviewProducidosPoker(id_producido_poker,page,size){
   $.ajax({
     type: 'POST',
     url: 'importaciones/previewProducidoPoker',
-    data: {id_producido_poker: id_producido_poker,page: page,size: size},
+    data: {id: id_producido_poker,page: page,size: size},
     dataType: 'json',
     success: function (data) {
       $('#previewPage').text(page+1);
       const totales = Math.ceil(data.cant_detalles/size);
       $('#previewTotal').text(totales);
       $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.producido_poker.fecha));
+      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
       $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
       $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.detalles_producido.length; i++) {
-        agregarFilaDetalleProducidoPoker(data.detalles_producido[i]);
+      for (var i = 0; i < data.detalles.length; i++) {
+        agregarFilaDetalle('producido_poker',data.detalles[i]);
       }
     },
     error: function (data) {
@@ -349,21 +349,8 @@ function clonarFilaHeader(modo){
   const fila = $(`.moldeDiarioHeader.${modo}`).clone().removeClass('moldeDiarioHeader');
   return fila;
 }
-
-function agregarFilaDetalleProducido(detalle) {
-  $('#tablaVistaPrevia tbody').append(clonarFila('producido_juegos',detalle));
-}
-function agregarFilaDetalleProducidoJugadores(detalle) {
-  $('#tablaVistaPrevia tbody').append(clonarFila('producido_jugadores',detalle));
-}
-function agregarFilaDetalleProducidoPoker(detalle) {
-  $('#tablaVistaPrevia tbody').append(clonarFila('producido_poker',detalle));
-}
-function agregarFilaDetalleBeneficio(detalle){
-  $('#tablaVistaPrevia tbody').append(clonarFila('beneficio_juegos',detalle));
-}
-function agregarFilaDetalleBeneficioPoker(detalle){
-  $('#tablaVistaPrevia tbody').append(clonarFila('beneficio_poker',detalle));
+function agregarFilaDetalle(modo,detalle){
+  $('#tablaVistaPrevia tbody').append(clonarFila(modo,detalle));
 }
 
 function reiniciarModalImportarProducido(){
@@ -858,15 +845,14 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
 
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  let size = 10;
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaImportaciones .activa').attr('value'),orden: $('#tablaImportaciones .activa').attr('estado')} ;
+  page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaImportaciones .activa').attr('value'),orden: $('#tablaImportaciones .activa').attr('estado')} ;
   if(sort_by == null){ //limpio las columnas
     $('#tablaImportaciones th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
