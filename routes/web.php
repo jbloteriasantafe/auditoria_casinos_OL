@@ -172,11 +172,7 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::post('/importarProducidoPoker','ImportacionController@importarProducidoPoker');
   Route::post('/importarBeneficio','ImportacionController@importarBeneficio');
   Route::post('/importarBeneficioPoker','ImportacionController@importarBeneficioPoker');
-  Route::post('/previewProducido','ImportacionController@previewProducido');
-  Route::post('/previewProducidoJugadores','ImportacionController@previewProducidoJugadores');
-  Route::post('/previewProducidoPoker','ImportacionController@previewProducidoPoker');
-  Route::post('/previewBeneficio','ImportacionController@previewBeneficio');
-  Route::post('/previewBeneficioPoker','ImportacionController@previewBeneficioPoker');
+  Route::post('/previewImportacion','ImportacionController@previewImportacion');
   Route::delete('/eliminarProducidoJuegos/{id}','ProducidoController@eliminarProducido');
   Route::delete('/eliminarProducidoJugadores/{id}','ProducidoController@eliminarProducidoJugadores');
   Route::delete('/eliminarProducidoPoker/{id}','ProducidoController@eliminarProducidoPoker');

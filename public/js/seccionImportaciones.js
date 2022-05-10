@@ -144,13 +144,13 @@ $(document).on('click','.planilla', function(){
   $('#modalPlanilla').modal('show');
 });
 
-function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
+function actualizarPreview(tipo_importacion,id,page,size){
   $('#prevPreview').attr('disabled',page == 0);
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
-    url: 'importaciones/previewBeneficio',
-    data: {id: id_beneficio_mensual,page: page,size: size},
+    url: 'importaciones/previewImportacion',
+    data: {tipo_importacion: tipo_importacion,id: id,page: page,size: size},
     dataType: 'json',
     success: function (data) {
       $('#previewPage').text(page+1);
@@ -162,129 +162,13 @@ function actualizarPreviewBeneficios(id_beneficio_mensual,page,size){
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
       $('#tablaVistaPrevia tbody tr').remove();
       for (var i = 0; i < data.detalles.length; i++) {
-        agregarFilaDetalle('beneficio_juegos',data.detalles[i]);
+        agregarFilaDetalle(tipo_importacion,data.detalles[i]);
       }
     },
     error: function (data) {
       console.log(data);
     }
   });
-}
-
-function actualizarPreviewBeneficiosPoker(id_beneficio_mensual_poker,page,size){
-  $('#prevPreview').attr('disabled',page == 0);
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: 'POST',
-    url: 'importaciones/previewBeneficioPoker',
-    data: {id: id_beneficio_mensual_poker,page: page,size: size},
-    dataType: 'json',
-    success: function (data) {
-      $('#previewPage').text(page+1);
-      const totales = Math.ceil(data.cant_detalles/size);
-      $('#previewTotal').text(totales);
-      $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
-      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
-      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-      $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarFilaDetalle('beneficio_poker',data.detalles[i]);
-      }
-    },
-    error: function (data) {
-      console.log(data);
-    }
-  });
-}
-
-function actualizarPreviewProducidos(id_producido,page,size){
-  $('#prevPreview').attr('disabled',page == 0);
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: 'POST',
-    url: 'importaciones/previewProducido',
-    data: {id: id_producido,page: page,size: size},
-    dataType: 'json',
-    success: function (data) {
-      $('#previewPage').text(page+1);
-      const totales = Math.ceil(data.cant_detalles/size);
-      $('#previewTotal').text(totales);
-      $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
-      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
-      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-      $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarFilaDetalle('producido_juegos',data.detalles[i]);
-      }
-    },
-    error: function (data) {
-      console.log(data);
-    }
-  });
-}
-
-function actualizarPreviewProducidosJugadores(id_producido_jugadores,page,size){
-  $('#prevPreview').attr('disabled',page == 0);
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: 'POST',
-    url: 'importaciones/previewProducidoJugadores',
-    data: {id: id_producido_jugadores,page: page,size: size},
-    dataType: 'json',
-    success: function (data) {
-      $('#previewPage').text(page+1);
-      const totales = Math.ceil(data.cant_detalles/size);
-      $('#previewTotal').text(totales);
-      $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
-      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
-      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-      $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarFilaDetalle('producido_jugadores',data.detalles[i]);
-      }
-    },
-    error: function (data) {
-      console.log(data);
-    }
-  });
-}
-
-function actualizarPreviewProducidosPoker(id_producido_poker,page,size){
-  $('#prevPreview').attr('disabled',page == 0);
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: 'POST',
-    url: 'importaciones/previewProducidoPoker',
-    data: {id: id_producido_poker,page: page,size: size},
-    dataType: 'json',
-    success: function (data) {
-      $('#previewPage').text(page+1);
-      const totales = Math.ceil(data.cant_detalles/size);
-      $('#previewTotal').text(totales);
-      $('#nextPreview').attr('disabled',(page+1) >= totales);
-      $('#modalPlanilla #fecha').val(convertirDate(data.fecha));
-      $('#modalPlanilla #plataforma').val(data.plataforma.nombre);
-      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-      $('#tablaVistaPrevia tbody tr').remove();
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarFilaDetalle('producido_poker',data.detalles[i]);
-      }
-    },
-    error: function (data) {
-      console.log(data);
-    }
-  });
-}
-
-function actualizarPreview(tipo,id,page,size){
-  if(tipo == "producido_juegos") actualizarPreviewProducidos(id,page,size)
-  else if(tipo == "producido_jugadores") actualizarPreviewProducidosJugadores(id,page,size)
-  else if(tipo == "beneficio_juegos") actualizarPreviewBeneficios(id,page,size);
-  else if(tipo == "producido_poker") actualizarPreviewProducidosPoker(id,page,size);
-  else if(tipo == "beneficio_poker") actualizarPreviewBeneficiosPoker(id,page,size);
 }
 
 $('#prevPreview,#nextPreview').click(function(){

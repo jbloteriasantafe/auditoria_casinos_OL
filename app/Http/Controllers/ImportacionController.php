@@ -47,57 +47,55 @@ class ImportacionController extends Controller
     return view('seccionImportaciones', ['tipoMoneda' => TipoMoneda::all(), 'plataformas' => UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas]);
   }
 
-  public function previewBeneficio(Request $request){
-    $benMensual = BeneficioMensual::find($request->id);
-    if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
-    return ['fecha' => $benMensual->fecha, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
-    'cant_detalles' => $benMensual->beneficios()->count(),
-    'detalles'=> $benMensual->beneficios()
-    ->select('fecha','jugadores','depositos','retiros','apuesta','premio','beneficio')
-    ->skip($request->page*$request->size)->take($request->size)->get()];
-  }
-
-  public function previewBeneficioPoker(Request $request){
-    $benMensual = BeneficioMensualPoker::find($request->id);
-    if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
-    return ['fecha' => $benMensual->fecha, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
-    'cant_detalles' => $benMensual->beneficios()->count(),
-    'detalles'=> $benMensual->beneficios()
-    ->select('fecha','jugadores','mesas','buy','rebuy','total_buy','cash_out','otros_pagos','total_bonus','utilidad')
-    ->skip($request->page*$request->size)->take($request->size)->get()];
-  }
-
-
-  public function previewProducido(Request $request){
-    $producido = Producido::find($request->id);
-    if(is_null($producido)) return response()->json("No existe el producido",422);
-    return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
-    'cant_detalles' => $producido->detalles()->count(),
-    'detalles'=> $producido->detalles()
-    ->select('cod_juego','categoria','jugadores',
-    'apuesta_efectivo','apuesta_bono','apuesta',
-    'premio_efectivo','premio_bono','premio',
-    'beneficio_efectivo','beneficio_bono','beneficio')
-    ->skip($request->page*$request->size)->take($request->size)->get()];
-  }
-
-  public function previewProducidoJugadores(Request $request){
-    $producido = ProducidoJugadores::find($request->id);
-    if(is_null($producido)) return response()->json("No existe el producido",422);
-    return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
-    'cant_detalles' => $producido->detalles()->count(),
-    'detalles'=> $producido->detalles()
-    ->skip($request->page*$request->size)->take($request->size)->get()];
-  }
-
-  public function previewProducidoPoker(Request $request){
-    $producido = ProducidoPoker::find($request->id);
-    if(is_null($producido)) return response()->json("No existe el producido",422);
-    return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
-    'cant_detalles' => $producido->detalles()->count(),
-    'detalles' => $producido->detalles()
-    ->select('cod_juego','categoria','jugadores','droop','utilidad')
-    ->skip($request->page*$request->size)->take($request->size)->get()];
+  public function previewImportacion(Request $request){
+    if($request->tipo_importacion == 'beneficio_juegos'){
+      $benMensual = BeneficioMensual::find($request->id);
+      if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
+      return ['fecha' => $benMensual->fecha, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
+      'cant_detalles' => $benMensual->beneficios()->count(),
+      'detalles'=> $benMensual->beneficios()
+      ->select('fecha','jugadores','depositos','retiros','apuesta','premio','beneficio')
+      ->skip($request->page*$request->size)->take($request->size)->get()];
+    }
+    else if($request->tipo_importacion == 'beneficio_poker'){
+      $benMensual = BeneficioMensualPoker::find($request->id);
+      if(is_null($benMensual)) return response()->json("No existe el beneficio",422);
+      return ['fecha' => $benMensual->fecha, 'plataforma' => $benMensual->plataforma, 'tipo_moneda'  => $benMensual->tipo_moneda,
+      'cant_detalles' => $benMensual->beneficios()->count(),
+      'detalles'=> $benMensual->beneficios()
+      ->select('fecha','jugadores','mesas','buy','rebuy','total_buy','cash_out','otros_pagos','total_bonus','utilidad')
+      ->skip($request->page*$request->size)->take($request->size)->get()];
+    }
+    else if($request->tipo_importacion == 'producido_juegos'){
+      $producido = Producido::find($request->id);
+      if(is_null($producido)) return response()->json("No existe el producido",422);
+      return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+      'cant_detalles' => $producido->detalles()->count(),
+      'detalles'=> $producido->detalles()
+      ->select('cod_juego','categoria','jugadores',
+      'apuesta_efectivo','apuesta_bono','apuesta',
+      'premio_efectivo','premio_bono','premio',
+      'beneficio_efectivo','beneficio_bono','beneficio')
+      ->skip($request->page*$request->size)->take($request->size)->get()];
+    }
+    else if($request->tipo_importacion == 'producido_jugadores'){
+      $producido = ProducidoJugadores::find($request->id);
+      if(is_null($producido)) return response()->json("No existe el producido",422);
+      return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+      'cant_detalles' => $producido->detalles()->count(),
+      'detalles'=> $producido->detalles()
+      ->skip($request->page*$request->size)->take($request->size)->get()];
+    }
+    else if($request->tipo_importacion == 'producido_poker'){
+      $producido = ProducidoPoker::find($request->id);
+      if(is_null($producido)) return response()->json("No existe el producido",422);
+      return ['fecha' => $producido->fecha, 'plataforma' => $producido->plataforma, 'tipo_moneda'  => $producido->tipo_moneda,
+      'cant_detalles' => $producido->detalles()->count(),
+      'detalles' => $producido->detalles()
+      ->select('cod_juego','categoria','jugadores','droop','utilidad')
+      ->skip($request->page*$request->size)->take($request->size)->get()];
+    }
+    else return response()->json("No existe",422);
   }
 
   public function buscar(Request $request){
