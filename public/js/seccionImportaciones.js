@@ -1,30 +1,5 @@
-//Opacidad del modal al minimizar
-$('#btn-minimizarProducidos').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarBeneficios').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Importaciones');
-  $('#opcImportaciones').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
-  $('#opcImportaciones').addClass('opcionesSeleccionado');
-
   $('#fecha_busqueda,#mesInfoImportacion').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -67,7 +42,7 @@ $(document).ready(function(){
     $('#plataforma_busqueda option:eq(1)').prop('selected', true);
   }
 
-  setearValueFecha();
+  $('#tipo_archivo').change();
   //Paginar
   $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
   $('#plataformaInfoImportacion').val(1);
@@ -110,9 +85,9 @@ function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
           const moldeFilaImportacion = $('#moldeFilaImportacion').clone();
           moldeFilaImportacion.removeAttr('id');
           moldeFilaImportacion.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
-          moldeFilaImportacion.find('.producido').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
+          moldeFilaImportacion.find('.producido_juegos').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
-          moldeFilaImportacion.find('.beneficio').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
+          moldeFilaImportacion.find('.beneficio_juegos').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.producido_poker').addClass(data.arreglo[i].prod_poker[moneda]? 'true' : 'false');
           moldeFilaImportacion.find('.beneficio_poker').addClass(data.arreglo[i].benef_poker[moneda]? 'true' : 'false');
           tablaBody.append(moldeFilaImportacion);
@@ -123,20 +98,6 @@ function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
     });
 
     $('#moldeFilaImportacion').hide();
-}
-
-
-function setearValueFecha() {
-  var tipo_archivo = $('#tipo_archivo').val();
-
-  switch (tipo_archivo) {
-    case '2':
-      $('#tablaImportaciones #tipo_fecha').attr('value',"producido.fecha");
-      break
-    case '3':
-      $('#tablaImportaciones #tipo_fecha').attr('value',"beneficio_mensual.fecha");
-      break;
-  }
 }
 
 function obtenerFechaString(dateFecha, conDia) {
@@ -151,7 +112,7 @@ function obtenerFechaString(dateFecha, conDia) {
 }
 
 //Opacidad del modal al minimizar
-$('#btn-minimizar').click(function(){
+$('#btn-minimizar,#btn-minimizarProducidos,#btn-minimizarBeneficios').click(function(){
   if($(this).data("minimizar")==true){
     $('.modal-backdrop').css('opacity','0.1');
     $(this).data("minimizar",false);
@@ -162,10 +123,8 @@ $('#btn-minimizar').click(function(){
 });
 
 $(document).on('click','.planilla', function(){
-  const tipo_importacion = $('#tipo_archivo').val();
-  const titulo = {2:'VISTA PREVIA PRODUCIDO',3:'VISTA PREVIA BENEFICIO'}[tipo_importacion];
   //Mostrar el título correspondiente
-  $('#modalPlanilla h3.modal-title').text(titulo);
+  $('#modalPlanilla h3.modal-title').text('VISTA PREVIA '+$('#tipo_archivo option:selected').text());
 
   //Limpiar el modal
   $('#modalPlanilla #fecha').val('');
@@ -174,39 +133,12 @@ $(document).on('click','.planilla', function(){
   $('#modalPlanilla').attr('data-id',$(this).val());
   $('#modalPlanilla').attr('data-page','0');
   $('#modalPlanilla').attr('data-size',30);
-  $('#modalPlanilla').attr('data-tipo',tipo_importacion);
-  const head = $('#tablaVistaPrevia thead tr');
-  head.children().remove();
+  const tipo_importacion = $('#tipo_archivo').val();
+  const head = $('#tablaVistaPrevia thead');
+  head.empty();
   $('#tablaVistaPrevia tbody tr').remove();
-  if(tipo_importacion == "PRODUCIDO"){
-    head.append(clonarFilaHeader('producido_juegos').find('th'));
-    actualizarPreviewProducidos($(this).val(),0,30);
-  }
-  else if(tipo_importacion == "PRODJUG"){
-    head.append(clonarFilaHeader('producido_jugadores').find('th'));
-    actualizarPreviewProducidosJugadores($(this).val(),0,30);
-  }
-  else if(tipo_importacion == "BENEFICIO"){
-    head.append(clonarFilaHeader('beneficio_juegos').find('th'));
-    actualizarPreviewBeneficios($(this).val(),0,30)
-  }
-  else if(tipo_importacion == "PRODPOKER"){
-    head.append(clonarFilaHeader('producido_poker').find('th'));
-    actualizarPreviewProducidosPoker($(this).val(),0,30);
-  }
-  else if(tipo_importacion == "BENEFPOKER"){
-    head.append($('<th>').addClass('col-xs-1').append('FECHA'));
-    head.append($('<th>').addClass('col-xs-1').append('JUGADORES'));
-    head.append($('<th>').addClass('col-xs-1').append('MESAS'));
-    head.append($('<th>').addClass('col-xs-1').append('BUY'));
-    head.append($('<th>').addClass('col-xs-1').append('REBUY'));
-    head.append($('<th>').addClass('col-xs-2').append('TOTALBUY'));
-    head.append($('<th>').addClass('col-xs-1').append('CASHOUT'));
-    head.append($('<th>').addClass('col-xs-1').append('OTROS PAGOS'));
-    head.append($('<th>').addClass('col-xs-1').append('BONUS'));
-    head.append($('<th>').addClass('col-xs-2').append('UTILIDAD'));
-    actualizarPreviewBeneficiosPoker($(this).val(),0,30);
-  }
+  head.append(clonarFilaHeader(tipo_importacion));
+  actualizarPreview(tipo_importacion,$(this).val(),0,30);
 
   //Mostrar el modal de la vista previa
   $('#modalPlanilla').modal('show');
@@ -347,32 +279,25 @@ function actualizarPreviewProducidosPoker(id_producido_poker,page,size){
   });
 }
 
-$('#prevPreview').click(function(){
-  const id = parseInt($('#modalPlanilla').attr('data-id'));
-  let page = parseInt($('#modalPlanilla').attr('data-page'));
-  page = Math.max(page-1,0)
-  $('#modalPlanilla').attr('data-page',page);
-  const size = parseInt($('#modalPlanilla').attr('data-size'));
-  const tipo = $('#modalPlanilla').attr('data-tipo');
-  if(tipo == "PRODUCIDO") actualizarPreviewProducidos(id,page,size)
-  else if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
-  else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
-  else if(tipo == "PRODPOKER") actualizarPreviewProducidosPoker(id,page,size);
-  else if(tipo == "BENEFPOKER") actualizarPreviewBeneficiosPoker(id,page,size);
-});
+function actualizarPreview(tipo,id,page,size){
+  if(tipo == "producido_juegos") actualizarPreviewProducidos(id,page,size)
+  else if(tipo == "producido_jugadores") actualizarPreviewProducidosJugadores(id,page,size)
+  else if(tipo == "beneficio_juegos") actualizarPreviewBeneficios(id,page,size);
+  else if(tipo == "producido_poker") actualizarPreviewProducidosPoker(id,page,size);
+  else if(tipo == "beneficio_poker") actualizarPreviewBeneficiosPoker(id,page,size);
+}
 
-$('#nextPreview').click(function(){
+$('#prevPreview,#nextPreview').click(function(){
   const id = parseInt($('#modalPlanilla').attr('data-id'));
   let page = parseInt($('#modalPlanilla').attr('data-page'));
-  page++;
+
+  if($(this).attr('id') == 'prevPreview'){ page  = Math.max(page-1,0); }
+  else if($(this).attr('id') == 'nextPreview'){ page++; }
+
   $('#modalPlanilla').attr('data-page',page);
   const size = parseInt($('#modalPlanilla').attr('data-size'));
-  const tipo = $('#modalPlanilla').attr('data-tipo');
-  if(tipo == "PRODUCIDO") actualizarPreviewProducidos(id,page,size)
-  else if(tipo == "PRODJUG") actualizarPreviewProducidosJugadores(id,page,size)
-  else if(tipo == "BENEFICIO") actualizarPreviewBeneficios(id,page,size);
-  else if(tipo == "PRODPOKER") actualizarPreviewProducidosPoker(id,page,size);
-  else if(tipo == "BENEFPOKER") actualizarPreviewBeneficiosPoker(id,page,size);
+  const tipo = $('#tipo_archivo').val();
+  actualizarPreview(tipo,id,page,size);
 });
 
 $('#tipo_archivo').change(function(){$('#btn-buscarImportaciones').click();});
@@ -383,42 +308,23 @@ $('#moneda_busqueda').change(function(){$('#btn-buscarImportaciones').click();})
 $(document).on('click','.borrar',function(){
   //Se muestra el modal de confirmación de eliminación
   //Se le pasa el tipo de archivo y el id del archivo
-  $('#btn-eliminarModal').val($(this).val()).attr('data-tipo',$('#tipo_archivo').val());
-  $('#titulo-modal-eliminar').text('¿Seguro desea eliminar el '+ $('#tipo_archivo option:selected').text() + '?');
+  const id = $(this).val();
+  const tipo = $(this).attr('data-tipo');
+  $('#btn-eliminarModal').val(id).attr('data-tipo',tipo);
+  $('#titulo-modal-eliminar').text('¿Seguro desea eliminar el '+ $('#tipo_archivo option').filter(function(){return $(this).val() == tipo}).text() + '?');
   $('#modalEliminar').modal('show');
 });
 
 $('#btn-eliminarModal').click(function (e) {
-  var id_importacion = $(this).val();
-  var tipo_archivo = $(this).attr('data-tipo');
-  console.log('Borrar ' + tipo_archivo + ': ' + id_importacion);
-
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
 
-  let url = 'importaciones';
-  switch(tipo_archivo){
-    case 'PRODUCIDO':
-      url += "/eliminarProducido/" + id_importacion;
-      break;
-    case 'PRODJUG':
-      url += "/eliminarProducidoJugadores/" + id_importacion;
-      break;
-    case 'BENEFICIO':
-      url += "/eliminarBeneficioMensual/" + id_importacion;
-      break;
-    case 'PRODPOKER':
-      url += "/eliminarProducidoPoker/" + id_importacion;
-      break;
-    case 'BENEFPOKER':
-      url += "/eliminarBeneficioMensualPoker/" + id_importacion;
-      break;
-    default:
-      return;
-  }
-
+  const snakeCase = $(this).attr('data-tipo').val().toLowerCase().replace(/([-_][a-z])/g, function(group){//producido_juegos -> producidoJuegos
+    return group.toUpperCase().replace('-', '').replace('_', ''); 
+  });
+  const id_importacion = $(this).val();
   $.ajax({
     type: "DELETE",
-    url: url,
+    url: 'importaciones/'+snakeCase[0].toUpperCase()+snakeCase.slice(1)+'/'+id_importacion,
     success: function (data) {
       $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
       $('#monedaInfoImportacion').change();
@@ -456,22 +362,8 @@ function agregarFilaDetalleProducidoPoker(detalle) {
 function agregarFilaDetalleBeneficio(detalle){
   $('#tablaVistaPrevia tbody').append(clonarFila('beneficio_juegos',detalle));
 }
-function agregarFilaDetalleBeneficioPoker(beneficio){
-  const fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.fecha).css('text-align','center'));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.jugadores).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.mesas).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.buy).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.rebuy).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.total_buy).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.cash_out).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.otros_pagos).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-1').append(beneficio.total_bonus).css('text-align','right'));
-  fila.append($('<td>').addClass('col-xs-2').append(beneficio.utilidad).css('text-align','right'));
-  fila.find('td').each(function(){
-    $(this).attr('title',$(this).text());
-  });
-  $('#tablaVistaPrevia tbody').append(fila);
+function agregarFilaDetalleBeneficioPoker(detalle){
+  $('#tablaVistaPrevia tbody').append(clonarFila('beneficio_poker',detalle));
 }
 
 function reiniciarModalImportarProducido(){
@@ -566,7 +458,7 @@ $('#btn-guardarProducido').on('click',function(e){
   const url_modo = {
     'producido_juegos'    : 'importaciones/importarProducido',
     'producido_jugadores' : 'importaciones/importarProducidoJugadores',
-    'producido_poker' : 'importaciones/importarProducidoPoker',
+    'producido_poker'     : 'importaciones/importarProducidoPoker',
   };
   const modo = $('#modalImportacionDiario').data('modo');
   if(!(modo in url_modo)) return;
@@ -698,12 +590,6 @@ $('#btn-reintentarProducido').click(function(e) {
 });
 
 /*********************** BENEFICIOS *********************************/
-$('#btn-ayuda').click(function(e){
-  e.preventDefault();
-  $('#modalAyuda .modal-title').text('| IMPORTACIONES');
-  $('#modalAyuda .modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-	$('#modalAyuda').modal('show');
-});
 
 function reiniciarModalImportarBeneficios(){
   $('#modalImportacionMensual #rowArchivo').show();
@@ -929,7 +815,16 @@ function agregarFilasImportaciones(data) {
 
 //Detectar el cambio de TIPO DE ARCHIVO
 $('#tipo_archivo').on('change',function(){
-    setearValueFecha();
+  var tipo_archivo = $('#tipo_archivo').val();
+
+  switch (tipo_archivo) {
+    case '2':
+      $('#tablaImportaciones #tipo_fecha').attr('value',"producido.fecha");
+      break
+    case '3':
+      $('#tablaImportaciones #tipo_fecha').attr('value',"beneficio_mensual.fecha");
+      break;
+  }
 });
 
 function clickIndice(e,pageNumber,tam){
@@ -958,12 +853,9 @@ $(document).on('click','#tablaImportaciones thead tr th[value]',function(e){
   $('#tablaImportaciones th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
+
 $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  })
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
 
   //Fix error cuando librería saca los selectores
   if(isNaN($('#herramientasPaginacion').getPageSize())){
@@ -996,11 +888,11 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
     dataType: 'json',
     success: function (resultados) {
       $('#tablaImportaciones tbody tr').remove();
-      $('#tablaImportaciones').attr('data-tipo', formData.seleccion);
       $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
       for (let i = 0; i < resultados.data.length; i++) {
         agregarFilasImportaciones(resultados.data[i]);
       }
+      $('#tablaImportaciones tbody button').attr('data-tipo',formData.tipo_archivo);
       $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
     },
     error: function (data) {

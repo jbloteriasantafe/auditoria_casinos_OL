@@ -4,10 +4,23 @@
 @endsection
 @section('contenidoVista')
 <?php
-use App\Http\Controllers\UsuarioController;
-use Illuminate\Http\Request;
-setlocale(LC_TIME, 'es_ES.UTF-8');
-$id_usuario = session('id_usuario');
+setlocale(LC_TIME, 'es_ES.UTF-8');//??
+$cols_juegos = ['cod_juego' => 'center','categoria' => 'center','jugadores' => 'right','apuesta_efectivo' => 'right','apuesta_bono' => 'right',
+'apuesta' => 'right','premio_efectivo' => 'right','premio_bono' => 'right','premio' => 'right','beneficio_efectivo' => 'right',
+'beneficio_bono' => 'right','beneficio' => 'right'];
+$cols_jugadores = ['jugador' => 'center','juegos' => 'right','apuesta_efectivo' => 'right','apuesta_bono' => 'right',
+'apuesta' => 'right','premio_efectivo' => 'right','premio_bono' => 'right','premio' => 'right','beneficio_efectivo' => 'right',
+'beneficio_bono' => 'right','beneficio' => 'right'];
+$cols_poker = ['cod_juego' => 'center','categoria' => 'center','jugadores' => 'right','droop' => 'right','utilidad' => 'right'];
+$cols_b_juegos = ['fecha' => 'center','jugadores' => 'right','depositos' => 'right','retiros' => 'right','apuesta' => 'right','premio' => 'right','beneficio' => 'right'];
+$cols_b_poker = ['fecha' => 'center','jugadores' => 'right','mesas' => 'right','buy' => 'right','rebuy' => 'right','total_buy' => 'right',
+        'cash_out' => 'right','otros_pagos' => 'right','total_bonus' => 'right','utilidad' => 'right'];
+$cols = ['producido_juegos' => $cols_juegos,'producido_jugadores' => $cols_jugadores,'producido_poker' => $cols_poker,'beneficio_juegos' => $cols_b_juegos,'beneficio_poker' => $cols_b_poker];
+
+$to_header = function($s){
+  if($s == "droop") return "DROP";
+  return str_replace("_"," ",strtoupper($s));
+};
 ?>
 
 @section('estilos')
@@ -179,21 +192,17 @@ $id_usuario = session('id_usuario');
             <thead>
               <tr>
                 <th value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                <th>PRODUCIDOS</th>
-                <th>PROD. JUGADORES</th>
-                <th>BENEFICIOS</th>
-                <th>PROD. POKER</th>
-                <th>BENEF. POKER</th>
+                @foreach($cols as $modo => $ignorar)
+                <th>{{$to_header($modo)}}</th>
+                @endforeach
               </tr>
             </thead>
             <tbody>
               <tr id="moldeFilaImportacion">
                 <td class="fecha">12 AGO 2018</td>
-                <td class="producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                <td class="producido_jugadores"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                <td class="beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                <td class="producido_poker"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                <td class="beneficio_poker"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                @foreach($cols as $modo => $ignorar)
+                <td class="{{$modo}}"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                @endforeach
               </tr>
             </tbody>
           </table>
@@ -217,11 +226,9 @@ $id_usuario = session('id_usuario');
                               <div class="col-md-3">
                                   <h5>TIPO DE ARCHIVO</h5>
                                   <select id="tipo_archivo" class="form-control">
-                                    <option value="PRODUCIDO">PRODUCIDO</option>
-                                    <option value="PRODJUG">PROD. JUGADORES</option>
-                                    <option value="BENEFICIO">BENEFICIO</option>
-                                    <option value="PRODPOKER">PROD. POKER</option>
-                                    <option value="BENEFPOKER">BENEF. POKER</option>
+                                    @foreach($cols as $modo => $ignorar)
+                                    <option value="{{$modo}}">{{$to_header($modo)}}</option>
+                                    @endforeach
                                   </select>
                               </div>
                               <div class="col-md-2">
@@ -563,22 +570,6 @@ $id_usuario = session('id_usuario');
     </div>
 
     <table hidden>
-      <?php 
-      $to_header = function($s){
-        if($s == "droop") return "DROP";
-        return str_replace("_"," ",strtoupper($s));
-      };
-
-      $cols_juegos = ['cod_juego' => 'center','categoria' => 'center','jugadores' => 'right','apuesta_efectivo' => 'right','apuesta_bono' => 'right',
-               'apuesta' => 'right','premio_efectivo' => 'right','premio_bono' => 'right','premio' => 'right','beneficio_efectivo' => 'right',
-               'beneficio_bono' => 'right','beneficio' => 'right'];
-      $cols_jugadores = ['jugador' => 'center','juegos' => 'right','apuesta_efectivo' => 'right','apuesta_bono' => 'right',
-      'apuesta' => 'right','premio_efectivo' => 'right','premio_bono' => 'right','premio' => 'right','beneficio_efectivo' => 'right',
-      'beneficio_bono' => 'right','beneficio' => 'right'];
-      $cols_poker = ['cod_juego' => 'center','categoria' => 'center','jugadores' => 'right','droop' => 'right','utilidad' => 'right'];
-      $cols_b_juegos = ['fecha' => 'center','jugadores' => 'right','depositos' => 'right','retiros' => 'right','apuesta' => 'right','premio' => 'right','beneficio' => 'right'];
-      $cols = ['producido_juegos' => $cols_juegos,'producido_jugadores' => $cols_jugadores,'producido_poker' => $cols_poker,'beneficio_juegos' => $cols_b_juegos];
-      ?>
       @foreach($cols as $modo => $cols_modo)
       <tr class="moldeDiario {{$modo}}">
         @foreach($cols_modo as $col => $align)

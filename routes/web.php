@@ -177,11 +177,11 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::post('/previewProducidoPoker','ImportacionController@previewProducidoPoker');
   Route::post('/previewBeneficio','ImportacionController@previewBeneficio');
   Route::post('/previewBeneficioPoker','ImportacionController@previewBeneficioPoker');
-  Route::delete('/eliminarProducido/{id}','ProducidoController@eliminarProducido');
+  Route::delete('/eliminarProducidoJuegos/{id}','ProducidoController@eliminarProducido');
   Route::delete('/eliminarProducidoJugadores/{id}','ProducidoController@eliminarProducidoJugadores');
   Route::delete('/eliminarProducidoPoker/{id}','ProducidoController@eliminarProducidoPoker');
-  Route::delete('/eliminarBeneficioMensual/{id}','BeneficioMensualController@eliminarBeneficioMensual');
-  Route::delete('/eliminarBeneficioMensualPoker/{id}','BeneficioMensualController@eliminarBeneficioMensualPoker');
+  Route::delete('/eliminarBeneficioJuegos/{id}','BeneficioMensualController@eliminarBeneficioMensual');
+  Route::delete('/eliminarBeneficioPoker/{id}','BeneficioMensualController@eliminarBeneficioMensualPoker');
 });
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');

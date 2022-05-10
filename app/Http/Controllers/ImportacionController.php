@@ -117,32 +117,32 @@ class ImportacionController extends Controller
 
     $sort_by = $request->sort_by;
     $resultados = ["data" => [],"total" => 0];
-    if($request->tipo_archivo == "PRODUCIDO"){
+    if($request->tipo_archivo == "producido_juegos"){
       $resultados = DB::table('producido')->select('producido.id_producido as id','producido.fecha as fecha'
       ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','producido.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
-    else if($request->tipo_archivo == "PRODJUG"){
+    else if($request->tipo_archivo == "producido_jugadores"){
       $resultados = DB::table('producido_jugadores')->select('producido_jugadores.id_producido_jugadores as id',
       'producido_jugadores.fecha as fecha','plataforma.nombre as plataforma',
       'tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','producido_jugadores.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','producido_jugadores.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
-    else if($request->tipo_archivo == "BENEFICIO"){
+    else if($request->tipo_archivo == "beneficio_juegos"){
       $resultados = DB::table('beneficio_mensual')->select('beneficio_mensual.id_beneficio_mensual as id','beneficio_mensual.fecha as fecha'
       ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','beneficio_mensual.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
-    else if($request->tipo_archivo == "PRODPOKER"){
+    else if($request->tipo_archivo == "producido_poker"){
       $resultados = DB::table('producido_poker')->select('producido_poker.id_producido_poker as id','producido_poker.fecha as fecha'
       ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','producido_poker.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','producido_poker.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
-    else if($request->tipo_archivo == "BENEFPOKER"){
+    else if($request->tipo_archivo == "beneficio_poker"){
       $resultados = DB::table('beneficio_mensual_poker')->select('beneficio_mensual_poker.id_beneficio_mensual_poker as id','beneficio_mensual_poker.fecha as fecha'
       ,'plataforma.nombre as plataforma','tipo_moneda.descripcion as tipo_moneda','plataforma.id_plataforma')
       ->join('plataforma','beneficio_mensual_poker.id_plataforma','=','plataforma.id_plataforma')
