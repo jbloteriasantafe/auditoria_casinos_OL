@@ -18,7 +18,7 @@ $(document).ready(function(){
     autoclose: 1,
     todayHighlight: 1,
     format: 'dd/mm/yyyy',
-    pickerPosition: "bottom-left",
+    pickerPosition: "top-right",
     startView: 2,
     minView: 2,
     ignoreReadonly: true,
@@ -30,7 +30,7 @@ $(document).ready(function(){
     autoclose: 1,
     todayHighlight: 1,
     format: 'mm/yyyy',
-    pickerPosition: "bottom-left",
+    pickerPosition: "top-right",
     startView: 2,
     minView: 2,
     ignoreReadonly: true,
@@ -98,17 +98,6 @@ function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
     });
 
     $('#moldeFilaImportacion').hide();
-}
-
-function obtenerFechaString(dateFecha, conDia) {
-    var arrayFecha = dateFecha.split('/');
-    console.log(arrayFecha);
-    var meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-
-    if (conDia) {
-      return arrayFecha[0] + ' ' +  meses[arrayFecha[1] - 1] + ' ' + arrayFecha[2];
-    }
-    else return meses[arrayFecha[1] - 1] + ' ' + arrayFecha[2];
 }
 
 //Opacidad del modal al minimizar
