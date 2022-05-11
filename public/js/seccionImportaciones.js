@@ -12,30 +12,6 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
 
-  $('#fechaProducido').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd/mm/yyyy',
-    pickerPosition: "top-right",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#fechaBeneficio').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'mm/yyyy',
-    pickerPosition: "top-right",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
   $('#mesInfoImportacion').data('datetimepicker').setDate(new Date());
 
   if($('#plataforma_busqueda option').length == 2 ){
@@ -66,37 +42,29 @@ $('#monedaInfoImportacion').change(function() {
   cargarTablasImportaciones(id_plataforma, id_moneda, fecha_sort);
 });
 
-function limpiarBodysImportaciones() {
-  $('#infoImportaciones tbody tr').not('#moldeFilaImportacion').remove();
-  $('#infoImportaciones tbody').hide();
-}
-
 function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
   const fecha = $('#mes_info_hidden').val();
   const url = fecha.size == 0? '/' : ('/' + fecha);
   $.get('importaciones/' + plataforma + url + '/' + (fecha_sort? fecha_sort : ''), function(data) {
-    const tablaBody = $('#infoImportaciones tbody tr').remove();
-    limpiarBodysImportaciones();
+    const tablaBody = $('#infoImportaciones tbody');
+    tablaBody.empty();
 
     for (let i = 0; i < data.arreglo.length; i++) {
-      const moldeFilaImportacion = $('#moldeFilaImportacion').clone();
-      moldeFilaImportacion.removeAttr('id');
-      moldeFilaImportacion.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
-      moldeFilaImportacion.find('.producido_juegos').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
-      moldeFilaImportacion.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
-      moldeFilaImportacion.find('.beneficio_juegos').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
-      moldeFilaImportacion.find('.producido_poker').addClass(data.arreglo[i].prod_poker[moneda]? 'true' : 'false');
-      moldeFilaImportacion.find('.beneficio_poker').addClass(data.arreglo[i].benef_poker[moneda]? 'true' : 'false');
-      tablaBody.append(moldeFilaImportacion);
-      moldeFilaImportacion.show();
+      const fila = $('#moldeFilaImportacionPorDia').clone();
+      fila.removeAttr('id');
+      fila.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
+      fila.find('.producido_juegos').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
+      fila.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
+      fila.find('.beneficio_juegos').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
+      fila.find('.producido_poker').addClass(data.arreglo[i].prod_poker[moneda]? 'true' : 'false');
+      fila.find('.beneficio_poker').addClass(data.arreglo[i].benef_poker[moneda]? 'true' : 'false');
+      tablaBody.append(fila);
     }
   });
-
-  $('#moldeFilaImportacion').hide();
 }
 
 //Opacidad del modal al minimizar
-$('#btn-minimizar,#btn-minimizarProducidos,#btn-minimizarBeneficios').click(function(){
+$('#btn-minimizar,#btn-minimizarImportacion').click(function(){
   if($(this).data("minimizar")==true){
     $('.modal-backdrop').css('opacity','0.1');
     $(this).data("minimizar",false);
@@ -204,7 +172,6 @@ $('#btn-eliminarModal').click(function (e) {
   });
 });
 
-/*********************** PRODUCIDOS *********************************/
 function clonarFila(modo,detalle){
   const fila = $(`.moldeDiario.${modo}`).clone().removeClass('moldeDiario');
   fila.find('td').each(function(){
@@ -221,144 +188,49 @@ function agregarFilaDetalle(modo,detalle){
   $('#tablaVistaPrevia tbody').append(clonarFila(modo,detalle));
 }
 
-function reiniciarModalImportarProducido(){
-  //Mostrar: rowArchivo
-  $('#modalImportacionDiario #rowArchivo').show();
-  $('#fechaProducido').data('datetimepicker').reset();
-  $('#plataformaProducido').val("");
-  $('#monedaProducido').val("");
-  $('#datosProducido').hide(); 
-  $('#modalImportacionDiario #rowArchivo').show();
-  //Ocultar: mensajes, iconoCarga
-  $('#modalImportacionDiario #mensajeError').hide();
-  $('#modalImportacionDiario #mensajeInvalido').hide();
-  $('#modalImportacionDiario #datosProducido').hide();
-  $('#modalImportacionDiario #iconoCarga').hide();
-  $('#modalImportacionDiario #archivo')[0].files[0] = null;
-  $('#modalImportacionDiario #archivo').attr('data-borrado','false');
-  $("#modalImportacionDiario #archivo").fileinput('destroy').fileinput({
-      language: 'es',
-      language: 'es',
-      showRemove: false,
-      showUpload: false,
-      showCaption: false,
-      showZoom: false,
-      browseClass: "btn btn-primary",
-      previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-      overwriteInitial: false,
-      initialPreviewAsData: true,
-      dropZoneEnabled: false,
-      preferIconicPreview: true,
-      previewFileIconSettings: {
-        'csv': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>',
-        'txt': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>'
-      },
-      allowedFileExtensions: ['csv','txt'],
-  });
-  //Ocultar botón SUBIR
-  $('#btn-guardarProducido').hide();
-}
-
 $('#btn-importarProducidos').click(function(e){
   e.preventDefault();
-  $('#modalImportacionDiario .modal-title').text("| IMPORTAR PRODUCIDO");
-  $('#modalImportacionDiario').find('.modal-footer').children().show();
-  reiniciarModalImportarProducido();
+  $('#modalImportacion .modal-title').text("| IMPORTAR PRODUCIDO");
+  $('#modalImportacion').find('.modal-footer').children().show();
+  reiniciarModalImportar('producido_juegos');
   $('#mensajeExito').hide();
-  $('#modalImportacionDiario').data('modo','producido_juegos').modal('show');
+  $('#modalImportacion').data('modo','producido_juegos').modal('show');
 });
 
 $('#btn-importarProducidosJugadores').click(function(e){
   e.preventDefault();
-  $('#modalImportacionDiario .modal-title').text("| IMPORTAR PRODUCIDO JUGADORES");
-  $('#modalImportacionDiario').find('.modal-footer').children().show();
-  reiniciarModalImportarProducido();
+  $('#modalImportacion .modal-title').text("| IMPORTAR PRODUCIDO JUGADORES");
+  $('#modalImportacion').find('.modal-footer').children().show();
+  reiniciarModalImportar('producido_jugadores');
   $('#mensajeExito').hide();
-  $('#modalImportacionDiario').data('modo','producido_jugadores').modal('show');
+  $('#modalImportacion').data('modo','producido_jugadores').modal('show');
 });
 
 $('#btn-importarProducidosPoker').click(function(e){
   e.preventDefault();
-  $('#modalImportacionDiario .modal-title').text("| IMPORTAR PRODUCIDO POKER");
-  $('#modalImportacionDiario').find('.modal-footer').children().show();
-  reiniciarModalImportarProducido();
+  $('#modalImportacion .modal-title').text("| IMPORTAR PRODUCIDO POKER");
+  $('#modalImportacion').find('.modal-footer').children().show();
+  reiniciarModalImportar('producido_poker');
   $('#mensajeExito').hide();
-  $('#modalImportacionDiario').data('modo','producido_poker').modal('show');
+  $('#modalImportacion').data('modo','producido_poker').modal('show');
 });
 
-$('#btn-guardarProducido').on('click',function(e){
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-
+$('#btn-importarBeneficios').click(function(e){
   e.preventDefault();
+  $('#modalImportacion').find('.modal-footer').children().show();
+  reiniciarModalImportar('beneficio_juegos');
+  $('#modalImportacion .modal-title').text("| IMPORTAR BENEFICIO");
+  $('#modalImportacion').data('modo','beneficio_juegos').modal('show');
+  $('#modalImportacion').modal('show');
+});
 
-  let formData = new FormData();
-  const id_plataforma = $('#plataformaProducido').val();
-  const fecha = $('#fechaProducido_hidden').val();
-  const id_tipo_moneda = $('#monedaProducido').val();
-  formData.append('id_plataforma', id_plataforma);
-  formData.append('fecha', fecha);
-  formData.append('id_tipo_moneda', id_tipo_moneda);
-
-  $('#plataformaInfoImportacion').val(id_plataforma);
-  $('#monedaInfoImportacion').val(id_tipo_moneda);
-  const date = $('#fechaProducido').data('datetimepicker').getDate();
-  $('#mesInfoImportacion').data('datetimepicker').setDate(date);
-  $('#plataformaInfoImportacion').change();
-  
-  //Si subió archivo lo guarda
-  if($('#modalImportacionDiario #archivo').attr('data-borrado') == 'false' && $('#modalImportacionDiario #archivo')[0].files[0] != null){
-    formData.append('archivo' , $('#modalImportacionDiario #archivo')[0].files[0]);
-  }
-
-  const url_modo = {
-    'producido_juegos'    : 'importaciones/importarProducido',
-    'producido_jugadores' : 'importaciones/importarProducidoJugadores',
-    'producido_poker'     : 'importaciones/importarProducidoPoker',
-  };
-  const modo = $('#modalImportacionDiario').data('modo');
-  if(!(modo in url_modo)) return;
-  $.ajax({
-      type: "POST",
-      url: url_modo[modo],
-      data: formData,
-      processData: false,
-      contentType:false,
-      cache:false,
-      beforeSend: function(data){
-        console.log('Empezó');
-        $('#modalImportacionDiario').find('.modal-footer').children().hide();
-        $('#modalImportacionDiario').find('.modal-body').children().hide();
-        $('#modalImportacionDiario').find('.modal-body').children('#iconoCarga').show();
-      },
-      success: function (data) {
-        $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
-        $('#modalImportacionDiario').modal('hide');
-        limpiarBodysImportaciones();
-        $('#plataformaInfoImportacion').change();
-        $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN');
-        text = data.cantidad_registros + ' registro(s) fueron importados'
-        if(data.juegos_multiples_reportes > 0) text += '<br>' + data.juegos_multiples_reportes + ' juego(s) reportaron multiples veces';
-        if(data.jugadores_multiples_reportes > 0) text += '<br>' + data.jugadores_multiples_reportes + ' jugador(es) reportaron multiples veces';
-        $('#mensajeExito p').html(text);
-        $('#mensajeExito').show();
-      },
-      error: function (data) {
-        //alerta de error si el archivo ya se encuentra cargado y validado.
-        var response = JSON.parse(data.responseText);
-        if(response.producido_validado !== 'undefined'){
-          $('#mensajeError h6').text('El Producido para esa fecha ya está validado y no se puede reimportar.')
-        }
-        //Mostrar: mensajeError
-        $('#modalImportacionDiario #mensajeError').show();
-        //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
-        $('#modalImportacionDiario #rowArchivo').hide();
-        $('#modalImportacionDiario #mensajeInvalido').hide();
-        $('#modalImportacionDiario #datosProducido').hide();
-        $('#modalImportacionDiario #iconoCarga').hide();
-        console.log('ERROR!');
-        console.log(data);
-      }
-  });
+$('#btn-importarBeneficiosPoker').click(function(e){
+  e.preventDefault();
+  $('#modalImportacion').find('.modal-footer').children().show();
+  reiniciarModalImportar('beneficio_poker');
+  $('#modalImportacion .modal-title').text("| IMPORTAR BENEFICIO POKER");
+  $('#modalImportacion').data('modo','beneficio_poker').modal('show');
+  $('#modalImportacion').modal('show');
 });
 
 function toIso(f){
@@ -370,21 +242,23 @@ function toIso(f){
   return f[2]+'-'+mm+'-'+dd+'T'+aux[1];
 }
 
-function procesarDatosProducidos(e) {
+function procesarDatos(e){
+  const modo = $('#modalImportacion').data('modo');
+  const es_producido = modo.search(/producido/g) != -1;
+  const es_beneficio = modo.search(/beneficio/g) != -1;
   const csv = e.target.result;
   //Limpio retorno de carro y saco las lineas sin nada.
   const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
   const columnas_modos = {//@TODO: Unificar beneficio
-    'producido_juegos' : 10, 'producido_jugadores' : 9, 'producido_poker' : 10,
+    'producido_juegos' : 10, 'producido_jugadores' : 9, 'producido_poker' : 10,'beneficio_juegos' : 16, 'beneficio_poker' : 13,
   }
-  const modo = $('#modalImportacionDiario').data('modo');
   const fail = function(){
     //Si no retorno arriba quiere decir que no era valido
-    $('#modalImportacionDiario #mensajeInvalido p').text('El archivo no contiene producidos');
-    $('#modalImportacionDiario #mensajeInvalido').show();
-    $('#modalImportacionDiario #iconoCarga').hide();
+    $('#modalImportacion #mensajeInvalido p').text('El archivo no es correcto');
+    $('#modalImportacion #mensajeInvalido').show();
+    $('#modalImportacion #iconoCarga').hide();
     //Ocultar botón de subida
-    $('#btn-guardarProducido').hide();
+    $('#btn-guardarImportacion').hide();
   };
 
   if(allTextLines.length <= 0 ||!(modo in columnas_modos)){
@@ -396,70 +270,82 @@ function procesarDatosProducidos(e) {
   }
 
   if(allTextLines.length == 1){
-    $('#fechaProducido input').attr('disabled',false);
-    $('#fechaProducido span').show()
+    if(es_producido){
+      $('#fechaImportacion input').attr('disabled',false);
+      $('#fechaImportacion span').show();
+      $('#monedaImportacion').val(1);
+    }
+    else{
+      return fail();
+    }
   }
-  else if (['producido_juegos','producido_jugadores','producido_poker'].includes(modo)) {//Si tiene filas, extraigo la fecha
-    const date = allTextLines[1].split(',')[0].replaceAll('"','');//Saco las comillas
-    $('#fechaProducido').data('datetimepicker').setDate(new Date(toIso(date)));
-    $('#fechaProducido input').attr('disabled',true);
-    $('#fechaProducido span').hide()
+  else if (allTextLines.length > 1) {//Si tiene filas, extraigo la fecha
+    if(es_producido){
+      const date = allTextLines[1].split(',')[0].replaceAll('"','');//Saco las comillas
+      $('#fechaImportacion').data('datetimepicker').setDate(new Date(toIso(date)));
+      $('#fechaImportacion input').attr('disabled',true);
+      $('#fechaImportacion span').hide();
+      $('#monedaImportacion').val(1);
+    }
+    else if(es_beneficio && allTextLines.length > 2){
+      const date = allTextLines[1].split(',')[1].replaceAll('"','');//Saco las comillas
+      $('#fechaImportacion').data('datetimepicker').setDate(new Date(toIso(date)));
+      $('#fechaImportacion input').attr('disabled',true);
+      $('#fechaImportacion span').hide();
+      const moneda = allTextLines[1].split(',')[2];
+      $(`#monedaImportacion option:contains(${moneda})`).prop('selected',true)
+      $('#monedaImportacion').attr('disabled',true);
+    }
+    else {
+      return fail();
+    }
   }
   else{
     return fail();
   }
-  $('#monedaProducido').val(1);
-  $('#modalImportacionDiario #mensajeInvalido').hide();
+  
+  $('#modalImportacion #mensajeInvalido').hide();
   //Mostrar botón SUBIR
-  $('#btn-guardarProducido').show();
-  $('#datosProducido').show();
+  $('#btn-guardarImportacion').show();
+  $('#datosImportacion').show();
 }
 
-//Eventos de la librería del input
-$('#modalImportacionDiario #archivo').on('fileerror', function(event, data, msg) {
-   $('#modalImportacionDiario #datosProducido').hide();
-   $('#modalImportacionDiario #mensajeInvalido').show();
-   $('#modalImportacionDiario #mensajeInvalido p').text(msg);
-   //Ocultar botón SUBIR
-   $('#btn-guardarProducido').hide();
-});
+function reiniciarModalImportar(modo){
+  let format = null;
+  if(modo.search(/producido/g) != -1){
+    format = 'dd/mm/yyyy';
+  }
+  else if(modo.search(/beneficio/g) != -1){
+    format = 'mm/yyyy';
+  }
+  else return;
+  if($('#modalImportacion #fechaImportacion').data('datetimepicker')){
+    $('#modalImportacion #fechaImportacion').data('datetimepicker').remove();
+  }
+  $('#modalImportacion #fechaImportacion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: format,
+    pickerPosition: "top-right",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+  });
 
-$('#modalImportacionDiario #archivo').on('fileclear', function(event) {
-  reiniciarModalImportarProducido();
-});
-
-$('#modalImportacionDiario #archivo').on('fileselect', function(event) {
-  reiniciarModalImportarProducido();
-  $('#modalImportacionDiario #archivo').attr('data-borrado','false');
-  // Se lee el archivo guardado en el input de tipo 'file'.
-  // se valida la importación.
-  let reader = new FileReader();
-  reader.onload = procesarDatosProducidos;
-  reader.readAsText($('#modalImportacionDiario #archivo')[0].files[0]);
-});
-
-$('#btn-reintentarProducido').click(function(e) {
-  e.preventDefault();
-  $('#modalImportacionDiario').find('.modal-footer').children().show();
-  reiniciarModalImportarProducido();
-});
-
-/*********************** BENEFICIOS *********************************/
-
-function reiniciarModalImportarBeneficios(){
-  $('#modalImportacionMensual #rowArchivo').show();
-  $('#fechaBeneficio').data('datetimepicker').reset();
-  $('#plataformaBeneficio').val("");
-  $('#monedaBeneficio').val("");
-  $('#datosBeneficio').hide();
-  //Ocultar: mensajes, iconoCarga
-  $('#modalImportacionMensual #mensajeError').hide();
-  $('#modalImportacionMensual #mensajeInvalido').hide();
-  $('#modalImportacionMensual #iconoCarga').hide();
-  //Inicializa el fileinput para cargar los CSV
-  $('#modalImportacionMensual #archivo')[0].files[0] = null;
-  $('#modalImportacionMensual #archivo').attr('data-borrado','false');
-  $("#modalImportacionMensual #archivo").fileinput('destroy').fileinput({
+  $('#modalImportacion #rowArchivo').show();
+  $('#modalImportacion #plataformaImportacion').val("");
+  $('#modalImportacion #monedaImportacion').val("");
+  $('#modalImportacion #rowArchivo').show();
+  $('#modalImportacion #mensajeError').hide();
+  $('#modalImportacion #mensajeInvalido').hide();
+  $('#modalImportacion #datosImportacion').hide();
+  $('#modalImportacion #iconoCarga').hide();
+  $('#modalImportacion #archivo')[0].files[0] = null;
+  $('#modalImportacion #archivo').attr('data-borrado','false');
+  $("#modalImportacion #archivo").fileinput('destroy').fileinput({
+      language: 'es',
       language: 'es',
       showRemove: false,
       showUpload: false,
@@ -477,53 +363,71 @@ function reiniciarModalImportarBeneficios(){
       },
       allowedFileExtensions: ['csv','txt'],
   });
-  $('#btn-guardarBeneficio').hide();
+  //Ocultar botón SUBIR
+  $('#modalImportacion #btn-guardarImportacion').hide();
 }
 
-$('#btn-importarBeneficios').click(function(e){
-  e.preventDefault();
-  $('#modalImportacionMensual').find('.modal-footer').children().show();
-  reiniciarModalImportarBeneficios();
-  $('#modalImportacionMensual .modal-title').text("| IMPORTAR BENEFICIO");
-  $('#modalImportacionMensual').data('modo','beneficio_juegos').modal('show');
-  $('#modalImportacionMensual').modal('show');
+//Eventos de la librería del input
+$('#modalImportacion #archivo').on('fileerror', function(event, data, msg) {
+   $('#modalImportacion #datosImportacion').hide();
+   $('#modalImportacion #mensajeInvalido').show();
+   $('#modalImportacion #mensajeInvalido p').text(msg);
+   //Ocultar botón SUBIR
+   $('#btn-guardarImportacion').hide();
 });
 
-$('#btn-importarBeneficiosPoker').click(function(e){
-  e.preventDefault();
-  $('#modalImportacionMensual').find('.modal-footer').children().show();
-  reiniciarModalImportarBeneficios();
-  $('#modalImportacionMensual .modal-title').text("| IMPORTAR BENEFICIO POKER");
-  $('#modalImportacionMensual').data('modo','beneficio_poker').modal('show');
-  $('#modalImportacionMensual').modal('show');
+$('#modalImportacion #archivo').on('fileclear', function(event) {
+  reiniciarModalImportar($('#modalImportacion').data('modo'));
 });
 
-$('#btn-guardarBeneficio').on('click', function(e){
+$('#modalImportacion #archivo').on('fileselect', function(event) {
+  reiniciarModalImportar($('#modalImportacion').data('modo'));
+  $('#modalImportacion #archivo').attr('data-borrado','false');
+  // Se lee el archivo guardado en el input de tipo 'file'.
+  // se valida la importación.
+  let reader = new FileReader();
+  reader.onload = procesarDatos;
+  reader.readAsText($('#modalImportacion #archivo')[0].files[0]);
+});
+
+$('#btn-reintentarImportacion').click(function(e) {
+  e.preventDefault();
+  $('#modalImportacion').find('.modal-footer').children().show();
+  reiniciarModalImportar($('#modalImportacion').data('modo'));
+});
+
+$('#btn-guardarImportacion').on('click',function(e){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
 
   let formData = new FormData();
-  const id_plataforma = $('#plataformaBeneficio').val();
-  const fecha = $('#fechaBeneficio_hidden').val();
-  const id_tipo_moneda = $('#monedaBeneficio').val();
+  const id_plataforma = $('#plataformaImportacion').val();
+  const fecha = $('#fechaImportacion_hidden').val();
+  const id_tipo_moneda = $('#monedaImportacion').val();
   formData.append('id_plataforma', id_plataforma);
   formData.append('fecha', fecha);
   formData.append('id_tipo_moneda', id_tipo_moneda);
 
   $('#plataformaInfoImportacion').val(id_plataforma);
   $('#monedaInfoImportacion').val(id_tipo_moneda);
-  const date = $('#fechaBeneficio').data('datetimepicker').getDate();
+  const date = $('#fechaImportacion').data('datetimepicker').getDate();
   $('#mesInfoImportacion').data('datetimepicker').setDate(date);
   $('#plataformaInfoImportacion').change();
 
   //Si subió archivo lo guarda
-  if($('#modalImportacionMensual #archivo').attr('data-borrado') == 'false' && $('#modalImportacionMensual #archivo')[0].files[0] != null){
-    formData.append('archivo' , $('#modalImportacionMensual #archivo')[0].files[0]);
+  if($('#modalImportacion #archivo').attr('data-borrado') == 'false' && $('#modalImportacion #archivo')[0].files[0] != null){
+    formData.append('archivo' , $('#modalImportacion #archivo')[0].files[0]);
   }
 
-  const urls = {'beneficio_juegos' : 'importaciones/importarBeneficio','beneficio_poker' : 'importaciones/importarBeneficioPoker'};
-  const modo = $('#modalImportacionMensual').data('modo');
+  const urls = {
+    'producido_juegos'    : 'importaciones/importarProducido',
+    'producido_jugadores' : 'importaciones/importarProducidoJugadores',
+    'producido_poker'     : 'importaciones/importarProducidoPoker',
+    'beneficio_juegos'    : 'importaciones/importarBeneficio',
+    'beneficio_poker'     : 'importaciones/importarBeneficioPoker'
+  };
+  const modo = $('#modalImportacion').data('modo');
   if(!(modo in urls)) return;
 
   $.ajax({
@@ -535,118 +439,42 @@ $('#btn-guardarBeneficio').on('click', function(e){
     cache:false,
     beforeSend: function(data){
       console.log('Empezó');
-      $('#modalImportacionMensual').find('.modal-footer').children().hide();
-      $('#modalImportacionMensual').find('.modal-body').children().hide();
-      $('#modalImportacionMensual').find('.modal-body').children('#iconoCarga').show();
+      $('#modalImportacion').find('.modal-footer').children().hide();
+      $('#modalImportacion').find('.modal-body').children().hide();
+      $('#modalImportacion').find('.modal-body').children('#iconoCarga').show();
     },
     complete: function(data){
       console.log('Terminó');
     },
     success: function (data) {
       $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
-      $('#modalImportacionMensual').modal('hide');
-      limpiarBodysImportaciones();
+      $('#modalImportacion').modal('hide');
       $('#plataformaInfoImportacion').change();
-      $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN BENEFICIO');
-      $('#mensajeExito p').text(data.dias + ' registro(s) del BENEFICIO fueron importados');
+      $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN');
+
+      if(modo.search(/beneficio/g) != -1){
+        $('#mensajeExito p').text(data.dias + ' registro(s) del BENEFICIO fueron importados');
+      }
+      else if(modo.search(/producido/g) != -1){
+        text = data.cantidad_registros + ' registro(s) fueron importados'
+        if(data.juegos_multiples_reportes > 0) text += '<br>' + data.juegos_multiples_reportes + ' juego(s) reportaron multiples veces';
+        if(data.jugadores_multiples_reportes > 0) text += '<br>' + data.jugadores_multiples_reportes + ' jugador(es) reportaron multiples veces';
+        $('#mensajeExito p').html(text);
+      }
       $('#mensajeExito').show();
     },
     error: function (data) {
       //Mostrar: mensajeError
-      $('#modalImportacionMensual #mensajeError').show();
+      $('#modalImportacion #mensajeError').show();
       //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
-      $('#modalImportacionMensual #rowArchivo').hide();
-      $('#modalImportacionMensual #datosBeneficio').hide();
-      $('#modalImportacionMensual #mensajeInvalido').hide();
-      $('#modalImportacionMensual #iconoCarga').hide();
+      $('#modalImportacion #rowArchivo').hide();
+      $('#modalImportacion #datosBeneficio').hide();
+      $('#modalImportacion #mensajeInvalido').hide();
+      $('#modalImportacion #iconoCarga').hide();
       console.log('ERROR!');
       console.log(data);
     }
   });
-});
-
-function procesarDatosProducidos(e) {
-  $('#monedaProducido').val(1);
-  $('#modalImportacionDiario #mensajeInvalido').hide();
-  //Mostrar botón SUBIR
-  $('#btn-guardarProducido').show();
-  $('#datosProducido').show();
-}
-
-function procesarDatosBeneficios(e) {
-  const csv = e.target.result;
-  //Limpio retorno de carro y saco las lineas sin nada.
-  const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
-  const columnas_modos = {
-    'beneficio_juegos' : 16, 'beneficio_poker' : 13,
-  }
-  const modo = $('#modalImportacionMensual').data('modo');
-  const fail = function(){
-    //Si no retorno arriba quiere decir que no era valido
-    $('#modalImportacionMensual #mensajeInvalido p').text('El archivo no contiene beneficios');
-    $('#modalImportacionMensual #mensajeInvalido').show();
-    $('#modalImportacionMensual #iconoCarga').hide();
-    //Ocultar botón de subida
-    $('#btn-guardarBeneficio').hide();
-  };
-  if(allTextLines.length <= 0 ||!(modo in columnas_modos)){
-    return fail();
-  }
-  const columnas = columnas_modos[modo];
-  if(allTextLines[0].split(',').length != columnas){
-    return fail();
-  }
-  if(allTextLines.length == 2){
-    $('#fechaBeneficio input').attr('disabled',false);
-    $('#fechaBeneficio span').show();
-    $('#monedaBeneficio').attr('disabled',false);
-  }
-  else if (allTextLines.length > 2) {//Si tiene filas, extraigo la fecha
-    const date = allTextLines[1].split(',')[1].replaceAll('"','');//Saco las comillas
-    $('#fechaBeneficio').data('datetimepicker').setDate(new Date(toIso(date)));
-    $('#fechaBeneficio input').attr('disabled',true);
-    $('#fechaBeneficio span').hide();
-    const moneda = allTextLines[1].split(',')[2];
-    $(`#monedaBeneficio option:contains(${moneda})`).prop('selected',true)
-    $('#monedaBeneficio').attr('disabled',true);
-  }
-  else{
-    return fail();
-  }
-  $('#modalImportacionMensual #mensajeInvalido').hide();
-  //Mostrar botón SUBIR
-  $('#btn-guardarBeneficio').show();
-  $('#datosBeneficio').show();
-}
-
-//Eventos de la librería del input
-$('#modalImportacionMensual #archivo').on('fileerror', function(event, data, msg) {
-  $('#modalImportacionMensual #datosProducido').hide();
-  $('#modalImportacionMensual #mensajeInvalido').show();
-  $('#modalImportacionMensual #mensajeInvalido p').text(msg);
-  //Ocultar botón SUBIR
-  $('#btn-guardarBeneficio').hide();
-});
-
-$('#modalImportacionMensual #archivo').on('fileclear', function(event) {
-  reiniciarModalImportarBeneficios();
-});
-
-$('#modalImportacionMensual #archivo').on('fileselect', function(event) {
-  reiniciarModalImportarBeneficios();
-  $('#modalImportacionMensual #archivo').attr('data-borrado','false');
-  // Se lee el archivo guardado en el input de tipo 'file'.
-  // se valida la importación.
-  var reader = new FileReader();
-  reader.readAsText($('#modalImportacionMensual #archivo')[0].files[0]);
-  reader.onload = procesarDatosBeneficios;
-});
-
-$('#btn-reintentarBeneficio').click(function(e) {
-  e.preventDefault();
-  $('#modalImportacionMensual').find('.modal-footer').children().show();
-  reiniciarModalImportarBeneficios();
-  $('#mensajeExito').hide();
 });
 
 /*****************PAGINACION******************/

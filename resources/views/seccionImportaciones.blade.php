@@ -186,12 +186,6 @@ $to_header = function($s){
               </tr>
             </thead>
             <tbody>
-              <tr id="moldeFilaImportacion">
-                <td class="fecha">12 AGO 2018</td>
-                @foreach($cols as $modo => $ignorar)
-                <td class="{{$modo}}"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                @endforeach
-              </tr>
             </tbody>
           </table>
         </div>
@@ -343,242 +337,143 @@ $to_header = function($s){
           </div>
     </div>
 
-    <!-- Modal Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-                <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
-                </div>
-
-                <div class="modal-body franjaRojaModal">
-                  <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
-                      <div class="form-group error ">
-                          <div class="col-xs-12">
-                            <strong id="titulo-modal-eliminar">¿Seguro que desea eliminar la importación?</strong>
-                          </div>
-                      </div>
-                  </form>
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarModal" value="0">ELIMINAR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
+      </div>
+      <div class="modal-body franjaRojaModal">
+        <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
+            <div class="form-group error ">
+                <div class="col-xs-12">
+                  <strong id="titulo-modal-eliminar">¿Seguro que desea eliminar la importación?</strong>
                 </div>
             </div>
-          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarModal" value="0">ELIMINAR</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Modal Producido -->
-    <div class="modal fade" id="modalImportacionDiario" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarProducidos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoProducidos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">| IMPORTAR PRODUCIDO</h3>
-                </div>
+<table hidden>
+  <tr id="moldeFilaImportacionPorDia">
+    <td class="fecha">12 AGO 2018</td>
+    @foreach($cols as $modo => $ignorar)
+    <td class="{{$modo}}"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+    @endforeach
+  </tr>
+  @foreach($cols as $modo => $cols_modo)
+  <tr class="moldeDiario {{$modo}}">
+    @foreach($cols_modo as $col => $align)
+    <td data-atributo="{{$col}}" style="text-align: {{$align}};width: {{100/count($cols_modo)}}%;">{{$col}}</td>
+    @endforeach
+  </tr>
+  <tr class="moldeDiarioHeader {{$modo}}">
+    @foreach($cols_modo as $col => $align)
+    <th data-atributo="{{$col}}" style="text-align: center;width: {{100/count($cols_modo)}}%;">{{$to_header($col)}}</th>
+    @endforeach
+  </tr>
+  @endforeach
+  <tr id="moldeFilaImportaciones">
+    <td class="col-xs-3 fecha">DD MMM YYYY</td>
+    <td class="col-xs-3 plataforma">PLATAFORMA</td>
+    <td class="col-xs-3 tipo_moneda">MONEDA</td>
+    <td class="col-xs-3">
+      <button class="btn btn-info planilla" title="VER"><i class="far fa-fw fa-file-alt"></i></button>
+      <button class="btn btn-danger borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+    </td>
+  </tr>
+</table>
 
-                <div  id="colapsadoProducidos" class="collapse in">
-
-                <div class="modal-body modalCuerpo">
-
-                  <div id="rowArchivo" class="row">
-                          <div class="col-xs-12">
-                              <h5>ARCHIVO</h5>
-                              <div class="zona-file">
-                                <input id="archivo" data-borrado="false" type="file" name="" >
-                                <br> <span id="alertaArchivo" class="alertaSpan"></span>
-                              </div>
-                          </div>
-                    @include('includes.md5hash')
-                  </div>
-
-                  <div id="datosProducido" class="row">
-                    <div class="col-xs-5">
-                      <h5>FECHA</h5>
-                      <div class="input-group date" id="fechaProducido" data-link-field="fechaProducido_hidden" data-link-format="yyyy-mm-dd">
-                        <input type="text" class="form-control" placeholder="Fecha del producido">
-                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                      </div>
-                      <input type="hidden" id="fechaProducido_hidden" value="">
-                    </div>
-                    <div class="col-xs-4">
-                      <h5>PLATAFORMA</h5>
-                      <select id="plataformaProducido" class="form-control">
-                        <option value="">Seleccione</option>
-                        @foreach ($plataformas as $plataforma)
-                        <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                    <div class="col-xs-3">
-                      <h5>MONEDA</h5>
-                      <select id="monedaProducido" class="form-control">
-                        <option value="">Seleccione</option>
-                        @foreach($tipoMoneda as $tipo)
-                        <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                          <div class="col-md-12">
-                              <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
-                              <button id="btn-reintentarProducido" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
-                          </div>
-                  </div>
-
-                  <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                            <div class="col-xs-12" align="center">
-                                <i class="fa fa-fw fa-exclamation-triangle"></i>
-                                <h6> ARCHIVO INCORRECTO</h6>
-                            </div>
-                            <br>
-                            <br>
-                            <div class="col-xs-12" align="center">
-                                <p>Solo se aceptan archivos con extensión .csv o .txt</p>
-                            </div>
-                  </div>
-
-                  <div id="iconoCarga" class="sk-folding-cube">
-                    <div class="sk-cube1 sk-cube"></div>
-                    <div class="sk-cube2 sk-cube"></div>
-                    <div class="sk-cube4 sk-cube"></div>
-                    <div class="sk-cube3 sk-cube"></div>
-                  </div>
-
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-successAceptar" id="btn-guardarProducido" hidden value="nuevo"> SUBIR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
-                  <input type="hidden" id="tipoImportacion" name="" value="">
-                </div>
+<div class="modal fade" id="modalImportacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizarImportacion" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoImportacion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title">| IMPORTAR</h3>
+      </div>
+      <div id="colapsadoImportacion" class="collapse in">
+        <div class="modal-body modalCuerpo"> 
+          <div id="rowArchivo" class="row">
+            <div class="col-xs-12">
+              <h5>ARCHIVO</h5>
+              <div class="zona-file">
+                <input id="archivo" data-borrado="false" type="file" name="" >
+                <br>
+                <span id="alertaArchivo" class="alertaSpan"></span>
               </div>
             </div>
+            @include('includes.md5hash')
           </div>
-    </div>
-
-    <!-- Modal Beneficio -->
-    <div class="modal fade" id="modalImportacionMensual" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarBeneficios" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoBeneficios" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">| IMPORTAR BENEFICIO</h3>
-                </div>
-
-                <div  id="colapsadoBeneficios" class="collapse in">
-
-                <div class="modal-body modalCuerpo">
-
-
-                  <div id="rowArchivo" class="row">
-                          <div class="col-xs-12">
-                              <h5>ARCHIVO</h5>
-                              <div class="zona-file">
-                                <input id="archivo" data-borrado="false" type="file" name="" >
-                                <br> <span id="alertaArchivo" class="alertaSpan"></span>
-                              </div>
-                          </div>
-
-                    @include('includes.md5hash')
-                  </div>
-
-                  <div id="datosBeneficio" class="row">
-                    <div class="col-xs-5">
-                      <h5>FECHA</h5>
-                      <div class="input-group date" id="fechaBeneficio" data-link-field="fechaBeneficio_hidden" data-link-format="yyyy-mm-dd">
-                        <input type="text" class="form-control" placeholder="Fecha del beneficio">
-                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                      </div>
-                      <input type="hidden" id="fechaBeneficio_hidden" value="">
-                    </div>
-                    <div class="col-xs-4">
-                      <h5>PLATAFORMA</h5>
-                      <select id="plataformaBeneficio" class="form-control">
-                        <option value="">Seleccione</option>
-                        @foreach ($plataformas as $plataforma)
-                        <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                    <div class="col-xs-3">
-                      <h5>MONEDA</h5>
-                      <select id="monedaBeneficio" class="form-control">
-                        <option value="">Seleccione</option>
-                        @foreach($tipoMoneda as $tipo)
-                        <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </div>
-
-                  <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                          <div class="col-md-12">
-                              <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
-                              <button id="btn-reintentarBeneficio" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
-                          </div>
-                  </div>
-                      
-                  <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                            <div class="col-xs-12" align="center">
-                                <i class="fa fa-fw fa-exclamation-triangle"></i>
-                                <h6> ARCHIVO INCORRECTO</h6>
-                            </div>
-                            <br>
-                            <br>
-                            <div class="col-xs-12" align="center">
-                                <p>Solo se aceptan archivos con extensión .csv o .txt</p>
-                            </div>
-                      </div>
-                      
-                  <div id="iconoCarga" class="sk-folding-cube">
-                    <div class="sk-cube1 sk-cube"></div>
-                    <div class="sk-cube2 sk-cube"></div>
-                    <div class="sk-cube4 sk-cube"></div>
-                    <div class="sk-cube3 sk-cube"></div>
-                  </div>
-
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-successAceptar" id="btn-guardarBeneficio" hidden value="nuevo"> SUBIR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
-                  <input type="hidden" id="tipoImportacion" name="" value="">
-                </div>
-              </div>
+          <div id="datosImportacion" class="row">
+		        <div class="col-xs-5">
+		          <h5>FECHA</h5>
+		          <div class="input-group date" id="fechaImportacion" data-link-field="fechaImportacion_hidden" data-link-format="yyyy-mm-dd">
+		            <input type="text" class="form-control" placeholder="Fecha de la importacion">
+		            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+		            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+		          </div>
+		          <input type="hidden" id="fechaImportacion_hidden" value="">
+		        </div>
+		        <div class="col-xs-4">
+              <h5>PLATAFORMA</h5>
+              <select id="plataformaImportacion" class="form-control">
+                <option value="">Seleccione</option>
+                @foreach ($plataformas as $plataforma)
+                <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-xs-3">
+              <h5>MONEDA</h5>
+              <select id="monedaImportacion" class="form-control">
+                <option value="">Seleccione</option>
+                @foreach($tipoMoneda as $tipo)
+                <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+                @endforeach
+              </select>
             </div>
           </div>
+          <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
+            <div class="col-md-12">
+              <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
+              <button id="btn-reintentarBeneficio" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
+            </div>
+          </div>
+          <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
+            <div class="col-xs-12" align="center">
+              <i class="fa fa-fw fa-exclamation-triangle"></i>
+              <h6> ARCHIVO INCORRECTO</h6>
+            </div>
+            <br>
+            <br>
+            <div class="col-xs-12" align="center">
+              <p>Solo se aceptan archivos con extensión .csv o .txt</p>
+            </div>
+          </div>
+          <div id="iconoCarga" class="sk-folding-cube">
+            <div class="sk-cube1 sk-cube"></div>
+            <div class="sk-cube2 sk-cube"></div>
+            <div class="sk-cube4 sk-cube"></div>
+            <div class="sk-cube3 sk-cube"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-successAceptar" id="btn-guardarImportacion" hidden value="nuevo"> SUBIR</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
+        </div>
+      </div>
     </div>
-
-    <table hidden>
-      @foreach($cols as $modo => $cols_modo)
-      <tr class="moldeDiario {{$modo}}">
-        @foreach($cols_modo as $col => $align)
-        <td data-atributo="{{$col}}" style="text-align: {{$align}};width: {{100/count($cols_modo)}}%;">{{$col}}</td>
-        @endforeach
-      </tr>
-      <tr class="moldeDiarioHeader {{$modo}}">
-        @foreach($cols_modo as $col => $align)
-        <th data-atributo="{{$col}}" style="text-align: center;width: {{100/count($cols_modo)}}%;">{{$to_header($col)}}</th>
-        @endforeach
-      </tr>
-      @endforeach
-      <tr id="moldeFilaImportaciones">
-        <td class="col-xs-3 fecha">DD MMM YYYY</td>
-        <td class="col-xs-3 plataforma">PLATAFORMA</td>
-        <td class="col-xs-3 tipo_moneda">MONEDA</td>
-        <td class="col-xs-3">
-          <button class="btn btn-info planilla" title="VER"><i class="far fa-fw fa-file-alt"></i></button>
-          <button class="btn btn-danger borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
-        </td>
-      </tr>
-    </table>
+  </div>
+</div>
   
     <meta name="_token" content="{!! csrf_token() !!}" />
 
