@@ -52,7 +52,7 @@ $(document).ready(function(){
 
 
 $('#plataformaInfoImportacion').change(function() {
-    $('#monedaInfoImportacion').change();
+  $('#monedaInfoImportacion').change();
 });
 
 $('#mesInfoImportacion').on("change.datetimepicker",function(){
@@ -60,44 +60,39 @@ $('#mesInfoImportacion').on("change.datetimepicker",function(){
 });
 
 $('#monedaInfoImportacion').change(function() {
-    const id_plataforma = $('#plataformaInfoImportacion').val();
-    const id_moneda = $(this).val();
-    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
-    cargarTablasImportaciones(id_plataforma, id_moneda, fecha_sort);
+  const id_plataforma = $('#plataformaInfoImportacion').val();
+  const id_moneda = $(this).val();
+  const fecha_sort = $('#infoImportaciones .activa').attr('estado');
+  cargarTablasImportaciones(id_plataforma, id_moneda, fecha_sort);
 });
 
 function limpiarBodysImportaciones() {
-    $('#infoImportaciones tbody tr').not('#moldeFilaImportacion').remove();
-    $('#infoImportaciones tbody').hide();
+  $('#infoImportaciones tbody tr').not('#moldeFilaImportacion').remove();
+  $('#infoImportaciones tbody').hide();
 }
 
 function cargarTablasImportaciones(plataforma, moneda, fecha_sort) {
-    const fecha = $('#mes_info_hidden').val();
-    const url = fecha.size == 0? '/' : ('/' + fecha);
-    $.get('importaciones/' + plataforma + url + '/' + (fecha_sort? fecha_sort : ''), function(data) {
-        const tablaBody = $('#infoImportaciones tbody');
+  const fecha = $('#mes_info_hidden').val();
+  const url = fecha.size == 0? '/' : ('/' + fecha);
+  $.get('importaciones/' + plataforma + url + '/' + (fecha_sort? fecha_sort : ''), function(data) {
+    const tablaBody = $('#infoImportaciones tbody tr').remove();
+    limpiarBodysImportaciones();
 
-        console.log("Plataforma: ", plataforma);
+    for (let i = 0; i < data.arreglo.length; i++) {
+      const moldeFilaImportacion = $('#moldeFilaImportacion').clone();
+      moldeFilaImportacion.removeAttr('id');
+      moldeFilaImportacion.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
+      moldeFilaImportacion.find('.producido_juegos').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
+      moldeFilaImportacion.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
+      moldeFilaImportacion.find('.beneficio_juegos').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
+      moldeFilaImportacion.find('.producido_poker').addClass(data.arreglo[i].prod_poker[moneda]? 'true' : 'false');
+      moldeFilaImportacion.find('.beneficio_poker').addClass(data.arreglo[i].benef_poker[moneda]? 'true' : 'false');
+      tablaBody.append(moldeFilaImportacion);
+      moldeFilaImportacion.show();
+    }
+  });
 
-        limpiarBodysImportaciones();
-
-        for (let i = 0; i < data.arreglo.length; i++) {
-          const moldeFilaImportacion = $('#moldeFilaImportacion').clone();
-          moldeFilaImportacion.removeAttr('id');
-          moldeFilaImportacion.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
-          moldeFilaImportacion.find('.producido_juegos').addClass(data.arreglo[i].producido[moneda]? 'true' : 'false');
-          moldeFilaImportacion.find('.producido_jugadores').addClass(data.arreglo[i].prod_jug[moneda]? 'true' : 'false');
-          moldeFilaImportacion.find('.beneficio_juegos').addClass(data.arreglo[i].beneficio[moneda]? 'true' : 'false');
-          moldeFilaImportacion.find('.producido_poker').addClass(data.arreglo[i].prod_poker[moneda]? 'true' : 'false');
-          moldeFilaImportacion.find('.beneficio_poker').addClass(data.arreglo[i].benef_poker[moneda]? 'true' : 'false');
-          tablaBody.append(moldeFilaImportacion);
-          moldeFilaImportacion.show();
-        }
-
-        tablaBody.show();
-    });
-
-    $('#moldeFilaImportacion').hide();
+  $('#moldeFilaImportacion').hide();
 }
 
 //Opacidad del modal al minimizar
@@ -655,34 +650,17 @@ $('#btn-reintentarBeneficio').click(function(e) {
 });
 
 /*****************PAGINACION******************/
-
-function agregarFilasImportaciones(data) {
-  var fila = $('<tr>');
-  fila.append($('<td>').addClass('col-xs-3').text("-"));
-  fila.append($('<td>').addClass('col-xs-3').text(convertirDate(data.fecha)));
-  fila.append($('<td>').addClass('col-xs-2').text(data.plataforma));
-  fila.append($('<td>').addClass('col-xs-2').text(data.tipo_moneda));
-  fila.append($('<td>').addClass('col-xs-2')
-    .append($('<button>').addClass('btn btn-info planilla').val(data.id)
-      .append($('<i>').addClass('far fa-fw fa-file-alt'))
-    )
-    .append($('<button>').addClass('btn btn-danger borrar').val(data.id)
-      .append($('<i>').addClass('fa fa-fw fa-trash-alt'))
-    )
-  );
-  $('#tablaImportaciones tbody').append(fila);
-}
-
 //Detectar el cambio de TIPO DE ARCHIVO
 $('#tipo_archivo').on('change',function(){
-  var tipo_archivo = $('#tipo_archivo').val();
-
-  switch (tipo_archivo) {
-    case '2':
-      $('#tablaImportaciones #tipo_fecha').attr('value',"producido.fecha");
-      break
-    case '3':
+  switch ($('#tipo_archivo').val()) {
+    case 'beneficio_juegos':
       $('#tablaImportaciones #tipo_fecha').attr('value',"beneficio_mensual.fecha");
+      break;
+    case 'beneficio_poker':
+      $('#tablaImportaciones #tipo_fecha').attr('value',"beneficio_mensual_poker.fecha");
+      break;
+    default:
+      $('#tablaImportaciones #tipo_fecha').attr('value',"fecha");
       break;
   }
 });
@@ -691,9 +669,9 @@ function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
   }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaImportaciones .activa').attr('value');
-  var orden = $('#tablaImportaciones .activa').attr('estado');
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  const columna = $('#tablaImportaciones .activa').attr('value');
+  const orden = $('#tablaImportaciones .activa').attr('estado');
   $('#btn-buscarImportaciones').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
@@ -749,7 +727,13 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
       $('#tablaImportaciones tbody tr').remove();
       $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
       for (let i = 0; i < resultados.data.length; i++) {
-        agregarFilasImportaciones(resultados.data[i]);
+        const d = resultados.data[i];
+        const fila = $('#moldeFilaImportaciones').clone().removeAttr('id');
+        fila.find('.fecha').text(convertirDate(d.fecha));
+        fila.find('.plataforma').text(d.plataforma);
+        fila.find('.tipo_moneda').text(d.tipo_moneda);
+        fila.find('button').val(d.id);
+        $('#tablaImportaciones tbody').append(fila);
       }
       $('#tablaImportaciones tbody button').attr('data-tipo',formData.tipo_archivo);
       $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);

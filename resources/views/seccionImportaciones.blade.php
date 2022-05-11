@@ -42,8 +42,31 @@ $to_header = function($s){
     /*flex: 1;*/
     width: 50%;
   }
-  #tablaVistaPrevia th {
+  #tablaVistaPrevia th,#tablaImportaciones th,#tablaImportaciones td{
     text-align: center;
+  }
+  #infoImportaciones .fa-check {
+      color: #00C853;
+  }
+  #infoImportaciones .fa-times {
+      color: #FF1744;
+  }
+  #infoImportaciones td {
+      height: 50px;
+  }
+  #infoImportaciones td.true .fa-check,#infoImportaciones td.false .fa-times  {
+    display: inline;
+  }
+  #infoImportaciones td.true .fa-times,#infoImportaciones td.false .fa-check {
+    display: none;
+  }
+  #infoImportaciones td,#infoImportaciones th{
+    text-align: center;
+  }
+  #infoImportaciones td,#infoImportaciones th{
+    padding: 0px;
+    margin: 0px;
+    width: <?php echo 100.0/(count($cols)+1) ?>%;
   }
 </style>
 @endsection
@@ -152,41 +175,6 @@ $to_header = function($s){
           </div>
         </div>
         <br>
-        <style media="screen">
-          #infoImportaciones .fa-check {
-              color: #00C853;
-          }
-          #infoImportaciones .fa-times {
-              color: #FF1744;
-          }
-          #infoImportaciones td {
-              height: 50px;
-          }
-
-          #infoImportaciones td.true .fa-check {
-            display: inline;
-          }
-
-          #infoImportaciones td.true .fa-times {
-            display: none;
-          }
-
-          #infoImportaciones td.false .fa-times {
-            display: inline;
-          }
-
-          #infoImportaciones td.false .fa-check {
-            display: none;
-          }
-          #infoImportaciones td,#infoImportaciones th{
-            text-align: center;
-          }
-          #infoImportaciones td,#infoImportaciones th{
-            padding: 0px;
-            margin: 0px;
-            width: 16.666%;
-          }
-        </style>
         <div style="height: 90%;overflow: auto;">
           <table id="infoImportaciones" class="table tablesorter">
             <thead>
@@ -286,11 +274,10 @@ $to_header = function($s){
                             <table id="tablaImportaciones" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-3" value="fecha" estado="">FECHA PRODUCCIÓN<i class="fa fa-sort"></i></th>
                                     <th id="tipo_fecha" class="col-xs-3 activa" value="fecha" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
-                                    <th class="col-xs-2" value="plataforma.nombre" estado="">PLATAFORMA <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-2" value="tipo_moneda.descripcion" estado="">MONEDA <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-2" value="" estado="">ACCIÓN</th>
+                                    <th class="col-xs-3" value="plataforma.nombre" estado="">PLATAFORMA <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="tipo_moneda.descripcion" estado="">MONEDA <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="" estado="">ACCIÓN</th>
                                   </tr>
                                 </thead>
                                 <tbody style="height: 300px;">
@@ -582,6 +569,15 @@ $to_header = function($s){
         @endforeach
       </tr>
       @endforeach
+      <tr id="moldeFilaImportaciones">
+        <td class="col-xs-3 fecha">DD MMM YYYY</td>
+        <td class="col-xs-3 plataforma">PLATAFORMA</td>
+        <td class="col-xs-3 tipo_moneda">MONEDA</td>
+        <td class="col-xs-3">
+          <button class="btn btn-info planilla" title="VER"><i class="far fa-fw fa-file-alt"></i></button>
+          <button class="btn btn-danger borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+        </td>
+      </tr>
     </table>
   
     <meta name="_token" content="{!! csrf_token() !!}" />
