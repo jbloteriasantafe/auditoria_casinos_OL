@@ -18,7 +18,7 @@ $(document).ready(function(){
 
   $('#dtpFechaSistema').datetimepicker(ddmmyyhhiiss_dtp);
   $('#dtpFechaImportacionEstados').datetimepicker(ddmmyy_dtp);
-  $('#fechaImportacion').datetimepicker(ddmmyy_dtp);
+  $('#fechaImportacion').datetimepicker({...ddmmyy_dtp, pickerPosition: "top-right"});
   $('.tituloSeccionPantalla').text('Estado de Juegos');
   $('#btn-buscar').trigger('click');
 });
