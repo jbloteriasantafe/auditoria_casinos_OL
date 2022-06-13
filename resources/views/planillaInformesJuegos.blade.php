@@ -32,9 +32,9 @@ tr:nth-child(even) {
 
 </style>
   <?php 
-  $widths = ["fecha" => "9","jugadores" => "11","apostado" => "21","premios" => "21","ajuste" => "10", "beneficio" => "21","dev" => "7"];
+  $widths = ["fecha" => "11","apostado" => "23","premios" => "23","ajuste" => "12", "beneficio" => "23","dev" => "8"];
   if($cotizacionDefecto != 1){
-    $widths = ["fecha" => "9","jugadores" => "11","apostado" => "16","premios" => "16", "cotizacion" => "15","ajuste" => "10","beneficio" => "16","dev" => "7"];
+    $widths = ["fecha" => "10","apostado" => "17","premios" => "17", "cotizacion" => "16","ajuste" => "15","beneficio" => "17","dev" => "8"];
   }
   //El campo beneficio YA VIENE ajustado, la apuesta y premio no
   //Si es simplificado
@@ -83,7 +83,6 @@ tr:nth-child(even) {
     <table style="table-layout: fixed;">
       <tr>
         <th class="tablaInicio center" width="{{$widths['fecha']}}%">FECHA</th>
-        <th class="tablaInicio center" width="{{$widths['jugadores']}}%">JUGADORES</th>
         <th class="tablaInicio center" width="{{$widths['apostado']}}%">APOSTADO</th>
         <th class="tablaInicio center" width="{{$widths['premios']}}%">PREMIOS</th>
         @if(!$simplificado)
@@ -104,7 +103,6 @@ tr:nth-child(even) {
       ?>
       <tr>
         <td class="tablaCampos center">{{$d->fecha}}</td>
-        <td class="tablaCampos center ">{{$d->jugadores}}</td>
         <td class="tablaCampos right">{{number_format($d->apuesta,2,",",".")}}</td>
         <td class="tablaCampos right">{{number_format($d->premio + ($sumar_ajuste_al_premio? $d->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
@@ -121,7 +119,6 @@ tr:nth-child(even) {
       @endforeach
       <tr class="total">
         <td class="tablaCampos total center">{{$total->fecha}}</td>
-        <td class="tablaCampos total center">{{$total->jugadores}}</td>
         <td class="tablaCampos total right">{{number_format($total->apuesta,2,",",".")}}</td>
         <td class="tablaCampos total right">{{number_format($total->premio + ($sumar_ajuste_al_premio? $total->ajuste : 0),2,",",".")}}</td>
         @if(!$simplificado)
