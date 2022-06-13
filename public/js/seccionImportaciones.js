@@ -154,7 +154,7 @@ $(document).on('click','.borrar',function(){
 $('#btn-eliminarModal').click(function (e) {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
 
-  const camelCase = $(this).attr('data-tipo').val().toLowerCase().replace(/([-_][a-z])/g, function(group){//producido_juegos -> producidoJuegos
+  const camelCase = $(this).attr('data-tipo').toLowerCase().replace(/([-_][a-z])/g, function(group){//producido_juegos -> producidoJuegos
     return group.toUpperCase().replace('-', '').replace('_', ''); 
   });
   const id_importacion = $(this).val();
