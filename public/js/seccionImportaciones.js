@@ -160,7 +160,7 @@ $('#btn-eliminarModal').click(function (e) {
   const id_importacion = $(this).val();
   $.ajax({
     type: "DELETE",
-    url: 'importaciones/'+camelCase[0].toUpperCase()+camelCase.slice(1)+'/'+id_importacion,
+    url: 'importaciones/eliminar'+camelCase[0].toUpperCase()+camelCase.slice(1)+'/'+id_importacion,
     success: function (data) {
       $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
       $('#monedaInfoImportacion').change();
