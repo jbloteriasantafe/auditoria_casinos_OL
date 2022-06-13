@@ -55,7 +55,7 @@ tr:nth-child(even) {
     <div class="primerEncabezado">
       Se han realizado los procedimientos de control correspondientes
       al mes de <b>{{$mesTexto}}</b> de la <b>Plataforma de {{$total->plataforma}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>Poker Online</b>
-      se obtuvo un beneficio de <b>${{$total_beneficio}}</b>, detallando a continuación el beneficio diario.
+      se obtuvo un beneficio de <b>${{number_format($total_beneficio,2,",",".")}}</b>, detallando a continuación el beneficio diario.
     </div>
     <br>
     <table style="table-layout: fixed;">
