@@ -61,8 +61,8 @@ tr:nth-child(even) {
     <table style="table-layout: fixed;">
       <tr>
         <th class="tablaInicio center" width="{{$widths['fecha']}}%">FECHA</th>
-        <th class="tablaInicio center" width="{{$widths['drop']}}%">DROP</th>
-        <th class="tablaInicio center" width="{{$widths['utilidad']}}%">UTILIDAD</th>
+        <th class="tablaInicio center" width="{{$widths['drop']}}%">MONTO JUGADO</th>
+        <th class="tablaInicio center" width="{{$widths['utilidad']}}%">BENEFICIO</th>
         @if($cotizacionDefecto != 1)
         <th class="tablaInicio center" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
         <th class="tablaInicio center" width="{{$widths['conversion']}}%">CONVERSION</th>
