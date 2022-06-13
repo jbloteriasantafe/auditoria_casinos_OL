@@ -497,7 +497,7 @@ $to_header = function($s){
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js?7" charset="utf-8"></script>
+    <script src="/js/seccionImportaciones.js?8" charset="utf-8"></script>
     <script src="/js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->
