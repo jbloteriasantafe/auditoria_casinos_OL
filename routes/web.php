@@ -65,7 +65,7 @@ Route::group(['prefix' => 'expedientes','middleware' => 'tiene_permiso:ver_secci
 Usuarios
 ***********/
 Route::group(['prefix' => 'usuarios','middleware' => 'tiene_permiso:ver_seccion_usuarios'],function(){
-  Route::get('/','UsuarioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_usuarios');
+  Route::get('/','UsuarioController@buscarTodo');
   Route::post('/buscar','UsuarioController@buscarUsuarios');
   Route::get('/buscarUsuario/{id_usuario}','UsuarioController@buscarUsuario');
   Route::post('/guardarUsuario','UsuarioController@guardarUsuario');
@@ -164,7 +164,7 @@ CALENDARIO
 IMPORTACIONES
 ***********/
 Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_seccion_importaciones'],function(){
-  Route::get('/','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
+  Route::get('/','ImportacionController@buscarTodo');
   Route::post('/buscar','ImportacionController@buscar');
   Route::get('/{id_plataforma}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDePlataforma');
   Route::post('/importarProducido','ImportacionController@importarProducido');
@@ -179,6 +179,9 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::delete('/eliminarBeneficioJuegos/{id}','BeneficioMensualController@eliminarBeneficioMensual');
   Route::delete('/eliminarBeneficioPoker/{id}','BeneficioMensualController@eliminarBeneficioMensualPoker');
 });
+Route::group(['prefix' => 'importacionesNoContables','middleware' =>'tiene_permiso:ver_seccion_importaciones'],function(){
+  Route::get('/','ImportacionController@importacionesNoContables');
+});
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
@@ -187,7 +190,7 @@ Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizaci
 PRODUCIDOS
 ******************/
 Route::group(['prefix' => 'producidos','middleware' =>'tiene_permiso:ver_seccion_producidos'],function(){
-  Route::get('/','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
+  Route::get('/','ProducidoController@buscarTodo');
   Route::get('/buscarProducidos','ProducidoController@buscarProducidos');
   Route::get('/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
   Route::get('/generarPlanillaJugadores/{id_producido_jugadores}','ProducidoController@generarPlanillaJugadores');

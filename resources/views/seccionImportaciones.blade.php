@@ -17,10 +17,8 @@ $cols_b_poker = ['fecha' => 'center','jugadores' => 'right','mesas' => 'right','
         'cash_out' => 'right','otros_pagos' => 'right','total_bonus' => 'right','utilidad' => 'right'];
 $cols = ['producido_juegos' => $cols_juegos,'producido_jugadores' => $cols_jugadores,'producido_poker' => $cols_poker,'beneficio_juegos' => $cols_b_juegos,'beneficio_poker' => $cols_b_poker];
 $abbr = ['producido_juegos' =>         '+P','producido_jugadores' =>           '+PJ','producido_poker' =>      '+PPk','beneficio_juegos' =>           '+B','beneficio_poker' =>        '+BPk'];
-$to_header = function($s){
-  if($s == "droop") return "DROP";
-  return str_replace("_"," ",strtoupper($s));
-};
+$to_header = function($s){return str_replace("_"," ",strtoupper($s));};
+$hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)));
 ?>
 
 @section('estilos')
@@ -126,8 +124,8 @@ $to_header = function($s){
             <thead>
               <tr>
                 <th value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                @foreach($cols as $modo => $ignorar)
-                <th>{{$to_header($modo)}}</th>
+                @foreach($hdrs as $modo => $h)
+                <th>{{$h}}</th>
                 @endforeach
               </tr>
             </thead>
@@ -153,8 +151,8 @@ $to_header = function($s){
               <div class="col-md-3">
                 <h5>TIPO DE ARCHIVO</h5>
                 <select id="tipo_archivo" class="form-control">
-                @foreach($cols as $modo => $ignorar)
-                <option value="{{$modo}}">{{$to_header($modo)}}</option>
+                @foreach($hdrs as $modo => $h)
+                <option value="{{$modo}}">{{$h}}</option>
                 @endforeach
                 </select>
               </div>
@@ -313,7 +311,7 @@ $to_header = function($s){
   </tr>
   <tr class="moldeDiarioHeader {{$modo}}">
     @foreach($cols_modo as $col => $align)
-    <th data-atributo="{{$col}}" style="text-align: center;width: {{100/count($cols_modo)}}%;">{{$to_header($col)}}</th>
+    <th data-atributo="{{$col}}" style="text-align: center;width: {{100/count($cols_modo)}}%;">{{$col == "droop"? "DROP" : $to_header($col)}}</th>
     @endforeach
   </tr>
   @endforeach

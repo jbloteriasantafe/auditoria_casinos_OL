@@ -372,4 +372,9 @@ class ImportacionController extends Controller
     $resultado = DB::select(DB::raw('SELECT md5(?) as hash'),[$content]);
     return $resultado[0]->hash;
   }
+
+  public function importacionesNoContables() {
+    UsuarioController::getInstancia()->agregarSeccionReciente('Importaciones No-contables' , 'importacionesNoContables');
+    return view('seccionImportacionesNoContables', ['tipoMoneda' => TipoMoneda::all(), 'plataformas' => UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas]);
+  }
 }
