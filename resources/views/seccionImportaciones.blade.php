@@ -16,7 +16,7 @@ $cols_b_juegos = ['fecha' => 'center','jugadores' => 'right','depositos' => 'rig
 $cols_b_poker = ['fecha' => 'center','jugadores' => 'right','mesas' => 'right','buy' => 'right','rebuy' => 'right','total_buy' => 'right',
         'cash_out' => 'right','otros_pagos' => 'right','total_bonus' => 'right','utilidad' => 'right'];
 $cols = ['producido_juegos' => $cols_juegos,'producido_jugadores' => $cols_jugadores,'producido_poker' => $cols_poker,'beneficio_juegos' => $cols_b_juegos,'beneficio_poker' => $cols_b_poker];
-
+$abbr = ['producido_juegos' =>         '+P','producido_jugadores' =>           '+PJ','producido_poker' =>      '+PPk','beneficio_juegos' =>           '+B','beneficio_poker' =>        '+BPk'];
 $to_header = function($s){
   if($s == "droop") return "DROP";
   return str_replace("_"," ",strtoupper($s));
@@ -74,77 +74,23 @@ $to_header = function($s){
 <div class="row" style="height: 80vh;">
   <!-- columna de los BOTONES  -->
   <div id="botonesImportar" style="width: 25%;height: 90%;float: left;">
-      <div><!-- IMPORTAR PRODUCIDOS -->
-        <a href="" id="btn-importarProducidos" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-            <div class="backgroundNuevo"></div>
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo"><span style="font-size: 0.5em;position: relative;top: -3vh;">+P</span></h5>
-                <h4 class="txtNuevo">IMPORTAR PRODUCIDOS</h4>
-              </center>
-            </div>
+    @foreach($abbr as $modo => $abbr)
+    <div>
+      <a href="" class="btn-importar" data-modo="{{$modo}}" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+          <div class="backgroundNuevo"></div>
+          <div class="col-xs-12">
+            <center>
+              <h5 class="txtLogo"><span style="position: relative;font-size: 0.3em;top: -4vh;">{{$abbr}}</span></h5>
+              <h4 class="txtNuevo">IMPORTAR {{str_replace("_"," ",strtoupper($modo))}}</h4>
+            </center>
           </div>
-        </a>
-      </div>
-      <div><!-- IMPORTAR PRODUCIDOS JUGADORES -->
-        <a href="" id="btn-importarProducidosJugadores" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-            <div class="backgroundNuevo"></div>
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo"><span style="font-size: 0.4em;position: relative;top: -3vh;">+PJ</span></h5>
-                <h4 class="txtNuevo"><span style="font-size: 0.9em">IMPORTAR PRODUCIDOS JUGADORES</span></h4>
-              </center>
-            </div>
-          </div>
-        </a>
-      </div>
-      <div> <!-- IMPORTAR BENEFICIOS -->
-        <a href="" id="btn-importarBeneficios" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-            <div class="backgroundNuevo"></div>
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo"><span style="font-size: 0.5em;position: relative;top: -3vh;">+B</span></h5>
-                <h4 class="txtNuevo">IMPORTAR BENEFICIOS</h4>
-              </center>
-            </div>
-          </div>
-        </a>
-      </div>
-      <div> <!-- IMPORTAR PRODUCIDO POKER -->
-        <a href="" id="btn-importarProducidosPoker" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-            <div class="backgroundNuevo"></div>
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo"><span style="font-size: 0.3em;position: relative;top: -4vh;">+PPk</span></h5>
-                <h4 class="txtNuevo">IMPORTAR PRODUCIDOS POKER</h4>
-              </center>
-            </div>
-          </div>
-        </a>
-      </div>
-      <div> <!-- IMPORTAR BENEFICIO POKER -->
-        <a href="" id="btn-importarBeneficiosPoker" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-            <div class="backgroundNuevo"></div>
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo"><span style="font-size: 0.3em;position: relative;top: -4vh;">+BPk</span></h5>
-                <h4 class="txtNuevo">IMPORTAR BENEFICIOS POKER</h4>
-              </center>
-            </div>
-          </div>
-        </a>
-      </div>
+        </div>
+      </a>
     </div>
+    @endforeach
+  </div>
   <!-- tabla info -->
   <div style="width: 75%;height: 100%;float: left;">
     <div id="importacionesDiarias" class="panel panel-default" style="height: 90%;">
@@ -193,149 +139,139 @@ $to_header = function($s){
     </div>
   </div>
 </div>
-              <!-- columna FILTROS -->
-            <div class="row">
-              <div class="col-md-12">
-                <div class="row">
-                    <div class="col-lg-12">
-                      <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4>FILTROS DE BÚSQUEDA</h4>
-                        </div>
-                        <div class="panel-body">
-                          <div class="row">
-
-                              <div class="col-md-3">
-                                  <h5>TIPO DE ARCHIVO</h5>
-                                  <select id="tipo_archivo" class="form-control">
-                                    @foreach($cols as $modo => $ignorar)
-                                    <option value="{{$modo}}">{{$to_header($modo)}}</option>
-                                    @endforeach
-                                  </select>
-                              </div>
-                              <div class="col-md-2">
-                                  <h5>Plataforma</h5>
-                                  <select id="plataforma_busqueda" class="form-control">
-                                    <option value="0">Todas las plataformas</option>
-                                      @foreach ($plataformas as $plataforma)
-                                        <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
-                                      @endforeach
-                                  </select>
-                              </div>
-                              <div class="col-md-3">
-                                  <h5>FECHA</h5>
-                                  <div class='input-group date' id='fecha_busqueda' data-link-field="fecha_busqueda_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                      <input id="fecha_busqueda_input" type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                  </div>
-                                  <input type="hidden" id="fecha_busqueda_hidden" value=""/>
-                              </div>
-                              <div class="col-md-2">
-                                  <h5>MONEDA</h5>
-                                  <select id="moneda_busqueda" class="form-control">
-                                    <option value="0">Todos las monedas</option>
-                                    @foreach($tipoMoneda as $tipo)
-                                      <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
-                                    @endforeach
-                                  </select>
-                              </div>
-                              <div class="col-md-2">
-                                  <h5 style="color:#ffffff;">búsqueda</h5>
-                                  <button id="btn-buscarImportaciones" class="btn btn-infoBuscar" type="button">
-                                    <i class="fa fa-fw fa-search"></i> BUSCAR
-                                  </button>
-                              </div>
-                          </div> <!-- row -->
-                        </div> <!-- panel-body -->
-                      </div>
-                    </div>
-                </div>
-              </div> <!-- columna tabla -->
-
-              <!-- columna TABLA -->
-              <div class="col-md-12">
-
-                  <!-- TABLA -->
-                  <div class="row">
-                    <div class="col-lg-12">
-                        <div class="panel panel-default">
-                          <div class="panel-heading">
-                            <h4 id="tituloTabla">IMPORTACIONES</h4>
-                          </div>
-                          <div class="panel-body">
-
-                            <table id="tablaImportaciones" class="table table-fixed tablesorter">
-                                <thead>
-                                  <tr>
-                                    <th id="tipo_fecha" class="col-xs-3 activa" value="fecha" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
-                                    <th class="col-xs-3" value="plataforma.nombre" estado="">PLATAFORMA <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="tipo_moneda.descripcion" estado="">MONEDA <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="" estado="">ACCIÓN</th>
-                                  </tr>
-                                </thead>
-                                <tbody style="height: 300px;">
-                                </tbody>
-                            </table>
-                            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-                          </div> <!-- .panel-body -->
-                        </div> <!-- .panel -->
-                    </div> <!-- .col-lg-12 -->
-                  </div> <!-- .row | TABLA -->
-
-              </div> <!-- .col-lg-9 -->
-
-          </div> <!-- .row -->
-        </div>
-
-
-    <!-- Modal planilla -->
-    <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg" style="width:95%;">
-             <div class="modal-content">
-                <div class="modal-header" style="background: #4FC3F7">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-title">VISTA PREVIA</h3>
-                </div>
-
-                <div class="modal-body">
-                  <div class="row">
-                      <div class="col-md-4">
-                          <h5>FECHA</h5>
-                          <input id="fecha" class="form-control" type="text" value="" disabled>
-                      </div>
-                      <div class="col-md-4">
-                          <h5>PLATAFORMA</h5>
-                          <input id="plataforma" class="form-control" type="text" value="" disabled>
-                      </div>
-                      <div class="col-md-4">
-                          <h5>TIPO MONEDA</h5>
-                          <input id="tipo_moneda" class="form-control" type="text" value="" disabled>
-                      </div>
-                  </div>
-                  <br>
-                  <div class="row">
-                      <div class="col-md-12">
-                          <table id="tablaVistaPrevia" class="table table-fixed">
-                            <thead>
-                                <tr>
-                                </tr>
-                            </thead>
-                            <tbody style="max-height:400px;">
-                            </tbody>
-                          </table>
-                      </div>
-                    <button id="prevPreview" type="button" class="btn btn-link col-md-1"><i class="fas fa-arrow-left"></i></button>
-                    <div class="col-md-offset-5 col-md-1">P <span id="previewPage">9</span>/<span id="previewTotal">999</span></div>
-                    <button id="nextPreview" type="button" class="btn btn-link col-md-offset-4 col-md-1"><i class="fas fa-arrow-right"></i></button>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
-                </div>
-            </div>
+<!-- columna FILTROS -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>FILTROS DE BÚSQUEDA</h4>
           </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-3">
+                <h5>TIPO DE ARCHIVO</h5>
+                <select id="tipo_archivo" class="form-control">
+                @foreach($cols as $modo => $ignorar)
+                <option value="{{$modo}}">{{$to_header($modo)}}</option>
+                @endforeach
+                </select>
+              </div>
+              <div class="col-md-2">
+                <h5>Plataforma</h5>
+                <select id="plataforma_busqueda" class="form-control">
+                  <option value="0">Todas las plataformas</option>
+                  @foreach ($plataformas as $plataforma)
+                  <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-3">
+                <h5>FECHA</h5>
+                <div class='input-group date' id='fecha_busqueda' data-link-field="fecha_busqueda_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+                  <input id="fecha_busqueda_input" type='text' class="form-control" placeholder="Fecha de Inicio"/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+                <input type="hidden" id="fecha_busqueda_hidden" value=""/>
+              </div>
+              <div class="col-md-2">
+                <h5>MONEDA</h5>
+                <select id="moneda_busqueda" class="form-control">
+                  <option value="0">Todos las monedas</option>
+                  @foreach($tipoMoneda as $tipo)
+                  <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-2">
+                <h5 style="color:#ffffff;">búsqueda</h5>
+                <button id="btn-buscarImportaciones" class="btn btn-infoBuscar" type="button">
+                  <i class="fa fa-fw fa-search"></i> BUSCAR
+                </button>
+              </div>
+            </div> <!-- row -->
+          </div> <!-- panel-body -->
+        </div>
+      </div>
     </div>
+  </div> <!-- columna tabla -->
+  <!-- columna TABLA -->
+  <div class="col-md-12">
+    <!-- TABLA -->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 id="tituloTabla">IMPORTACIONES</h4>
+          </div>
+          <div class="panel-body">
+            <table id="tablaImportaciones" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th id="tipo_fecha" class="col-xs-3 activa" value="fecha" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
+                  <th class="col-xs-3" value="plataforma.nombre" estado="">PLATAFORMA <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" value="tipo_moneda.descripcion" estado="">MONEDA <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" value="" estado="">ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody style="height: 300px;">
+              </tbody>
+            </table>
+            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+          </div> <!-- .panel-body -->
+        </div> <!-- .panel -->
+      </div> <!-- .col-lg-12 -->
+    </div> <!-- .row | TABLA -->
+  </div> <!-- .col-md-12 -->
+</div> <!-- .row -->
+
+<!-- Modal planilla -->
+<div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" style="width:95%;">
+    <div class="modal-content">
+      <div class="modal-header" style="background: #4FC3F7">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h3 class="modal-title">VISTA PREVIA</h3>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-4">
+            <h5>FECHA</h5>
+            <input id="fecha" class="form-control" type="text" value="" disabled>
+          </div>
+          <div class="col-md-4">
+            <h5>PLATAFORMA</h5>
+            <input id="plataforma" class="form-control" type="text" value="" disabled>
+          </div>
+          <div class="col-md-4">
+            <h5>TIPO MONEDA</h5>
+            <input id="tipo_moneda" class="form-control" type="text" value="" disabled>
+          </div>
+        </div>
+        <br>
+        <div class="row">
+          <div class="col-md-12">
+            <table id="tablaVistaPrevia" class="table table-fixed">
+              <thead>
+                <tr></tr>
+              </thead>
+              <tbody style="max-height:400px;">
+              </tbody>
+            </table>
+          </div>
+          <button id="prevPreview" type="button" class="btn btn-link col-md-1"><i class="fas fa-arrow-left"></i></button>
+          <div class="col-md-offset-5 col-md-1">P <span id="previewPage">9</span>/<span id="previewTotal">999</span></div>
+          <button id="nextPreview" type="button" class="btn btn-link col-md-offset-4 col-md-1"><i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Modal Eliminar -->
 <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -347,11 +283,11 @@ $to_header = function($s){
       </div>
       <div class="modal-body franjaRojaModal">
         <form id="frmEliminar" name="frmPlataforma" class="form-horizontal" novalidate="">
-            <div class="form-group error ">
-                <div class="col-xs-12">
-                  <strong id="titulo-modal-eliminar">¿Seguro que desea eliminar la importación?</strong>
-                </div>
+          <div class="form-group error ">
+            <div class="col-xs-12">
+              <strong id="titulo-modal-eliminar">¿Seguro que desea eliminar la importación?</strong>
             </div>
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -475,40 +411,40 @@ $to_header = function($s){
   </div>
 </div>
   
-    <meta name="_token" content="{!! csrf_token() !!}" />
+<meta name="_token" content="{!! csrf_token() !!}" />
 
-    @endsection
+@endsection
 
-    <!-- Comienza modal de ayuda -->
-    @section('tituloDeAyuda')
-    <h3 class="modal-title" style="color: #fff;">| IMPORTACIONES</h3>
-    @endsection
-    @section('contenidoAyuda')
-    <div class="col-md-12">
-      <h5>Tarjeta de Importaciones</h5>1
-      <p>
-        A simple vista podrán verse por fecha si los producidos y beneficios fueron importados correctamente, en tiempo y forma.
-        Luego, se lograrán las importaciones de cargas en formato .csv de los sistemas del concesionario. Para fechas anteriores que muestra a primera vista
-        el sistema, existen filtros de búsqueda para su obtención.
-      </p>
-    </div>
-    @endsection
-    <!-- Termina modal de ayuda -->
+<!-- Comienza modal de ayuda -->
+@section('tituloDeAyuda')
+<h3 class="modal-title" style="color: #fff;">| IMPORTACIONES</h3>
+@endsection
+@section('contenidoAyuda')
+<div class="col-md-12">
+  <h5>Tarjeta de Importaciones</h5>1
+  <p>
+    A simple vista podrán verse por fecha si los producidos y beneficios fueron importados correctamente, en tiempo y forma.
+    Luego, se lograrán las importaciones de cargas en formato .csv de los sistemas del concesionario. Para fechas anteriores que muestra a primera vista
+    el sistema, existen filtros de búsqueda para su obtención.
+  </p>
+</div>
+@endsection
+<!-- Termina modal de ayuda -->
 
-    @section('scripts')
-    <!-- JavaScript personalizado -->
-    <script src="/js/seccionImportaciones.js?8" charset="utf-8"></script>
-    <script src="/js/md5.js" charset="utf-8"></script>
+@section('scripts')
+<!-- JavaScript personalizado -->
+<script src="/js/seccionImportaciones.js?9" charset="utf-8"></script>
+<script src="/js/md5.js" charset="utf-8"></script>
 
-    <!-- JS paginacion -->
-    <script src="/js/paginacion.js" charset="utf-8"></script>
+<!-- JS paginacion -->
+<script src="/js/paginacion.js" charset="utf-8"></script>
 
-    <!-- Custom input Bootstrap -->
-    <script src="/js/fileinput.min.js" type="text/javascript"></script>
-    <script src="/js/locales/es.js" type="text/javascript"></script>
-    <script src="/themes/explorer/theme.js" type="text/javascript"></script>
+<!-- Custom input Bootstrap -->
+<script src="/js/fileinput.min.js" type="text/javascript"></script>
+<script src="/js/locales/es.js" type="text/javascript"></script>
+<script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
-    <!-- DateTimePicker JavaScript -->
-    <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
-    <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-    @endsection
+<!-- DateTimePicker JavaScript -->
+<script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+@endsection

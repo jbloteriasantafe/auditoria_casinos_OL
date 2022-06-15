@@ -188,49 +188,14 @@ function agregarFilaDetalle(modo,detalle){
   $('#tablaVistaPrevia tbody').append(clonarFila(modo,detalle));
 }
 
-$('#btn-importarProducidos').click(function(e){
+$('.btn-importar').click(function(e){
   e.preventDefault();
-  $('#modalImportacion .modal-title').text("| IMPORTAR PRODUCIDO");
+  const modo = $(this).attr('data-modo');
+  $('#modalImportacion .modal-title').text("| IMPORTAR "+modo.toUpperCase().replaceAll('_',' '));
   $('#modalImportacion').find('.modal-footer').children().show();
-  reiniciarModalImportar('producido_juegos');
+  reiniciarModalImportar(modo);
   $('#mensajeExito').hide();
-  $('#modalImportacion').data('modo','producido_juegos').modal('show');
-});
-
-$('#btn-importarProducidosJugadores').click(function(e){
-  e.preventDefault();
-  $('#modalImportacion .modal-title').text("| IMPORTAR PRODUCIDO JUGADORES");
-  $('#modalImportacion').find('.modal-footer').children().show();
-  reiniciarModalImportar('producido_jugadores');
-  $('#mensajeExito').hide();
-  $('#modalImportacion').data('modo','producido_jugadores').modal('show');
-});
-
-$('#btn-importarProducidosPoker').click(function(e){
-  e.preventDefault();
-  $('#modalImportacion .modal-title').text("| IMPORTAR PRODUCIDO POKER");
-  $('#modalImportacion').find('.modal-footer').children().show();
-  reiniciarModalImportar('producido_poker');
-  $('#mensajeExito').hide();
-  $('#modalImportacion').data('modo','producido_poker').modal('show');
-});
-
-$('#btn-importarBeneficios').click(function(e){
-  e.preventDefault();
-  $('#modalImportacion').find('.modal-footer').children().show();
-  reiniciarModalImportar('beneficio_juegos');
-  $('#modalImportacion .modal-title').text("| IMPORTAR BENEFICIO");
-  $('#modalImportacion').data('modo','beneficio_juegos').modal('show');
-  $('#modalImportacion').modal('show');
-});
-
-$('#btn-importarBeneficiosPoker').click(function(e){
-  e.preventDefault();
-  $('#modalImportacion').find('.modal-footer').children().show();
-  reiniciarModalImportar('beneficio_poker');
-  $('#modalImportacion .modal-title').text("| IMPORTAR BENEFICIO POKER");
-  $('#modalImportacion').data('modo','beneficio_poker').modal('show');
-  $('#modalImportacion').modal('show');
+  $('#modalImportacion').data('modo',modo).modal('show');
 });
 
 function toIso(f){
