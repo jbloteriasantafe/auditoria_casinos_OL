@@ -461,7 +461,7 @@ background-color: #4CAF50;
 <!-- JavaScript personalizado -->
 <script src="/js/seccionInformeEstadoJugadores.js?3" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
-<script src="/js/md5.js?2" charset="utf-8"></script>
+<script src="/js/md5.js?3" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->
 <script src="/js/fileinput.min.js" type="text/javascript"></script>
 <script src="/js/locales/es.js" type="text/javascript"></script>
