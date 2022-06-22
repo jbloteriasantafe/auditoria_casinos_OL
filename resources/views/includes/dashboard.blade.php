@@ -79,10 +79,6 @@ $auditoria_hijos = [
         'link' => '/importaciones',
         'algun_permiso' => ['ver_seccion_importaciones'],
       ],
-      'Importación No-contable'  => [
-        'link' => '/importacionesNoContables',
-        'algun_permiso' => ['ver_seccion_importaciones'],
-      ],
       '<span>Juegos</span><small>[estado]</small>' => [
         'link' => '/informeEstadoJuegos',
         'algun_permiso' => ['ver_seccion_informecontable'],//@TODO: crear un permiso especializado

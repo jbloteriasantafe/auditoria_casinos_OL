@@ -179,9 +179,6 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::delete('/eliminarBeneficioJuegos/{id}','BeneficioMensualController@eliminarBeneficioMensual');
   Route::delete('/eliminarBeneficioPoker/{id}','BeneficioMensualController@eliminarBeneficioMensualPoker');
 });
-Route::group(['prefix' => 'importacionesNoContables','middleware' =>'tiene_permiso:ver_seccion_importaciones'],function(){
-  Route::get('/','ImportacionController@importacionesNoContables');
-});
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
