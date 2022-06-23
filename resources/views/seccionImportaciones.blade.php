@@ -432,6 +432,7 @@ $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)))
 @section('scripts')
 <!-- JavaScript personalizado -->
 <script src="/js/seccionImportaciones.js?9" charset="utf-8"></script>
+<script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?2" charset="utf-8"></script>
 
 <!-- JS paginacion -->
