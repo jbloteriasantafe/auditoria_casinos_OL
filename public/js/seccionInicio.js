@@ -4,7 +4,7 @@ $(document).ready(function(){
   $.get('informesGenerales/beneficiosAnuales',function(data){
     const total_por_plataforma = {};
     data.forEach(function(fila){
-      total_por_plataforma[fila.plataforma] = fila.beneficio;   
+      total_por_plataforma[fila.plataforma] = parseFloat(fila.beneficio);   
     });
     generarGraficoTorta('#divBeneficiosAnuales','BENEFICIOS TOTALES EN PESOS (ULTIMO AÑO)',total_por_plataforma);
   });
@@ -23,7 +23,7 @@ $(document).ready(function(){
         total_por_plataforma_por_mes[fila.plataforma] = {};
       }
       const añomes = año_mes(fila.año,fila.mes);
-      total_por_plataforma_por_mes[fila.plataforma][añomes] = fila.beneficio;    
+      total_por_plataforma_por_mes[fila.plataforma][añomes] = parseFloat(fila.beneficio);    
       añomeses[añomes] = 1;//Evito duplicados agregandolo en un diccionario
     });
     generarGraficoBarras('#divBeneficiosMensuales','BENEFICIOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Pesos','Mes',Object.keys(añomeses));
@@ -42,7 +42,7 @@ $(document).ready(function(){
     });
     generarGraficoBarras('#divJugadoresMensuales','JUGADORES UNICOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Jugadores','Mes',Object.keys(añomeses));
   });
-  
+
   generarCalendario('#divCalendarioActividadesCompletadas','ESTADO AUDITORIA DIARIO',
     $('#estadoDia option').first().attr('fecha'),
     $('#estadoDia option').last().attr('fecha'),
