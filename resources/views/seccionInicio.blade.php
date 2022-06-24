@@ -5,262 +5,223 @@
 @section('contenidoVista')
 
 @section('estilos')
-<link rel='stylesheet' href='/css/fullcalendar.min.css'/>
+<style media="screen">
+  .seccionVisitada {
+    text-align: center;
+    height: 22.47vh;
+  }
+  .seccionVisitada a {
+    text-decoration: none;
+  }
+  .seccionVisitada:hover i {
+    opacity: 1;
+  }
+  .seccionVisitada:hover .icon {
+    transform: scale(1.3);
+    top: 0px;
+  }
+  .seccionVisitada i {
+    color: #aaa;
+    display: block;
+    opacity: 0;
+  }
+  .seccionVisitada .icon {
+    stroke: #aaa;
+    position: relative;
+    top: -1.68vh;
+  }
+  .seccionVisitada h6 {
+    font-family: Roboto-Condensed;
+    font-size: 2.0225vh;
+  }
+  /* ICONOS */
+  .seccionVisitada .iconoMaquinas {
+    width: 4.166vw; height: 8.989vh;
+  }
+  .seccionVisitada .iconoUsuarios {
+    width: 2.708vw; height: 5.843vh;
+    margin: 1.573vh 0vw 1.573vh 0vw;
+  }
+  .seccionVisitada .iconoExpedientes {
+    width: 3.229vw; height: 6.966vh;
+    margin: 1.011vh 0vw 1.011vh 0vw;
+  }
+  .titulo_ala_highchart{
+    color: #333333;
+    font-size: 18px;
+    font-weight: bold;
+    fill: #333333;
+    font-family: Roboto-Regular;
+  }
+  .texto_ala_celda{
+    font-size: 14px;
+    font-weight: bold;
+    font-family: Roboto-Regular;
+    color: #aaa !important;
+  }
+  .celda{
+    width: 14.2857%;
+    text-align: center;
+    margin: 0px;padding: 0px;
+    display: inline-block;
+    float: left;
+  }
+</style>
 @endsection
 <?php
 use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\AuthenticationController;
-use Illuminate\Http\Request;
-
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-$id_usuario = $usuario['usuario']->id_usuario;
+$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
 ?>
 
 @section('contenidoVista')
 
-                <div class="row">
-                    <div class="col-md-7">
-                      <div class="row">
-                        <div class="col-md-6">
-                          <div class="panel panel-default">
-
-                          <div class="panel-heading">
-                            <h4>BIENVENIDO <?php echo $usuario['usuario']->nombre; ?></h4>
-                          </div>
-
-                          <div class="panel-body">
-                            <div class="row">
-                              <div class="col-lg-12">
-                                <h5 style="display:inline-block">ROL Y PERMISO </h5><span style="margin-top:8px; margin-left: 15px;">
-                                  <?php echo ' - ';
-                                  foreach($usuario['usuario']->roles as $roles){
-                                    echo $roles->descripcion.' - ';
-                                    } ?></span>
-                                <br>
-                                <h5 style="display:inline-block">PLATAFORMA(S) ASOCIADO(S) </h5><span style="margin-top:6px; margin-left: 15px;">
-                                  <?php echo ' - ';
-                                  foreach($usuario['usuario']->plataformas as $p){
-                                    echo $p->nombre.' - ' ;
-                                    } ?> </span>
-
-                                  <!-- <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin"> -->
-                                <br><br><br>
-                              </div>
-                            </div>
-                          </div> <!-- panel-body -->
-
-                      </div> <!-- panel -->
-                    </div>
-
-                      <div class="col-md-6">
-                        <div class="panel panel-default">
-
-                            <div class="panel-heading">
-                              <h4><?php
-
-                                    $week_days = array ("Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado");
-                                    $months = array ("", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
-                                    $year_now = date ("Y");
-                                    $month_now = date ("n");
-                                    $day_now = date ("j");
-                                    $week_day_now = date ("w");
-                                    $date = $week_days[$week_day_now] . ", " . $day_now . " de " . $months[$month_now] . " de " . $year_now;
-                                    echo $date;
-
-                                ?></h4>
-                            </div>
-
-                            <div class="panel-body">
-
-                              <div class="row">
-                                <div class="col-lg-12">
-
-                                  <span style="margin-top:6px;"><div id="cont_1b69ec28a0054c43833bebaf9168811f"><script type="text/javascript" async src="https://www.meteored.com.ar/wid_loader/1b69ec28a0054c43833bebaf9168811f"></script></div></span>
-                                </div>
-                              </div>
-                            </div> <!-- panel-body -->
-
-                        </div> <!-- panel -->
-                      </div>
-
-                    <div class="col-md-12">
-                      <div class="panel panel-default">
-
-                          <div class="panel-heading">
-                            <h4>ÚLTIMAS SECCIONES VISITADAS</h4>
-                          </div>
-
-                          <style media="screen">
-                              .seccionVisitada {
-                                  text-align: center;
-                                  height: 200px;
-                              }
-                              .seccionVisitada a {
-                                  text-decoration: none;
-                              }
-                              .seccionVisitada:hover i {
-                                  opacity: 1;
-                              }
-                              .seccionVisitada:hover .icon {
-                                  transform: scale(1.3);
-                                  top: 0px;
-                              }
-                              .seccionVisitada i {
-                                  color: #aaa;
-                                  display: block;
-                                  opacity: 0;
-                                  /*transition: opacity 100ms;*/
-                              }
-
-                              .seccionVisitada .icon {
-                                  stroke: #aaa;
-                                  position: relative;
-                                  top: -15px;
-                              }
-
-                              .seccionVisitada h6 {
-                                font-family: Roboto-Condensed;
-                                font-size: 18px;
-                              }
-                              /* ICONOS */
-                              .seccionVisitada .iconoMaquinas {
-                                width: 80px; height: 80px;
-                              }
-                              .seccionVisitada .iconoUsuarios {
-                                width: 52px; height: 52px;
-                                margin: 14px 0px 14px 0px;
-                              }
-                              .seccionVisitada .iconoExpedientes {
-                                width: 62px; height: 62px;
-                                margin: 9px 0px 9px 0px;
-                              }
-                          </style>
-
-                          <div class="panel-body">
-                              <div class="row">
-                                @foreach($ultimas_visitadas as $visitada)
-                                  <div class="col-md-3 seccionVisitada">
-                                          @if($visitada->ruta == 'casinos')
-                                            <a href="casinos"><i class="fa fa-share fa-2x"></i>
-                                            @svg('casinos','iconoCasinosModif')</a>
-                                          @elseif($visitada->ruta == 'usuarios')
-                                            <a href="usuarios"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
-                                          @elseif($visitada->ruta == 'roles')
-                                            <a href="usuarios"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
-                                          @elseif($visitada->ruta == 'configCuenta')
-                                          <a href="usuarios"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
-                                          @elseif($visitada->ruta == 'logActividades')
-                                            <a href="usuarios"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
-                                          @elseif($visitada->ruta == 'expedientes')
-                                            <a href="expedientes"><i class="fa fa-share fa-2x"></i>@svg('expedientes','iconoExpedientes')</a>
-                                          @elseif($visitada->ruta == 'resoluciones')
-                                            <a href="expedientes"><i class="fa fa-share fa-2x"></i>@svg('expedientes','iconoExpedientes')</a>
-                                          @elseif($visitada->ruta == 'disposiciones')
-                                            <a href="expedientes"><i class="fa fa-share fa-2x"></i>@svg('expedientes','iconoExpedientes')</a>
-                                          @elseif($visitada->ruta == 'informePlataforma')
-                                            <a href="informePlataforma"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'informeContableJuego')
-                                            <a href="informeContableJuego"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'informeEstadoJuegos')
-                                            <a href="informeEstadoJuegos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'informeEstadoJugadores')
-                                            <a href="informeEstadoJugadores"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'juegos')
-                                            <a href="juegos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'certificadoSoft')
-                                            <a href="certificadoSoft"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'importaciones')
-                                            <a href="importaciones"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'producidos')
-                                            <a href="producidos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'beneficios')
-                                            <a href="beneficios"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
-                                          @elseif($visitada->ruta == 'estadisticasGenerales')
-                                            <a href="estadisticasGenerales"><i class="fa fa-share fa-2x"></i>@svg('tablero_modif','iconoTableroModif')</a>
-                                          @elseif($visitada->ruta == 'estadisticasPorCasino')
-                                            <a href="estadisticasPorCasino"><i class="fa fa-share fa-2x"></i>@svg('tablero_modif','iconoTableroModif')</a>
-                                          @elseif($visitada->ruta == 'interanuales')
-                                            <a href="interanuales"><i class="fa fa-share fa-2x"></i>@svg('tablero_control','iconoTableroModif')</a>
-                                          @elseif($visitada->ruta == 'informesJuegos')
-                                            <a href="informesJuegos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoInformesModif')</a>
-                                          @endif
-                                          <h6>{{$visitada->seccion}}</h6>
-                                  </div>
-                                @endforeach
-                              </div>
-                          </div>
-                      </div> <!-- panel -->
-                    </div>
-
-                    <!-- <div class="col-md-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                              <h4>ÚLTIMAS SECCIONES VISITADAS</h4>
-                            </div>
-                            <div class="panel-body">
-
-                              <style media="screen">
-                                  .visitada {
-                                    min-height: 200px;
-                                    margin: 5px 0px 20px 0px;
-                                    background-color: #FFAB91;
-                                  }
-                                  .visitada a .icon {
-                                    fill: #aaa;
-                                  }
-                                  .visitada h6 {
-
-                                  }
-                              </style>
-                              <div class="row">
-                                  <div class="col-md-3">
-                                      <div class="visitada">
-                                          <a href="islas"></a>
-                                          <h6>MÁQUINAS</h6>
-                                      </div>
-                                  </div>
-                                  <div class="col-md-3">
-                                      <div class="visitada">
-
-                                      </div>
-                                  </div>
-                                  <div class="col-md-3">
-                                      <div class="visitada">
-
-                                      </div>
-                                  </div>
-                                  <div class="col-md-3">
-                                      <div class="visitada">
-
-                                      </div>
-                                  </div>
-                              </div>
-                            </div>
-                        </div>
-                    </div> -->
-
-                </div>
+<div class="row">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>ÚLTIMAS SECCIONES VISITADAS</h4>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              @foreach($ultimas_visitadas as $visitada)
+              <div class="col-md-3 seccionVisitada">
+                @continue(empty($visitada->ruta))
+                <a href="{{$visitada->ruta}}">
+                  <i class="fa fa-share fa-2x"></i>
+                  {{-- El switch en laravel no es break por default, queda mas simple con elseif --}}
+                  @if($visitada->ruta == 'casinos')
+                    @svg('casinos','iconoCasinosModif')
+                  @elseif($visitada->ruta == 'usuarios')
+                    @svg('usuario','iconoUsuarios')
+                  @elseif($visitada->ruta == 'roles')
+                    @svg('usuario','iconoUsuarios')
+                  @elseif($visitada->ruta == 'configCuenta')
+                    @svg('usuario','iconoUsuarios')
+                  @elseif($visitada->ruta == 'logActividades')
+                    @svg('usuario','iconoUsuarios')
+                  @elseif($visitada->ruta == 'expedientes')
+                    @svg('expedientes','iconoExpedientes')
+                  @elseif($visitada->ruta == 'resoluciones')
+                    @svg('expedientes','iconoExpedientes')
+                  @elseif($visitada->ruta == 'disposiciones')
+                    @svg('expedientes','iconoExpedientes')
+                  @elseif($visitada->ruta == 'informePlataforma')
+                    @svg('informes','iconoMaquinas')
+                  @elseif($visitada->ruta == 'informeContableJuego')
+                    @svg('informes','iconoMaquinas')
+                  @elseif($visitada->ruta == 'informeEstadoJuegos')
+                    @svg('informes','iconoMaquinas')
+                  @elseif($visitada->ruta == 'informeEstadoJugadores')
+                    @svg('informes','iconoMaquinas')
+                  @elseif($visitada->ruta == 'juegos')
+                    @svg('maquinas','iconoMaquinas')
+                  @elseif($visitada->ruta == 'certificadoSoft')
+                    @svg('maquinas','iconoMaquinas')
+                  @elseif($visitada->ruta == 'importaciones')
+                    @svg('maquinas','iconoMaquinas')
+                  @elseif($visitada->ruta == 'producidos')
+                    @svg('maquinas','iconoMaquinas')
+                  @elseif($visitada->ruta == 'beneficios')
+                    @svg('maquinas','iconoMaquinas')
+                  @elseif($visitada->ruta == 'estadisticasGenerales')
+                    @svg('tablero_modif','iconoTableroModif')
+                  @elseif($visitada->ruta == 'estadisticasPorCasino')
+                    @svg('tablero_modif','iconoTableroModif')
+                  @elseif($visitada->ruta == 'interanuales')
+                    @svg('tablero_control','iconoTableroModif')
+                  @elseif($visitada->ruta == 'informesJuegos')
+                    @svg('informes','iconoInformesModif')
+                  @else
+                    <!-- AGREGAR LA RUTA ARRIBA -->
+                    @svg('casinos','iconoCasinosModif')
+                  @endif
+                </a>
+                <h6>{{$visitada->seccion}}</h6>
               </div>
-              <div class="col-md-5">
-                <div class="panel panel-default">
-
-                    <div class="panel-heading">
-                      <h4>CALENDARIO</h4>
-                    </div>
-
-                    <div class="panel-body">
-                      <div class="row">
-                        <div class="col-lg-12">
-                          <div id="calendarioInicio"></div>
-                        </div>
-                      </div>
-
-                    </div> <!-- panel-body -->
-
-                </div> <!-- panel -->
-              </div>
+              @endforeach
             </div>
-            <meta name="_token" content="{!! csrf_token() !!}" />
+          </div>
+        </div> <!-- panel -->
+      </div>
+    </div>
+    @if($usuario->tienePermiso('estadisticas_generales'))
+    @section('iniciopanel')
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row">
+              <br>
+    @endsection
+    @section('finpanel')
+              <br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    @endsection
+
+    @yield('iniciopanel')
+    <div id="divBeneficiosAnuales" class="col-md-6"></div>
+    <div id="divJugadoresAnuales" class="col-md-6"></div>
+    @yield('finpanel')
+
+    @yield('iniciopanel')
+    <div class="row">
+      <div id="divBeneficiosMensuales" >
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div id="divJugadoresMensuales">
+      </div>
+    </div>
+    @yield('finpanel')
+
+    @yield('iniciopanel')
+    <div class="row">
+      <div id="divCalendarioActividadesCompletadas">
+      </div>
+    </div>
+    @yield('finpanel')
+
+    <div id="moldeMes" style="width: 25%;border-top: 1px solid #ddd;border-right: 1px solid #ddd;" hidden>
+      <div class="mesTitulo texto_ala_celda celda" style="width: 100%;">
+        MES AÑO
+      </div>
+    </div>
+    <datalist id="beneficiosAnuales">
+      @foreach($beneficios_anuales as $ba)
+      <option data-plataforma="{{$ba->plataforma}}">{{$ba->beneficio}}</option>
+      @endforeach
+    </datalist>
+    <datalist id="jugadoresAnuales">
+      @foreach($jugadores_anuales as $ja)
+      <option data-plataforma="{{$ja->plataforma}}">{{$ja->jugadores}}</option>
+      @endforeach
+    </datalist>
+    <datalist id="beneficiosMensuales">
+      @foreach($beneficios_mensuales as $bm)
+      <option data-plataforma="{{$bm->plataforma}}" data-año="{{$bm->año}}" data-mes="{{$bm->mes}}">{{$bm->beneficio}}</option>
+      @endforeach
+    </datalist>
+    <datalist id="jugadoresMensuales">
+      @foreach($jugadores_mensuales as $jm)
+      <option data-plataforma="{{$jm->plataforma}}" data-año="{{$jm->año}}" data-mes="{{$jm->mes}}">{{$jm->jugadores}}</option>
+      @endforeach
+    </datalist>
+    <datalist id="estadoDia">
+      @foreach($estado_dia as $d => $e)
+      <option fecha="{{$d}}">{{$e}}</option>
+      @endforeach
+    </datalist>
+    @endif
+  </div>
+</div>
+<meta name="_token" content="{!! csrf_token() !!}" />
 @endsection
 
 <!-- Comienza modal de ayuda -->
@@ -273,15 +234,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
   <p>En esta sección se podrá ver una ayuda rápida al calendario con actividades previstas y cargadas en el sistema, incluyendo feriados y días no hábiles.
   Además de la situación actual del clima en Santa Fe y los últimos accesos a los cuales cada usuario visitó por última vez.</p>
 </div>
-
 @endsection
-<!-- Termina modal de ayuda -->
 
 @section('scripts')
-    <!-- token -->
-    <script src='/js/moment.min.js'></script>
-    <script src='/js/fullcalendar.min.js'></script>
-    <script src='/js/locale-all.js'></script>
-    <script src="/js/gcal.min.js" charset="utf-8"></script>
-    <script src="js/seccionInicio.js"></script>
+<script src="js/highcharts.js"></script>
+<script src="js/highcharts-3d.js"></script>
+<script src="js/seccionInicio.js?2"></script>
 @endsection

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Http\Controllers\AuthenticationController;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -79,6 +80,10 @@ class Usuario extends Model
     public static function boot(){
       parent::boot();
       Usuario::observe(Observers\ParametrizedObserver::class);
+    }
+
+    public function tienePermiso($permiso){
+      return AuthenticationController::getInstancia()->usuarioTienePermiso($this->id_usuario,$permiso);
     }
 
     public function lastNotifications()

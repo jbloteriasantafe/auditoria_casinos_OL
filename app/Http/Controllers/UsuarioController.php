@@ -253,8 +253,7 @@ class UsuarioController extends Controller
   }
 
   public function agregarSeccionReciente($seccion , $ruta){
-    $usuario = $this->buscarUsuario(session('id_usuario'));
-    $user = Usuario::find($usuario['usuario']->id_usuario);
+    $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
 
     //si no tiene creadas las secciones_recientes
     if($user->secciones_recientes->count() == 0){

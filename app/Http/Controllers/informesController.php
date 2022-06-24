@@ -773,11 +773,34 @@ class informesController extends Controller
     return ['producidos' => $producidos->get(), 'total' => $total];
   }
 
-  public function informesGenerales(){
+  public function informesGenerales_aux(){
     $beneficios_mensuales = DB::table('beneficio_mensual as bm')
     ->selectRaw('p.nombre as plataforma,YEAR(fecha) as año, MONTH(fecha) as mes, beneficio')
     ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
     ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')->orderBy('fecha','asc')
+    ->get();
+    $beneficios_anuales = DB::table('beneficio_mensual as bm')
+    ->selectRaw('p.nombre as plataforma, SUM(beneficio) as beneficio')
+    ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
+    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
+    ->groupBy(DB::raw('p.nombre'))
+    ->orderByRaw('p.nombre asc')
+    ->get();
+    $jugadores_mensuales = DB::table('plataforma as p')
+    ->selectRaw('p.nombre as plataforma,YEAR(fecha) as año, MONTH(fecha) as mes, COUNT(distinct dpj.jugador) as jugadores')
+    ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
+    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
+    ->groupBy(DB::raw('p.nombre,YEAR(fecha),MONTH(fecha)'))
+    ->orderByRaw('p.nombre asc,YEAR(fecha) asc,MONTH(fecha) asc')
+    ->get();
+    $jugadores_anuales = DB::table('plataforma as p')
+    ->selectRaw('p.nombre as plataforma, COUNT(distinct dpj.jugador) as jugadores')
+    ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
+    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
+    ->groupBy(DB::raw('p.nombre'))
+    ->orderByRaw('p.nombre asc')
     ->get();
     $estado_dia = [];
     {
@@ -792,32 +815,50 @@ class informesController extends Controller
       }
       $estado_dia[$f] = $this->estado_dia($f);
     }
-    return view('seccionInformesGenerales',['beneficios_mensuales' => $beneficios_mensuales,'estado_dia' => $estado_dia]);
+    return ['beneficios_mensuales' => $beneficios_mensuales,
+            'beneficios_anuales'   => $beneficios_anuales,
+            'jugadores_mensuales'  => $jugadores_mensuales,
+            'jugadores_anuales'    => $jugadores_anuales,
+            'estado_dia' => $estado_dia];
+  }
+
+  public function informesGenerales(){
+    return view('seccionInformesGenerales',$this->informesGenerales_aux());
   }
 
   private function estado_dia($f){//@HACK: generalizar a multiples monedas si alguna vez se utiliza otra que no sea pesos
-    $plat_count = DB::table('plataforma')->count();
     $p = DB::table('producido')
     ->join('plataforma as plat','plat.id_plataforma','=','producido.id_plataforma')
     ->where('fecha',date('Y-m-d',strtotime($f)))
     ->where('id_tipo_moneda',1)
-    ->count()/$plat_count;
+    ->count();
     $pj = DB::table('producido_jugadores')
     ->join('plataforma as plat','plat.id_plataforma','=','producido_jugadores.id_plataforma')
     ->where('fecha',date('Y-m-d',strtotime($f)))
     ->where('id_tipo_moneda',1)
-    ->count()/$plat_count;
-    $b = DB::table('beneficio')
-    ->join('beneficio_mensual','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
-    ->join('plataforma as plat','plat.id_plataforma','=','beneficio_mensual.id_plataforma')
-    ->where('beneficio.fecha',date('Y-m-d',strtotime($f)))
+    ->count();
+    $b = DB::table('beneficio as b')
+    ->join('beneficio_mensual as bm','bm.id_beneficio_mensual','=','b.id_beneficio_mensual')
+    ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
+    ->where('b.fecha',date('Y-m-d',strtotime($f)))
     ->where('id_tipo_moneda',1)
-    ->count()/$plat_count;
-    $iej = DB::table('importacion_estado_jugador')
-    ->join('plataforma as plat','plat.id_plataforma','=','importacion_estado_jugador.id_plataforma')
-    ->where('importacion_estado_jugador.fecha_importacion',date('Y-m-d',strtotime($f)))
-    ->count()/$plat_count;
-    return ($p+$pj+$b+$iej)/4;
+    ->count();
+    $bpk = DB::table('beneficio_poker as b')
+    ->join('beneficio_mensual_poker as bm','bm.id_beneficio_mensual_poker','=','b.id_beneficio_mensual_poker')
+    ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
+    ->where('b.fecha',date('Y-m-d',strtotime($f)))
+    ->where('id_tipo_moneda',1)
+    ->count();
+    $iejug = DB::table('importacion_estado_jugador as iej')
+    ->join('plataforma as plat','plat.id_plataforma','=','iej.id_plataforma')
+    ->where('iej.fecha_importacion',date('Y-m-d',strtotime($f)))
+    ->count();
+    $iejue = DB::table('importacion_estado_juego as iej')
+    ->join('plataforma as plat','plat.id_plataforma','=','iej.id_plataforma')
+    ->where('iej.fecha_importacion',date('Y-m-d',strtotime($f)))
+    ->count();
+    $plat_count = DB::table('plataforma')->count();
+    return ($p+$pj+$b+$bpk+$iejug+$iejue)/(6*$plat_count);
   }
 
   public function infoAuditoria($dia){
@@ -831,14 +872,20 @@ class informesController extends Controller
     ->join('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
     ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
     ->where('b.fecha',$dia)->get()->pluck('codigo');
-    $jugadores = DB::table('importacion_estado_jugador as iej')->select('plat.codigo')
+    $bpoker = DB::table('beneficio_mensual_poker as bm')->select('plat.codigo')
+    ->join('beneficio_poker as b','b.id_beneficio_mensual_poker','=','bm.id_beneficio_mensual_poker')
+    ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
+    ->where('b.fecha',$dia)->get()->pluck('codigo');
+    $ejugadores = DB::table('importacion_estado_jugador as iej')->select('plat.codigo')
     ->join('plataforma as plat','plat.id_plataforma','=','iej.id_plataforma')
     ->where('iej.fecha_importacion',$dia)->get()->pluck('codigo');
+    $ejuegos = DB::table('importacion_estado_juego as iej')->select('plat.codigo')
+    ->join('plataforma as plat','plat.id_plataforma','=','iej.id_plataforma')
+    ->where('iej.fecha_importacion',$dia)->get()->pluck('codigo');
+
     return ['total' => $this->estado_dia($dia),
-    'producidos' => $producidos,'producidos_jugadores' => $producidos_jugadores,'beneficios' => $beneficios,'jugadores' => $jugadores];
-  }
-  private function nf($s,$d = 2){//Formatea el numero con digitos en MYSQL
-    return "FORMAT($s,$d,'es_AR')";
+    'producido' => $producidos,'producido_jugadores' => $producidos_jugadores,'beneficio' => $beneficios,
+    'beneficio_poker' => $bpoker,'estado_jugadores' => $ejugadores,'estado_juegos' => $ejuegos];
   }
 
   public function informeEstadoJugadores(){

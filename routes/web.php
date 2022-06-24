@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\informesController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 
@@ -7,20 +9,20 @@ Route::get('/marcarComoLeidaNotif',function(){
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
   $usuario['usuario']->unreadNotifications->markAsRead();
 });
-
 /***********
 Index
 ***********/
 Route::get('/',function(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    return view('seccionInicio' ,['ultimas_visitadas' =>$usuario->secciones_recientes]);
+  return redirect('/inicio');
 });
 Route::get('login',function(){
     return view('index');
 });
 Route::get('inicio',function(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    return view('seccionInicio' ,['ultimas_visitadas' =>$usuario->secciones_recientes]);
+  $datos_inf = (new informesController)->informesGenerales_aux();
+  $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+  $datos_inf['ultimas_visitadas'] = $usuario->secciones_recientes;
+  return view('seccionInicio' ,$datos_inf);
 });
 
 Route::get('configCuenta','UsuarioController@configUsuario');

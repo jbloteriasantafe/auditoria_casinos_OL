@@ -124,10 +124,6 @@ $estadisticas_hijos = [
         'link' => '/informesJuegos',
         'algun_permiso' => ['informes_mtm'],
       ],
-      'Generales' => [
-        'link' => '/informesGenerales',
-        'algun_permiso' => ['informes_mtm'],
-      ],
     ]
   ],
   'Tablero' => [
