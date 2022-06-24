@@ -2,7 +2,7 @@ function GET(loadingDiv,url,success = function(data){},error = function(data){})
   let progress = 0;
   const intervalID = setInterval(function(){
       const message = ['―','/','|','\\'];
-      loadingDiv.text(message[progress]);
+      loadingDiv.css('text-align','center').text(message[progress]);
       progress = (progress + 1)%4;
   },100);
   $.ajax({
@@ -10,13 +10,13 @@ function GET(loadingDiv,url,success = function(data){},error = function(data){})
     type: 'GET',
     success: function(data){
       clearInterval(intervalID);
-      loadingDiv.text('');
+      loadingDiv.css('text-align','unset').text('');
       success(data);
     },
     error: function(data){
       console.log(data);
       clearInterval(intervalID);
-      loadingDiv.text(' ERROR DE CARGA ');
+      loadingDiv.css('text-align','unset').text(' ERROR DE CARGA ');
       error(data);
     }
   });
