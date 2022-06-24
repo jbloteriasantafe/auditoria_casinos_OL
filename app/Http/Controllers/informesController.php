@@ -773,20 +773,27 @@ class informesController extends Controller
     return ['producidos' => $producidos->get(), 'total' => $total];
   }
 
-  public function informesGenerales_aux(){
-    $beneficios_mensuales = DB::table('beneficio_mensual as bm')
+  public function beneficiosMensuales(){
+    return DB::table('beneficio_mensual as bm')
     ->selectRaw('p.nombre as plataforma,YEAR(fecha) as año, MONTH(fecha) as mes, beneficio')
     ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
-    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')->orderBy('fecha','asc')
+    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
+    ->orderBy('fecha','asc')
     ->get();
-    $beneficios_anuales = DB::table('beneficio_mensual as bm')
+  }
+
+  public function beneficiosAnuales(){
+    return DB::table('beneficio_mensual as bm')
     ->selectRaw('p.nombre as plataforma, SUM(beneficio) as beneficio')
     ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
     ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
     ->groupBy(DB::raw('p.nombre'))
     ->orderByRaw('p.nombre asc')
     ->get();
-    $jugadores_mensuales = DB::table('plataforma as p')
+  }
+
+  public function jugadoresMensuales(){
+    return DB::table('plataforma as p')
     ->selectRaw('p.nombre as plataforma,YEAR(fecha) as año, MONTH(fecha) as mes, COUNT(distinct dpj.jugador) as jugadores')
     ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
@@ -794,7 +801,10 @@ class informesController extends Controller
     ->groupBy(DB::raw('p.nombre,YEAR(fecha),MONTH(fecha)'))
     ->orderByRaw('p.nombre asc,YEAR(fecha) asc,MONTH(fecha) asc')
     ->get();
-    $jugadores_anuales = DB::table('plataforma as p')
+  }
+
+  public function jugadoresAnuales(){
+    return DB::table('plataforma as p')
     ->selectRaw('p.nombre as plataforma, COUNT(distinct dpj.jugador) as jugadores')
     ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
@@ -802,6 +812,9 @@ class informesController extends Controller
     ->groupBy(DB::raw('p.nombre'))
     ->orderByRaw('p.nombre asc')
     ->get();
+  }
+
+  public function estadosDias(){
     $estado_dia = [];
     {
       $fecha_mas_vieja_b = DB::table('beneficio')->select('fecha')->orderBy('fecha','asc')->take(1)->pluck('fecha')->first();
@@ -815,15 +828,7 @@ class informesController extends Controller
       }
       $estado_dia[$f] = $this->estado_dia($f);
     }
-    return ['beneficios_mensuales' => $beneficios_mensuales,
-            'beneficios_anuales'   => $beneficios_anuales,
-            'jugadores_mensuales'  => $jugadores_mensuales,
-            'jugadores_anuales'    => $jugadores_anuales,
-            'estado_dia' => $estado_dia];
-  }
-
-  public function informesGenerales(){
-    return view('seccionInformesGenerales',$this->informesGenerales_aux());
+    return $estado_dia;
   }
 
   private function estado_dia($f){//@HACK: generalizar a multiples monedas si alguna vez se utiliza otra que no sea pesos

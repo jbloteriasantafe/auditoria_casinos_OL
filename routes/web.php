@@ -19,7 +19,7 @@ Route::get('login',function(){
     return view('index');
 });
 Route::get('inicio',function(){
-  $datos_inf = (new informesController)->informesGenerales_aux();
+  $datos_inf = ['estado_dia' => (new informesController)->estadosDias()];
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $datos_inf['ultimas_visitadas'] = $usuario->secciones_recientes;
   return view('seccionInicio' ,$datos_inf);
@@ -274,6 +274,11 @@ Route::group(['prefix' => 'informesJuegos'],function(){
 
 Route::group(['prefix' => 'informesGenerales'],function(){
   Route::get('/','informesController@informesGenerales');
+  Route::get('/beneficiosMensuales','informesController@beneficiosMensuales');
+  Route::get('/beneficiosAnuales','informesController@beneficiosAnuales');
+  Route::get('/jugadoresMensuales','informesController@jugadoresMensuales');
+  Route::get('/jugadoresAnuales','informesController@jugadoresAnuales');
+  Route::get('/estadosDias','informesController@estadosDias');
   Route::get('/infoAuditoria/{dia}','informesController@infoAuditoria');
 });
 

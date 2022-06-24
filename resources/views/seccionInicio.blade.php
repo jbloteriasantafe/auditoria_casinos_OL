@@ -193,26 +193,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         MES AÑO
       </div>
     </div>
-    <datalist id="beneficiosAnuales">
-      @foreach($beneficios_anuales as $ba)
-      <option data-plataforma="{{$ba->plataforma}}">{{$ba->beneficio}}</option>
-      @endforeach
-    </datalist>
-    <datalist id="jugadoresAnuales">
-      @foreach($jugadores_anuales as $ja)
-      <option data-plataforma="{{$ja->plataforma}}">{{$ja->jugadores}}</option>
-      @endforeach
-    </datalist>
-    <datalist id="beneficiosMensuales">
-      @foreach($beneficios_mensuales as $bm)
-      <option data-plataforma="{{$bm->plataforma}}" data-año="{{$bm->año}}" data-mes="{{$bm->mes}}">{{$bm->beneficio}}</option>
-      @endforeach
-    </datalist>
-    <datalist id="jugadoresMensuales">
-      @foreach($jugadores_mensuales as $jm)
-      <option data-plataforma="{{$jm->plataforma}}" data-año="{{$jm->año}}" data-mes="{{$jm->mes}}">{{$jm->jugadores}}</option>
-      @endforeach
-    </datalist>
     <datalist id="estadoDia">
       @foreach($estado_dia as $d => $e)
       <option fecha="{{$d}}">{{$e}}</option>
@@ -239,5 +219,5 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 @section('scripts')
 <script src="js/highcharts.js"></script>
 <script src="js/highcharts-3d.js"></script>
-<script src="js/seccionInicio.js?2"></script>
+<script src="js/seccionInicio.js?3"></script>
 @endsection

@@ -1,72 +1,48 @@
 $(document).ready(function(){
   $('.tituloSeccionPantalla').empty().append('Inicio  <small>[CASINO ONLINE]</small>');
 
-  {
+  $.get('informesGenerales/beneficiosAnuales',function(data){
     const total_por_plataforma = {};
-    $('#beneficiosAnuales option').each(function(){
-      const op = $(this);
-      const plat = op.attr('data-plataforma');
-      const beneficio = parseFloat(op.val());
-      total_por_plataforma[plat] = beneficio;    
+    data.forEach(function(fila){
+      total_por_plataforma[fila.plataforma] = fila.beneficio;   
     });
     generarGraficoTorta('#divBeneficiosAnuales','BENEFICIOS TOTALES EN PESOS (ULTIMO AÑO)',total_por_plataforma);
-  }
-  {
+  });
+  $.get('informesGenerales/jugadoresAnuales',function(data){
     const total_por_plataforma = {};
-    $('#jugadoresAnuales option').each(function(){
-      const op = $(this);
-      const plat = op.attr('data-plataforma');
-      const jugadores = parseFloat(op.val());
-      total_por_plataforma[plat] = jugadores;    
+    data.forEach(function(fila){
+      total_por_plataforma[fila.plataforma] = fila.jugadores;   
     });
     generarGraficoTorta('#divJugadoresAnuales','JUGADORES TOTALES (ULTIMO AÑO)',total_por_plataforma);
-  }
-  {
+  });
+  $.get('informesGenerales/beneficiosMensuales',function(data){
     const total_por_plataforma_por_mes = {};
     const añomeses = {};
-    $('#beneficiosMensuales option').each(function(){
-      const op = $(this);
-      const plat = op.attr('data-plataforma');
-      const beneficio = parseFloat(op.val());
-      if(!(plat in total_por_plataforma_por_mes)){
-        total_por_plataforma_por_mes[plat] = {};
+    data.forEach(function(fila){
+      if(!(fila.plataforma in total_por_plataforma_por_mes)){
+        total_por_plataforma_por_mes[fila.plataforma] = {};
       }
-
-      const año = op.attr('data-año');
-      const mes = op.attr('data-mes');
-      const añomes = año_mes(año,mes);
-      total_por_plataforma_por_mes[plat][añomes] = beneficio;    
+      const añomes = año_mes(fila.año,fila.mes);
+      total_por_plataforma_por_mes[fila.plataforma][añomes] = fila.beneficio;    
       añomeses[añomes] = 1;//Evito duplicados agregandolo en un diccionario
     });
-
-    //Sumo todos los meses en la plataforma
-    const par_plataforma_total = Object.keys(total_por_plataforma_por_mes).map(function(plat,_){
-      const por_mes = Object.values(total_por_plataforma_por_mes[plat]);
-      return [plat,por_mes.reduce(function(prev,curr){return prev+curr;},0)];
-    });
     generarGraficoBarras('#divBeneficiosMensuales','BENEFICIOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Pesos','Mes',Object.keys(añomeses));
-  }
+  });
 
-  {
+  $.get('informesGenerales/jugadoresMensuales',function(data){
     const total_por_plataforma_por_mes = {};
     const añomeses = {};
-    $('#jugadoresMensuales option').each(function(){
-      const op = $(this);
-      const plat = op.attr('data-plataforma');
-      const beneficio = parseFloat(op.val());
-
-      if(!(plat in total_por_plataforma_por_mes)){
-        total_por_plataforma_por_mes[plat] = {};
+    data.forEach(function(fila){
+      if(!(fila.plataforma in total_por_plataforma_por_mes)){
+        total_por_plataforma_por_mes[fila.plataforma] = {};
       }
-
-      const año = op.attr('data-año');
-      const mes = op.attr('data-mes');
-      const añomes = año_mes(año,mes);
-      total_por_plataforma_por_mes[plat][añomes] = beneficio;    
+      const añomes = año_mes(fila.año,fila.mes);
+      total_por_plataforma_por_mes[fila.plataforma][añomes] = fila.jugadores;    
       añomeses[añomes] = 1;//Evito duplicados agregandolo en un diccionario
     });
     generarGraficoBarras('#divJugadoresMensuales','JUGADORES UNICOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Jugadores','Mes',Object.keys(añomeses));
-  }
+  });
+  
   generarCalendario('#divCalendarioActividadesCompletadas','ESTADO AUDITORIA DIARIO',
     $('#estadoDia option').first().attr('fecha'),
     $('#estadoDia option').last().attr('fecha'),
