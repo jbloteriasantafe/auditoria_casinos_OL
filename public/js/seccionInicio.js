@@ -1,21 +1,45 @@
+function GET(loadingDiv,url,success = function(data){},error = function(data){}){
+  let progress = 0;
+  const intervalID = setInterval(function(){
+      const message = ['―','/','|','\\'];
+      loadingDiv.text(message[progress]);
+      progress = (progress + 1)%4;
+  },100);
+  $.ajax({
+    url: url,
+    type: 'GET',
+    success: function(data){
+      clearInterval(intervalID);
+      loadingDiv.text('');
+      success(data);
+    },
+    error: function(data){
+      console.log(data);
+      clearInterval(intervalID);
+      loadingDiv.text(' ERROR DE CARGA ');
+      error(data);
+    }
+  });
+}
+
 $(document).ready(function(){
   $('.tituloSeccionPantalla').empty().append('Inicio  <small>[CASINO ONLINE]</small>');
 
-  $.get('informesGenerales/beneficiosAnuales',function(data){
+  GET($('#divBeneficiosAnuales'),'informesGenerales/beneficiosAnuales',function(data){
     const total_por_plataforma = {};
     data.forEach(function(fila){
       total_por_plataforma[fila.plataforma] = parseFloat(fila.beneficio);   
     });
     generarGraficoTorta('#divBeneficiosAnuales','BENEFICIOS TOTALES EN PESOS (ULTIMO AÑO)',total_por_plataforma);
   });
-  $.get('informesGenerales/jugadoresAnuales',function(data){
+  GET($('#divJugadoresAnuales'),'informesGenerales/jugadoresAnuales',function(data){
     const total_por_plataforma = {};
     data.forEach(function(fila){
       total_por_plataforma[fila.plataforma] = fila.jugadores;   
     });
     generarGraficoTorta('#divJugadoresAnuales','JUGADORES TOTALES (ULTIMO AÑO)',total_por_plataforma);
-  });
-  $.get('informesGenerales/beneficiosMensuales',function(data){
+  })
+  GET($('#divBeneficiosMensuales'),'informesGenerales/beneficiosMensuales',function(data){
     const total_por_plataforma_por_mes = {};
     const añomeses = {};
     data.forEach(function(fila){
@@ -27,9 +51,8 @@ $(document).ready(function(){
       añomeses[añomes] = 1;//Evito duplicados agregandolo en un diccionario
     });
     generarGraficoBarras('#divBeneficiosMensuales','BENEFICIOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Pesos','Mes',Object.keys(añomeses));
-  });
-
-  $.get('informesGenerales/jugadoresMensuales',function(data){
+  })
+  GET($('#divJugadoresMensuales'),'informesGenerales/jugadoresMensuales',function(data){
     const total_por_plataforma_por_mes = {};
     const añomeses = {};
     data.forEach(function(fila){
@@ -41,7 +64,7 @@ $(document).ready(function(){
       añomeses[añomes] = 1;//Evito duplicados agregandolo en un diccionario
     });
     generarGraficoBarras('#divJugadoresMensuales','JUGADORES UNICOS MENSUALES (ULTIMO AÑO)',total_por_plataforma_por_mes,'Jugadores','Mes',Object.keys(añomeses));
-  });
+  })
 
   generarCalendario('#divCalendarioActividadesCompletadas','ESTADO AUDITORIA DIARIO',
     $('#estadoDia option').first().attr('fecha'),
