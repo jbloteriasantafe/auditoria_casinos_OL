@@ -219,5 +219,5 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 @section('scripts')
 <script src="js/highcharts.js"></script>
 <script src="js/highcharts-3d.js"></script>
-<script src="js/seccionInicio.js?3"></script>
+<script src="js/seccionInicio.js?4"></script>
 @endsection
