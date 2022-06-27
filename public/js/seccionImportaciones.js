@@ -391,7 +391,9 @@ $('#btn-guardarImportacion').on('click',function(e){
   formData.append('md5',$('#modalImportacion .hashCalculado').val());
 
   $('#plataformaInfoImportacion').val(id_plataforma);
-  $('#monedaInfoImportacion').val(id_tipo_moneda);
+  if(id_tipo_moneda){
+    $('#monedaInfoImportacion').val(id_tipo_moneda);
+  }
   const date = $('#fechaImportacion').data('datetimepicker').getDate();
   $('#mesInfoImportacion').data('datetimepicker').setDate(date);
   $('#plataformaInfoImportacion').change();
