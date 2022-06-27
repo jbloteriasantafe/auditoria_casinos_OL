@@ -359,22 +359,8 @@ class ImportacionController extends Controller
     return DB::transaction(function() use ($request){
       $importaciones = ImportacionEstadoJugador::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
       foreach($importaciones as $i){
-        $i->estados()->delete();
-        DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$i->id_importacion_estado_jugador)->delete();
+        $this->eliminarJugadores($i->id_importacion_estado_jugador);
       }
-      //Borro los datos sin estados
-      DB::table('datos_jugador')
-      ->select('datos_jugador.*')
-      ->whereRaw('NOT EXISTS(
-        select id_estado_jugador
-        from estado_jugador
-        where estado_jugador.id_datos_jugador = datos_jugador.id_datos_jugador
-      )')->delete();
-
-      foreach($importaciones as $i){
-        $i->delete();
-      }
-
       return LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
     });
   }
@@ -390,9 +376,36 @@ class ImportacionController extends Controller
     return DB::transaction(function() use ($request){
       $importaciones = ImportacionEstadoJuego::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
       foreach($importaciones as $i){
-        $i->estados()->delete();
-        DB::table('juego_importado_temporal')->where('id_importacion_estado_juego','=',$i->id_importacion_estado_juego)->delete();
+        $this->eliminarEstadosJuegos($i->id_importacion_estado_juego);
       }
+
+      return LectorCSVController::getInstancia()->importarEstadosJuegos($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+    });
+  }
+
+  public function eliminarJugadores($id){
+    return DB::transaction(function() use ($id){
+      $importacion = ImportacionEstadoJugador::find($id);
+      $importacion->estados()->delete();
+      DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$id)->delete();
+      //Borro los datos sin estados
+      DB::table('datos_jugador')
+      ->select('datos_jugador.*')
+      ->whereRaw('NOT EXISTS(
+        select id_estado_jugador
+        from estado_jugador
+        where estado_jugador.id_datos_jugador = datos_jugador.id_datos_jugador
+      )')->delete();
+      $importacion->delete();
+      return 1;
+    });
+  }
+
+  public function eliminarEstadosJuegos($id){
+    return DB::transaction(function() use ($id){
+      $importacion = ImportacionEstadoJuego::find($id);
+      $importacion->estados()->delete();
+      DB::table('juego_importado_temporal')->where('id_importacion_estado_juego','=',$id)->delete();
       //Borro los datos sin estados
       DB::table('datos_juego_importado')
       ->select('datos_juego_importado.*')
@@ -401,12 +414,8 @@ class ImportacionController extends Controller
         from estado_juego_importado
         where estado_juego_importado.id_datos_juego_importado = datos_juego_importado.id_datos_juego_importado
       )')->delete();
-
-      foreach($importaciones as $i){
-        $i->delete();
-      }
-
-      return LectorCSVController::getInstancia()->importarEstadosJuegos($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+      $importacion->delete();
+      return 1;
     });
   }
 

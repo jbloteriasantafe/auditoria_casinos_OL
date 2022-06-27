@@ -180,6 +180,8 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::delete('/eliminarProducidoPoker/{id}','ProducidoController@eliminarProducidoPoker');
   Route::delete('/eliminarBeneficioJuegos/{id}','BeneficioMensualController@eliminarBeneficioMensual');
   Route::delete('/eliminarBeneficioPoker/{id}','BeneficioMensualController@eliminarBeneficioMensualPoker');
+  Route::delete('/eliminarEstadoJuegos/{id}','ImportacionController@eliminarEstadoJuegos');
+  Route::delete('/eliminarEstadoJugadores/{id}','ImportacionController@eliminarEstadoJugadores');
 });
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
