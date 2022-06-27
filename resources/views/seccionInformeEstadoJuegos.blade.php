@@ -173,24 +173,6 @@ background-color: #4CAF50;
   <div class="col-md-2 col-sm-3">
     <div class="row">
       <div class="col-lg-12">
-        <a id="btn-importar-juegos" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-            <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
-            <div class="row">
-              <div class="col-xs-12">
-                <center>
-                  <h5 class="txtLogo">+</h5>
-                  <h4 class="txtNuevo">IMPORTAR ESTADOS JUEGOS</h4>
-                </center>
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-lg-12">
         <a href="" id="btn-informe-diferencias" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>

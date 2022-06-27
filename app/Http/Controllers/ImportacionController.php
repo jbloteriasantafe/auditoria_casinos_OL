@@ -95,6 +95,30 @@ class ImportacionController extends Controller
       ->select('cod_juego','categoria','jugadores','droop','utilidad')
       ->skip($request->page*$request->size)->take($request->size)->get()];
     }
+    else if($request->tipo_importacion == 'estado_juegos'){
+      $importacion = ImportacionEstadoJuego::find($request->id);
+      if(is_null($importacion)) return response()->json("No existe la importación",422);
+      $detalles = DB::table('importacion_estado_juego as iej')
+      ->select('dj.codigo','dj.nombre','dj.categoria','ej.estado','dj.tecnologia')
+      ->join('estado_juego_importado as ej','ej.id_importacion_estado_juego','=','iej.id_importacion_estado_juego')
+      ->join('datos_juego_importado as dj','dj.id_datos_juego_importado','=','ej.id_datos_juego_importado')
+      ->where('iej.id_importacion_estado_juego','=',$request->id);
+      return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
+      'cant_detalles' => (clone $detalles)->count(),
+      'detalles' => (clone $detalles)->skip($request->page*$request->size)->take($request->size)->get()];
+    }
+    else if($request->tipo_importacion == 'estado_jugadores'){
+      $importacion = ImportacionEstadoJugador::find($request->id);
+      if(is_null($importacion)) return response()->json("No existe la importación",422);
+      $detalles = DB::table('importacion_estado_jugador as iej')
+      ->select('dj.codigo','dj.localidad','dj.provincia','dj.fecha_alta','ej.estado','ej.fecha_autoexclusion','ej.fecha_ultimo_movimiento','dj.sexo')
+      ->join('estado_jugador as ej','ej.id_importacion_estado_jugador','=','iej.id_importacion_estado_jugador')
+      ->join('datos_jugador as dj','dj.id_datos_jugador','=','ej.id_datos_jugador')
+      ->where('iej.id_importacion_estado_jugador','=',$request->id);
+      return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
+      'cant_detalles' => (clone $detalles)->count(),
+      'detalles' => (clone $detalles)->skip($request->page*$request->size)->take($request->size)->get()];
+    }
     else return response()->json("No existe",422);
   }
 
@@ -106,7 +130,8 @@ class ImportacionController extends Controller
     }
 
     $reglas = [];
-    if(isset($request->id_tipo_moneda) && $request->id_tipo_moneda !=0){
+    $es_estado = strpos($request->tipo_archivo,'estado') !== false;
+    if(isset($request->id_tipo_moneda) && $request->id_tipo_moneda !=0 && !$es_estado){
       $reglas[]=['tipo_moneda.id_tipo_moneda','=', $request->id_tipo_moneda];
     }
     if(isset($request->id_plataforma) && $request->id_plataforma !=0){
@@ -146,16 +171,28 @@ class ImportacionController extends Controller
       ->join('plataforma','beneficio_mensual_poker.id_plataforma','=','plataforma.id_plataforma')
       ->join('tipo_moneda','beneficio_mensual_poker.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda');
     }
+    else if($request->tipo_archivo == 'estado_juegos'){
+      $resultados = DB::table('importacion_estado_juego')->select('id_importacion_estado_juego as id','fecha_importacion as fecha'
+      ,'plataforma.nombre as plataforma',DB::raw('"-" as tipo_moneda'),'plataforma.id_plataforma')
+      ->join('plataforma','importacion_estado_juego.id_plataforma','=','plataforma.id_plataforma');
+    }
+    else if($request->tipo_archivo == 'estado_jugadores'){
+      $resultados = DB::table('importacion_estado_jugador')->select('id_importacion_estado_jugador as id','fecha_importacion as fecha'
+      ,'plataforma.nombre as plataforma',DB::raw('"-" as tipo_moneda'),'plataforma.id_plataforma')
+      ->join('plataforma','importacion_estado_jugador.id_plataforma','=','plataforma.id_plataforma');
+    }
     else return $resultados;
 
     $resultados = $resultados->where($reglas)
     ->whereIn('plataforma.id_plataforma' , $plataformas);
     if(!empty($request->fecha)){
       $fecha = explode("-",$request->fecha);
-      $resultados = $resultados->whereYear('fecha' , '=' ,$fecha[0])->whereMonth('fecha','=', $fecha[1]);
+      $fecha_col = $es_estado? 'fecha_importacion' : 'fecha';
+      $resultados = $resultados->whereYear($fecha_col , '=' ,$fecha[0])->whereMonth($fecha_col,'=', $fecha[1]);
     }
-    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
-                  return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    $ordenar = $sort_by && ($sort_by['columna'] != 'tipo_moneda.descripcion' || ($sort_by['columna'] == 'tipo_moneda.descripcion' && !$es_estado));
+    $resultados = $resultados->when($ordenar,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
     })
     ->paginate($request->page_size);
     return  $resultados;
@@ -197,18 +234,26 @@ class ImportacionController extends Controller
       $beneficio = [];
       $prod_poker = [];
       $benef_poker = [];
+      $estado_juegos = [];
+      $estado_jugadores = [];
+      $hay_estado_juego_fecha   = ImportacionEstadoJuego::where(  [['fecha_importacion' , $fecha],['id_plataforma', $id_plataforma]])->count() >= 1;
+      $hay_estado_jugador_fecha = ImportacionEstadoJugador::where([['fecha_importacion' , $fecha],['id_plataforma', $id_plataforma]])->count() >= 1;
       foreach($beneficiosMensuales as $idmon => $bMensual){
         $producido[$idmon] = Producido::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $prod_jug[$idmon]  = ProducidoJugadores::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $beneficio[$idmon] = !is_null($bMensual) && ($bMensual->beneficios()->where('fecha',$fecha)->count() >= 1);
         $prod_poker[$idmon] = ProducidoPoker::where([['fecha' , $fecha],['id_plataforma', $id_plataforma] ,['id_tipo_moneda' , $idmon]])->count() >= 1;
         $benef_poker[$idmon] = !is_null($beneficiosMensualesPoker[$idmon]) && ($beneficiosMensualesPoker[$idmon] ->beneficios()->where('fecha',$fecha)->count() >= 1);
+        $estado_juegos[$idmon] = $hay_estado_juego_fecha;
+        $estado_jugadores[$idmon] = $hay_estado_jugador_fecha;
       }
       $dia['producido'] = $producido;
       $dia['prod_jug']  = $prod_jug;
       $dia['beneficio'] = $beneficio;
       $dia['prod_poker'] = $prod_poker;
       $dia['benef_poker'] = $benef_poker;
+      $dia['estado_juegos'] = $estado_juegos;
+      $dia['estado_jugadores'] = $estado_jugadores;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
       $fecha = date('Y-m-d' , strtotime($fecha . ' + 1 days'));
@@ -229,9 +274,9 @@ class ImportacionController extends Controller
 
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
-      $viejos = Producido::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
+      Producido::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      CacheController::getInstancia()->invalidarDependientes('producido');
+      CacheController::getInstancia()->invalidarDependientes(['producido']);
     });
     return $ret;
   }
@@ -246,9 +291,9 @@ class ImportacionController extends Controller
 
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
-      $viejos = ProducidoJugadores::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
+      ProducidoJugadores::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      CacheController::getInstancia()->invalidarDependientes('producido');
+      CacheController::getInstancia()->invalidarDependientes(['producido_jugadores']);
     });
     return $ret;
   }
@@ -263,9 +308,9 @@ class ImportacionController extends Controller
 
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
-      $viejos = ProducidoPoker::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
+      ProducidoPoker::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducidoPoker($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      CacheController::getInstancia()->invalidarDependientes('producido');
+      CacheController::getInstancia()->invalidarDependientes(['producido_poker']);
     });
     return $ret;
   }
@@ -371,10 +416,5 @@ class ImportacionController extends Controller
     $content = file_get_contents($file);
     $resultado = DB::select(DB::raw('SELECT md5(?) as hash'),[$content]);
     return $resultado[0]->hash;
-  }
-
-  public function importacionesNoContables() {
-    UsuarioController::getInstancia()->agregarSeccionReciente('Importaciones No-contables' , 'importacionesNoContables');
-    return view('seccionImportacionesNoContables', ['tipoMoneda' => TipoMoneda::all(), 'plataformas' => UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas]);
   }
 }

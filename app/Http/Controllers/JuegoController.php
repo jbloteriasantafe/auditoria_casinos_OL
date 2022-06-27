@@ -164,7 +164,7 @@ class JuegoController extends Controller
       $juego->save();
       $log->save();
 
-      CacheController::getInstancia()->invalidarDependientes('juego');
+      CacheController::getInstancia()->invalidarDependientes(['juego']);
     });
 
     return ['juego' => $juego];
@@ -293,7 +293,7 @@ class JuegoController extends Controller
       $juego->save();
       $log->save();
 
-      CacheController::getInstancia()->invalidarDependientes('juego');
+      CacheController::getInstancia()->invalidarDependientes(['juego']);
     });
 
     return ['juego' => $juego];

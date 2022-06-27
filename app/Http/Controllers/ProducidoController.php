@@ -132,7 +132,7 @@ class ProducidoController extends Controller
       $prod = Producido::find($id_producido);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
-      CacheController::getInstancia()->invalidarDependientes('producido');
+      CacheController::getInstancia()->invalidarDependientes(['producido']);
     });
   }
 
@@ -145,7 +145,7 @@ class ProducidoController extends Controller
       $prod = ProducidoJugadores::find($id_producido_jugadores);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
-      CacheController::getInstancia()->invalidarDependientes('producido');
+      CacheController::getInstancia()->invalidarDependientes(['producido_jugadores']);
     });
   }
 
@@ -158,7 +158,7 @@ class ProducidoController extends Controller
       $prod = ProducidoPoker::find($id_producido_poker);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
-      CacheController::getInstancia()->invalidarDependientes('producido');
+      CacheController::getInstancia()->invalidarDependientes(['producido_poker']);
     });
   }
 

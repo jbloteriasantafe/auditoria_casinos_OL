@@ -13,15 +13,25 @@ class CacheController extends Controller
       }
       return self::$instance;
   }
-  public function buscar($codigo,$subcodigo = null,$get = true){
-    $ret = Cache::where('codigo','=',$codigo)->orderBy('creado','desc');
-    if(!is_null($subcodigo)){
-      $ret = $ret->where('subcodigo','=',$subcodigo);
-    }
+  private function buscar($codigo = null,$subcodigo = null,$antes_de = null,$dependencias = null,$get = true){
+    $reglas = [];
+    if(!is_null($codigo)) $reglas[] = ['codigo','=',$codigo];
+    if(!is_null($subcodigo)) $reglas[] = ['subcodigo','=',$subcodigo];
+    if(!is_null($antes_de)) $reglas[] = ['creado','<=',$antes_de];
+    if(!is_null($dependencias)) $reglas[] = ['dependencias','LIKE','%|'.implode('|',$dependencias).'|%'];
+
+    $ret = Cache::where($reglas)->orderBy('creado','desc');
     if($get){
       $ret = $ret->get();
     }
     return $ret;
+  }
+  public function invalidar($codigo = null,$subcodigo = null,$antes_de = null,$dependencias = null){
+    $this->buscar($codigo,$subcodigo,$antes_de,$dependencias,false)->delete();
+    return $this;
+  }
+  public function invalidarDependientes($dependencias){
+    return $this->invalidar(null,null,null,$dependencias);
   }
   public function agregar($codigo,$subcodigo,$data,$dependencias = []){
     $cache = new Cache;
@@ -33,37 +43,10 @@ class CacheController extends Controller
     $cache->save();
     return $this;
   }
-  public function invalidar($codigo,$subcodigo = null){
-    $this->buscar($codigo,$subcodigo,false)->delete();
-    return $this;
-  }
-  public function buscarUnico($codigo,$subcodigo){
-    $cache = $this->buscar($codigo,$subcodigo);
-    if(count($cache) == 1){
-      return $cache->first();
-    }
-    $this->invalidar($codigo,$subcodigo);
-    return null;
-  }
-  public function buscarUnicoDentroDeSegundos($codigo,$subcodigo,$segundos){
-    $cache = $this->buscarUnico($codigo,$subcodigo);
-    if(!is_null($cache)){
-      $s = strtotime(date('Y-m-d H:i:s')) - strtotime($cache->creado);
-      if($s < $segundos){//Si esta dentro de la hora retorno lo cacheado
-        return $cache;
-      }
-    }
-    //Si no, borro lo cacheado
-    $this->invalidar($codigo,$subcodigo);
-    return null;
-  }
-  public function buscarDependientes($codigo){
-    return Cache::where('dependencias','LIKE','%|'.$codigo.'|%')->get();
-  }
-  public function invalidarDependientes($codigo){
-    $caches = $this->buscarDependientes($codigo);
-    if(empty($caches)) return false;
-    foreach($caches as $c) $c->delete();
-    return true;
+  public function buscarUltimoDentroDeSegundos($codigo,$subcodigo,$segundos){
+    $ahora = date('Y-m-d H:i:s');
+    $antes_de = date('Y-m-d H:i:s',strtotime($ahora) - $segundos);
+    $this->invalidar($codigo,$subcodigo,$antes_de);
+    return $this->buscar($codigo,$subcodigo)->first();
   }
 }

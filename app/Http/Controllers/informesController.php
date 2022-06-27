@@ -323,7 +323,7 @@ class informesController extends Controller
     $codigo = 'estadoPlatPdevs';
     $subcodigo = $request->id_plataforma.'|'.$request->fecha_desde.'|'.$request->fecha_hasta;
     //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
-    $cache = $cc->buscarUnicoDentroDeSegundos($codigo,$subcodigo,3600);
+    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
     
     if(!is_null($cache)){
       return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
@@ -442,7 +442,7 @@ class informesController extends Controller
 
       $estadisticas['Total'] = merge_pdevs($pdev_teorico,$producido_pdevs);
     }
-    $cc->agregar($codigo,$subcodigo,json_encode($estadisticas),['producido','juego']);
+    $cc->agregar($codigo,$subcodigo,json_encode($estadisticas),['producido','juego','plataforma']);
     return $estadisticas;
   }
 
@@ -793,7 +793,16 @@ class informesController extends Controller
   }
 
   public function jugadoresMensuales(){
-    return DB::table('plataforma as p')
+    $cc = CacheController::getInstancia();
+    $codigo = 'jugadoresMensuales';
+    $subcodigo = '';
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
+    if(!is_null($cache)){
+      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
+    }
+
+    $ret = DB::table('plataforma as p')
     ->selectRaw('p.nombre as plataforma,YEAR(fecha) as año, MONTH(fecha) as mes, COUNT(distinct dpj.jugador) as jugadores')
     ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
@@ -801,10 +810,22 @@ class informesController extends Controller
     ->groupBy(DB::raw('p.nombre,YEAR(fecha),MONTH(fecha)'))
     ->orderByRaw('p.nombre asc,YEAR(fecha) asc,MONTH(fecha) asc')
     ->get();
+
+    $cc->agregar($codigo,$subcodigo,json_encode($ret),['producido_jugadores','detalle_producido_jugadores','plataforma']);
+    return $ret;
   }
 
   public function jugadoresAnuales(){
-    return DB::table('plataforma as p')
+    $cc = CacheController::getInstancia();
+    $codigo = 'jugadoresMensuales';
+    $subcodigo = '';
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
+    if(!is_null($cache)){
+      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
+    }
+
+    $ret = DB::table('plataforma as p')
     ->selectRaw('p.nombre as plataforma, COUNT(distinct dpj.jugador) as jugadores')
     ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
@@ -812,6 +833,9 @@ class informesController extends Controller
     ->groupBy(DB::raw('p.nombre'))
     ->orderByRaw('p.nombre asc')
     ->get();
+
+    $cc->agregar($codigo,$subcodigo,json_encode($ret),['producido_jugadores','detalle_producido_jugadores','plataforma']);
+    return $ret;
   }
 
   public function estadosDias(){

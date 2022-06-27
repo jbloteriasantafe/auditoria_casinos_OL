@@ -15,10 +15,17 @@ $cols_poker = ['cod_juego' => 'center','categoria' => 'center','jugadores' => 'r
 $cols_b_juegos = ['fecha' => 'center','jugadores' => 'right','depositos' => 'right','retiros' => 'right','apuesta' => 'right','premio' => 'right','beneficio' => 'right'];
 $cols_b_poker = ['fecha' => 'center','jugadores' => 'right','mesas' => 'right','buy' => 'right','rebuy' => 'right','total_buy' => 'right',
         'cash_out' => 'right','otros_pagos' => 'right','total_bonus' => 'right','utilidad' => 'right'];
-$cols = ['producido_juegos' => $cols_juegos,'producido_jugadores' => $cols_jugadores,'producido_poker' => $cols_poker,'beneficio_juegos' => $cols_b_juegos,'beneficio_poker' => $cols_b_poker];
-$abbr = ['producido_juegos' =>         '+P','producido_jugadores' =>           '+PJ','producido_poker' =>      '+PPk','beneficio_juegos' =>           '+B','beneficio_poker' =>        '+BPk'];
+$cols_e_juegos    = ['codigo' => 'center','nombre' => 'center','categoria' => 'center','estado' => 'center','tecnologia' => 'center'];
+$cols_e_jugadores = ['codigo' => 'center','localidad' => 'center','provincia' => 'center','fecha_alta' => 'center','estado' => 'center','fecha_autoexclusion' => 'center','fecha_ultimo_movimiento' => 'center','sexo' => 'center'];
+$cols = ['producido_juegos' => $cols_juegos,'producido_jugadores' => $cols_jugadores,'producido_poker' => $cols_poker,
+         'beneficio_juegos' => $cols_b_juegos,  'beneficio_poker' => $cols_b_poker,  null => null,
+            'estado_juegos' => $cols_e_juegos, 'estado_jugadores' => $cols_e_jugadores ];
+$abbr = ['producido_juegos' =>  '+P','producido_jugadores' =>  '+PJ','producido_poker' => '+PPk',
+         'beneficio_juegos' =>  '+B','beneficio_poker'     => '+BPk', null => null,
+         'estado_juegos'   =>   '+E','estado_jugadores'    => '+EJ'];
 $to_header = function($s){return str_replace("_"," ",strtoupper($s));};
 $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)));
+$botones_filas_de = 3;
 ?>
 
 @section('estilos')
@@ -32,13 +39,13 @@ $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)))
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: left;
     align-items: center;
     align-content: center;
   }
   #botonesImportar > *{
     /*flex: 1;*/
-    width: 50%;
+    width: <?php echo(100.0/$botones_filas_de);?>%;
   }
   #tablaVistaPrevia th,#tablaImportaciones th,#tablaImportaciones td{
     text-align: center;
@@ -51,6 +58,10 @@ $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)))
   }
   #infoImportaciones td {
       height: 50px;
+  }
+  #infoImportaciones th {
+    position: sticky;
+    top: 0;
   }
   #infoImportaciones td.true .fa-check,#infoImportaciones td.false .fa-times  {
     display: inline;
@@ -74,18 +85,20 @@ $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)))
   <div id="botonesImportar" style="width: 25%;height: 90%;float: left;">
     @foreach($abbr as $modo => $abbr)
     <div>
+      @if(!empty($modo))
       <a href="" class="btn-importar" data-modo="{{$modo}}" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
           <div class="backgroundNuevo"></div>
           <div class="col-xs-12">
             <center>
-              <h5 class="txtLogo"><span style="position: relative;font-size: 0.3em;top: -4vh;">{{$abbr}}</span></h5>
-              <h4 class="txtNuevo">IMPORTAR {{str_replace("_"," ",strtoupper($modo))}}</h4>
+              <h5 class="txtLogo" style="margin: 0px;"><span style="position: relative;font-size: 0.25em;top: -4vh;">{{$abbr}}</span></h5>
+              <h4 class="txtNuevo" style="font-size: 115%;" >IMPORTAR {{str_replace("_"," ",strtoupper($modo))}}</h4>
             </center>
           </div>
         </div>
       </a>
+      @endif
     </div>
     @endforeach
   </div>
@@ -125,6 +138,7 @@ $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)))
               <tr>
                 <th value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
                 @foreach($hdrs as $modo => $h)
+                @continue(empty($modo))
                 <th>{{$h}}</th>
                 @endforeach
               </tr>
@@ -152,6 +166,7 @@ $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)))
                 <h5>TIPO DE ARCHIVO</h5>
                 <select id="tipo_archivo" class="form-control">
                 @foreach($hdrs as $modo => $h)
+                @continue(empty($modo))
                 <option value="{{$modo}}">{{$h}}</option>
                 @endforeach
                 </select>
@@ -300,10 +315,12 @@ $hdrs = array_combine(array_keys($abbr),array_map($to_header,array_keys($abbr)))
   <tr id="moldeFilaImportacionPorDia">
     <td class="fecha">12 AGO 2018</td>
     @foreach($cols as $modo => $ignorar)
+    @continue(empty($modo))
     <td class="{{$modo}}"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
     @endforeach
   </tr>
   @foreach($cols as $modo => $cols_modo)
+  @continue(empty($modo))
   <tr class="moldeDiario {{$modo}}">
     @foreach($cols_modo as $col => $align)
     <td data-atributo="{{$col}}" style="text-align: {{$align}};width: {{100/count($cols_modo)}}%;">{{$col}}</td>
