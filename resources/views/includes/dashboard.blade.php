@@ -75,7 +75,7 @@ $auditoria_hijos = [
   'Importaciones' => [
     'icono' => $icono_expedientes,
     'hijos' => [
-      'Importación Diaria Contable'  => [
+      'Importación Diaria'  => [
         'link' => '/importaciones',
         'algun_permiso' => ['ver_seccion_importaciones'],
       ],

@@ -236,78 +236,6 @@ background-color: #4CAF50;
   </div>
 </div>
 
-<div class="modal fade" id="modalImportacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarImportacion" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoImportacion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">IMPORTAR JUEGOS</h3>
-      </div>
-      <div id="colapsadoImportacion" class="collapse in">
-        <div class="modal-body">
-          <div id="rowArchivo" class="row">
-            <div class="col-xs-12">
-              <h5>ARCHIVO</h5>
-              <div class="zona-file">
-                <input id="archivo" data-borrado="false" type="file">
-                <br>
-                <span id="alertaArchivo" class="alertaSpan"></span>
-              </div>
-            </div>
-            @include('includes.md5hash')
-          </div>
-          <div id="datosImportacion" class="row">
-            <div class="col-xs-12">
-              <div class="col-xs-6">
-                <h5>FECHA</h5>
-                <div class="input-group date" id="fechaImportacion" data-date-format="dd/mm/yyyy" data-link-field="fechaImportacion_hidden" data-link-format="yyyy-mm-dd">
-                  <input type="text" class="form-control" placeholder="Fecha del archivo">
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-                <input type="hidden" id="fechaImportacion_hidden" >
-                <br>
-              </div>
-              <div class="col-xs-6">
-                <h5>PLATAFORMA</h5>
-                <select id="plataformaImportacion" class="form-control">
-                  <option value="" selected>- Seleccione -</option>
-                  @foreach ($plataformas as $plataforma)
-                  <option value="{{$plataforma->id_plataforma}}">{{$plataforma->nombre}}</option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="row" id="animacionImportando" style="text-align: center;" hidden>&nbsp;</div>
-          <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-            <div class="col-xs-12" align="center">
-              <i class="fa fa-fw fa-exclamation-triangle"></i>
-              <h6> ARCHIVO INCORRECTO</h6>
-            </div>
-            <br>
-            <br>
-            <div class="col-xs-12" align="center">
-              <p>Solo se aceptan archivos con extensión .csv o .txt</p>
-            </div>
-          </div>
-          <div id="iconoCarga" class="sk-folding-cube">
-            <div class="sk-cube1 sk-cube"></div>
-            <div class="sk-cube2 sk-cube"></div>
-            <div class="sk-cube4 sk-cube"></div>
-            <div class="sk-cube3 sk-cube"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-guardarImportacion" value="nuevo"> SUBIR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="modalVerificarEstados" tabindex="-1" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -396,7 +324,7 @@ background-color: #4CAF50;
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionInformeEstadoJuegos.js?2" charset="utf-8"></script>
+<script src="/js/seccionInformeEstadoJuegos.js?3" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?3" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->

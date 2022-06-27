@@ -17,15 +17,6 @@ $(document).ready(function(){
   $('#dtpFechaAltaH').datetimepicker(ddmmyy_dtp);
   $('#dtpFechaUltimoMovimientoD').datetimepicker(ddmmyy_dtp);
   $('#dtpFechaUltimoMovimientoH').datetimepicker(ddmmyy_dtp);
-  $('#fechaImportacion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    startView: 2,
-    minView: 2,
-    pickerPosition: "top-right",
-  });
   $('.tituloSeccionPantalla').text('Estado de Jugadores');
   $('#btn-buscar').trigger('click');
 });
@@ -448,7 +439,6 @@ $(document).on('change','.previewPage',function(e){
   mostrarHistorial($('#modalHistorial').find('.prevPreview').val(),val);
 });
 
-
 $(document).on('click', '#modalHistorial .cuerpo tr th[value]', function(e) {
   $('#tablaJugadores th').removeClass('activa');
   if ($(this).children('i').hasClass('fa-sort')) {
@@ -463,144 +453,3 @@ $(document).on('click', '#modalHistorial .cuerpo tr th[value]', function(e) {
   $('#tablaJugadores th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
   mostrarHistorial($('#modalHistorial').find('.prevPreview').val(),$('#modalHistorial').find('.previewPage').val());
 });
-
-function reiniciarModalImportar(){
-  ocultarErrorValidacion($('#modalImportacion').find('input,select'));
-  $('#modalImportacion').find('.modal-footer').children().show();
-  $('#mensajeExito').hide();
-  //Mostrar: rowArchivo
-  $('#modalImportacion').find('#datosImportacion,#mensajeError,#mensajeInvalido,#iconoCarga,#btn-guardarImportacion').hide();
-  $('#modalImportacion #fechaImportacion').data('datetimepicker').reset();
-  $('#modalImportacion').find('#plataformaImportacion,.hashCalculado,.hashRecibido').val("");
-  //Ocultar: mensajes, iconoCarga
-  $('#modalImportacion #archivo')[0].files[0] = null;
-  $('#modalImportacion #archivo').attr('data-borrado','false');
-  $("#modalImportacion #archivo").fileinput('destroy').fileinput({
-    language: 'es',
-    language: 'es',
-    showRemove: false,
-    showUpload: false,
-    showCaption: false,
-    showZoom: false,
-    browseClass: "btn btn-primary",
-    previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-    overwriteInitial: false,
-    initialPreviewAsData: true,
-    dropZoneEnabled: false,
-    preferIconicPreview: true,
-    previewFileIconSettings: {
-      'csv': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>',
-      'txt': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>'
-    },
-    allowedFileExtensions: ['csv','txt'],
-  });
-  $('#animacionImportando').hide();
-}
-
-$('#btn-importar-jugadores').click(function(e){
-  e.preventDefault();
-  reiniciarModalImportar();
-  $('#modalImportacion').modal('show');
-});
-
-//Eventos de la librería del input
-$('#modalImportacion #archivo').on('fileerror', function(event, data, msg) {
-  $('#modalImportacion #datosProducido').hide();
-  $('#modalImportacion #mensajeInvalido').show();
-  $('#modalImportacion #mensajeInvalido p').text(msg);
-  //Ocultar botón SUBIR
-  $('#btn-guardarProducido').hide();
-});
-
-$('#modalImportacion #archivo').on('fileclear',reiniciarModalImportar);
-
-$('#modalImportacion #archivo').on('fileselect', function(event) {
-  $('#modalImportacion #archivo').attr('data-borrado','false');
-  let reader = new FileReader();
-  reader.onload = procesarDatosJugadores;
-  reader.readAsText($('#modalImportacion #archivo')[0].files[0]);
-});
-
-function procesarDatosJugadores(e) {
-  const csv = e.target.result;
-  const allTextLines = csv.replaceAll('\r\n','\n').split('\n').filter(s => s.length > 0);
-
-  if(allTextLines.length <= 0 || allTextLines[0].split(';').length != 9){
-    $('#modalImportacion #mensajeInvalido p').text('El archivo es invalido');
-    $('#modalImportacion #mensajeInvalido').show();
-    $('#modalImportacion #iconoCarga').hide();
-    $('#btn-guardarImportacion').hide();
-    return;
-  }
-
-  $('#modalImportacion').find('#btn-guardarImportacion,#datosImportacion').show();
-  $('#modalImportacion #mensajeInvalido').hide();
-}
-
-$('#btn-guardarImportacion').on('click', function(e){
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-
-  e.preventDefault();
-
-  const formData = new FormData();
-  formData.append('id_plataforma', $('#plataformaImportacion').val());
-  formData.append('fecha', $('#fechaImportacion_hidden').val());
-  formData.append('md5',$('#modalImportacion').find('.hashCalculado').val());
-  
-  //Si subió archivo lo guarda
-  if($('#modalImportacion #archivo').attr('data-borrado') == 'false' && $('#modalImportacion #archivo')[0].files[0] != null){
-    formData.append('archivo' , $('#modalImportacion #archivo')[0].files[0]);
-  }
-  ocultarErrorValidacion($('#modalImportacion').find('input,select'));
-
-  let progress = 0;
-  $('#animacionImportando').show();
-  const loading = setInterval(function(){
-      const message = ['―','/','|','\\'];
-      $('#animacionImportando').text(message[progress]);
-      progress = (progress + 1)%4;
-  },100);
-
-  $.ajax({
-    type: "POST",
-    url: 'informeEstadoJugadores/importarJugadores',
-    data: formData,
-    processData: false,
-    contentType:false,
-    cache:false,
-    success: function (data) {
-      clearInterval(loading);
-      $('#animacionImportando').hide();
-      $('#btn-buscar').click();
-      $('#modalImportacion').modal('hide');
-      $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN');
-      $('#mensajeExito p').text('El archivo se importo correctamente');
-      $('#mensajeExito').show();
-    },
-    error: function (data) {
-      clearInterval(loading);
-      $('#animacionImportando').hide();
-      console.log(data);
-      mensajeError('Error al subir el archivo');
-      const response = data.responseJSON;
-      if(typeof response['fecha'] !== 'undefined'){
-        mostrarErrorValidacion($('#fechaImportacion input'),response['fecha'].join(', '),true);
-      }
-      if(typeof response['id_plataforma'] !== 'undefined'){
-        mostrarErrorValidacion($('#plataformaImportacion'),response['id_plataforma'].join(', '),true);
-      }
-    }
-  });
-});
-
-function mensajeError(msg){
-  $('#mensajeError .textoMensaje').empty();
-  $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
-  $('#mensajeError').modal('hide');
-  setTimeout(function() {
-    $('#mensajeError').modal('show')
-  }, 100);
-  setTimeout(function() {
-    $('#mensajeError').modal('hide')
-  }, 3000);
-}
