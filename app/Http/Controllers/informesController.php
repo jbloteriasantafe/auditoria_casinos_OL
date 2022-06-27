@@ -817,7 +817,7 @@ class informesController extends Controller
 
   public function jugadoresAnuales(){
     $cc = CacheController::getInstancia();
-    $codigo = 'jugadoresMensuales';
+    $codigo = 'jugadoresAnuales';
     $subcodigo = '';
     //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
     $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
