@@ -448,7 +448,7 @@ $botones_filas_de = 3;
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="/js/seccionImportaciones.js?10" charset="utf-8"></script>
+<script src="/js/seccionImportaciones.js?11" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?2" charset="utf-8"></script>
 

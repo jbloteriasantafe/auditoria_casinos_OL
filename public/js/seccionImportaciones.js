@@ -270,7 +270,10 @@ function procesarDatos(e){
       $(`#monedaImportacion option:contains(${moneda})`).prop('selected',true)
       $('#monedaImportacion').attr('disabled',true);
     }
-    else if(es_estado){}
+    else if(es_estado){
+      $('#fechaImportacion input').attr('disabled',false);
+      $('#fechaImportacion span').show();
+    }
     else {
       return fail();
     }
@@ -314,6 +317,7 @@ function reiniciarModalImportar(modo){
     minView: 2,
     ignoreReadonly: true,
   });
+  $('#modalImportacion #fechaImportacion').data('datetimepicker').reset();
 
   $('#modalImportacion #rowArchivo').show();
   $('#modalImportacion #plataformaImportacion').val("");
