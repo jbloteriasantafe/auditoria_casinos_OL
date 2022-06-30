@@ -77,3 +77,68 @@
   transition: all 200ms 100ms;
   top: 40px;
 }
+
+.panelBotonNuevo2 {
+  overflow: hidden;
+  height: 22.92vh;
+  padding: 0px !important;
+  background-color: white !important;
+}
+.backgroundNuevo2 {
+  position: relative;
+  bottom: -33.707vh;
+  height: 25.84vh;
+  background-color: #4DB6AC !important;
+  transition: all 200ms 100ms;
+}
+.backgroundEnlace2 {
+  position: relative;
+  bottom: -33.707vh;
+  height: 22.92vh;
+  background-color: #4FC3F7 !important;
+  transition: all 200ms 100ms;
+}
+.imgNuevo2 {
+  position: relative;
+  top: -48.876vh;
+  width: 6.77vw;
+  z-index: 1;
+  transition: all 200ms 0ms;
+}
+.txtLogo2 {
+  position: relative;
+  top: -38.651vh;
+  font-family: "Roboto-Thin" !important;
+  font-weight: lighter !important;
+  font-size: 20.224vh !important;
+  color: #ccc !important;
+  transition: all 200ms 100ms;
+}
+.txtNuevo2 {
+  position: relative;
+  top: -42.921vh;
+  font-family: "Roboto-BoldCondensed" !important;
+  font-size: 1.685vh;
+  color: #ccc !important;
+  transition: all 200ms 100ms;
+}
+.panelBotonNuevo2:hover .backgroundNuevo2{
+  transition: all 200ms;
+  bottom: 9.775vh;
+}
+.panelBotonNuevo2:hover .backgroundEnlace2{
+  transition: all 200ms;
+  bottom: 9.663vh;
+}
+.panelBotonNuevo2:hover .txtLogo2 {
+  transition: all 200ms;
+  top: -53.932vh;
+}
+.panelBotonNuevo2:hover .txtNuevo2 {
+  transition: all 200ms;
+  color: white !important;
+}
+.panelBotonNuevo2:hover .imgNuevo2 {
+  transition: all 200ms 100ms;
+  top: 4.494vh;
+}

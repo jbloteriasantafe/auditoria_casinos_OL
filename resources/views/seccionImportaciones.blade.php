@@ -87,13 +87,13 @@ $botones_filas_de = 3;
     <div>
       @if(!empty($modo))
       <a href="" class="btn-importar" data-modo="{{$modo}}" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo">
-          <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-          <div class="backgroundNuevo"></div>
+        <div class="panel panel-default panelBotonNuevo2">
+          <center><img class="imgNuevo2" src="/img/logos/CSV_white.png"><center>
+          <div class="backgroundNuevo2"></div>
           <div class="col-xs-12">
             <center>
-              <h5 class="txtLogo" style="margin: 0px;"><span style="position: relative;font-size: 0.25em;top: -4vh;">{{$abbr}}</span></h5>
-              <h4 class="txtNuevo" style="font-size: 115%;" >IMPORTAR {{str_replace("_"," ",strtoupper($modo))}}</h4>
+              <h5 class="txtLogo2" style="margin: 0px;"><span style="position: relative;font-size: 4.25vh;top: -4vh;">{{$abbr}}</span></h5>
+              <h4 class="txtNuevo2" style="font-size: 2vh;" >IMPORTAR {{str_replace("_"," ",strtoupper($modo))}}</h4>
             </center>
           </div>
         </div>
