@@ -300,7 +300,7 @@ $tarjeta_css = null;
     <link rel="stylesheet" href="/css/animacionesMenu.css">
 
     <!-- Animaciones de alta -->
-    <link rel="stylesheet" href="/css/animacionesAlta.css">
+    <link rel="stylesheet" href="/css/animacionesAlta.css?2">
 
     <!-- Animación de carga de datos -->
     <link rel="stylesheet" href="/css/loadingAnimation.css">
