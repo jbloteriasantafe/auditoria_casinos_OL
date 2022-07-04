@@ -11,16 +11,8 @@
       </div>
     </div>
     <div class="fondoAbreModal">
-      <div class="centrar_div_hijo abbrAbreModal">
-        <div>
-          {!! $img ?? '+' !!}
-        </div>
-      </div>
-      <div class="textoAbreModal">
-        <div>
-          {!! $texto !!}
-        </div>
-      </div>
+    </div>
+    <div class="fondoAbreModalHover">
     </div>
   </div>   
 </div>
