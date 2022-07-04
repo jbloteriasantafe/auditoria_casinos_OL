@@ -34,6 +34,7 @@ $botones_filas_de = 3;
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/animacionCarga.css">
 <link rel="stylesheet" href="/css/paginacion.css">
+<link rel="stylesheet" href="/css/componenteBotonAbreModal.css">
 <style>
   #botonesImportar {
     display: flex;
@@ -86,18 +87,14 @@ $botones_filas_de = 3;
     @foreach($abbr as $modo => $abbr)
     <div>
       @if(!empty($modo))
-      <a href="" class="btn-importar" data-modo="{{$modo}}" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo2">
-          <center><img class="imgNuevo2" src="/img/logos/CSV_white.png"><center>
-          <div class="backgroundNuevo2"></div>
-          <div class="col-xs-12">
-            <center>
-              <h5 class="txtLogo2" style="margin: 0px;"><span style="position: relative;font-size: 4.25vh;top: -4vh;">{{$abbr}}</span></h5>
-              <h4 class="txtNuevo2" style="font-size: 2vh;" >IMPORTAR {{str_replace("_"," ",strtoupper($modo))}}</h4>
-            </center>
-          </div>
-        </div>
-      </a>
+      @component('componenteBotonAbreModal',[
+        'classes' => 'btn-importar',
+        'attrs' => 'data-modo="'.$modo.'"',
+        'abbr' => $abbr,
+        'texto' => 'IMPORTAR '.str_replace("_"," ",strtoupper($modo)),
+        'img' => '<img src="/img/logos/CSV_white.png">',
+      ])
+      @endcomponent
       @endif
     </div>
     @endforeach

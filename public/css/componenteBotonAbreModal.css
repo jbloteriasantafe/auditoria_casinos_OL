@@ -1,0 +1,55 @@
+.centrar_div_hijo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.divComponenteBotonAbreModal {
+  width: 100%;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  color: rgb(204, 204, 204);
+  background-color: #fff;
+  height: 22.92vh;
+  position: relative;
+}
+
+.divComponenteBotonAbreModal .fondoAbreModal{
+  height: 0%;
+  position: relative;
+  z-index: -1;
+  background-color:#4DB6AC;
+  color: white;
+  opacity: 0;
+}
+.divComponenteBotonAbreModal img{
+  width: 100%;
+}
+.divComponenteBotonAbreModal .abbrAbreModal{
+  height: 50%;
+  text-align: center;
+  font-size: 5.00vh;
+  font-family: 'Roboto-Thin';
+  user-select: none;
+}
+.divComponenteBotonAbreModal .textoAbreModal{
+  height: 50%;
+  text-align: center;
+  font-size: 2.3vh;
+  font-family: 'Roboto-BoldCondensed';
+  user-select: none;
+}
+
+.divComponenteBotonAbreModal:hover > .abbrAbreModal,
+.divComponenteBotonAbreModal:hover > .textoAbreModal
+{
+  transition: all 320ms ease-out 0ms;
+  color: rgba(0,0,0,0);
+  height: 0;
+}
+.divComponenteBotonAbreModal:hover > .fondoAbreModal{
+  transition: all 320ms ease-out 0ms;
+  z-index: 0;
+  opacity: 1;
+  height: 100%;
+}
