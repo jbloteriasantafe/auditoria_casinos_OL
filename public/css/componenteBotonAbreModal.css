@@ -16,7 +16,7 @@
 }
 .divComponenteBotonAbreModal .imgAbreModal{
   position: relative;
-  z-index: -2;
+  z-index: -1;
   height: 50%;
   bottom: 50%;
   clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
@@ -29,7 +29,7 @@
 .divComponenteBotonAbreModal:not(:hover) .imgAbreModal{
   bottom: 50%;
   clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  transition: all 200ms ease-in 200ms;
+  transition: all 200ms ease-in;
 }
 .divComponenteBotonAbreModal .abbrAbreModal{
   position: relative;
@@ -51,7 +51,7 @@
 .divComponenteBotonAbreModal:not(:hover) .abbrAbreModal{
   bottom: 50%;
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-  transition: all 200ms ease-in;
+  transition: all 200ms ease-in 200ms;
 }
 .divComponenteBotonAbreModal .textoAbreModal{
   position: relative;
