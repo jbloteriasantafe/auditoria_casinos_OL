@@ -8,8 +8,10 @@
         {!! $abbr ?? '&nbsp;' !!}
       </div>
     </div>
-    <div class="textoAbreModal">
-      {!! $texto ?? '&nbsp;' !!}
+    <div class="centrar_div_hijo textoAbreModal">
+      <div>
+        {!! $texto ?? '&nbsp;' !!}
+      </div>
     </div>
     <div class="fondoAbreModal">
     </div>
