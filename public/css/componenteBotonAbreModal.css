@@ -1,4 +1,4 @@
-.centrar_div_hijo {
+.divComponenteBotonAbreModal .centrar_div_hijo {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -57,23 +57,35 @@
   transition: all 200ms ease-in;
   color: white;
 }
+.divComponenteBotonAbreModal:not(:hover) .textoAbreModal{
+  transition: all 200ms ease-in;
+  color: rgb(204, 204, 204);
+}
 .divComponenteBotonAbreModal:hover .fondoAbreModal{
   transition: all 200ms ease-in;
   height: 0%;
+}
+.divComponenteBotonAbreModal:not(:hover) .fondoAbreModal{
+  transition: all 200ms ease-in;
+  height: 100%;
 }
 .divComponenteBotonAbreModal:hover .fondoAbreModalHover{
   transition: all 200ms ease-in;
   height: 100%;
 }
+.divComponenteBotonAbreModal:not(:hover) .fondoAbreModalHover{
+  transition: all 200ms ease-in;
+  height: 0%;
+}
 .divComponenteBotonAbreModal:hover .abbrAbreModal{
   height: 0%;
   bottom: 50%;
   opacity: 0;
-  animation-name: esconder_abbr;
+  animation-name: abbrAbreModal_esconder;
   animation-duration: 200ms;
   animation-timing-function: ease-in;
 }
-@keyframes esconder_abbr {
+@keyframes abbrAbreModal_esconder {
   from {
     height: 50%;
     bottom: 0%;
@@ -88,11 +100,11 @@
 .divComponenteBotonAbreModal:hover .imgAbreModal{
   height: 50%;
   opacity: 1;
-  animation-name: mostrar_img;
+  animation-name: imgAbreModal_mostrar;
   animation-duration: 200ms;
   animation-timing-function: ease-in;
 }
-@keyframes mostrar_img {
+@keyframes imgAbreModal_mostrar {
   from {
     opacity: 0;
     height: 0%;
