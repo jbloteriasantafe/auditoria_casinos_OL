@@ -4,7 +4,7 @@
       <div>
         {!! $img ?? '+' !!}
       </div>
-    </div>
+    </div> 
     <div class="centrar_div_hijo abbrAbreModal">
       <div>
         {!! $abbr !!}

@@ -15,14 +15,14 @@
   z-index: -4;
   background-color: white;
   height: 100%;
-  bottom: 100%;
+  bottom: 150%;
 }
 .divComponenteBotonAbreModal .fondoAbreModalHover{
   position: relative;
   z-index: -3;
   background-color: #4DB6AC;
   height: 0%;
-  bottom: 100%;
+  bottom: 150%;
 }
 .divComponenteBotonAbreModal img{
   width: 100%;
@@ -31,22 +31,18 @@
   position: relative;
   z-index: -1;
   height: 50%;
+  bottom: 50%;
   text-align: center;
   font-size: 5.00vh;
   font-family: 'Roboto-Thin';
   user-select: none;
   word-break: break-all;
 }
-.divComponenteBotonAbreModal .imgAbreModal{
-  position: relative;
-  z-index: -1;
-  height: 0%;
-  opacity: 0;
-}
 .divComponenteBotonAbreModal .textoAbreModal{
   position: relative;
   z-index: -1;
   height: 50%;
+  bottom: 50%;
   text-align: center;
   font-size: 2.3vh;
   font-family: 'Roboto-BoldCondensed';
@@ -78,39 +74,27 @@
   height: 0%;
 }
 .divComponenteBotonAbreModal:hover .abbrAbreModal{
-  height: 0%;
-  bottom: 50%;
   opacity: 0;
-  animation-name: abbrAbreModal_esconder;
-  animation-duration: 200ms;
-  animation-timing-function: ease-in;
+  transition: all 200ms ease-in;
 }
-@keyframes abbrAbreModal_esconder {
-  from {
-    height: 50%;
-    bottom: 0%;
-    opacity: 1;
-  }
-  to {
-    height: 0%;
-    bottom: 50%;
-    opacity: 0;
-  }
+.divComponenteBotonAbreModal:not(:hover) .abbrAbreModal{
+  opacity: 1;
+  transition: all 200ms ease-in;
+}
+.divComponenteBotonAbreModal .imgAbreModal{
+  position: relative;
+  z-index: -2;
+  height: 50%;
+  bottom: 50%;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
 }
 .divComponenteBotonAbreModal:hover .imgAbreModal{
-  height: 50%;
-  opacity: 1;
-  animation-name: imgAbreModal_mostrar;
-  animation-duration: 200ms;
-  animation-timing-function: ease-in;
+  bottom: 0%;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 0%, 0% 0%);
+  transition: all 200ms ease-in 200ms;
 }
-@keyframes imgAbreModal_mostrar {
-  from {
-    opacity: 0;
-    height: 0%;
-  }
-  to {
-    opacity: 1;
-    height: 50%;
-  }
+.divComponenteBotonAbreModal:not(:hover) .imgAbreModal{
+  bottom: 50%;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  transition: all 200ms ease-in 200ms;
 }
