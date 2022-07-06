@@ -1,4 +1,5 @@
 function GET(loadingDiv,url,success = function(data){},error = function(data){}){
+  if(loadingDiv.length == 0) return;
   let progress = 0;
   const intervalID = setInterval(function(){
       const message = ['―','/','|','\\'];
