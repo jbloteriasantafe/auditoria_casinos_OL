@@ -140,7 +140,7 @@ function llenarFila(fila,jugador){
   fila.find('.provincia').text(jugador.provincia).attr('title',jugador.provincia);
   fila.find('.fecha_autoexclusion').text(convertir_fechahora(jugador.fecha_autoexclusion)).attr('title',jugador.fecha_autoexclusion);
   fila.find('.fecha_alta').text(convertir_fechahora(jugador.fecha_alta)).attr('title',jugador.fecha_alta);
-  fila.find('.fecha_ultimo_movimiento').text(convertir_fecha(jugador.fecha_ultimo_movimiento)).attr('title',jugador.fecha_ultimo_movimiento);
+  fila.find('.fecha_ultimo_movimiento').text(convertir_fechahora(jugador.fecha_ultimo_movimiento)).attr('title',jugador.fecha_ultimo_movimiento);
   fila.find('button').val(jugador.id_estado_jugador);
   return fila;
 }
