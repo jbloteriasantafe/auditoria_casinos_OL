@@ -56,7 +56,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
     estado:      $('#buscadorEstado').val(),
     edad_desde:  $('#buscadorRangoEtarioD').val(),
     edad_hasta:  $('#buscadorRangoEtarioH').val(),
-    genero:      $('#buscadorSexo').val(),
+    sexo:        $('#buscadorSexo').val(),
     localidad:   $('#buscadorLocalidad').val(),
     provincia:   $('#buscadorProvincia').val(),
     fecha_autoexclusion_desde:     iso($('#dtpFechaAutoexclusionD')),
@@ -71,10 +71,9 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
   };
 
   $.ajax({
-    type: 'GET',
+    type: 'POST',
     url: 'informeEstadoJugadores/buscarJugadores',
     data: formData,
-    async: async,
     dataType: 'json',
     success: function(resultados) {
       $('#herramientasPaginacion').generarTitulo(page_number, page_size, resultados.total, clickIndice);
