@@ -830,7 +830,7 @@ class informesController extends Controller
     ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
     ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
-    ->groupBy(DB::raw('p.nombre'))
+    ->groupBy(DB::raw('p.id_plataforma'))
     ->orderByRaw('p.nombre asc')
     ->get();
 
