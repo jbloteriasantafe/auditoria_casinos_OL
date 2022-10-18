@@ -787,7 +787,7 @@ class informesController extends Controller
     ->selectRaw('p.nombre as plataforma, SUM(beneficio) as beneficio')
     ->join('plataforma as p','p.id_plataforma','=','bm.id_plataforma')
     ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
-    ->groupBy(DB::raw('p.nombre'))
+    ->groupBy(DB::raw('p.id_plataforma'))
     ->orderByRaw('p.nombre asc')
     ->get();
   }
@@ -807,7 +807,7 @@ class informesController extends Controller
     ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
     ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
-    ->groupBy(DB::raw('p.nombre,YEAR(fecha),MONTH(fecha)'))
+    ->groupBy(DB::raw('p.id_plataforma,YEAR(fecha),MONTH(fecha)'))
     ->orderByRaw('p.nombre asc,YEAR(fecha) asc,MONTH(fecha) asc')
     ->get();
 
