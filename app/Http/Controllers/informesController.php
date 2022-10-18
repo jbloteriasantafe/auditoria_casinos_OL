@@ -940,7 +940,7 @@ class informesController extends Controller
         $reglas[] = [$edad_sql,'<=',$request->edad_hasta];
       }
     }
-    if(!is_null($request->sexo))    $reglas[] = ['dj.sexo','LIKE',$request->genero];
+    if(!is_null($request->sexo))    $reglas[] = ['dj.sexo','LIKE',$request->sexo];
     if(!is_null($request->localidad)) $reglas[] = ['dj.localidad','LIKE',$request->localidad];
     if(!is_null($request->provincia)) $reglas[] = ['dj.provincia','LIKE',$request->provincia];
     if(!is_null($request->fecha_autoexclusion_desde)) $reglas[] = ['ej.fecha_autoexclusion','>=',$request->fecha_autoexclusion_desde];
