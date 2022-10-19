@@ -317,18 +317,8 @@ class informesController extends Controller
     }
     return $estadisticas;
   }
-
-  public function obtenerPdevs(Request $request){
-    $cc = CacheController::getInstancia();
-    $codigo = 'estadoPlatPdevs';
-    $subcodigo = $request->id_plataforma.'|'.$request->fecha_desde.'|'.$request->fecha_hasta;
-    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
-    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
-    
-    if(!is_null($cache)){
-      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
-    }
-    /*
+  
+  /*
     PdevTeorico = Si cada juego se jugara en igual cantidad
       Osea si cada juego tiene una apuesta "A", con "N" juegos
       PdevTeorico = (∑Pdev_i A)/(N*A), i = 1..N
@@ -345,8 +335,17 @@ class informesController extends Controller
       AVG(A)/AVG(B) = ((A1+A2+A3)/3) / ((B1+B2+B3)/3) = (A1+A2+A3)/(B1+B2+B3) = SUM(A) / SUM (B)
     CREO que tiene mejor comportamiento para numeros flotantes, porque ∑P_i y ∑A_i son numeros muy grandes.
     Depende de la implementación de SUM y AVG... en todo caso no hace mal
-    */
-
+	*/
+  public function obtenerPdevs(Request $request){
+    $cc = CacheController::getInstancia();
+    $codigo = 'estadoPlatPdevs';
+    $subcodigo = $request->id_plataforma.'|'.$request->fecha_desde.'|'.$request->fecha_hasta.'|'.($request->tipo ?? '');
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
+    
+    if(!is_null($cache)){
+      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
+    }
     //Auxiliares para simplificar la query
     //NULL es ignorado cuando MySQL hace AVG
     //El esperado no lo tengo que multiplicar por 100 porque el porcentaje_devolucion esta en 0-100 en vez de 0-1
@@ -369,81 +368,83 @@ class informesController extends Controller
       }
       return $e;
     }
+    
+    $tipos = [
+      'Estado' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
+        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
+        ->selectRaw("ej.nombre as clase, $select_pdev_jueg")
+        ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
+        ->groupBy('pj.id_estado_juego')->get();
 
-    $estadisticas = [];
-    {//ESTADO
-      $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('ej.nombre as clase,'.$select_pdev_jueg)
-      ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
-      ->groupBy('pj.id_estado_juego')->get();
+        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+        ->selectRaw("ej.nombre as clase, $select_pdev_prod")
+        ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
+        ->groupBy('pj.id_estado_juego')->get();
+        
+        return merge_pdevs($pdev_teorico,$producido_pdevs);
+      },
+      'Tipo' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
+        $clase = '(CASE 
+          WHEN (j.movil+j.escritorio) = 2 THEN "Escritorio/Movil"
+          WHEN j.movil = 1 THEN "Movil"
+          WHEN j.escritorio = 1 THEN "Escritorio"
+          ELSE "(ERROR) Sin tipo asignado"
+        END) as clase';
+        
+        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
+        ->selectRaw("$clase, $select_pdev_jueg")
+        ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
-      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('ej.nombre as clase, '.$select_pdev_prod)
-      ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
-      ->groupBy('pj.id_estado_juego')->get();
+        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+        ->selectRaw("$clase, $select_pdev_prod")
+        ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
 
-      $estadisticas['Estado'] = merge_pdevs($pdev_teorico,$producido_pdevs);
-    }
-    {//TIPO
-      $tipo = '(CASE 
-        WHEN (j.movil+j.escritorio) = 2 THEN "Escritorio/Movil"
-        WHEN j.movil = 1 THEN "Movil"
-        WHEN j.escritorio = 1 THEN "Escritorio"
-        ELSE "(ERROR) Sin tipo asignado"
-      END) as clase';
-      
-      $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw($tipo.','.$select_pdev_jueg)
-      ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
+        return merge_pdevs($pdev_teorico,$producido_pdevs);  
+      },
+      'Categoria' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
+        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
+        ->selectRaw('cj.nombre as clase,'.$select_pdev_jueg)
+        ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+        ->groupBy('j.id_categoria_juego')->get();
 
-      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw($tipo.','.$select_pdev_prod)
-      ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
+        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+        ->selectRaw('cj.nombre as clase, '.$select_pdev_prod)
+        ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+        ->groupBy('j.id_categoria_juego')->get();
 
-      $estadisticas['Tipo'] = merge_pdevs($pdev_teorico,$producido_pdevs);
-    }
+        return merge_pdevs($pdev_teorico,$producido_pdevs);
+      },
+      //Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
+      'Categoria Informada (NO EN BD)' => function() use ($request,$select_pdev_jueg,$select_pdev_prod,$avg_producido){
+        $pdev_teorico = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+        ->selectRaw('dp.categoria as clase, NULL as pdev')
+        ->groupBy('dp.categoria')->get();
 
-    {//CATEGORIA
-      $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('cj.nombre as clase,'.$select_pdev_jueg)
-      ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-      ->groupBy('j.id_categoria_juego')->get();
+        $producido_pdevs = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+        ->selectRaw('dp.categoria as clase, NULL as pdev_esperado,'.$avg_producido.'as pdev_producido')
+        ->groupBy('dp.categoria')->get();
 
-      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('cj.nombre as clase, '.$select_pdev_prod)
-      ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-      ->groupBy('j.id_categoria_juego')->get();
+        return merge_pdevs($pdev_teorico,$producido_pdevs);  
+      },
+      'Total' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
+        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
+        ->selectRaw('"Total" as clase,'.$select_pdev_jueg)
+        ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
 
-      $estadisticas['Categoria'] = merge_pdevs($pdev_teorico,$producido_pdevs);
-    }
+        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+        ->selectRaw('"Total" as clase,'.$select_pdev_prod)
+        ->groupBy(DB::raw('"constant"'))->get();
 
-    {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
-      $pdev_teorico = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('dp.categoria as clase, NULL as pdev')
-      ->groupBy('dp.categoria')->get();
-
-      $producido_pdevs = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('dp.categoria as clase, NULL as pdev_esperado,'.$avg_producido.'as pdev_producido')
-      ->groupBy('dp.categoria')->get();
-
-      $estadisticas['Categoria Informada (NO EN BD)'] = merge_pdevs($pdev_teorico,$producido_pdevs);
-    }
-
-    {//El PDEV total
-      $clasificador = 'Total';
-
-      $cantidad_y_pdev = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('"Total" as clase,'.$select_pdev_jueg)
-      ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
-
-      $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('"Total" as clase,'.$select_pdev_prod)
-      ->groupBy(DB::raw('"constant"'))->get();
-
-      $estadisticas['Total'] = merge_pdevs($pdev_teorico,$producido_pdevs);
-    }
-    $cc->agregar($codigo,$subcodigo,json_encode($estadisticas),['producido','juego','plataforma']);
-    return $estadisticas;
+        return merge_pdevs($pdev_teorico,$producido_pdevs);
+      },
+    ];
+    
+    if(empty($request->tipo) || !array_key_exists($request->tipo,$tipos)) 
+      return array_keys($tipos);
+    
+    $resultado = $tipos[$request->tipo]();
+    $cc->agregar($codigo,$subcodigo,json_encode($resultado),['producido','juego','plataforma']);
+    return $resultado;
   }
 
   //No encontre mejor forma de hacerlo... necesito la consulta para ordernar desde el front

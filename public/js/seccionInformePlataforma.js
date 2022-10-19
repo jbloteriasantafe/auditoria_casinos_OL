@@ -91,9 +91,13 @@ $('#btn-buscar').click(function(e){
       },250);
     }
   });
-  GET($('#tablas'),'obtenerPdevs',{},function(data){
-    for(const clasificacion in data){
-      generarTabla(clasificacion,data[clasificacion]);
+  GET($('#tablas'),'obtenerPdevs',{},function(clases){
+    for(const cidx in clases){
+      const divtabla = $('<div>');
+      $('#tablas').append(divtabla);
+      GET(divtabla,'obtenerPdevs',{tipo: clases[cidx]},function(data){
+        generarTabla(divtabla,clases[cidx],data);
+      });
     }
   });
 
@@ -127,7 +131,7 @@ $('#btn-minimizar').click(function(){
   $(this).data("minimizar",!minimizar);
 });
 
-function generarTabla(nombre,valores){
+function generarTabla(divtabla,nombre,valores){
   function clearNull(v){
     return v? v : '-';
   }
@@ -148,7 +152,7 @@ function generarTabla(nombre,valores){
     if (pdev != '-' || pdev_esperado != '-' || pdev_producido != '-') table.find('tbody').append(f);
   }
   filaModelo.remove();
-  $('#tablas').append(table);
+  divtabla.replaceWith(table);
 }
 
 function generarGraficos(nombre,valores){
