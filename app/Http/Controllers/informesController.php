@@ -261,13 +261,14 @@ class informesController extends Controller
   private function producidosSinJuegoPlataforma($id_plataforma,$fecha_desde,$fecha_hasta){
     $ret = DB::table('producido as p')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
-    ->leftJoin('juego as j',function($j){
-      return $j->on('j.cod_juego','=','dp.cod_juego')->whereNull('j.deleted_at');
-    })
-    ->leftJoin('plataforma_tiene_juego as pj',function($j){
-      return $j->on('pj.id_juego','=','j.id_juego')->on('pj.id_plataforma','=','p.id_plataforma');
-    })->where('p.id_plataforma',$id_plataforma)->whereNull('pj.id_juego');
-
+    ->where('p.id_plataforma',$id_plataforma)
+    ->whereRaw('NOT EXISTS (
+    	SELECT pj.id_juego
+      FROM juego as j
+      JOIN plataforma_tiene_juego as pj on pj.id_juego = j.id_juego
+      WHERE j.deleted_at IS NULL AND j.cod_juego = `dp`.`cod_juego` AND pj.id_plataforma = `p`.`id_plataforma`
+    )');
+    
     if(!empty($fecha_desde)) $ret = $ret->where('p.fecha','>=',$fecha_desde);
     if(!empty($fecha_hasta)) $ret = $ret->where('p.fecha','<=',$fecha_hasta);
     return $ret;
@@ -298,7 +299,7 @@ class informesController extends Controller
           ELSE "(ERROR) Sin tipo asignado"
         END) as clase';      
         return $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw($clase.', COUNT(distinct j.cod_juego) as juegos')
+        ->selectRaw("$clase, COUNT(distinct j.cod_juego) as juegos")
         ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
       },
       'Categoria' => function() use ($request){
