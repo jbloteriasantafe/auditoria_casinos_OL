@@ -68,8 +68,7 @@ $('#buscadorPlataforma').change(function(e){
 })
 
 $('#btn-buscar').click(function(e){
-  const id = $('#buscadorPlataforma').val();
-  if(id == "") return;
+  if($('#buscadorPlataforma').val() == "") return;
 
   $('#graficos').empty();
   $('#tablas').empty();
@@ -80,15 +79,19 @@ $('#btn-buscar').click(function(e){
     if(desde || hasta) titulo += (desde? desde : '####-##-##') + '/' + (hasta? hasta : '####-##-##');
     $('#tituloModal').text(titulo);
   }
-  $('#modalPlataforma').modal('show');
   $('.tabContent').hide();
   $('.tab').eq(0).click();
+  $('#modalPlataforma').modal('show');
+});
 
-  GET($('#graficos'),'obtenerClasificacion',{},function(data){
-    for(const clasificacion in data){
-      setTimeout(function(){
-        generarGraficos(clasificacion,data[clasificacion]);
-      },250);
+$('#modalPlataforma').on('shown.bs.modal',function(){
+  GET($('#graficos'),'obtenerClasificacion',{},function(clases){
+    for(const cidx in clases){
+      const divgrafico = $('<div>');
+      $('#graficos').append(divgrafico);
+      GET(divgrafico,'obtenerClasificacion',{tipo: clases[cidx]},function(data){
+        generarGraficos(divgrafico,clases[cidx],data);
+      });
     }
   });
   GET($('#tablas'),'obtenerPdevs',{},function(clases){
@@ -100,10 +103,9 @@ $('#btn-buscar').click(function(e){
       });
     }
   });
-
   $('.divTablaPaginada').each(function(){
     $(this).data('buscar')();
-  })
+  });
 });
 
 function setearEstadoColumna(col,estado){
@@ -155,14 +157,14 @@ function generarTabla(divtabla,nombre,valores){
   divtabla.replaceWith(table);
 }
 
-function generarGraficos(nombre,valores){
+function generarGraficos(divgrafico,nombre,valores){
   const dataseries = [];
   for(const idx in valores){
     const val = valores[idx];
     dataseries.push([val['clase'],val['juegos']]);
   }
   const grafico = $('<div>').addClass('grafico col-md-4').css('padding-top','50px');
-  $('#graficos').append(grafico);
+  divgrafico.replaceWith(grafico);
   Highcharts.chart(grafico[0], {
     chart: {
       spacingBottom: 0,

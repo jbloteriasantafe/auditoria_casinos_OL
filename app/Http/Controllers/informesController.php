@@ -274,48 +274,52 @@ class informesController extends Controller
   }
 
   public function obtenerClasificacion(Request $request){
-    $estadisticas = [];
-    {//ESTADO
-      $cantidad = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('ej.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
-      ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
-      ->groupBy('pj.id_estado_juego')->get();
-
-      $estadisticas['Estado'] = $cantidad;
+    $cc = CacheController::getInstancia();
+    $codigo = 'estadoPlatClasif';
+    $subcodigo = $request->id_plataforma.'|'.$request->fecha_desde.'|'.$request->fecha_hasta.'|'.($request->tipo ?? '');
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
+    if(!is_null($cache)){
+      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
     }
-
-    {//TIPO
-      $tipo = '(CASE 
-        WHEN (j.movil+j.escritorio) = 2 THEN "Escritorio/Movil"
-        WHEN j.movil = 1 THEN "Movil"
-        WHEN j.escritorio = 1 THEN "Escritorio"
-        ELSE "(ERROR) Sin tipo asignado"
-      END) as clase';
-      
-      $cantidad = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw($tipo.', COUNT(distinct j.cod_juego) as juegos')
-      ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
-
-      $estadisticas['Tipo'] = $cantidad;
-    }
-
-    {//CATEGORIA
-      $cantidad = $this->juegosPlataforma($request->id_plataforma)
-      ->selectRaw('cj.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
-      ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-      ->groupBy('j.id_categoria_juego')->get();
-
-      $estadisticas['Categoria'] = $cantidad;
-    }
-
-    {//Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
-      $cantidad = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-      ->selectRaw('dp.categoria as clase, COUNT(distinct dp.cod_juego) as juegos')
-      ->groupBy('dp.categoria')->get();
-
-      $estadisticas['Categoria Informada (NO EN BD)'] = $cantidad;
-    }
-    return $estadisticas;
+    
+    $tipos = [
+      'Estado' => function() use ($request){
+        return $this->juegosPlataforma($request->id_plataforma)
+        ->selectRaw('ej.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
+        ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
+        ->groupBy('pj.id_estado_juego')->get();
+      },
+      'Tipo' => function() use ($request){
+        $clase = '(CASE 
+          WHEN (j.movil+j.escritorio) = 2 THEN "Escritorio/Movil"
+          WHEN j.movil = 1 THEN "Movil"
+          WHEN j.escritorio = 1 THEN "Escritorio"
+          ELSE "(ERROR) Sin tipo asignado"
+        END) as clase';      
+        return $this->juegosPlataforma($request->id_plataforma)
+        ->selectRaw($clase.', COUNT(distinct j.cod_juego) as juegos')
+        ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
+      },
+      'Categoria' => function() use ($request){
+        return $this->juegosPlataforma($request->id_plataforma)
+        ->selectRaw('cj.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
+        ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+        ->groupBy('j.id_categoria_juego')->get();
+      },
+      'Categoria Informada (NO EN BD)'  => function() use ($request){
+        return $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+        ->selectRaw('dp.categoria as clase, COUNT(distinct dp.cod_juego) as juegos')
+        ->groupBy('dp.categoria')->get();
+      },
+    ];
+    
+    if(empty($request->tipo) || !array_key_exists($request->tipo,$tipos)) 
+      return array_keys($tipos);
+    
+    $resultado = $tipos[$request->tipo]();
+    $cc->agregar($codigo,$subcodigo,json_encode($resultado),['producido','juego','plataforma']);
+    return $resultado;
   }
   
   /*
