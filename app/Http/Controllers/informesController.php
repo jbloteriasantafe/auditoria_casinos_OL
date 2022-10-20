@@ -522,12 +522,12 @@ class informesController extends Controller
     $q = DB::table('producido_jugadores as pj')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
     ->whereRaw('NOT EXISTS (
-        SELECT dj.codigo
-        FROM datos_jugador as dj
-        JOIN estado_jugador as ej ON ej.id_datos_jugador = dj.id_datos_jugador AND ej.es_ultimo_estado_del_jugador = 1
-        JOIN importacion_estado_jugador as iej ON iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
-        WHERE dj.codigo = dpj.jugador AND iej.id_plataforma = pj.id_plataforma
-    )')->where('pj.id_plataforma',$request->id_plataforma);
+      SELECT dj.codigo
+      FROM datos_jugador as dj
+      JOIN estado_jugador as ej ON ej.id_datos_jugador = dj.id_datos_jugador
+      JOIN importacion_estado_jugador as iej ON iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
+      WHERE dj.codigo = dpj.jugador AND ej.es_ultimo_estado_del_jugador = 1 AND iej.id_plataforma = (?)
+    )',[$request->id_plataforma])->where('pj.id_plataforma',$request->id_plataforma);
 
     if(!empty($fecha_desde)) $ret = $q->where('pj.fecha','>=',$request->fecha_desde);
     if(!empty($fecha_hasta)) $ret = $q->where('pj.fecha','<=',$request->fecha_hasta);
