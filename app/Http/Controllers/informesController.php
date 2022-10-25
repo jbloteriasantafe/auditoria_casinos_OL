@@ -512,47 +512,50 @@ class informesController extends Controller
     $columna = empty($request->columna)? 'dpj.jugador' : $request->columna;
     $orden   =   empty($request->orden)? 'asc' : $request->orden;
 
-    //2022-04-01 Octavio: BPLAY reporto un producido todo en "0", la idea es que no se muestre si no tuvo movimientos, lo filtro
-    //Me quedo con la función porque en MySQL no se puede referenciar la columna por el alias
-    $numericos_distinto_de_cero = array_map(function($s){ 
-      $columna = explode(" ",$s,2)[0];
-      return "(($columna) <> 0)";
-    },array_slice(self::$obtenerJugadorFaltantesSelect,1));
-    
-    //Esto esta hecho a proposito asi para que la subquery sea independiente de la query principal
-    //Ademas se ordena la subquery para que la busqueda sea eficiente (en teoria)
-    //Es importante el FORCE INDEX porque sino el planificador flashea cualquiera 
-    //Octavio 2022-10-25
-    $q = DB::table(DB::raw('detalle_producido_jugadores as dpj FORCE INDEX(jugador)'))
-    ->join('producido_jugadores as pj','pj.id_producido_jugadores','=','dpj.id_producido_jugadores')
-    ->whereRaw('pj.id_plataforma = (?) AND dpj.jugador NOT IN (
+    $no_estan_importados = 'pj.id_plataforma = (?) AND dpj.jugador NOT IN (
       SELECT distinct dj.codigo
       FROM importacion_estado_jugador as iej
       JOIN estado_jugador as ej ON ej.id_importacion_estado_jugador = iej.id_importacion_estado_jugador
       JOIN datos_jugador as dj ON dj.id_datos_jugador = ej.id_datos_jugador
       WHERE iej.id_plataforma = (?) AND ej.es_ultimo_estado_del_jugador = 1
       ORDER BY dj.codigo ASC
-    )',[$request->id_plataforma,$request->id_plataforma]);
+    )';
 
-    if(!empty($fecha_desde)) $ret = $q->where('pj.fecha','>=',$request->fecha_desde);
-    if(!empty($fecha_hasta)) $ret = $q->where('pj.fecha','<=',$request->fecha_hasta);
-
-    $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadorFaltantesSelect))
+    //2022-04-01 Octavio: BPLAY reporto un producido todo en "0", la idea es que no se muestre si no tuvo movimientos, lo filtro
+    //Me quedo con la función porque en MySQL no se puede referenciar la columna por el alias
+    $numericos_distinto_de_cero = array_map(function($s){
+      $columna = substr($s,strpos($s,'('),strpos($s,')')-1);
+      return "(($columna) <> 0)";
+    },array_slice(self::$obtenerJugadorFaltantesSelect,1,-1));//Saco el jugador y el pdev
+    $numericos_distinto_de_cero = '('.implode(' OR ',$numericos_distinto_de_cero).')';
+    
+    //Esto esta hecho a proposito asi para que la subquery sea independiente de la query principal
+    //Ademas se ordena la subquery para que la busqueda sea eficiente (en teoria)
+    //Es importante el FORCE INDEX porque sino el planificador flashea cualquiera 
+    //Octavio 2022-10-25
+    
+    $reglas_fechas = [];
+    if(!empty($fecha_desde)) $reglas_fechas[] = ['pj.fecha','>=',$request->fecha_desde];
+    if(!empty($fecha_hasta)) $reglas_fechas[] = ['pj.fecha','<=',$request->fecha_hasta];
+    
+    $jugadores_faltantes = DB::table(DB::raw('detalle_producido_jugadores as dpj FORCE INDEX(jugador)'))
+    ->selectRaw(implode(",",self::$obtenerJugadorFaltantesSelect))
+    ->join('producido_jugadores as pj','pj.id_producido_jugadores','=','dpj.id_producido_jugadores')
+    ->whereRaw($no_estan_importados,[$request->id_plataforma,$request->id_plataforma])
+    ->whereRaw($numericos_distinto_de_cero)
+    ->where($reglas_fechas)
     ->groupBy('dpj.jugador')
-    ->havingRaw('('.implode(' OR ',$numericos_distinto_de_cero).')')
     ->orderByRaw($columna.' '.$orden)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
-
-    $numericos_distinto_de_cero2 = array_map(function($s){//Saco las funciones de agregacion para que cuente correctamente en un group by total...
-      $s = str_replace("SUM(","(",$s);
-      $s = str_replace("AVG(","(",$s);
-      return $s;
-    },$numericos_distinto_de_cero);
-
-    //No tira nada en el de prueba pero funciona en el de producción... creo que faltan importar detalles producidos jugadores
-    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadorFaltantesSelect,1)))
-    ->whereRaw('('.implode(' OR ',$numericos_distinto_de_cero2).')')
-    ->groupBy(DB::raw('"constant"'))->get();
+    
+    $total = DB::table('producido_jugadores as pj')//Aca no uso el indice porque lo hace mas lento
+    ->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadorFaltantesSelect,1)))
+    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+    ->whereRaw($no_estan_importados,[$request->id_plataforma,$request->id_plataforma])
+    ->whereRaw($numericos_distinto_de_cero)
+    ->where($reglas_fechas)
+    ->groupBy(DB::raw('"constant"'))
+    ->get();
 
     $count = $total->first()? $total->first()->count : 0;
 
