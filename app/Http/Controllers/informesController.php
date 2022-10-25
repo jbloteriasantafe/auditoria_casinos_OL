@@ -519,15 +519,20 @@ class informesController extends Controller
       return "(($columna) <> 0)";
     },array_slice(self::$obtenerJugadorFaltantesSelect,1));
     
-    $q = DB::table('producido_jugadores as pj')
-    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
-    ->whereRaw('NOT EXISTS (
-      SELECT dj.codigo
-      FROM datos_jugador as dj
-      JOIN estado_jugador as ej ON ej.id_datos_jugador = dj.id_datos_jugador
-      JOIN importacion_estado_jugador as iej ON iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
-      WHERE dj.codigo = dpj.jugador AND ej.es_ultimo_estado_del_jugador = 1 AND iej.id_plataforma = (?)
-    )',[$request->id_plataforma])->where('pj.id_plataforma',$request->id_plataforma);
+    //Esto esta hecho a proposito asi para que la subquery sea independiente de la query principal
+    //Ademas se ordena la subquery para que la busqueda sea eficiente (en teoria)
+    //Es importante el FORCE INDEX porque sino el planificador flashea cualquiera 
+    //Octavio 2022-10-25
+    $q = DB::table(DB::raw('detalle_producido_jugadores as dpj FORCE INDEX(jugador)'))
+    ->join('producido_jugadores as pj','pj.id_producido_jugadores','=','dpj.id_producido_jugadores')
+    ->whereRaw('pj.id_plataforma = (?) AND dpj.jugador NOT IN (
+      SELECT distinct dj.codigo
+      FROM importacion_estado_jugador as iej
+      JOIN estado_jugador as ej ON ej.id_importacion_estado_jugador = iej.id_importacion_estado_jugador
+      JOIN datos_jugador as dj ON dj.id_datos_jugador = ej.id_datos_jugador
+      WHERE iej.id_plataforma = (?) AND ej.es_ultimo_estado_del_jugador = 1
+      ORDER BY dj.codigo ASC
+    )',[$request->id_plataforma,$request->id_plataforma]);
 
     if(!empty($fecha_desde)) $ret = $q->where('pj.fecha','>=',$request->fecha_desde);
     if(!empty($fecha_hasta)) $ret = $q->where('pj.fecha','<=',$request->fecha_hasta);
