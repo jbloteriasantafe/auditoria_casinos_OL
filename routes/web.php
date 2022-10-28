@@ -290,6 +290,7 @@ Route::get('calendario_eventos',function(){
 });
 
 Route::post('hashearArchivo/{tipo}','ImportacionController@hashearArchivo');
+Route::get('actualizarTablaJugadoresNoEnBD','JugadoresNoBDController@actualizarTablaJugadoresNoEnBD');
 
 Route::post('enviarTicket',function(Request $request){
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];

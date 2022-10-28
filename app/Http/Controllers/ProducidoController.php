@@ -14,6 +14,7 @@ use App\TipoMoneda;
 use App\Juego;
 use App\PdfParalelo;
 use App\Http\Controllers\CacheController;
+use App\Http\Controllers\JugadoresNoBDController;
 
 class ProducidoController extends Controller
 {
@@ -142,6 +143,7 @@ class ProducidoController extends Controller
                    , [], self::$atributos)->after(function($validator){})->validate();
 
     DB::transaction(function() use ($id_producido_jugadores){
+      (new JugadoresNoBDController)->borrarProducido($id_producido_jugadores);
       $prod = ProducidoJugadores::find($id_producido_jugadores);
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();

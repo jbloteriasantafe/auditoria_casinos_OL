@@ -523,22 +523,8 @@ class informesController extends Controller
     $reglas_fechas = [];
     if(!empty($fecha_desde)) $reglas_fechas[] = ['pj.fecha','>=',$request->fecha_desde];
     if(!empty($fecha_hasta)) $reglas_fechas[] = ['pj.fecha','<=',$request->fecha_hasta];
-    
-    $tabla_jugadores_no_en_bd = DB::raw('(
-      SELECT distinct pj_nobd.id_plataforma,dpj_nobd.jugador
-      FROM producido_jugadores as pj_nobd
-      JOIN detalle_producido_jugadores as dpj_nobd ON dpj_nobd.id_producido_jugadores = pj_nobd.id_producido_jugadores
-      WHERE (pj_nobd.id_plataforma,dpj_nobd.jugador) NOT IN (
-        SELECT distinct iej.id_plataforma,dj.codigo
-        FROM importacion_estado_jugador as iej
-        JOIN estado_jugador as ej ON ej.id_importacion_estado_jugador = iej.id_importacion_estado_jugador
-        JOIN datos_jugador as dj ON dj.id_datos_jugador = ej.id_datos_jugador
-        WHERE ej.es_ultimo_estado_del_jugador = 1
-        ORDER BY pj_nobd.id_plataforma asc,dj.codigo ASC
-      )
-    ) as j_nobd');
-    
-    $q = DB::table($tabla_jugadores_no_en_bd)
+       
+    $q = DB::table('jugadores_produciendo_no_en_bd as j_nobd')
     ->join('producido_jugadores as pj','pj.id_plataforma','=','j_nobd.id_plataforma')
     ->join('detalle_producido_jugadores as dpj',function($j){
       return $j->on('dpj.id_producido_jugadores','=','pj.id_producido_jugadores')

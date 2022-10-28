@@ -11,6 +11,7 @@ use App\BeneficioMensual;
 use App\BeneficioMensualPoker;
 use App\Http\Controllers\ProducidoController;
 use App\Http\Controllers\BeneficioMensualController;
+use App\Http\Controllers\JugadoresNoBDController;
 
 class LectorCSVController extends Controller
 {
@@ -744,7 +745,7 @@ class LectorCSVController extends Controller
     if(!$err){
       throw new \Exception('Error al actualizar los estados de los jugadores');
     }*/
-    return 1;
+    return $importacion;
   }
 
   private function importarEstadosJuegosTemporal($id_importacion_estado_juego,$archivo){
