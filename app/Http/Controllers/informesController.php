@@ -464,32 +464,26 @@ class informesController extends Controller
 
   public function obtenerJuegoFaltantesConMovimientos(Request $request){
     $columna = empty($request->columna)? 'dp.cod_juego' : $request->columna;
-    $orden   =   empty($request->orden)? 'asc' : $request->orden;
-
-    //2022-04-01 Octavio: BPLAY reporto un producido todo en "0", la idea es que no se muestre si no tuvo movimientos, lo filtro
-    //Me quedo con la función porque en MySQL no se puede referenciar la columna por el alias
-    $numericos_distinto_de_cero = array_map(function($s){ 
-      $columna = explode(" ",$s,2)[0];
-      return "(($columna) <> 0)";
-    },array_slice(self::$obtenerJuegoFaltantesSelect,2));
+    $orden   = empty($request->orden)?   'asc'          : $request->orden;
     
-    $juegos_faltantes = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw(implode(",",self::$obtenerJuegoFaltantesSelect))
+    //Saca los producidos en "0"
+    $numericos_distinto_de_cero = array_map(function($s){
+      $columna = substr($s,strpos($s,'('),strpos($s,')')-1);
+      return "(($columna) <> 0)";
+    },array_slice(self::$obtenerJuegoFaltantesSelect,2,-1));//Saco el juego, categoria y el pdev
+    $numericos_distinto_de_cero = '('.implode(' OR ',$numericos_distinto_de_cero).')';
+    
+    $q = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+    ->whereRaw($numericos_distinto_de_cero);
+    
+    $juegos_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJuegoFaltantesSelect))
     ->groupBy('dp.cod_juego')
-    ->havingRaw('('.implode(' OR ',$numericos_distinto_de_cero).')')
     ->orderByRaw($columna.' '.$orden)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
-
-    $numericos_distinto_de_cero2 = array_map(function($s){//Saco las funciones de agregacion para que cuente correctamente en un group by total...
-      $s = str_replace("SUM(","(",$s);
-      $s = str_replace("AVG(","(",$s);
-      return $s;
-    },$numericos_distinto_de_cero);
-
-    $total = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-    ->selectRaw("'TOTAL' as cod_juego, COUNT(distinct dp.cod_juego) as count,".implode(",",array_slice(self::$obtenerJuegoFaltantesSelect,1)))
-    ->whereRaw('('.implode(' OR ',$numericos_distinto_de_cero2).')')
-    ->groupBy(DB::raw('"constant"'))->get();
+    
+    $total = (clone $q)->selectRaw("'TOTAL' as cod_juego,COUNT(distinct dp.cod_juego) as count,".implode(",",array_slice(self::$obtenerJuegoFaltantesSelect,1)))
+    ->groupBy(DB::raw('"constant"'))
+    ->get();
 
     $count = $total->first()? $total->first()->count : 0;
 
@@ -512,8 +506,7 @@ class informesController extends Controller
     $columna = empty($request->columna)? 'dpj.jugador' : $request->columna;
     $orden   =   empty($request->orden)? 'asc' : $request->orden;
     
-    //2022-04-01 Octavio: BPLAY reporto un producido todo en "0", la idea es que no se muestre si no tuvo movimientos, lo filtro
-    //Me quedo con la función porque en MySQL no se puede referenciar la columna por el alias
+    //Saca los producidos en "0"
     $numericos_distinto_de_cero = array_map(function($s){
       $columna = substr($s,strpos($s,'('),strpos($s,')')-1);
       return "(($columna) <> 0)";
