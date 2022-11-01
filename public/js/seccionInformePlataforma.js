@@ -85,22 +85,12 @@ $('#btn-buscar').click(function(e){
 });
 
 $('#modalPlataforma').on('shown.bs.modal',function(){
-  GET($('#graficos'),'obtenerClasificacion',{},function(clases){
+  GET($('#graficos,#tablas'),'obtenerCantidadesPdevs',{},function(data){
+    const clases = Object.keys(data);
     for(const cidx in clases){
-      const divgrafico = $('<div>');
-      $('#graficos').append(divgrafico);
-      GET(divgrafico,'obtenerClasificacion',{tipo: clases[cidx]},function(data){
-        generarGraficos(divgrafico,clases[cidx],data);
-      });
-    }
-  });
-  GET($('#tablas'),'obtenerPdevs',{},function(clases){
-    for(const cidx in clases){
-      const divtabla = $('<div>');
-      $('#tablas').append(divtabla);
-      GET(divtabla,'obtenerPdevs',{tipo: clases[cidx]},function(data){
-        generarTabla(divtabla,clases[cidx],data);
-      });
+      const clase = clases[cidx];
+      generarGraficos(clase,data[clase]);
+      generarTabla(clase,data[clase]);
     }
   });
   $('.divTablaPaginada').each(function(){
@@ -133,20 +123,22 @@ $('#btn-minimizar').click(function(){
   $(this).data("minimizar",!minimizar);
 });
 
-function generarTabla(divtabla,nombre,valores){
+function generarTabla(nombre,valores){
   function clearNull(v){
     return v? v : '-';
   }
   const table = $('#tablaModelo').clone().removeAttr('id').show();
   table.find('.dato').text(nombre);
   const filaModelo = table.find('.filaModelo');
-  for(const idx in valores){
-    const val = valores[idx];
+  const tipos = Object.keys(valores);
+  for(const tidx in tipos){
+    const tipo = tipos[tidx];
+    const val = valores[tipo];
     const f = filaModelo.clone().removeClass('filaModelo');
-    f.find('.fila').text(idx).attr('title',idx);
-    const pdev           = clearNull(val['pdev']);
-    const pdev_esperado  = clearNull(val['pdev_esperado']);
-    const pdev_producido = clearNull(val['pdev_producido']);
+    f.find('.fila').text(tipo).attr('title',tipo);
+    const pdev           = clearNull(val['pdev']).toLocaleString();
+    const pdev_esperado  = clearNull(val['pdev_esperado']).toLocaleString();
+    const pdev_producido = clearNull(val['pdev_producido']).toLocaleString();
     f.find('.pdev').text(pdev).attr('title',pdev);
     f.find('.pdev_esperado').text(pdev_esperado).attr('title',pdev_esperado);
     f.find('.pdev_producido').text(pdev_producido).attr('title',pdev_producido);
@@ -154,17 +146,18 @@ function generarTabla(divtabla,nombre,valores){
     if (pdev != '-' || pdev_esperado != '-' || pdev_producido != '-') table.find('tbody').append(f);
   }
   filaModelo.remove();
-  divtabla.replaceWith(table);
+  $('#tablas').append(table);
 }
 
-function generarGraficos(divgrafico,nombre,valores){
+function generarGraficos(nombre,valores){
   const dataseries = [];
-  for(const idx in valores){
-    const val = valores[idx];
-    dataseries.push([val['clase'],val['juegos']]);
+  const tipos = Object.keys(valores);
+  for(const tidx in tipos){
+    const tipo = tipos[tidx];
+    dataseries.push([tipo,valores[tipo].cantidad]);
   }
   const grafico = $('<div>').addClass('grafico col-md-4').css('padding-top','50px');
-  divgrafico.replaceWith(grafico);
+  $('#graficos').append(grafico);
   Highcharts.chart(grafico[0], {
     chart: {
       spacingBottom: 0,

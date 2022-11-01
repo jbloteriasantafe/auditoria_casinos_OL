@@ -273,56 +273,8 @@ class informesController extends Controller
     if(!empty($fecha_hasta)) $ret = $ret->where('p.fecha','<=',$fecha_hasta);
     return $ret;
   }
-
-  public function obtenerClasificacion(Request $request){
-    $cc = CacheController::getInstancia();
-    $codigo = 'estadoPlatClasif';
-    $subcodigo = $request->id_plataforma.'|'.$request->fecha_desde.'|'.$request->fecha_hasta.'|'.($request->tipo ?? '');
-    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
-    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
-    if(!is_null($cache)){
-      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
-    }
-    
-    $tipos = [
-      'Estado' => function() use ($request){
-        return $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw('ej.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
-        ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
-        ->groupBy('pj.id_estado_juego')->get();
-      },
-      'Tipo' => function() use ($request){
-        $clase = '(CASE 
-          WHEN (j.movil+j.escritorio) = 2 THEN "Escritorio/Movil"
-          WHEN j.movil = 1 THEN "Movil"
-          WHEN j.escritorio = 1 THEN "Escritorio"
-          ELSE "(ERROR) Sin tipo asignado"
-        END) as clase';      
-        return $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw("$clase, COUNT(distinct j.cod_juego) as juegos")
-        ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
-      },
-      'Categoria' => function() use ($request){
-        return $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw('cj.nombre as clase, COUNT(distinct j.cod_juego) as juegos')
-        ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-        ->groupBy('j.id_categoria_juego')->get();
-      },
-      'Categoria Informada (NO EN BD)'  => function() use ($request){
-        return $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-        ->selectRaw('dp.categoria as clase, COUNT(distinct dp.cod_juego) as juegos')
-        ->groupBy('dp.categoria')->get();
-      },
-    ];
-    
-    if(empty($request->tipo) || !array_key_exists($request->tipo,$tipos)) 
-      return array_keys($tipos);
-    
-    $resultado = $tipos[$request->tipo]();
-    $cc->agregar($codigo,$subcodigo,json_encode($resultado),['producido','juego','plataforma']);
-    return $resultado;
-  }
   
+    
   /*
     PdevTeorico = Si cada juego se jugara en igual cantidad
       Osea si cada juego tiene una apuesta "A", con "N" juegos
@@ -335,121 +287,108 @@ class informesController extends Controller
       La interpretacion es que Pdev_i*A_i es el "premio esperado" para una apuesta A_i en el juego i
     PdevProducido = Se calcula el premio acumulado sobre la apuesta acumulada
       PdevProducido = (∑P_i)/(∑A_i)
-
-    Notar que avago usamos AVG() en vez de sum. Esto es porque da lo mismo
-      AVG(A)/AVG(B) = ((A1+A2+A3)/3) / ((B1+B2+B3)/3) = (A1+A2+A3)/(B1+B2+B3) = SUM(A) / SUM (B)
-    CREO que tiene mejor comportamiento para numeros flotantes, porque ∑P_i y ∑A_i son numeros muy grandes.
-    Depende de la implementación de SUM y AVG... en todo caso no hace mal
 	*/
-  public function obtenerPdevs(Request $request){
-    $cc = CacheController::getInstancia();
-    $codigo = 'estadoPlatPdevs';
-    $subcodigo = $request->id_plataforma.'|'.$request->fecha_desde.'|'.$request->fecha_hasta.'|'.($request->tipo ?? '');
-    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
-    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
+  
+  public function obtenerCantidadesPdevs(Request $request){
+    $select_clases_bd = '
+      ej.nombre as clase_estado,
+      (CASE 
+       WHEN (j.movil+j.escritorio) = 2 THEN "Escritorio/Movil"
+       WHEN j.movil = 1 THEN "Movil"
+       WHEN j.escritorio = 1 THEN "Escritorio"
+       ELSE "(ERROR) Sin tipo asignado"
+       END) as clase_tipo,
+      cj.nombre as clase_categoria,
+      NULL as clase_categoria_informada
+    ';
     
-    if(!is_null($cache)){
-      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
-    }
-    //Auxiliares para simplificar la query
-    //NULL es ignorado cuando MySQL hace AVG
-    //El esperado no lo tengo que multiplicar por 100 porque el porcentaje_devolucion esta en 0-100 en vez de 0-1
-    $avg_esperado     = 'FORMAT(AVG(j.porcentaje_devolucion*dp.apuesta)/AVG(dp.apuesta),3,"es_AR")';
-    $avg_producido    = 'FORMAT(                     100*AVG(dp.premio)/AVG(dp.apuesta),3,"es_AR")';
-    $select_pdev_jueg = 'FORMAT(                           AVG(j.porcentaje_devolucion),3,"es_AR") as pdev';
-    $select_pdev_prod = "$avg_esperado as pdev_esperado,$avg_producido as pdev_producido";
-    function merge_pdevs($pdev_teorico,$producido_pdevs){
-      $e = [];
-      foreach($pdev_teorico as $p){
-        $k = $p->clase;
-        if(!array_key_exists($k,$e)) $e[$k] = [];
-        $e[$k]['pdev'] = $p->pdev;
-      }
-      foreach($producido_pdevs as $p){
-        $k = $p->clase;
-        if(!array_key_exists($k,$e)) $e[$k] = [];
-        $e[$k]['pdev_esperado'] = $p->pdev_esperado;
-        $e[$k]['pdev_producido'] = $p->pdev_producido;
-      }
-      return $e;
-    }
+    $select_clases_no_bd = '
+      NULL as clase_estado,
+      NULL as clase_tipo,
+      NULL as clase_categoria,
+      dp.categoria as clase_categoria_informada
+    ';
+  
+    $juegos_plat = $this->juegosPlataforma($request->id_plataforma)
+    ->selectRaw($select_clases_bd)
+    ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
+    ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+    ->groupBy(DB::raw('ej.id_estado_juego,j.movil,j.escritorio,cj.id_categoria_juego'));
     
-    $tipos = [
-      'Estado' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
-        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw("ej.nombre as clase, $select_pdev_jueg")
-        ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
-        ->groupBy('pj.id_estado_juego')->get();
-
-        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-        ->selectRaw("ej.nombre as clase, $select_pdev_prod")
-        ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
-        ->groupBy('pj.id_estado_juego')->get();
+    $prods_plat = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+    ->selectRaw($select_clases_bd)
+    ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
+    ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+    ->groupBy(DB::raw('ej.id_estado_juego,j.movil,j.escritorio,cj.id_categoria_juego'));
+    
+    $prods_plat_no_bd = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
+    ->selectRaw($select_clases_no_bd)
+    ->groupBy('dp.categoria');
         
-        return merge_pdevs($pdev_teorico,$producido_pdevs);
-      },
-      'Tipo' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
-        $clase = '(CASE 
-          WHEN (j.movil+j.escritorio) = 2 THEN "Escritorio/Movil"
-          WHEN j.movil = 1 THEN "Movil"
-          WHEN j.escritorio = 1 THEN "Escritorio"
-          ELSE "(ERROR) Sin tipo asignado"
-        END) as clase';
-        
-        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw("$clase, $select_pdev_jueg")
-        ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
-
-        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-        ->selectRaw("$clase, $select_pdev_prod")
-        ->groupBy(DB::raw('j.movil, j.escritorio'))->get();
-
-        return merge_pdevs($pdev_teorico,$producido_pdevs);  
-      },
-      'Categoria' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
-        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw('cj.nombre as clase,'.$select_pdev_jueg)
-        ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-        ->groupBy('j.id_categoria_juego')->get();
-
-        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-        ->selectRaw('cj.nombre as clase, '.$select_pdev_prod)
-        ->join('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-        ->groupBy('j.id_categoria_juego')->get();
-
-        return merge_pdevs($pdev_teorico,$producido_pdevs);
-      },
-      //Categoria Informada, esta es mas simple con 1 sola query pero lo hago asi para mantener el patron
-      'Categoria Informada (NO EN BD)' => function() use ($request,$select_pdev_jueg,$select_pdev_prod,$avg_producido){
-        $pdev_teorico = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-        ->selectRaw('dp.categoria as clase, NULL as pdev')
-        ->groupBy('dp.categoria')->get();
-
-        $producido_pdevs = $this->producidosSinJuegoPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-        ->selectRaw('dp.categoria as clase, NULL as pdev_esperado,'.$avg_producido.'as pdev_producido')
-        ->groupBy('dp.categoria')->get();
-
-        return merge_pdevs($pdev_teorico,$producido_pdevs);  
-      },
-      'Total' => function() use ($request,$select_pdev_jueg,$select_pdev_prod){
-        $pdev_teorico = $this->juegosPlataforma($request->id_plataforma)
-        ->selectRaw('"Total" as clase,'.$select_pdev_jueg)
-        ->groupBy(DB::raw('"constant"'))->get();//Agrupo por una constante para promediar todo
-
-        $producido_pdevs = $this->producidosPlataforma($request->id_plataforma,$request->fecha_desde,$request->fecha_hasta)
-        ->selectRaw('"Total" as clase,'.$select_pdev_prod)
-        ->groupBy(DB::raw('"constant"'))->get();
-
-        return merge_pdevs($pdev_teorico,$producido_pdevs);
-      },
-    ];
+    $teorico_cant_bd = (clone $juegos_plat)->selectRaw('
+      SUM(0.01*j.porcentaje_devolucion) as sum_pdev,
+      COUNT(j.id_juego) as cantidad
+    ');
+    $teorico_cant_nobd = (clone $prods_plat_no_bd)->selectRaw('
+      NULL as sum_pdev,
+      COUNT(distinct dp.cod_juego) as cantidad
+    ');
+    $prod_bd = (clone $prods_plat)->selectRaw('
+      SUM(dp.premio) as sum_premio,
+      SUM(0.01*j.porcentaje_devolucion*dp.apuesta) as sum_premio_esperado,
+      SUM(dp.apuesta) as sum_apuesta
+    ');
+    $prod_no_bd = (clone $prods_plat_no_bd)->selectRaw('
+      SUM(dp.premio) as sum_premio,
+      NULL as sum_premio_esperado,
+      SUM(dp.apuesta) as sum_apuesta
+    ');
     
-    if(empty($request->tipo) || !array_key_exists($request->tipo,$tipos)) 
-      return array_keys($tipos);
+    $teorico_cant = $teorico_cant_bd->union($teorico_cant_nobd)->get();
+    $prod         = $prod_bd->union($prod_no_bd)->get();
     
-    $resultado = $tipos[$request->tipo]();
-    $cc->agregar($codigo,$subcodigo,json_encode($resultado),['producido','juego','plataforma']);
-    return $resultado;
+    //Hago GROUP en PHP porque Laravel5.4 no permite subquerys    
+    $clases = [];
+    preg_match_all('/clase_[a-z]+(_?[a-z]+)*/', $select_clases_no_bd, $clases);
+    $clases = count($clases) > 0? $clases[0] : [];
+    $ret = [];
+    foreach($clases as $c){//$c = clase_estado,clase_tipo,etc
+      $aggr_clase = [];
+      //Si $c = clase_estado => $valor_clase = Activo,Inactivo,Restringido, $valores = Filas para cada uno
+      foreach($teorico_cant->groupBy($c) as $valor_clase => $valores){
+        $aggr_clase[$valor_clase] = (object)[
+          'cantidad' => null,'sum_pdev' => null,'sum_premio' => null,
+          'sum_premio_esperado' => null,'sum_apuesta' => null,
+          'pdev' => null,'pdev_esperado' => null,'pdev_producido' => null
+        ];
+        foreach($valores as $v){
+          $aggr_clase[$valor_clase]->cantidad += intval($v->cantidad);
+          $aggr_clase[$valor_clase]->sum_pdev += floatval($v->sum_pdev);
+        }
+      }
+      foreach($prod->groupBy($c) as $valor_clase => $valores){
+        foreach($valores as $v){
+          $aggr_clase[$valor_clase]->sum_premio += floatval($v->sum_premio);
+          $aggr_clase[$valor_clase]->sum_premio_esperado += floatval($v->sum_premio_esperado);
+          $aggr_clase[$valor_clase]->sum_apuesta += floatval($v->sum_apuesta);
+        }
+      }
+      //Saco de la agrupacion el valor_clase nulo (por el UNION)
+      unset($aggr_clase['']);
+      foreach($aggr_clase as $valor_clase => &$sumas){
+        if($sumas->cantidad){
+          $sumas->pdev = 100*$sumas->sum_pdev / $sumas->cantidad;
+        }
+        if($sumas->sum_apuesta){
+          $sumas->pdev_esperado  = 100*$sumas->sum_premio_esperado / $sumas->sum_apuesta;
+          $sumas->pdev_producido = 100*$sumas->sum_premio / $sumas->sum_apuesta;
+        }
+      }
+      //Pasa 'clase_foo_bar' a 'Foo Bar'
+      $clase_formateada = ucwords(str_replace('_',' ',str_replace('clase_','',$c)));
+      $ret[$clase_formateada] = $aggr_clase;
+    }
+    return $ret;
   }
 
   //No encontre mejor forma de hacerlo... necesito la consulta para ordernar desde el front

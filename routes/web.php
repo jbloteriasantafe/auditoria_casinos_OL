@@ -232,8 +232,7 @@ Informes
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informePlataforma','middleware' =>'tiene_permiso:ver_seccion_estestadoparque'],function(){
   Route::get('/' , 'informesController@informePlataforma');
-  Route::get('/obtenerClasificacion','informesController@obtenerClasificacion');
-  Route::get('/obtenerPdevs','informesController@obtenerPdevs');
+  Route::get('/obtenerCantidadesPdevs','informesController@obtenerCantidadesPdevs');
   Route::get('/obtenerJuegoFaltantesConMovimientos','informesController@obtenerJuegoFaltantesConMovimientos');
   Route::get('/obtenerJugadorFaltantesConMovimientos','informesController@obtenerJugadorFaltantesConMovimientos');
   Route::get('/obtenerJuegoAlertasDiarias','informesController@obtenerJuegoAlertasDiarias');
