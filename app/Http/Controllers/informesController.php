@@ -355,7 +355,11 @@ class informesController extends Controller
     foreach($clases as $c){//$c = clase_estado,clase_tipo,etc
       $aggr_clase = [];
       //Si $c = clase_estado => $valor_clase = Activo,Inactivo,Restringido, $valores = Filas para cada uno
-      foreach($teorico_cant->groupBy($c) as $valor_clase => $valores){
+      //Ignoro el valor_clase nulo (por el UNION)
+      $filtro = function($v,$k) use ($c){
+        return ($v->{$c} ?? null) !== null;
+      };
+      foreach($teorico_cant->filter($filtro)->groupBy($c) as $valor_clase => $valores){
         $aggr_clase[$valor_clase] = (object)[
           'cantidad' => null,'sum_pdev' => null,'sum_premio' => null,
           'sum_premio_esperado' => null,'sum_apuesta' => null,
@@ -366,15 +370,14 @@ class informesController extends Controller
           $aggr_clase[$valor_clase]->sum_pdev += floatval($v->sum_pdev);
         }
       }
-      foreach($prod->groupBy($c) as $valor_clase => $valores){
+      foreach($prod->filter($filtro)->groupBy($c) as $valor_clase => $valores){
         foreach($valores as $v){
           $aggr_clase[$valor_clase]->sum_premio += floatval($v->sum_premio);
           $aggr_clase[$valor_clase]->sum_premio_esperado += floatval($v->sum_premio_esperado);
           $aggr_clase[$valor_clase]->sum_apuesta += floatval($v->sum_apuesta);
         }
       }
-      //Saco de la agrupacion el valor_clase nulo (por el UNION)
-      unset($aggr_clase['']);
+
       foreach($aggr_clase as $valor_clase => &$sumas){
         if($sumas->cantidad){
           $sumas->pdev = 100*$sumas->sum_pdev / $sumas->cantidad;
