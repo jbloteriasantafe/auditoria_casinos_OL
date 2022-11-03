@@ -290,6 +290,14 @@ class informesController extends Controller
 	*/
   
   public function obtenerCantidadesPdevs(Request $request){
+    $cc = CacheController::getInstancia();
+    $codigo = 'obtenerCantidadesPdevs';
+    $subcodigo = '|'.implode('|',[$request->id_plataforma,$request->fecha_desde,$request->fecha_hasta]).'|';
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
+    if(!is_null($cache)){
+      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
+    }
     $select_clases_bd = '
       ej.nombre as clase_estado,
       (CASE 
@@ -377,7 +385,6 @@ class informesController extends Controller
           $aggr_clase[$valor_clase]->sum_apuesta += floatval($v->sum_apuesta);
         }
       }
-
       foreach($aggr_clase as $valor_clase => &$sumas){
         if($sumas->cantidad){
           $sumas->pdev = 100*$sumas->sum_pdev / $sumas->cantidad;
@@ -391,6 +398,7 @@ class informesController extends Controller
       $clase_formateada = ucwords(str_replace('_',' ',str_replace('clase_','',$c)));
       $ret[$clase_formateada] = $aggr_clase;
     }
+    $cc->agregar($codigo,$subcodigo,json_encode($ret),['producido_jugadores','juego']);
     return $ret;
   }
 

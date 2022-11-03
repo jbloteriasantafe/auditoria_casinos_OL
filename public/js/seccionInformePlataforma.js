@@ -142,8 +142,7 @@ function generarTabla(nombre,valores){
     f.find('.pdev').text(pdev).attr('title',pdev);
     f.find('.pdev_esperado').text(pdev_esperado).attr('title',pdev_esperado);
     f.find('.pdev_producido').text(pdev_producido).attr('title',pdev_producido);
-    //Si no tiene nada no lo muestro
-    if (pdev != '-' || pdev_esperado != '-' || pdev_producido != '-') table.find('tbody').append(f);
+    table.find('tbody').append(f);
   }
   filaModelo.remove();
   $('#tablas').append(table);
