@@ -128,7 +128,7 @@ tr:nth-child(even) {
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total right">-</td>
         @endif
-        <td class="tablaCampos total right">{{$total_cotizado->beneficio}}</td>
+        <td class="tablaCampos total right">{{number_format($total_cotizado->beneficio,2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos total right">{{$total->apuesta != 0.0? number_format(round(100*$total->premio/$total->apuesta,2),2,",",".") : '-'}}</td>
         @endif
