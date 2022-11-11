@@ -43,32 +43,59 @@ class informesController extends Controller
   }
 
   public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado,$sin_ajuste = 0){
+    //@HACK: si el beneficio no esta importado, no muestra el poker del dia
+    //Como creo que nunca pasaria lo dejo asi porque es mas simple el query
+    //Octavio 11 Noviembre 2022
     $dias = DB::table('beneficio')->select(
       DB::raw('CONCAT(LPAD(DAY(beneficio.fecha)  ,2,"00"),"-",
                       LPAD(MONTH(beneficio.fecha),2,"00"),"-",
                       YEAR(beneficio.fecha)) as fecha'),
-    'beneficio.jugadores','beneficio.apuesta','beneficio.premio','beneficio.ajuste','beneficio.beneficio','cotizacion.valor as cotizacion')
+      'beneficio.jugadores','beneficio.apuesta','beneficio.premio',
+      'beneficio.ajuste','beneficio.beneficio','cotizacion.valor as cotizacion',
+      'beneficio_poker.utilidad as poker'
+    )
     ->join('beneficio_mensual','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
+    ->leftJoin('beneficio_mensual_poker',function($j){
+      return $j->on('beneficio_mensual_poker.id_plataforma','=','beneficio_mensual.id_plataforma')
+               ->on('beneficio_mensual_poker.id_tipo_moneda','=','beneficio_mensual.id_tipo_moneda')
+               ->on('beneficio_mensual_poker.fecha','=','beneficio_mensual.fecha');
+    })
+    ->leftJoin('beneficio_poker',function($j){
+      return $j->on('beneficio_poker.id_beneficio_mensual_poker','=','beneficio_mensual_poker.id_beneficio_mensual_poker')
+               ->on('beneficio_poker.fecha','=','beneficio.fecha');
+    })
     ->leftJoin('cotizacion',function($j){
-      return $j->on('cotizacion.fecha','=','beneficio.fecha')->on('cotizacion.id_tipo_moneda','=','beneficio_mensual.id_tipo_moneda');
+      return $j->on('cotizacion.fecha','=','beneficio.fecha')
+               ->on('cotizacion.id_tipo_moneda','=','beneficio_mensual.id_tipo_moneda');
     })
     ->where([['beneficio_mensual.id_plataforma','=',$id_plataforma],['beneficio_mensual.id_tipo_moneda','=',$id_tipo_moneda]])
     ->whereYear('beneficio_mensual.fecha','=',$anio)
     ->whereMonth('beneficio_mensual.fecha','=',$mes)
     ->orderBy('beneficio.fecha','asc')->get();
 
-    $total = DB::table('beneficio_mensual')->select(DB::raw('"" as jugadores'),'apuesta','premio','ajuste','beneficio')
+    $total = DB::table('beneficio_mensual')
+    ->select(
+      DB::raw('"" as jugadores'),'apuesta','premio',
+      'ajuste','beneficio',
+      'beneficio_mensual_poker.utilidad as poker'
+    )
+    ->leftJoin('beneficio_mensual_poker',function($j){
+      return $j->on('beneficio_mensual_poker.id_plataforma','=','beneficio_mensual.id_plataforma')
+               ->on('beneficio_mensual_poker.id_tipo_moneda','=','beneficio_mensual.id_tipo_moneda')
+               ->on('beneficio_mensual_poker.fecha','=','beneficio_mensual.fecha');
+    })
     ->where([['beneficio_mensual.id_plataforma','=',$id_plataforma],['beneficio_mensual.id_tipo_moneda','=',$id_tipo_moneda]])
-    ->whereYear('fecha','=',$anio)
-    ->whereMonth('fecha','=',$mes)->first();
+    ->whereYear('beneficio_mensual.fecha','=',$anio)
+    ->whereMonth('beneficio_mensual.fecha','=',$mes)->first();
 
     if(is_null($total)){
       $total = new \stdClass;
       $total->jugadores = 0;
-      $total->apuesta = 0;
-      $total->premio = 0;
-      $total->ajuste = 0;
+      $total->apuesta   = 0;
+      $total->premio    = 0;
+      $total->ajuste    = 0;
       $total->beneficio = 0;
+      $total->poker     = 0;
     }
     $total->fecha = '##-'.str_pad($mes,2,"0",STR_PAD_LEFT).'-'.$anio;
     $total->plataforma = Plataforma::find($id_plataforma)->nombre;
@@ -78,17 +105,25 @@ class informesController extends Controller
     if(is_null($cotizacionDefecto) || $id_tipo_moneda == 1) $cotizacionDefecto = 1.0;
     else $cotizacionDefecto = $cotizacionDefecto->valor;
 
-    $total_beneficio = 0.00;
+    $total_cotizado = (object)[
+      'beneficio'=>0.0,'ajuste'=>0.0,'poker'=>0.0
+    ];
     {
       $ultima_cotizacion = $cotizacionDefecto;
       foreach($dias as $d){
         $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion; 
-        $total_beneficio += $ultima_cotizacion*$d->beneficio;
+        $d->cotizacion     = $ultima_cotizacion;
+        $total_cotizado->beneficio += $d->cotizacion*$d->beneficio;
+        $total_cotizado->ajuste    += $d->cotizacion*$d->ajuste;
+        $total_cotizado->poker     += $d->cotizacion*$d->poker;
       }
     }
 
     $mesTexto = $this->obtenerMes($mes);
-    $view = View::make('planillaInformesJuegos',compact('mesTexto','dias','cotizacionDefecto','total_beneficio','total','simplificado','sin_ajuste'));
+    $view = View::make('planillaInformesJuegos',compact(
+      'mesTexto','dias','cotizacionDefecto','total_cotizado',
+      'total','simplificado','sin_ajuste'
+    ));
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');

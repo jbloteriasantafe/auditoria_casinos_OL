@@ -32,9 +32,9 @@ tr:nth-child(even) {
 
 </style>
   <?php 
-  $widths = ["fecha" => "11","apostado" => "23","premios" => "23","ajuste" => "12", "beneficio" => "23","dev" => "8"];
+  $widths = ["fecha" => "10","apostado" => "17","premios" => "17","ajuste" => "13", "beneficio" => "17","dev" => "8","poker" =>"17"];
   if($cotizacionDefecto != 1){
-    $widths = ["fecha" => "10","apostado" => "17","premios" => "17", "cotizacion" => "16","ajuste" => "15","beneficio" => "17","dev" => "8"];
+    $widths = ["fecha" => "9","apostado" => "15","premios" => "15", "cotizacion" => "11","ajuste" => "12","beneficio" => "15","dev" => "8","poker" => "15"];
   }
   //El campo beneficio YA VIENE ajustado, la apuesta y premio no
   //Si es simplificado
@@ -57,7 +57,10 @@ tr:nth-child(even) {
     $sumar_ajuste_al_beneficio = true;
     $sumar_ajuste_al_premio = false;
   }
-  $total_correcto = number_format($total->beneficio + ($sumar_ajuste_al_beneficio? $total->ajuste : 0),2,",",".");
+  $total_cotizado_beneficio_ajustado = $total_cotizado->beneficio 
+    + ($sumar_ajuste_al_beneficio? $total_cotizado->ajuste : 0);
+  $total_cotizado_beneficio_y_poker = $total_cotizado_beneficio_ajustado
+    + $total_cotizado->poker;
   ?>
   <head>
     <meta charset="utf-8">
@@ -77,7 +80,7 @@ tr:nth-child(even) {
     <div class="primerEncabezado">
       Se han realizado los procedimientos de control correspondientes
       al mes de <b>{{$mesTexto}}</b> de la <b>Plataforma de {{$total->plataforma}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>Juegos Online</b>
-      se obtuvo un beneficio de <b>${{$total_correcto}}</b>, detallando a continuación el beneficio diario.
+      se obtuvo un beneficio de <b>${{number_format($total_cotizado_beneficio_y_poker,2,",",".")}}</b>, detallando a continuación el beneficio diario.
     </div>
     <br>
     <table style="table-layout: fixed;">
@@ -95,12 +98,9 @@ tr:nth-child(even) {
         @if(!$simplificado)
         <th class="tablaInicio center" width="{{$widths['dev']}}%">% DEV</th>
         @endif
+        <th class="tablaInicio center" width="{{$widths['poker']}}%">POKER</th>
       </tr>
-      <?php $ultima_cotizacion = $cotizacionDefecto;?>
       @foreach ($dias as $d)
-      <?php 
-        $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion; 
-      ?>
       <tr>
         <td class="tablaCampos center">{{$d->fecha}}</td>
         <td class="tablaCampos right">{{number_format($d->apuesta,2,",",".")}}</td>
@@ -109,12 +109,13 @@ tr:nth-child(even) {
         <td class="tablaCampos right">{{number_format($d->ajuste,2,",",".")}}</td>
         @endif
         @if($cotizacionDefecto != 1)
-        <td class="tablaCampos right">{{number_format($ultima_cotizacion,3,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->cotizacion,3,",",".")}}</td>
         @endif
-        <td class="tablaCampos right">{{number_format(($d->beneficio + ($sumar_ajuste_al_beneficio? $d->ajuste : 0))*$ultima_cotizacion,2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format(($d->beneficio + ($sumar_ajuste_al_beneficio? $d->ajuste : 0))*$d->cotizacion,2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos right">{{$d->apuesta != 0.0? number_format(round(100*$d->premio/$d->apuesta,2),2,",",".") : '-'}}</td>
         @endif
+        <td class="tablaCampos right">{{number_format($d->poker*$d->cotizacion,2,",",".")}}</td>
       </tr>
       @endforeach
       <tr class="total">
@@ -127,10 +128,11 @@ tr:nth-child(even) {
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total right">-</td>
         @endif
-        <td class="tablaCampos total right">{{$total_correcto}}</td>
+        <td class="tablaCampos total right">{{$total_cotizado->beneficio}}</td>
         @if(!$simplificado)
         <td class="tablaCampos total right">{{$total->apuesta != 0.0? number_format(round(100*$total->premio/$total->apuesta,2),2,",",".") : '-'}}</td>
         @endif
+        <td class="tablaCampos total right">{{number_format($total_cotizado->poker,2,",",".")}}</td>
       </tr>
     </table>
     @if($cotizacionDefecto != 1)
