@@ -32,9 +32,9 @@ tr:nth-child(even) {
 
 </style>
   <?php 
-  $widths = ["fecha" => "33.33","drop" => "33.33","utilidad" => "33.33"];
+  $widths = ["fecha" => "15","jugadores" => "25","drop" => "30","utilidad" => "30"];
   if($cotizacionDefecto != 1){
-    $widths = ["fecha" => "20","drop" => "20","utilidad" => "20","cotizacion" => "20","conversion" => "20"];
+    $widths = ["fecha" => "10","jugadores" => "15","drop" => "20","utilidad" => "20","cotizacion" => "15","conversion" => "20"];
   }
   ?>
   <head>
@@ -61,6 +61,7 @@ tr:nth-child(even) {
     <table style="table-layout: fixed;">
       <tr>
         <th class="tablaInicio center" width="{{$widths['fecha']}}%">FECHA</th>
+        <th class="tablaInicio center" width="{{$widths['jugadores']}}%">JUGADORES</th>
         <th class="tablaInicio center" width="{{$widths['drop']}}%">MONTO JUGADO</th>
         <th class="tablaInicio center" width="{{$widths['utilidad']}}%">BENEFICIO</th>
         @if($cotizacionDefecto != 1)
@@ -68,23 +69,21 @@ tr:nth-child(even) {
         <th class="tablaInicio center" width="{{$widths['conversion']}}%">CONVERSION</th>
         @endif
       </tr>
-      <?php $ultima_cotizacion = $cotizacionDefecto;?>
       @foreach ($dias as $d)
-      <?php 
-        $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion; 
-      ?>
       <tr>
         <td class="tablaCampos center">{{$d->fecha}}</td>
+        <td class="tablaCampos right">{{$d->jugadores}}</td>
         <td class="tablaCampos right">{{number_format($d->droop,2,",",".")}}</td>
         <td class="tablaCampos right">{{number_format($d->utilidad,2,",",".")}}</td>
         @if($cotizacionDefecto != 1)
-        <td class="tablaCampos right">{{number_format($ultima_cotizacion,3,",",".")}}</td>
-        <td class="tablaCampos right">{{number_format($d->utilidad*$ultima_cotizacion,2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->cotizacion,3,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->utilidad*$d->cotizacion,2,",",".")}}</td>
         @endif
       </tr>
       @endforeach
       <tr class="total">
         <td class="tablaCampos total center">{{$total->fecha}}</td>
+        <td class="tablaCampos total right">{{$total->jugadores}}</td>
         <td class="tablaCampos total right">{{number_format($total->droop,2,",",".")}}</td>
         <td class="tablaCampos total right">{{number_format($total->utilidad,2,",",".")}}</td>
         @if($cotizacionDefecto != 1)

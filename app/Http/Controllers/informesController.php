@@ -177,7 +177,7 @@ class informesController extends Controller
     ->whereMonth('beneficio_poker.fecha','=',$mes)
     ->orderBy('beneficio_poker.fecha','asc')->get();
 
-    $total = DB::table('beneficio_mensual_poker')->select(DB::raw('"" as jugadores'),'total_buy as droop','utilidad')
+    $total = DB::table('beneficio_mensual_poker')->select('jugadores','total_buy as droop','utilidad')
     ->where([['beneficio_mensual_poker.id_plataforma','=',$id_plataforma],['beneficio_mensual_poker.id_tipo_moneda','=',$id_tipo_moneda]])
     ->whereYear('fecha','=',$anio)
     ->whereMonth('fecha','=',$mes)->first();
@@ -201,8 +201,9 @@ class informesController extends Controller
     {
       $ultima_cotizacion = $cotizacionDefecto;
       foreach($dias as $d){
-        $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion; 
-        $total_beneficio += $ultima_cotizacion*$d->utilidad;
+        $ultima_cotizacion = $d->cotizacion?? $ultima_cotizacion;
+        $d->cotizacion = $ultima_cotizacion;
+        $total_beneficio += $d->cotizacion*$d->utilidad;
       }
     }
 
