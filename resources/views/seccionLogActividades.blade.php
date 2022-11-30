@@ -27,6 +27,7 @@
                               <div class="col-lg-3 col-xs-6">
                                 <h5>Tabla</h5>
                                 <select id="B_tabla" class="form-control">
+                                  <option value="">- Todas -</option>
                                   @foreach($tablas as $t)
                                   <option>{{$t}}</option>
                                   @endforeach
@@ -35,6 +36,7 @@
                               <div class="col-lg-3 col-xs-6">
                                 <h5>Acción</h5>
                                 <select id="B_accion" class="form-control">
+                                  <option value="">- Todas -</option>
                                   @foreach($acciones as $a)
                                   <option>{{$a}}</option>
                                   @endforeach
