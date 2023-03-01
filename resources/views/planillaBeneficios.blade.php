@@ -24,11 +24,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
+    <link href="{{public_path()}}/css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo2_portrait.png" width="900">
+      <img src="{{public_path()}}/img/logos/banner_nuevo2_portrait.png" width="900">
       <h2 style="left:28%;"><span>RMTM03 | Control de beneficio diario en {{$ben->moneda}}.</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>

@@ -57,7 +57,7 @@ tr:nth-child(even) {
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
+    <link href="{{public_path()}}/css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
     @foreach($paginas_por_estado as $e => $pags)
@@ -71,7 +71,7 @@ tr:nth-child(even) {
       $cantidad = count($detalles);
     ?>
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo2_portrait.png" width="900">
+      <img src="{{public_path()}}/img/logos/banner_nuevo2_portrait.png" width="900">
       <h2 style="text-align: center;">
         <span>Informe de diferencias de estados ({{$plataforma}})</span>
         <br style="margin: 0;">
