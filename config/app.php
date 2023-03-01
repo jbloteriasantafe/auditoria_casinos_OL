@@ -160,7 +160,6 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
-        Chumper\Zipper\ZipperServiceProvider::class,
         BladeSvg\BladeSvgServiceProvider::class,
     ],
 

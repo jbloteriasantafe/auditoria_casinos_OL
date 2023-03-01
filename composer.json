@@ -5,12 +5,11 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=7.1.3",
+        "php": ">=7.2",
         "barryvdh/laravel-dompdf": "^0.8.0",
-        "chumper/zipper": "1.0.x",
-        "laravel/framework": "5.8.*",
+        "laravel/framework": "6.0.*",
         "laravel/tinker": "~1.0",
-        "nothingworks/blade-svg": "^0.2.2",
+        "nothingworks/blade-svg": "^0.3.0",
         "pusher/pusher-php-server": "^3.0",
         "guzzlehttp/guzzle": "~6.0"
     },
@@ -35,14 +34,14 @@
     },
     "scripts": {
         "post-root-package-install": [
-            "php7.1 -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "php7.2 -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
-            "php7.1 artisan key:generate"
+            "php7.2 artisan key:generate"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "php7.1 artisan package:discover"
+            "php7.2 artisan package:discover"
         ]
     },
     "config": {
