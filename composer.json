@@ -5,18 +5,19 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=7.2.5",
+        "php": ">=7.3",
         "barryvdh/laravel-dompdf": "^0.8.0",
-        "laravel/framework": "^7.0",
+        "guzzlehttp/guzzle": "^7.0.1",
+        "laravel/framework": "^8.0",
         "laravel/tinker": "^2.0",
-        "nothingworks/blade-svg": "^0.3.0",
-        "pusher/pusher-php-server": "^3.0",
-        "guzzlehttp/guzzle": "~6.0"
+        "mikehaertl/phpwkhtmltopdf": "^2.5",
+        "nothingworks/blade-svg": "^0.4.0",
+        "pusher/pusher-php-server": "^3.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "0.9.*",
-        "phpunit/phpunit": "^8.5",
+        "phpunit/phpunit": "^9.0",
         "filp/whoops": "~2.0"
     },
     "autoload": {
@@ -34,14 +35,14 @@
     },
     "scripts": {
         "post-root-package-install": [
-            "php7.2 -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
-            "php7.2 artisan key:generate"
+            "@php artisan key:generate"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "php7.2 artisan package:discover"
+            "@php artisan package:discover"
         ]
     },
     "config": {

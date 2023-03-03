@@ -262,7 +262,7 @@ class ProducidoController extends Controller
     ->selectRaw('dpj.jugador,dpj.apuesta,dpj.premio,dpj.beneficio')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
     ->where('pj.id_producido_jugadores',$id_producido_jugadores)->orderBy('dpj.jugador','asc')->get();
-
+    
     return $this->generarPlanillaParalelo($pro,$detalles->toArray(),'jugadores');
   }
 
