@@ -8,7 +8,7 @@
     </table>
     Osea que la pagina "comienza" en -6 y tiene un ancho de 106.6
 */
-  $ancho_total_pagina = 106.6;
+  $ancho_total_pagina = 112;
   $inicio_pagina = -6;
 
   //$cols_x_pag viene del controlador
@@ -20,11 +20,11 @@
   $posicion = [];
   {
     $posx = $inicio_pagina + $pad_fijo;
-    $posicion[0] = 'position: absolute;left:'.$posx.'%;';
+    $posicion[0] = 'position: absolute;top: 10%;left:'.$posx.'%;';
     for($col=1;$col<$cols_x_pag;$col++){
       $posx += $ancho_tabla;
       $posx += 2*$pad_fijo;
-      $posicion[$col] = 'position: absolute;left:'.$posx.'%;';
+      $posicion[$col] = 'position: absolute;top: 10%;left:'.$posx.'%;';
     }
   }
 
@@ -66,6 +66,22 @@
   .helvetica{
     font: 11px Helvetica, Sans-Serif;
   }
+  #informacionProducido {
+    position: absolute;
+    left: -5%;
+    width: 110%;
+    top: 8%;
+  }
+  #informacionProducido,#informacionProducido td,#informacionProducido th {
+    padding: 0px;
+    padding-bottom: 1px;
+    margin: 0px;
+    font: 11px Helvetica, Sans-Serif;
+    text-align: center;
+  }
+  #informacionProducido th {
+    font-weight: bold;
+  }
   </style>
   <head>
     <meta charset="utf-8">
@@ -80,18 +96,24 @@
     @if($p != 0)
     <div style="page-break-after:always;"></div>
     @endif
-    <div class="encabezadoImg">
+    <div class="encabezadoImg"  style="position:absolute;left: -5%;">
       <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="900">
       <h2 style="left: 25%;"><span>Juegos Online | Producidos diarios por {{$tipo}}</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span>{{$hoy}}</span></div>
-    <div style="position: absolute; top: 90px">
-      <div class="helvetica" style="position: absolute;left:  0%;width: 25%;text-align: center;"><b>Fecha de producido:</b> {{$pro->fecha_prod}}</div>
-      <div class="helvetica" style="position: absolute;left: 25%;width: 25%;text-align: center;"><b>Plataforma:</b> {{$pro->plataforma}}</div>
-      <div class="helvetica" style="position: absolute;left: 50%;width: 25%;text-align: center;"><b>Moneda:</b> {{$pro->tipo_moneda}}</div>
-      <div class="helvetica" style="position: absolute;left: 75%;width: 25%;text-align: center;"><b>Cantidad:</b> {{$cantidad_totales}}</div>
-    </div>
+    <table id="informacionProducido">
+      <tr>
+        <th>Fecha de producido</th>
+        <td>&nbsp;{{$pro->fecha_prod}}</td>
+        <th>Plataforma</th>
+        <td>&nbsp;{{$pro->plataforma}}</td>
+        <th>Moneda</th>
+        <td>&nbsp;{{$pro->tipo_moneda}}</td>
+        <th>Cantidad</th>
+        <td>&nbsp;{{$cantidad_totales}}</td>
+      </tr>
+    </table>
     <?php
       $startidxpag = $p*$filas_por_pag;
       $endidxpag   = $startidxpag + $filas_por_pag;
