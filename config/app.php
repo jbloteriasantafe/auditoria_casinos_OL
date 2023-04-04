@@ -209,8 +209,8 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'PDF' => Barryvdh\DomPDF\Facade::class,
-        'Zipper' => Chumper\Zipper\Zipper::class,
-
+//        'Zipper' => Chumper\Zipper\Zipper::class,
+        'GPhpThread' => Zhgzhg\GPhpThread\GPhpThread::class,
     ],
 
 ];
