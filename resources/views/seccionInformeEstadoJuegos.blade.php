@@ -6,7 +6,6 @@
 <?php
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
-use\App\http\Controllers\RelevamientoAmbientalController;
 $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 ?>
 
@@ -324,7 +323,7 @@ background-color: #4CAF50;
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionInformeEstadoJuegos.js?3" charset="utf-8"></script>
+<script src="/js/seccionInformeEstadoJuegos.js?4" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?3" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->

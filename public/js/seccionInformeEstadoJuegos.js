@@ -298,7 +298,7 @@ $('#btn-verificarEstados').click(function(){
       console.log(data);
       clearInterval(loading);
       $('#animacionGenerando').text('ERROR');
-      mensajeError(data.responseJSON["errores"]);
+      mensajeError((data?.responseJSON?.errors ?? {}).errores);
     }
   });
 });

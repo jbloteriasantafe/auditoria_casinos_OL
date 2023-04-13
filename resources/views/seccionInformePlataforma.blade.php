@@ -283,7 +283,7 @@ $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obten
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionInformePlataforma.js?8" charset="utf-8"></script>
+    <script src="js/seccionInformePlataforma.js?9" charset="utf-8"></script>
 
     <!-- Highchart -->
     <script src="js/highcharts.js"></script>

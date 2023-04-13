@@ -18,7 +18,7 @@ function GET(loadingDiv,url,success = function(data){},error = function(data){})
       console.log(data);
       clearInterval(intervalID);
       loadingDiv.css('text-align','unset').text(' ERROR DE CARGA ');
-      error(data);
+      error(data?.responseJSON?.errors ?? {});
     }
   });
 }

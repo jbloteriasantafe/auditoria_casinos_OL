@@ -607,7 +607,7 @@ $id_usuario = session('id_usuario');
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionExpedientes.js" charset="utf-8"></script>
+    <script src="js/seccionExpedientes.js?1" charset="utf-8"></script>
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

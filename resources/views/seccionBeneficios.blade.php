@@ -280,7 +280,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <script src='/js/locale-all.js'></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionBeneficios.js" charset="utf-8"></script>
+    <script src="js/seccionBeneficios.js?1" charset="utf-8"></script>
     
 
     <!-- DateTimePicker JavaScript -->

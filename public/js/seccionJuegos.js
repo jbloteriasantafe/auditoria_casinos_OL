@@ -282,7 +282,7 @@ $('#btn-guardar').click(function (e) {
     },
     error: function (data) {
       console.log(data);
-      const response = data.responseJSON;
+      const response = data?.responseJSON?.errors ?? {};
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
       }

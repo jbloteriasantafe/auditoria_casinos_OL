@@ -334,16 +334,16 @@ function validarBeneficios(id_beneficio_mensual,validar_beneficios_sin_producido
     error: function (data) {
       console.log('Error:', data);
       $('#textoExito').text('');
-      const keys = Object.keys(data.responseJSON);
-      console.log(data.responseJSON);
+      const errors = data?.responseJSON?.errors ?? {};
+      const keys = Object.keys(errors);
       for(const kidx in keys){
         const k = keys[kidx];
         if(k == 'id_beneficio_mensual') continue;
-        const error = data.responseJSON[k].join('\n');
+        const error = errors[k].join('\n');
         mostrarErrorValidacion($('#id'+k+' textarea'),error,false);
       }
-      if(data.responseJSON.id_beneficio_mensual !== undefined){
-        mensajeError(data.responseJSON.id_beneficio_mensual);
+      if(errors.id_beneficio_mensual !== undefined){
+        mensajeError(errors.id_beneficio_mensual);
       }
       $('#btn-validar-si').show();
     }

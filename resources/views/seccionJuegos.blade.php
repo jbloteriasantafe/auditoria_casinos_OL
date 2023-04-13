@@ -384,5 +384,5 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
     <script src="/js/fileinput.min.js" type="text/javascript"></script>
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionJuegos.js?5" charset="utf-8"></script>
+    <script src="/js/seccionJuegos.js?6" charset="utf-8"></script>
     @endsection

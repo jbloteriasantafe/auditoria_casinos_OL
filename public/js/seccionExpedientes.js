@@ -484,7 +484,7 @@ $('#btn-guardar').click(function (e) {
             $('#modalExpediente').find('.modal-footer').children().show();
             $('#modalExpediente').find('.modal-body').children().show();
             $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-            var response = JSON.parse(data.responseText);
+            var response = data?.responseJSON?.errors ?? {};
             //Ocultar errores
             $('#error_nav_config').hide();
             $('#error_nav_notas').hide();

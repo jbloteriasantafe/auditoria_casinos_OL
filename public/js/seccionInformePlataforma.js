@@ -58,7 +58,7 @@ function GET(loadingselect,url,data,success,error=function(x){}){
     error: function(data){
       clearInterval(loading);
       loadingselect.text('ERROR DE CARGA');
-      error(data);
+      error(data?.responseJSON?.errors ?? {});
     },
   });
 }

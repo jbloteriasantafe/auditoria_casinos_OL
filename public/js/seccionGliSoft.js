@@ -446,7 +446,7 @@ $('#btn-guardar').click(function (e){
         },
         error: function (data) {
           console.log('Error:', data);
-          const response = JSON.parse(data.responseText);
+          const response = data?.responseJSON?.errors ?? {};
 
           if(typeof response.nro_certificado !== 'undefined'){
             mostrarErrorValidacion($('#nroCertificado'),parseError(response.nro_certificado[0]),true);
