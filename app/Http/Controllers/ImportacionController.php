@@ -111,14 +111,18 @@ class ImportacionController extends Controller
       $importacion = ImportacionEstadoJugador::find($request->id);
       if(is_null($importacion)) return response()->json("No existe la importación",422);
     
-      $detalles = DB::table('jugador as j')
+      $detalles = DB::table(DB::raw('jugador as j FORCE INDEX(unq_jugador_importacion)'))
       ->select('j.*')
-      ->whereRaw('(j.id_plataforma,j.codigo,j.fecha_importacion) IN (
-          SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
-          FROM jugador j2 FORCE INDEX(unq_jugador_importacion)        
-          WHERE j2.id_plataforma = ? AND j2.fecha_importacion <= ?
-          GROUP BY j2.id_plataforma,j2.codigo
-      )',[$importacion->id_plataforma,$importacion->fecha_importacion])
+      ->whereRaw('NOT EXISTS (
+        SELECT 1
+        FROM jugador j2
+        WHERE j2.id_plataforma = j.id_plataforma 
+        AND j2.codigo = j.codigo
+        AND j2.fecha_importacion > j.fecha_importacion
+        LIMIT 1
+      )')
+      ->where('j.id_plataforma','=',$importacion->id_plataforma)
+      ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
       ->orderBy('j.codigo','asc');
       
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,

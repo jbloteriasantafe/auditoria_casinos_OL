@@ -512,7 +512,7 @@ class informesController extends Controller
     ->where($reglas_fechas)
     ->whereRaw('NOT EXISTS (
       SELECT 1
-      FROM jugador j
+      FROM jugador j FORCE INDEX(idx_jugador_codigo)
       WHERE j.codigo = dpj.jugador AND j.id_plataforma = pj.id_plataforma
       LIMIT 1
     )');
@@ -948,10 +948,13 @@ class informesController extends Controller
     $ret = DB::table('jugador as j')
     ->select('j.*','p.codigo as plataforma')
     ->join('plataforma as p','p.id_plataforma','=','j.id_plataforma')
-    ->whereRaw('(j.id_plataforma,j.codigo,j.fecha_importacion) IN (
-        SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
-        FROM jugador j2 FORCE INDEX(unq_jugador_importacion)  
-        GROUP BY j2.id_plataforma,j2.codigo
+    ->whereRaw('NOT EXISTS (
+      SELECT 1
+      FROM jugador j2
+      WHERE j2.id_plataforma = j.id_plataforma 
+      AND j2.codigo = j.codigo
+      AND j2.fecha_importacion > j.fecha_importacion
+      LIMIT 1
     )')
     ->where($reglas)->whereIn('j.id_plataforma',$plataformas)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
@@ -972,11 +975,14 @@ class informesController extends Controller
       return $j->on('j.id_plataforma','=','iej.id_plataforma')
       ->on('j.fecha_importacion','<=','iej.fecha_importacion');
     })
-    ->whereRaw('(j.id_plataforma,j.codigo,j.fecha_importacion) IN (
-        SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
-        FROM jugador j2 FORCE INDEX(unq_jugador_importacion)    
-        WHERE j2.id_plataforma = iej.id_plataforma AND j2.codigo = j.codigo AND j2.fecha_importacion <= iej.fecha_importacion  
-        GROUP BY j2.id_plataforma,j2.codigo
+    ->whereRaw('NOT EXISTS (
+      SELECT 1
+      FROM jugador j2
+      WHERE j2.id_plataforma = j.id_plataforma 
+      AND j2.codigo = j.codigo
+      AND j2.fecha_importacion > j.fecha_importacion
+      AND j2.fecha_importacion <= iej.fecha_importacion
+      LIMIT 1
     )')
     ->where('iej.id_plataforma','=',$jug->id_plataforma)
     ->where('j.codigo','=',$jug->codigo)
