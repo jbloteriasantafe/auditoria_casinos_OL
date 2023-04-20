@@ -671,80 +671,78 @@ class LectorCSVController extends Controller
     $importacion->md5 = $md5;
     $importacion->save();
     $this->importarJugadoresTemporal($importacion->id_importacion_estado_jugador,$archivo);
-    //Inserto datos si no estan repetidos
-    $err = DB::statement("INSERT INTO datos_jugador (codigo,fecha_alta,fecha_nacimiento,sexo,localidad,provincia)
-    SELECT jt.codigo,jt.fecha_alta,jt.fecha_nacimiento,jt.sexo,jt.localidad,jt.provincia
-    FROM jugadores_temporal jt
-    WHERE jt.id_importacion_estado_jugador = ? AND NOT EXISTS (
-      SELECT dj.id_datos_jugador
-      FROM datos_jugador dj FORCE INDEX (idx_datosjugador_codigo)
-      WHERE dj.codigo         = jt.codigo 
-      AND dj.fecha_alta       = jt.fecha_alta 
-      AND dj.fecha_nacimiento = jt.fecha_nacimiento 
-      AND dj.sexo             = jt.sexo
-      AND dj.localidad        = jt.localidad
-      AND dj.provincia        = jt.provincia
-    )",[$importacion->id_importacion_estado_jugador]);
-    if(!$err){
-      throw new \Exception('Error al importar datos del jugador');
-    }
-
-    //Pongo "ultimo estado" en 0 todos los estados con fecha de importacion menor a la que se inserta
-    //Hago un JOIN con jugadores_temporal para solo afectar los jugadores que se van a insertar
-    $err = DB::statement("UPDATE estado_jugador ej
-    JOIN datos_jugador dj on dj.id_datos_jugador = ej.id_datos_jugador
-    JOIN importacion_estado_jugador iej on iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
-    JOIN jugadores_temporal jt on jt.codigo = dj.codigo AND jt.id_importacion_estado_jugador = ?
-    SET ej.es_ultimo_estado_del_jugador = 0
-    WHERE ej.es_ultimo_estado_del_jugador = 1 AND iej.fecha_importacion < ? AND iej.id_plataforma = ?",
-      [$importacion->id_importacion_estado_jugador,$fecha,$id_plataforma]
+    
+    //Me fijo si puedo mover para atras una importacion que este inmediatamente adelante
+    $err = DB::statement("UPDATE jugador j
+    JOIN jugadores_temporal jt ON (
+      jt.id_importacion_estado_jugador = ?
+      AND j.codigo                  = jt.codigo
+      AND j.localidad               = jt.localidad
+      AND j.provincia               = jt.provincia
+      AND j.fecha_alta              = jt.fecha_alta
+      AND j.estado                  = jt.estado
+      AND j.fecha_nacimiento        = jt.fecha_nacimiento
+      AND j.fecha_ultimo_movimiento = jt.fecha_ultimo_movimiento
+      AND j.sexo                    = jt.sexo 
+      AND IFNULL(j.fecha_autoexclusion,'') = IFNULL(jt.fecha_autoexclusion,'')
+    )
+    JOIN (
+      SELECT j2.id_plataforma,j2.codigo,MIN(j2.fecha_importacion) as fecha_importacion
+	    FROM jugador j2 FORCE INDEX(unq_jugador_importacion)
+	    WHERE j2.id_plataforma = ? AND j2.fecha_importacion > ?
+      GROUP BY j2.id_plataforma,j2.codigo
+   	) prox_jug ON (
+          j.id_plataforma = prox_jug.id_plataforma
+      AND j.codigo = prox_jug.codigo
+      AND j.fecha_importacion = prox_jug.fecha_importacion
+    )
+    SET j.fecha_importacion = ?",
+      [$importacion->id_importacion_estado_jugador,$id_plataforma,$fecha,$fecha]
     );
     if(!$err){
-      throw new \Exception('Error al resetear los "ultimos estados" de los jugadores');
+      throw new \Exception('Error 1 al importar datos del jugador');
     }
     
-    $err = DB::statement("INSERT INTO estado_jugador (id_importacion_estado_jugador,id_datos_jugador,estado,fecha_autoexclusion,fecha_ultimo_movimiento,es_ultimo_estado_del_jugador)
-    SELECT jt.id_importacion_estado_jugador,dj.id_datos_jugador,jt.estado,jt.fecha_autoexclusion,jt.fecha_ultimo_movimiento,
-    (NOT EXISTS (
-      SELECT ej_max.id_estado_jugador
-      FROM datos_jugador dj_max
-      JOIN estado_jugador ej_max on ej_max.id_datos_jugador = dj_max.id_datos_jugador
-      JOIN importacion_estado_jugador iej_max on iej_max.id_importacion_estado_jugador = ej_max.id_importacion_estado_jugador
-      WHERE dj_max.codigo = jt.codigo AND iej_max.id_plataforma = ? AND iej_max.fecha_importacion > ?
-    )) as es_ultimo_estado_del_jugador
+    //Inserto datos si es distinto a la importacion anterior
+    $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
+    SELECT ?,?,
+      jt.localidad,jt.provincia,jt.fecha_alta,jt.codigo,jt.estado,jt.fecha_autoexclusion,jt.fecha_nacimiento,jt.fecha_ultimo_movimiento,jt.sexo
     FROM jugadores_temporal jt
-    JOIN datos_jugador dj FORCE INDEX (idx_datosjugador_codigo) ON (
-          dj.codigo = jt.codigo 
-      AND dj.fecha_alta = jt.fecha_alta 
-      AND dj.fecha_nacimiento = jt.fecha_nacimiento 
-      AND dj.sexo = jt.sexo
-      AND dj.localidad = jt.localidad
-      AND dj.provincia = jt.provincia
+    LEFT JOIN (
+      SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
+	    FROM jugador j2 FORCE INDEX(unq_jugador_importacion)
+	    WHERE j2.id_plataforma = ? AND j2.fecha_importacion <= ?
+      GROUP BY j2.id_plataforma,j2.codigo
+   	) ult_jug ON (jt.codigo = ult_jug.codigo)
+    LEFT JOIN jugador j2 ON (
+          j2.id_plataforma     = ult_jug.id_plataforma 
+      AND j2.fecha_importacion = ult_jug.fecha_importacion
+      AND j2.codigo            = ult_jug.codigo
     )
-    WHERE jt.id_importacion_estado_jugador = ?",[$id_plataforma,$fecha,$importacion->id_importacion_estado_jugador]);
+    WHERE jt.id_importacion_estado_jugador = ? AND (
+         j2.id_jugador IS NULL 
+      OR j2.localidad               <> jt.localidad
+      OR j2.provincia               <> jt.provincia
+      OR j2.fecha_alta              <> jt.fecha_alta
+      OR j2.codigo                  <> jt.codigo
+      OR j2.estado                  <> jt.estado
+      OR j2.fecha_autoexclusion     <> jt.fecha_autoexclusion
+      OR j2.fecha_nacimiento        <> jt.fecha_nacimiento
+      OR j2.fecha_ultimo_movimiento <> jt.fecha_ultimo_movimiento
+      OR j2.sexo                    <> jt.sexo
+    )",[$id_plataforma,$fecha,$id_plataforma,$fecha,$importacion->id_importacion_estado_jugador]);
     if(!$err){
-      throw new \Exception('Error al importar estados del jugador');
+      throw new \Exception('Error 2 al importar datos del jugador');
+    }
+    
+    $err = DB::statement(
+      "DELETE FROM jugadores_temporal WHERE id_importacion_estado_jugador = ?",
+      [$importacion->id_importacion_estado_jugador]
+    );
+    if(!$err){
+      throw new \Exception('Error 3 al importar datos del jugador');
     }
 
-    DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$importacion->id_importacion_estado_jugador)->delete();
-    
-    //Este comando sirve para poner correctamente todos los "estados ultimos" por si alguna razon fallara o se editara la BD manualmente
-    //Lo dejo de referencia/emergencia, era muy lento para usarse en producción ya que reocrre todos los estados de la BD
-    /*$err = DB::statement("UPDATE estado_jugador ej
-    JOIN importacion_estado_jugador iej ON iej.id_importacion_estado_jugador = ej.id_importacion_estado_jugador
-    JOIN datos_jugador dj ON dj.id_datos_jugador = ej.id_datos_jugador
-    JOIN (
-      SELECT dj_max.codigo,iej_max.id_plataforma,MAX(iej_max.fecha_importacion) as fecha_importacion
-      FROM datos_jugador dj_max
-      JOIN estado_jugador ej_max on ej_max.id_datos_jugador = dj_max.id_datos_jugador
-      JOIN importacion_estado_jugador iej_max on iej_max.id_importacion_estado_jugador = ej_max.id_importacion_estado_jugador
-      GROUP BY dj_max.codigo,iej_max.id_plataforma
-    ) max_fecha ON (max_fecha.codigo = dj.codigo AND max_fecha.id_plataforma = iej.id_plataforma)
-    SET ej.es_ultimo_estado_del_jugador = (iej.fecha_importacion = max_fecha.fecha_importacion)");
-
-    if(!$err){
-      throw new \Exception('Error al actualizar los estados de los jugadores');
-    }*/
     return $importacion;
   }
 

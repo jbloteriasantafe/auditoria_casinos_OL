@@ -311,7 +311,7 @@ background-color: #4CAF50;
                 <table class="table table-fixed">
                   <thead>
                     <tr>
-                      <th value="fecha_importacion">F. IMPORTACIÓN<i class='fa fa-sort'></i></th>
+                      <th value="iej.fecha_importacion">F. IMPORTACIÓN<i class='fa fa-sort'></i></th>
                       @yield('columnas_jugador_thead')
                     </tr>
                   </thead>
@@ -371,7 +371,7 @@ background-color: #4CAF50;
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionInformeEstadoJugadores.js?6" charset="utf-8"></script>
+<script src="/js/seccionInformeEstadoJugadores.js?7" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?3" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->

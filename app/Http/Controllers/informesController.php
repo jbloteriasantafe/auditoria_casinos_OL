@@ -18,6 +18,8 @@ use App\EstadoJugador;
 use App\EstadoJuegoImportado;
 use App\ImportacionEstadoJuego;
 use App\EstadoJuego;
+use App\Jugador;
+use App\ImportacionEstadoJugador;
 
 class informesController extends Controller
 {
@@ -907,11 +909,11 @@ class informesController extends Controller
   }
   public function buscarJugadores(Request $request){
     $reglas = [];
-    if(!is_null($request->plataforma)) $reglas[] = ['p.id_plataforma','=',$request->plataforma];
-    if(!is_null($request->codigo)) $reglas[] = ['dj.codigo','LIKE',$request->codigo];
-    if(!is_null($request->estado)) $reglas[] = ['ej.estado','LIKE',$request->estado];
+    if(!is_null($request->plataforma)) $reglas[] = ['j.id_plataforma','=',$request->plataforma];
+    if(!is_null($request->codigo)) $reglas[] = ['j.codigo','LIKE',$request->codigo];
+    if(!is_null($request->estado)) $reglas[] = ['j.estado','LIKE',$request->estado];
     {
-      $edad_sql = DB::raw("DATEDIFF(CURDATE(),dj.fecha_nacimiento)/365.25");//@HACK: aproximado...
+      $edad_sql = DB::raw("DATEDIFF(CURDATE(),j.fecha_nacimiento)/365.25");//@HACK: aproximado...
       if(!empty($request->edad_desde)){
         $reglas[] = [$edad_sql,'>=',$request->edad_desde];
       }
@@ -919,19 +921,19 @@ class informesController extends Controller
         $reglas[] = [$edad_sql,'<=',$request->edad_hasta];
       }
     }
-    if(!is_null($request->sexo))    $reglas[] = ['dj.sexo','LIKE',$request->sexo];
-    if(!is_null($request->localidad)) $reglas[] = ['dj.localidad','LIKE',$request->localidad];
-    if(!is_null($request->provincia)) $reglas[] = ['dj.provincia','LIKE',$request->provincia];
-    if(!is_null($request->fecha_autoexclusion_desde)) $reglas[] = ['ej.fecha_autoexclusion','>=',$request->fecha_autoexclusion_desde];
-    if(!is_null($request->fecha_autoexclusion_hasta)) $reglas[] = ['ej.fecha_autoexclusion','<=',$request->fecha_autoexclusion_hasta];
-    if(!is_null($request->fecha_alta_desde)) $reglas[] = ['dj.fecha_alta','>=',$request->fecha_alta_desde];
-    if(!is_null($request->fecha_alta_hasta)) $reglas[] = ['dj.fecha_alta','<=',$request->fecha_alta_hasta];
-    if(!is_null($request->fecha_ultimo_movimiento_desde)) $reglas[] = ['ej.fecha_ultimo_movimiento','>=',$request->fecha_ultimo_movimiento_desde];
-    if(!is_null($request->fecha_ultimo_movimiento_hasta)) $reglas[] = ['ej.fecha_ultimo_movimiento','<=',$request->fecha_ultimo_movimiento_hasta];
+    if(!is_null($request->sexo))    $reglas[] = ['j.sexo','LIKE',$request->sexo];
+    if(!is_null($request->localidad)) $reglas[] = ['j.localidad','LIKE',$request->localidad];
+    if(!is_null($request->provincia)) $reglas[] = ['j.provincia','LIKE',$request->provincia];
+    if(!is_null($request->fecha_autoexclusion_desde)) $reglas[] = ['j.fecha_autoexclusion','>=',$request->fecha_autoexclusion_desde];
+    if(!is_null($request->fecha_autoexclusion_hasta)) $reglas[] = ['j.fecha_autoexclusion','<=',$request->fecha_autoexclusion_hasta];
+    if(!is_null($request->fecha_alta_desde)) $reglas[] = ['j.fecha_alta','>=',$request->fecha_alta_desde];
+    if(!is_null($request->fecha_alta_hasta)) $reglas[] = ['j.fecha_alta','<=',$request->fecha_alta_hasta];
+    if(!is_null($request->fecha_ultimo_movimiento_desde)) $reglas[] = ['j.fecha_ultimo_movimiento','>=',$request->fecha_ultimo_movimiento_desde];
+    if(!is_null($request->fecha_ultimo_movimiento_hasta)) $reglas[] = ['j.fecha_ultimo_movimiento','<=',$request->fecha_ultimo_movimiento_hasta];
 
     $sort_by = [
       'orden' => 'asc',
-      'columna' => 'codigo',
+      'columna' => 'j.id_plataforma',
     ];
 
     if(!is_null($request->sort_by)) $sort_by = $request->sort_by;
@@ -941,33 +943,41 @@ class informesController extends Controller
       return $c->id_plataforma;
     });
 
-    $ret = DB::table('datos_jugador as dj')
-    ->selectRaw('p.codigo as plataforma,dj.codigo,dj.fecha_alta,dj.fecha_nacimiento,dj.sexo,
-    dj.localidad,dj.provincia,ej.estado,ej.fecha_autoexclusion,
-    ej.fecha_ultimo_movimiento,ej.id_estado_jugador')
-    ->join('estado_jugador as ej','ej.id_datos_jugador','=','dj.id_datos_jugador')
-    ->join('importacion_estado_jugador as iej','iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
-    ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
-    ->where('ej.es_ultimo_estado_del_jugador',1)
-    ->where($reglas)->whereIn('p.id_plataforma',$plataformas)
+    $ret = DB::table('jugador as j')
+    ->select('j.*','p.codigo as plataforma')
+    ->join('plataforma as p','p.id_plataforma','=','j.id_plataforma')
+    ->whereRaw('(j.id_plataforma,j.codigo,j.fecha_importacion) IN (
+        SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
+        FROM jugador j2 FORCE INDEX(unq_jugador_importacion)  
+        GROUP BY j2.id_plataforma,j2.codigo
+    )')
+    ->where($reglas)->whereIn('j.id_plataforma',$plataformas)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
+    
     return $ret;
   }
   public function historialJugador(Request $request){
-    //$request := {id_estado_jugador,page,page_size,sort_by: {columna, orden}}
-    $ej = EstadoJugador::find($request->id_estado_jugador);
-    $dj = $ej->datos;
-    $iej = $ej->importacion;
-    $sort_by = $request->sort_by ?? [
+     $sort_by = $request->sort_by ?? [
       'orden' => 'desc',
-      'columna' => 'fecha_importacion',
+      'columna' => 'iej.fecha_importacion',
     ];
-    return DB::table('datos_jugador as dj')->select('dj.*','ej.*','iej.*')
-    ->join('estado_jugador as ej','ej.id_datos_jugador','=','dj.id_datos_jugador')
-    ->join('importacion_estado_jugador as iej','iej.id_importacion_estado_jugador','=','ej.id_importacion_estado_jugador')
-    ->where('dj.codigo','=',$dj->codigo)
-    ->where('iej.id_plataforma','=',$iej->id_plataforma)
+    $jug = Jugador::find($request->id_jugador);
+    
+    return DB::table('importacion_estado_jugador as iej')
+    ->select('j.*','iej.fecha_importacion')
+    ->leftJoin('jugador as j',function($j){
+      return $j->on('j.id_plataforma','=','iej.id_plataforma')
+      ->on('j.fecha_importacion','<=','iej.fecha_importacion');
+    })
+    ->whereRaw('(j.id_plataforma,j.codigo,j.fecha_importacion) IN (
+        SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
+        FROM jugador j2 FORCE INDEX(unq_jugador_importacion)    
+        WHERE j2.id_plataforma = iej.id_plataforma AND j2.codigo = j.codigo AND j2.fecha_importacion <= iej.fecha_importacion  
+        GROUP BY j2.id_plataforma,j2.codigo
+    )')
+    ->where('iej.id_plataforma','=',$jug->id_plataforma)
+    ->where('j.codigo','=',$jug->codigo)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
   }
@@ -987,7 +997,7 @@ class informesController extends Controller
     if(!is_null($request->codigo)) $reglas[] = ['dj.codigo','LIKE','%'.$request->codigo.'%'];
     if(!is_null($request->nombre)) $reglas[] = ['dj.nombre','LIKE','%'.$request->nombre.'%'];
     //Le agrego un keyword porque a veces han mandado este campo vacio
-    if($request->estado != "!!TODO!!") $reglas[] = [DB::raw('TRIM(ej.estado)'),'=',DB::raw("TRIM('$request->estado')")];
+    if($request->estado != "!!TODO!!") $reglas[] = [DB::raw('TRIM(esj.estado)'),'=',DB::raw("TRIM('$request->estado')")];
     if($request->categoria != "!!TODO!!") $reglas[] = [DB::raw('TRIM(dj.categoria)'),'=',DB::raw("TRIM('$request->categoria0)")];
     if($request->tecnologia != "!!TODO!!") $reglas[] = [DB::raw('TRIM(dj.tecnologia)'),'=',DB::raw("TRIM('$request->tecnologia')")];
     
@@ -1004,8 +1014,9 @@ class informesController extends Controller
     });
 
     $ret = DB::table('datos_juego_importado as dj')
-    ->selectRaw('p.codigo as plataforma,dj.codigo,dj.nombre,dj.categoria,dj.tecnologia,ej.estado,ej.id_estado_juego_importado')
+    ->selectRaw('p.codigo as plataforma,dj.codigo,dj.nombre,dj.categoria,dj.tecnologia,esj.estado,ej.id_estado_juego_importado')
     ->join('estado_juego_importado as ej','ej.id_datos_juego_importado','=','dj.id_datos_juego_importado')
+    ->join('estados_jugador as esj','esj.id_estados_jugador','=','ej.id_estados_jugador')
     ->join('importacion_estado_juego as iej','iej.id_importacion_estado_juego','=','ej.id_importacion_estado_juego')
     ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
     ->where('ej.es_ultimo_estado_del_juego',1)
