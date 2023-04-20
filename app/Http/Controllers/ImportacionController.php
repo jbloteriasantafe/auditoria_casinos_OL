@@ -16,7 +16,6 @@ use App\Http\Controllers\LectorCSVController;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Http\Controllers\CacheController;
-use App\Http\Controllers\JugadoresNoBDController;
 
 class ImportacionController extends Controller
 {
@@ -300,7 +299,6 @@ class ImportacionController extends Controller
     DB::transaction(function() use ($request,&$ret){
       ProducidoJugadores::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      (new JugadoresNoBDController)->agregueProducido($ret['id_producido_jugadores']);
       CacheController::getInstancia()->invalidarDependientes(['producido_jugadores']);
     });
     return $ret;
@@ -370,7 +368,6 @@ class ImportacionController extends Controller
         $this->eliminarEstadoJugadores($i->id_importacion_estado_jugador);
       }
       $importacion = LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
-      (new JugadoresNoBDController)->agregueJugadores($importacion->id_importacion_estado_jugador);
       return 1;
     });
   }
@@ -440,8 +437,7 @@ class ImportacionController extends Controller
     
       //Borro la importacion
       $imp->delete();
-      //(new JugadoresNoBDController)->borrarJugadores($id);
-      
+            
       return 1;
     });
   }

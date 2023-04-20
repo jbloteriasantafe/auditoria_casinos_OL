@@ -322,3 +322,5 @@ Route::post('enviarTicket',function(Request $request){
   $ticket_id = (int) $result;
   return $ticket_id;
 });
+
+Route::get('migrarJugadores','LectorCSVController@migrarJugadores');

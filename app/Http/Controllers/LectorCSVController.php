@@ -11,7 +11,6 @@ use App\BeneficioMensual;
 use App\BeneficioMensualPoker;
 use App\Http\Controllers\ProducidoController;
 use App\Http\Controllers\BeneficioMensualController;
-use App\Http\Controllers\JugadoresNoBDController;
 
 class LectorCSVController extends Controller
 {
@@ -853,5 +852,58 @@ class LectorCSVController extends Controller
       throw new \Exception('Error al actualizar los estados de los juegos');
     }*/
     return 1;
+  }
+  
+  public function migrarJugadores(){
+    return DB::transaction(function(){
+      $plats = DB::table('plataforma')->select('id_plataforma')->distinct()
+      ->get()->pluck('id_plataforma');
+      foreach($plats as $idp){
+        dump($idp);
+        $importaciones = ImportacionEstadoJugador::where([
+          ['id_plataforma','=',$idp],
+        ])->orderBy('fecha_importacion','asc')->get();
+        
+        foreach($importaciones as $imp){
+          dump($imp);
+          $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
+          SELECT ?,?,
+            dj.localidad,dj.provincia,dj.fecha_alta,dj.codigo,ej.estado,ej.fecha_autoexclusion,dj.fecha_nacimiento,ej.fecha_ultimo_movimiento,dj.sexo
+          FROM estado_jugador ej
+          JOIN datos_jugador dj ON (dj.id_datos_jugador = ej.id_datos_jugador)
+          LEFT JOIN (
+            SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
+            FROM jugador j2 FORCE INDEX(unq_jugador_importacion)
+            WHERE j2.id_plataforma = ? AND j2.fecha_importacion <= ?
+            GROUP BY j2.id_plataforma,j2.codigo
+          ) ult_jug ON (dj.codigo = ult_jug.codigo)
+          LEFT JOIN jugador j2 ON (
+                j2.id_plataforma     = ult_jug.id_plataforma
+            AND j2.fecha_importacion = ult_jug.fecha_importacion
+            AND j2.codigo            = ult_jug.codigo
+          )
+          WHERE ej.id_importacion_estado_jugador = ? AND (
+               j2.id_jugador IS NULL 
+            OR j2.localidad               <> dj.localidad
+            OR j2.provincia               <> dj.provincia
+            OR j2.fecha_alta              <> dj.fecha_alta
+            OR j2.codigo                  <> dj.codigo
+            OR j2.estado                  <> ej.estado
+            OR j2.fecha_autoexclusion     <> ej.fecha_autoexclusion
+            OR j2.fecha_nacimiento        <> dj.fecha_nacimiento
+            OR j2.fecha_ultimo_movimiento <> ej.fecha_ultimo_movimiento
+            OR j2.sexo                    <> dj.sexo
+          )",[
+            $idp,$imp->fecha_importacion,
+            $idp,$imp->fecha_importacion,
+            $imp->id_importacion_estado_jugador
+          ]);
+          if(!$err){
+            throw new \Exception('Error 2 al importar datos del jugador');
+          }
+        }
+      }
+      return 0;
+    });
   }
 }

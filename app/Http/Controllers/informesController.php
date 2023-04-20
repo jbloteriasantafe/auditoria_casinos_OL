@@ -504,16 +504,18 @@ class informesController extends Controller
     $reglas_fechas = [];
     if(!empty($fecha_desde)) $reglas_fechas[] = ['pj.fecha','>=',$request->fecha_desde];
     if(!empty($fecha_hasta)) $reglas_fechas[] = ['pj.fecha','<=',$request->fecha_hasta];
-       
-    $q = DB::table('jugadores_produciendo_no_en_bd as j_nobd')
-    ->join('producido_jugadores as pj','pj.id_plataforma','=','j_nobd.id_plataforma')
-    ->join('detalle_producido_jugadores as dpj',function($j){
-      return $j->on('dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
-               ->on('dpj.jugador','=','j_nobd.jugador');
-    })
-    ->where('j_nobd.id_plataforma','=',$request->id_plataforma)
+    
+    $q = DB::table('producido_jugadores as pj')
+    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+    ->where('pj.id_plataforma','=',$request->id_plataforma)
     ->whereRaw($numericos_distinto_de_cero)
-    ->where($reglas_fechas);
+    ->where($reglas_fechas)
+    ->whereRaw('NOT EXISTS (
+      SELECT 1
+      FROM jugador j
+      WHERE j.codigo = dpj.jugador AND j.id_plataforma = pj.id_plataforma
+      LIMIT 1
+    )');
     
     $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadorFaltantesSelect))
     ->groupBy('dpj.jugador')
