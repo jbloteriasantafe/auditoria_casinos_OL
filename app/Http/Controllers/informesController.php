@@ -960,7 +960,40 @@ class informesController extends Controller
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
     
-    return $ret;
+    $data = DB::table('jugador as j')
+    ->select('j.*','p.codigo as plataforma')
+    ->join('plataforma as p','p.id_plataforma','=','j.id_plataforma')
+    ->whereRaw('NOT EXISTS (
+      SELECT 1
+      FROM jugador j2
+      WHERE j2.id_plataforma = j.id_plataforma 
+      AND j2.codigo = j.codigo
+      AND j2.fecha_importacion > j.fecha_importacion
+      LIMIT 1
+    )')
+    ->where($reglas)->whereIn('j.id_plataforma',$plataformas)
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
+    ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
+    
+    $totales = DB::table('jugador as j')
+    ->selectRaw('COUNT(distinct j.codigo) as total')
+    ->whereIn('j.id_plataforma',$plataformas);
+    if(!is_null($request->plataforma)){
+      $totales = $totales->where('j.id_plataforma','=',$request->plataforma);
+    }
+    $totales = $totales->groupBy('j.id_plataforma')->get()->pluck('total');
+    $total = 0;
+    foreach($totales as $t) $total+=$t;
+    
+    return [
+      'current_page' => $request->page,
+      'per_page' => $request->page_size,
+      'from' => (($request->page-1)*$request->page_size + 1),
+      'to' => (($request->page)*$request->page_size),
+      'last_page' => ceil($total/$request->page_size),
+      'total' => $total,
+      'data' => $data,
+    ];
   }
   public function historialJugador(Request $request){
      $sort_by = $request->sort_by ?? [
