@@ -945,21 +945,6 @@ class informesController extends Controller
       return $c->id_plataforma;
     });
 
-    $ret = DB::table('jugador as j')
-    ->select('j.*','p.codigo as plataforma')
-    ->join('plataforma as p','p.id_plataforma','=','j.id_plataforma')
-    ->whereRaw('NOT EXISTS (
-      SELECT 1
-      FROM jugador j2
-      WHERE j2.id_plataforma = j.id_plataforma 
-      AND j2.codigo = j.codigo
-      AND j2.fecha_importacion > j.fecha_importacion
-      LIMIT 1
-    )')
-    ->where($reglas)->whereIn('j.id_plataforma',$plataformas)
-    ->orderBy($sort_by['columna'],$sort_by['orden'])
-    ->paginate($request->page_size);
-    
     $data = DB::table('jugador as j')
     ->select('j.*','p.codigo as plataforma')
     ->join('plataforma as p','p.id_plataforma','=','j.id_plataforma')
