@@ -138,7 +138,7 @@ class ImportacionController extends Controller
       )')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
-      ->groupBy('j.id_plataforma')->get()->pluck('id_plataforma')[0];
+      ->groupBy('j.id_plataforma')->first()->total;
       
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
       'cant_detalles' => $cant_detalles,
