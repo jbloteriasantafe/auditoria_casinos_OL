@@ -111,7 +111,7 @@ class ImportacionController extends Controller
       $importacion = ImportacionEstadoJugador::find($request->id);
       if(is_null($importacion)) return response()->json("No existe la importación",422);
     
-      $detalles = DB::table(DB::raw('jugador as j FORCE INDEX(unq_jugador_importacion)'))
+      $detalles = DB::table('jugador as j')
       ->select('j.*')
       ->whereRaw('NOT EXISTS (
         SELECT 1
@@ -123,11 +123,26 @@ class ImportacionController extends Controller
       )')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
-      ->orderBy('j.codigo','asc');
+      ->orderBy('j.codigo','asc')
+      ->skip($request->page*$request->size)->take($request->size)->get();
+            
+      $cant_detalles = DB::table(DB::raw('jugador as j FORCE INDEX(unq_jugador_importacion)'))
+      ->selectRaw('COUNT(distinct j.codigo) as total')
+      ->whereRaw('NOT EXISTS (
+        SELECT 1
+        FROM jugador j2
+        WHERE j2.id_plataforma = j.id_plataforma 
+        AND j2.codigo = j.codigo
+        AND j2.fecha_importacion > j.fecha_importacion
+        LIMIT 1
+      )')
+      ->where('j.id_plataforma','=',$importacion->id_plataforma)
+      ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
+      ->groupBy('j.id_plataforma')->get()->pluck('id_plataforma')[0];
       
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
-      'cant_detalles' => (clone $detalles)->count(),
-      'detalles' => (clone $detalles)->skip($request->page*$request->size)->take($request->size)->get()];
+      'cant_detalles' => $cant_detalles,
+      'detalles' => $detalles];
     }
     else return response()->json("No existe",422);
   }
