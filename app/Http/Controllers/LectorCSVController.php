@@ -671,7 +671,10 @@ class LectorCSVController extends Controller
     $importacion->save();
     $this->importarJugadoresTemporal($importacion->id_importacion_estado_jugador,$archivo);
     
-    //Me fijo si puedo mover para atras una importacion que este inmediatamente adelante
+    // Lo importante en realidad es fecha_importacion 
+    // valido_hasta es innecesario y se usa para hacer mas rapidas las querys
+    // Aca muevo para atras el jugador si es proximo al insertarse
+    // y es igual al que se inserta
     $err = DB::statement("UPDATE jugador j
     JOIN jugadores_temporal jt ON (
       jt.id_importacion_estado_jugador = ?
@@ -703,8 +706,8 @@ class LectorCSVController extends Controller
     }
     
     //Inserto datos si es distinto a la importacion anterior
-    $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
-    SELECT ?,?,
+    $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
+    SELECT ?,?,NULL,
       jt.localidad,jt.provincia,jt.fecha_alta,jt.codigo,jt.estado,jt.fecha_autoexclusion,jt.fecha_nacimiento,jt.fecha_ultimo_movimiento,jt.sexo
     FROM jugadores_temporal jt
     LEFT JOIN (
@@ -725,23 +728,68 @@ class LectorCSVController extends Controller
       OR j2.fecha_alta              <> jt.fecha_alta
       OR j2.codigo                  <> jt.codigo
       OR j2.estado                  <> jt.estado
-      OR j2.fecha_autoexclusion     <> jt.fecha_autoexclusion
       OR j2.fecha_nacimiento        <> jt.fecha_nacimiento
       OR j2.fecha_ultimo_movimiento <> jt.fecha_ultimo_movimiento
       OR j2.sexo                    <> jt.sexo
+      OR IFNULL(j2.fecha_autoexclusion,'') <> IFNULL(jt.fecha_autoexclusion,'')
     )",[$id_plataforma,$fecha,$id_plataforma,$fecha,$importacion->id_importacion_estado_jugador]);
     if(!$err){
       throw new \Exception('Error 2 al importar datos del jugador');
     }
     
-    $err = DB::statement(
-      "DELETE FROM jugadores_temporal WHERE id_importacion_estado_jugador = ?",
-      [$importacion->id_importacion_estado_jugador]
+    //Terminado lo importante
+    //Updateo fin de validez para los insertados
+    $err = DB::statement("UPDATE jugador j_insertado
+    LEFT JOIN (
+      SELECT j2.id_plataforma,j2.codigo,MIN(j2.fecha_importacion) as fecha_importacion
+	    FROM jugador j2 FORCE INDEX(unq_jugador_importacion)
+	    WHERE j2.id_plataforma = ? AND j2.fecha_importacion > ?
+      GROUP BY j2.id_plataforma,j2.codigo
+   	) prox_jug 
+      ON (j_insertado.id_plataforma = prox_jug.id_plataforma 
+      AND j_insertado.codigo        = prox_jug.codigo)
+    SET j_insertado.valido_hasta = DATE_SUB(prox_jug.fecha_importacion,INTERVAL 1 DAY)
+    WHERE j_insertado.id_plataforma     = ?
+      AND j_insertado.fecha_importacion = ? 
+      AND j_insertado.valido_hasta IS NULL",
+      [$id_plataforma,$fecha,$id_plataforma,$fecha]
     );
     if(!$err){
       throw new \Exception('Error 3 al importar datos del jugador');
     }
 
+    //Updateo el fin de validez para los anteriores que quedaron con
+    //un valido_hasta invalido porque se inserto en el medio o se movio el de adelante
+    $err = DB::statement("UPDATE jugador j_anterior
+    JOIN jugador j 
+      ON (j.id_plataforma     = j_anterior.id_plataforma
+      AND j.codigo            = j_anterior.codigo
+      AND j.id_plataforma     = ?
+      AND j.fecha_importacion = ?)
+    JOIN (
+      SELECT j2.id_plataforma,j2.codigo,MAX(j2.fecha_importacion) as fecha_importacion
+	    FROM jugador j2 FORCE INDEX(unq_jugador_importacion)
+	    WHERE j2.id_plataforma = ? AND j2.fecha_importacion < ?
+      GROUP BY j2.id_plataforma,j2.codigo
+   	) ult_jug 
+      ON (j_anterior.id_plataforma = ult_jug.id_plataforma 
+      AND j_anterior.codigo = ult_jug.codigo
+      AND j_anterior.fecha_importacion = ult_jug.fecha_importacion)
+    SET j_anterior.valido_hasta = DATE_SUB(j.fecha_importacion,INTERVAL 1 DAY)",
+      [$id_plataforma,$fecha,$id_plataforma,$fecha]
+    );
+    if(!$err){
+      throw new \Exception('Error 4 al importar datos del jugador');
+    }
+
+    $err = DB::statement(
+      "DELETE FROM jugadores_temporal WHERE id_importacion_estado_jugador = ?",
+      [$importacion->id_importacion_estado_jugador]
+    );
+    if(!$err){
+      throw new \Exception('Error 5 al importar datos del jugador');
+    }
+    
     return $importacion;
   }
 
@@ -864,10 +912,14 @@ class LectorCSVController extends Controller
           ['id_plataforma','=',$idp],
         ])->orderBy('fecha_importacion','asc')->get();
         
-        foreach($importaciones as $imp){
+        foreach($importaciones as $k => $imp){
           dump($imp);
-          $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
-          SELECT ?,?,
+          $valido_hasta = null;
+          if(isset($importaciones[$k+1])){
+            $valido_hasta = $importaciones[$k+1]->fecha_importacion;
+          }
+          $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
+          SELECT ?,?,DATE_SUB(?,INTERVAL 1 DAY),
             dj.localidad,dj.provincia,dj.fecha_alta,dj.codigo,ej.estado,ej.fecha_autoexclusion,dj.fecha_nacimiento,ej.fecha_ultimo_movimiento,dj.sexo
           FROM estado_jugador ej
           JOIN datos_jugador dj ON (dj.id_datos_jugador = ej.id_datos_jugador)
@@ -887,14 +939,14 @@ class LectorCSVController extends Controller
             OR j2.localidad               <> dj.localidad
             OR j2.provincia               <> dj.provincia
             OR j2.fecha_alta              <> dj.fecha_alta
-            OR j2.codigo                  <> dj.codigo
+            OR j2.codigo                  <> dj.codigo'j_anterior.valido_hasta
             OR j2.estado                  <> ej.estado
             OR j2.fecha_autoexclusion     <> ej.fecha_autoexclusion
             OR j2.fecha_nacimiento        <> dj.fecha_nacimiento
             OR j2.fecha_ultimo_movimiento <> ej.fecha_ultimo_movimiento
             OR j2.sexo                    <> dj.sexo
           )",[
-            $idp,$imp->fecha_importacion,
+            $idp,$imp->fecha_importacion,$valido_hasta,
             $idp,$imp->fecha_importacion,
             $imp->id_importacion_estado_jugador
           ]);
