@@ -939,7 +939,7 @@ class LectorCSVController extends Controller
             OR j2.localidad               <> dj.localidad
             OR j2.provincia               <> dj.provincia
             OR j2.fecha_alta              <> dj.fecha_alta
-            OR j2.codigo                  <> dj.codigo'j_anterior.valido_hasta
+            OR j2.codigo                  <> dj.codigo
             OR j2.estado                  <> ej.estado
             OR j2.fecha_autoexclusion     <> ej.fecha_autoexclusion
             OR j2.fecha_nacimiento        <> dj.fecha_nacimiento
