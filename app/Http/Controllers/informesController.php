@@ -1038,9 +1038,8 @@ class informesController extends Controller
     });
 
     $ret = DB::table('datos_juego_importado as dj')
-    ->selectRaw('p.codigo as plataforma,dj.codigo,dj.nombre,dj.categoria,dj.tecnologia,esj.estado,ej.id_estado_juego_importado')
+    ->selectRaw('p.codigo as plataforma,dj.codigo,dj.nombre,dj.categoria,dj.tecnologia,ej.estado,ej.id_estado_juego_importado')
     ->join('estado_juego_importado as ej','ej.id_datos_juego_importado','=','dj.id_datos_juego_importado')
-    ->join('estados_jugador as esj','esj.id_estados_jugador','=','ej.id_estados_jugador')
     ->join('importacion_estado_juego as iej','iej.id_importacion_estado_juego','=','ej.id_importacion_estado_juego')
     ->join('plataforma as p','p.id_plataforma','=','iej.id_plataforma')
     ->where('ej.es_ultimo_estado_del_juego',1)
