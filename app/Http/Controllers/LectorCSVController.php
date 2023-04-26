@@ -912,14 +912,10 @@ class LectorCSVController extends Controller
           ['id_plataforma','=',$idp],
         ])->orderBy('fecha_importacion','asc')->get();
         
-        foreach($importaciones as $k => $imp){
-          dump($imp);
-          $valido_hasta = null;
-          if(isset($importaciones[$k+1])){
-            $valido_hasta = $importaciones[$k+1]->fecha_importacion;
-          }
+        $anterior = null;
+        foreach($importaciones as $imp){
           $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
-          SELECT ?,?,DATE_SUB(?,INTERVAL 1 DAY),
+          SELECT ?,?,NULL,
             dj.localidad,dj.provincia,dj.fecha_alta,dj.codigo,ej.estado,ej.fecha_autoexclusion,dj.fecha_nacimiento,ej.fecha_ultimo_movimiento,dj.sexo
           FROM estado_jugador ej
           JOIN datos_jugador dj ON (dj.id_datos_jugador = ej.id_datos_jugador)
@@ -946,13 +942,32 @@ class LectorCSVController extends Controller
             OR j2.fecha_ultimo_movimiento <> ej.fecha_ultimo_movimiento
             OR j2.sexo                    <> dj.sexo
           )",[
-            $idp,$imp->fecha_importacion,$valido_hasta,
+            $idp,$imp->fecha_importacion,
             $idp,$imp->fecha_importacion,
             $imp->id_importacion_estado_jugador
           ]);
           if(!$err){
-            throw new \Exception('Error 2 al importar datos del jugador');
+            throw new \Exception('Error 1 al importar datos del jugador');
           }
+          
+          if(!is_null($anterior)){
+            $err = DB::statement("UPDATE jugador j_anterior
+            JOIN jugador j_insertado 
+              ON (j_insertado.codigo            = j_anterior.codigo
+              AND j_insertado.id_plataforma     = j_anterior.id_plataforma)
+            SET j_anterior.valido_hasta = DATE_SUB(j_insertado.fecha_importacion,INTERVAL 1 DAY)
+            WHERE j_anterior.valido_hasta  IS NULL
+              AND j_insertado.valido_hasta IS NULL
+              AND j_insertado.id_plataforma     = ?
+              AND j_insertado.fecha_importacion = ?
+              AND j_anterior.fecha_importacion  = ?",
+              [$idp,$imp->fecha_importacion,$anterior->fecha_importacion]
+            );
+            if(!$err){
+              throw new \Exception('Error 2 al importar datos del jugador');
+            }
+          }
+          $anterior  = $imp;
         }
       }
       return 0;
