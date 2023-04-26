@@ -507,15 +507,24 @@ class informesController extends Controller
     
     $q = DB::table('producido_jugadores as pj')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+    ->leftJoin('jugador as j',function($j){
+      return $j->on('j.codigo','=','dpj.jugador')
+      ->on('j.id_plataforma','=','pj.id_plataforma')
+      ->whereNull('j.valido_hasta');
+      //Hacer otra validacion si el jugador estaba produciendo y en las importaciones de esas fechas no figuraba??
+      //Borrar el whereNull y poner esto en ese caso...
+      //Como esta ahora, siempre se toma la ultima base de jugadores para ver si no esta informado
+      //Que es mas intuitivo para el que lo visualiza creo yo...
+      /*->on('j.fecha_importacion','<=','pj.fecha')
+       ->on(function($j){
+        return $j->on('j.valido_hasta','>=','pj.fecha')
+        ->orWhereNull('j.valido_hasta');
+      });*/
+    })
     ->where('pj.id_plataforma','=',$request->id_plataforma)
+    ->whereNull('j.id_jugador')
     ->whereRaw($numericos_distinto_de_cero)
-    ->where($reglas_fechas)
-    ->whereRaw('NOT EXISTS (
-      SELECT 1
-      FROM jugador j FORCE INDEX(idx_jugador_codigo)
-      WHERE j.codigo = dpj.jugador AND j.id_plataforma = pj.id_plataforma
-      LIMIT 1
-    )');
+    ->where($reglas_fechas);
     
     $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadorFaltantesSelect))
     ->groupBy('dpj.jugador')
@@ -948,20 +957,14 @@ class informesController extends Controller
     $data = DB::table('jugador as j')
     ->select('j.*','p.codigo as plataforma')
     ->join('plataforma as p','p.id_plataforma','=','j.id_plataforma')
-    ->whereRaw('NOT EXISTS (
-      SELECT 1
-      FROM jugador j2
-      WHERE j2.id_plataforma = j.id_plataforma 
-      AND j2.codigo = j.codigo
-      AND j2.fecha_importacion > j.fecha_importacion
-      LIMIT 1
-    )')
+    ->whereNull('j.valido_hasta')
     ->where($reglas)->whereIn('j.id_plataforma',$plataformas)
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
     
     $totales = DB::table('jugador as j')
     ->selectRaw('COUNT(distinct j.codigo) as total')
+    ->whereNull('j.valido_hasta')
     ->whereIn('j.id_plataforma',$plataformas);
     if(!is_null($request->plataforma)){
       $totales = $totales->where('j.id_plataforma','=',$request->plataforma);
@@ -991,17 +994,12 @@ class informesController extends Controller
     ->select('j.*','iej.fecha_importacion')
     ->leftJoin('jugador as j',function($j){
       return $j->on('j.id_plataforma','=','iej.id_plataforma')
-      ->on('j.fecha_importacion','<=','iej.fecha_importacion');
+      ->on('j.fecha_importacion','<=','iej.fecha_importacion')
+      ->on(function($j){
+        return $j->on('j.valido_hasta','>=','iej.fecha_importacion')
+        ->orWhereNull('j.valido_hasta');
+      });
     })
-    ->whereRaw('NOT EXISTS (
-      SELECT 1
-      FROM jugador j2
-      WHERE j2.id_plataforma = j.id_plataforma 
-      AND j2.codigo = j.codigo
-      AND j2.fecha_importacion > j.fecha_importacion
-      AND j2.fecha_importacion <= iej.fecha_importacion
-      LIMIT 1
-    )')
     ->where('iej.id_plataforma','=',$jug->id_plataforma)
     ->where('j.codigo','=',$jug->codigo)
     ->orderBy($sort_by['columna'],$sort_by['orden'])

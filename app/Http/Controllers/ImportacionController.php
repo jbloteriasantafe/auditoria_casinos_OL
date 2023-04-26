@@ -113,16 +113,12 @@ class ImportacionController extends Controller
     
       $detalles = DB::table('jugador as j')
       ->select('j.*')
-      ->whereRaw('NOT EXISTS (
-        SELECT 1
-        FROM jugador j2
-        WHERE j2.id_plataforma = j.id_plataforma 
-        AND j2.codigo = j.codigo
-        AND j2.fecha_importacion > j.fecha_importacion
-        LIMIT 1
-      )')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
+      ->where(function($q) use ($importacion){
+        return $q->where('j.valido_hasta','>=',$importacion->fecha_importacion)
+        ->orWhereNull('j.valido_hasta');
+      })
       ->orderBy('j.codigo','asc')
       ->skip($request->page*$request->size)->take($request->size)->get();
           
@@ -130,6 +126,10 @@ class ImportacionController extends Controller
       ->selectRaw('COUNT(distinct j.codigo) as total')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
+      ->where(function($q) use ($importacion){
+        return $q->where('j.valido_hasta','>=',$importacion->fecha_importacion)
+        ->orWhereNull('j.valido_hasta');
+      })
       ->groupBy('j.id_plataforma')->first()->total;
       
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
