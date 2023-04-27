@@ -903,7 +903,7 @@ class LectorCSVController extends Controller
   }
   
   //Lo dejo por si en algun momento se cambia estado_juego_importado a una estructura similar
-  /*public function migrarJugadores(){
+  public function migrarJugadores(){
     return DB::transaction(function(){
       $plats = DB::table('plataforma')->select('id_plataforma')->distinct()
       ->get()->pluck('id_plataforma');
@@ -973,5 +973,5 @@ class LectorCSVController extends Controller
       }
       return 0;
     });
-  }*/
+  }
 }

@@ -122,7 +122,7 @@ class ImportacionController extends Controller
       ->orderBy('j.codigo','asc')
       ->skip($request->page*$request->size)->take($request->size)->get();
           
-      $cant_detalles = DB::table(DB::raw('jugador as j FORCE INDEX(unq_jugador_importacion)'))
+      $cant_detalles = DB::table(DB::raw('jugador as j FORCE INDEX(unq_jugador_importacion_hasta)'))
       ->selectRaw('COUNT(distinct j.codigo) as total')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
