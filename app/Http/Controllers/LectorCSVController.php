@@ -913,7 +913,6 @@ class LectorCSVController extends Controller
           ['id_plataforma','=',$idp],
         ])->orderBy('fecha_importacion','asc')->get();
         
-        $anterior = null;
         foreach($importaciones as $imp){
           $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
           SELECT ?,?,NULL,
@@ -951,24 +950,23 @@ class LectorCSVController extends Controller
             throw new \Exception('Error 1 al importar datos del jugador');
           }
           
-          if(!is_null($anterior)){
-            $err = DB::statement("UPDATE jugador j_anterior
-            JOIN jugador j_insertado 
-              ON (j_insertado.codigo            = j_anterior.codigo
-              AND j_insertado.id_plataforma     = j_anterior.id_plataforma)
-            SET j_anterior.valido_hasta = DATE_SUB(j_insertado.fecha_importacion,INTERVAL 1 DAY)
-            WHERE j_anterior.valido_hasta  IS NULL
-              AND j_insertado.valido_hasta IS NULL
-              AND j_insertado.id_plataforma     = ?
-              AND j_insertado.fecha_importacion = ?
-              AND j_anterior.fecha_importacion  = ?",
-              [$idp,$imp->fecha_importacion,$anterior->fecha_importacion]
-            );
-            if(!$err){
-              throw new \Exception('Error 2 al importar datos del jugador');
-            }
+          //Updateo fin de validez para los insertados anteriormente 
+          //a los que se le inserto uno nuevo
+          $err = DB::statement("UPDATE jugador j_anterior
+          JOIN jugador j_insertado
+            ON (j_insertado.id_plataforma = j_anterior.id_plataforma
+            AND j_insertado.codigo = j_anterior.codigo
+            AND j_insertado.fecha_importacion > j_anterior.fecha_importacion
+            AND j_insertado.valido_hasta IS NULL)
+          SET j_anterior.valido_hasta = DATE_SUB(j_insertado.fecha_importacion,INTERVAL 1 DAY)
+          WHERE j_anterior.id_plataforma = ? 
+          AND j_anterior.fecha_importacion < ?
+          AND j_anterior.valido_hasta IS NULL",
+            [$idp,$imp->fecha_importacion]
+          );
+          if(!$err){
+            throw new \Exception('Error 2 al importar datos del jugador');
           }
-          $anterior  = $imp;
         }
       }
       return 0;
