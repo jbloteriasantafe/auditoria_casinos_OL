@@ -322,3 +322,6 @@ Route::post('enviarTicket',function(Request $request){
   $ticket_id = (int) $result;
   return $ticket_id;
 });
+
+//Lo dejo por si en algun momento se cambia estado_juego_importado a una estructura similar
+//Route::get('migrarJugadores','LectorCSVController@migrarJugadores');

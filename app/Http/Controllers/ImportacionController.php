@@ -16,7 +16,6 @@ use App\Http\Controllers\LectorCSVController;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Http\Controllers\CacheController;
-use App\Http\Controllers\JugadoresNoBDController;
 
 class ImportacionController extends Controller
 {
@@ -111,14 +110,31 @@ class ImportacionController extends Controller
     else if($request->tipo_importacion == 'estado_jugadores'){
       $importacion = ImportacionEstadoJugador::find($request->id);
       if(is_null($importacion)) return response()->json("No existe la importación",422);
-      $detalles = DB::table('importacion_estado_jugador as iej')
-      ->select('dj.codigo','dj.localidad','dj.provincia','dj.fecha_alta','ej.estado','ej.fecha_autoexclusion','ej.fecha_ultimo_movimiento','dj.sexo')
-      ->join('estado_jugador as ej','ej.id_importacion_estado_jugador','=','iej.id_importacion_estado_jugador')
-      ->join('datos_jugador as dj','dj.id_datos_jugador','=','ej.id_datos_jugador')
-      ->where('iej.id_importacion_estado_jugador','=',$request->id);
+    
+      $detalles = DB::table('jugador as j')
+      ->select('j.*')
+      ->where('j.id_plataforma','=',$importacion->id_plataforma)
+      ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
+      ->where(function($q) use ($importacion){
+        return $q->where('j.valido_hasta','>=',$importacion->fecha_importacion)
+        ->orWhereNull('j.valido_hasta');
+      })
+      ->orderBy('j.codigo','asc')
+      ->skip($request->page*$request->size)->take($request->size)->get();
+          
+      $cant_detalles = DB::table(DB::raw('jugador as j FORCE INDEX(unq_jugador_importacion_hasta)'))
+      ->selectRaw('COUNT(distinct j.codigo) as total')
+      ->where('j.id_plataforma','=',$importacion->id_plataforma)
+      ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
+      ->where(function($q) use ($importacion){
+        return $q->where('j.valido_hasta','>=',$importacion->fecha_importacion)
+        ->orWhereNull('j.valido_hasta');
+      })
+      ->groupBy('j.id_plataforma')->first()->total;
+      
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
-      'cant_detalles' => (clone $detalles)->count(),
-      'detalles' => (clone $detalles)->skip($request->page*$request->size)->take($request->size)->get()];
+      'cant_detalles' => $cant_detalles,
+      'detalles' => $detalles];
     }
     else return response()->json("No existe",422);
   }
@@ -294,7 +310,6 @@ class ImportacionController extends Controller
     DB::transaction(function() use ($request,&$ret){
       ProducidoJugadores::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      (new JugadoresNoBDController)->agregueProducido($ret['id_producido_jugadores']);
       CacheController::getInstancia()->invalidarDependientes(['producido_jugadores']);
     });
     return $ret;
@@ -364,7 +379,6 @@ class ImportacionController extends Controller
         $this->eliminarEstadoJugadores($i->id_importacion_estado_jugador);
       }
       $importacion = LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
-      (new JugadoresNoBDController)->agregueJugadores($importacion->id_importacion_estado_jugador);
       return 1;
     });
   }
@@ -389,19 +403,52 @@ class ImportacionController extends Controller
 
   public function eliminarEstadoJugadores($id){
     return DB::transaction(function() use ($id){
-      $importacion = ImportacionEstadoJugador::find($id);
-      (new JugadoresNoBDController)->borrarJugadores($id);
-      $importacion->estados()->delete();
-      DB::table('jugadores_temporal')->where('id_importacion_estado_jugador','=',$id)->delete();
-      //Borro los datos sin estados
-      DB::table('datos_jugador')
-      ->select('datos_jugador.*')
-      ->whereRaw('NOT EXISTS(
-        select id_estado_jugador
-        from estado_jugador
-        where estado_jugador.id_datos_jugador = datos_jugador.id_datos_jugador
-      )')->delete();
-      $importacion->delete();
+      $imp = ImportacionEstadoJugador::find($id);
+      $prox_imp = ImportacionEstadoJugador::where([
+        ['id_plataforma','=',$imp->id_plataforma],
+        ['fecha_importacion','>',$imp->fecha_importacion]
+      ])->orderBy('fecha_importacion','asc')->first();
+
+      /*
+      1) Para todos los jugadores con fecha_importacion = A_ELIMINAR
+      Me fijo jugador si existe fecha_importacion = PROX_IMPORTACION
+        Si existe -> la importacion proxima NO depende de este dato
+          no hago nada
+        Si no existe -> la importacion proxima depende de este dato de jugador
+          Seteo la fecha_importacion en PROX_IMPORTACION
+
+      2) Borro todos los jugadores que quedaron con fecha_importacion = A_ELIMINAR
+      */
+      if(!is_null($prox_imp)){
+        $err = DB::statement("UPDATE jugador j
+        LEFT JOIN jugador prox_j ON (
+              j.codigo                 = prox_j.codigo 
+          AND j.id_plataforma          = prox_j.id_plataforma 
+          AND prox_j.fecha_importacion = ?
+        )
+        SET j.fecha_importacion = ?
+        WHERE prox_j.id_jugador IS NULL
+        AND j.id_plataforma     = ? 
+        AND j.fecha_importacion = ?",
+          [$prox_imp->fecha_importacion,$prox_imp->fecha_importacion,$imp->id_plataforma,$imp->fecha_importacion]
+        );
+        if(!$err){
+          throw new \Exception('Error 1 al borrar jugadores');
+        }
+      }
+      
+      //Borro los que quedaron con fecha_importacion porque no se usan por la importacion posterior
+      $err = DB::statement("DELETE FROM jugador
+        WHERE id_plataforma = ? AND fecha_importacion = ?",
+        [$imp->id_plataforma,$imp->fecha_importacion]
+      );
+      if(!$err){
+        throw new \Exception('Error 2 al borrar jugadores');
+      }
+    
+      //Borro la importacion
+      $imp->delete();
+            
       return 1;
     });
   }

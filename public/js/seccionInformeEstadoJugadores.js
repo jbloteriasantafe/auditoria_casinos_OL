@@ -140,7 +140,7 @@ function llenarFila(fila,jugador){
   fila.find('.fecha_autoexclusion').text(convertir_fechahora(jugador.fecha_autoexclusion)).attr('title',jugador.fecha_autoexclusion);
   fila.find('.fecha_alta').text(convertir_fechahora(jugador.fecha_alta)).attr('title',jugador.fecha_alta);
   fila.find('.fecha_ultimo_movimiento').text(convertir_fechahora(jugador.fecha_ultimo_movimiento)).attr('title',jugador.fecha_ultimo_movimiento);
-  fila.find('button').val(jugador.id_estado_jugador);
+  fila.find('button').val(jugador.id_jugador);
   return fila;
 }
 
@@ -375,16 +375,16 @@ function limpiarFiltros(){
   $('#collapseFiltros .no_contesta').prop('checked',true).change().prop('checked',false).change();
 }
 
-function mostrarHistorial(id_estado_jugador,pagina){
-  $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_estado_jugador);
+function mostrarHistorial(id_jugador,pagina){
+  $('#modalHistorial').find('.prevPreview,.nextPreview').val(id_jugador);
 
   const sort_by =  { columna: $('#modalHistorial .cuerpo .activa').attr('value'), orden: $('#modalHistorial .cuerpo .activa').attr('estado') };
-  sort_by.columna = sort_by.columna ?? 'fecha_importacion';
+  sort_by.columna = sort_by.columna ?? 'iej.fecha_importacion';
   sort_by.orden   = sort_by.orden ?? 'desc';
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   const formData = {
-    id_estado_jugador: id_estado_jugador,
+    id_jugador: id_jugador,
     page: pagina,
     page_size: 30,
     sort_by: sort_by,
