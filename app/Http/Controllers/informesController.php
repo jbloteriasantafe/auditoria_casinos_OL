@@ -914,8 +914,8 @@ class informesController extends Controller
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Estado Jugadores','informeEstadoJugadores');
     return view('seccionInformeEstadoJugadores' , [
       'plataformas' => $usuario->plataformas,
-      'estados'     => DB::table('estado_jugador')->select('estado')->distinct()->get()->pluck('estado'),
-      'sexos'       => DB::table('datos_jugador')->select('sexo')->distinct()->get()->pluck('sexo'),
+      'estados'     => DB::table('jugador')->select('estado')->distinct()->get()->pluck('estado'),
+      'sexos'       => DB::table('jugador')->select('sexo')->distinct()->get()->pluck('sexo'),
     ]);
   }
   public function buscarJugadores(Request $request){
@@ -965,7 +965,7 @@ class informesController extends Controller
     $totales = DB::table('jugador as j')
     ->selectRaw('COUNT(distinct j.codigo) as total')
     ->whereNull('j.valido_hasta')
-    ->whereIn('j.id_plataforma',$plataformas);
+    ->where($reglas)->whereIn('j.id_plataforma',$plataformas);
     if(!is_null($request->plataforma)){
       $totales = $totales->where('j.id_plataforma','=',$request->plataforma);
     }

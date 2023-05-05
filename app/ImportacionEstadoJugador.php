@@ -15,7 +15,4 @@ class ImportacionEstadoJugador extends Model
   public function plataforma(){
     return $this->belongsTo('App\Plataforma','id_plataforma','id_plataforma');
   }
-  public function estados(){
-    return $this->hasMany('App\EstadoJugador','id_importacion_estado_jugador','id_importacion_estado_jugador');
-  }
 }
