@@ -507,24 +507,17 @@ class informesController extends Controller
     
     $q = DB::table('producido_jugadores as pj')
     ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
-    ->leftJoin('jugador as j',function($j){
-      return $j->on('j.codigo','=','dpj.jugador')
-      ->on('j.id_plataforma','=','pj.id_plataforma')
-      ->whereNull('j.valido_hasta');
-      //Hacer otra validacion si el jugador estaba produciendo y en las importaciones de esas fechas no figuraba??
-      //Borrar el whereNull y poner esto en ese caso...
-      //Como esta ahora, siempre se toma la ultima base de jugadores para ver si no esta informado
-      //Que es mas intuitivo para el que lo visualiza creo yo...
-      /*->on('j.fecha_importacion','<=','pj.fecha')
-       ->on(function($j){
-        return $j->on('j.valido_hasta','>=','pj.fecha')
-        ->orWhereNull('j.valido_hasta');
-      });*/
-    })
     ->where('pj.id_plataforma','=',$request->id_plataforma)
-    ->whereNull('j.id_jugador')
+    ->where($reglas_fechas)
     ->whereRaw($numericos_distinto_de_cero)
-    ->where($reglas_fechas);
+    //Chequear fecha de importacion contra la del producido? Seria lo mas correcto
+    //pero confundiria bastante al auditor ver un jugador importado 
+    ->whereRaw('NOT EXISTS (
+      SELECT 1
+      FROM jugador as j
+      WHERE j.id_plataforma = pj.id_plataforma AND j.codigo = dpj.jugador AND j.valido_hasta IS NULL
+      LIMIT 1
+    )');
     
     $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadorFaltantesSelect))
     ->groupBy('dpj.jugador')
