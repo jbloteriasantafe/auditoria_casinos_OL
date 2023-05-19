@@ -409,29 +409,17 @@ class ImportacionController extends Controller
         ['fecha_importacion','>',$imp->fecha_importacion]
       ])->orderBy('fecha_importacion','asc')->first();
 
-      /*
-      1) Para todos los jugadores con fecha_importacion = A_ELIMINAR
-      Me fijo jugador si existe fecha_importacion = PROX_IMPORTACION
-        Si existe -> la importacion proxima NO depende de este dato
-          no hago nada
-        Si no existe -> la importacion proxima depende de este dato de jugador
-          Seteo la fecha_importacion en PROX_IMPORTACION
-
-      2) Borro todos los jugadores que quedaron con fecha_importacion = A_ELIMINAR
-      */
       if(!is_null($prox_imp)){
+        //Si la proxima importacion depende de un jugador importado
+        //lo muevo a esa importacion
         $err = DB::statement("UPDATE jugador j
-        LEFT JOIN jugador prox_j ON (
-              j.codigo                 = prox_j.codigo 
-          AND j.id_plataforma          = prox_j.id_plataforma 
-          AND prox_j.fecha_importacion = ?
-        )
         SET j.fecha_importacion = ?
-        WHERE prox_j.id_jugador IS NULL
-        AND j.id_plataforma     = ? 
-        AND j.fecha_importacion = ?",
-          [$prox_imp->fecha_importacion,$prox_imp->fecha_importacion,$imp->id_plataforma,$imp->fecha_importacion]
-        );
+        WHERE j.id_plataforma = ? AND j.fecha_importacion = ?
+        AND (j.valido_hasta IS NULL OR j.valido_hasta >= ?)",[
+          $prox_imp->fecha_importacion,
+          $imp->id_plataforma,$imp->fecha_importacion,
+          $prox_imp->fecha_importacion
+        ]);
         if(!$err){
           throw new \Exception('Error 1 al borrar jugadores');
         }
