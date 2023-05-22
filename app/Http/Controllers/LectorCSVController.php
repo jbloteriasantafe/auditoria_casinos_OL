@@ -636,8 +636,23 @@ class LectorCSVController extends Controller
     return [ 'id_beneficio_mensual_poker' => $benMensual->id_beneficio_mensual_poker, 'fecha' => $benMensual->fecha, 
     'bruto' => $benMensual->utilidad, 'dias' => $benMensual->beneficios()->count()]; 
   }
+  
+  private function attrsJugadorArchivo(){//Importante el orden porque se usa para leer el archivo
+    return ['codigo','localidad','provincia','fecha_alta','estado','fecha_autoexclusion','fecha_nacimiento','fecha_ultimo_movimiento','sexo'];
+  }
+  private function attrsJugadorArchivoNullables(){
+    return [   false,      false,      false,       false,   false,                 true,             false,                    false, false];
+  }
 
   private function importarJugadoresTemporal($id_importacion_estado_jugador,$archivo){
+    $LIST_ATTRS = '@'.implode('@,',$this->attrsJugadorArchivo());
+    $SET_ATTRS = array_map(function($a,$is_null){
+      $right = '@'.$a;
+      if($is_null) $right="NULLIF($right,'')";
+      return "$a = $right";
+    },$this->attrsJugadorArchivo(),$this->attrsJugadorArchivoNullables());
+    $SET_ATTRS = implode(',\n',$SET_ATTRS);
+    
     $query = sprintf("LOAD DATA local INFILE '%s'
     INTO TABLE jugadores_temporal
     FIELDS TERMINATED BY ';'
@@ -645,17 +660,9 @@ class LectorCSVController extends Controller
     ESCAPED BY '\"'
     LINES TERMINATED BY '\\r\\n'
     IGNORE 1 LINES
-    (@codigo,@localidad,@provincia,@fecha_alta,@estado,@fecha_autoexclusion,@fecha_nacimiento,@fecha_ultimo_movimiento,@sexo)
+    ($LIST_ATTRS)
     SET id_importacion_estado_jugador = %d,
-                      codigo = @codigo,
-                   localidad = @localidad,
-                   provincia = @provincia,
-                  fecha_alta = @fecha_alta,
-                      estado = @estado,
-         fecha_autoexclusion = IF(@fecha_autoexclusion = '',NULL,@fecha_autoexclusion),
-            fecha_nacimiento = @fecha_nacimiento,
-     fecha_ultimo_movimiento = @fecha_ultimo_movimiento,
-                        sexo = @sexo",
+    $SET_ATTRS",
       $archivo->getRealPath(),$id_importacion_estado_jugador
     );
     $pdo = DB::connection('mysql')->getPdo();
@@ -671,26 +678,27 @@ class LectorCSVController extends Controller
     $importacion->save();
     $this->importarJugadoresTemporal($importacion->id_importacion_estado_jugador,$archivo);
     
-    $attrs_jug = ['localidad','provincia','fecha_alta','codigo','estado','fecha_autoexclusion','fecha_nacimiento','fecha_ultimo_movimiento','sexo'];
+    $attrs_jug = $this->attrsJugadorArchivo();
+    $attrs_jug_null = $this->attrsJugadorArchivoNullables();
     
     $prefix_attrs = function($prefix = '') use ($attrs_jug){
-      $prefixed = array_map(function($s) use ($prefix){return "$prefix$s";},$attrs_jug);
+      $prefixed = array_map(function($a) use ($prefix){return "$prefix$a";},$attrs_jug);
       return implode(',',$prefixed);
     };
     
-    $comp_attrs = function($prefix1,$comp_operator,$prefix2,$log_operator) use ($attrs_jug){
+    $comp_attrs = function($prefix1,$comp_operator,$prefix2,$log_operator) use ($attrs_jug,$attrs_jug_null){
       $map_f_prefix = '';
-      $map_f = function($s) use (&$map_f_prefix){
-          $ret = "$map_f_prefix$s";
-          if($s == 'fecha_autoexclusion'){//Fecha autoexclusion es nullable, para comparar uso IFNULL
+      $map_f = function($a,$is_null) use (&$map_f_prefix){
+          $ret = "$map_f_prefix$a";
+          if($is_null){
             $ret = "IFNULL($ret,'')";
           }
           return $ret;
       };
       $map_f_prefix = $prefix1;
-      $prefixed1 = array_map($map_f,$attrs_jug);
+      $prefixed1 = array_map($map_f,$attrs_jug,$attrs_jug_null);
       $map_f_prefix = $prefix2;
-      $prefixed2 = array_map($map_f,$attrs_jug);
+      $prefixed2 = array_map($map_f,$attrs_jug,$attrs_jug_null);
       
       $pairs = array_map(
         function($a1,$a2) use ($comp_operator){
