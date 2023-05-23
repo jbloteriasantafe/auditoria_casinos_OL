@@ -645,13 +645,13 @@ class LectorCSVController extends Controller
   }
 
   private function importarJugadoresTemporal($id_importacion_estado_jugador,$archivo){
-    $LIST_ATTRS = '@'.implode('@,',$this->attrsJugadorArchivo());
+    $LIST_ATTRS = '@'.implode(',@',$this->attrsJugadorArchivo());
     $SET_ATTRS = array_map(function($a,$is_null){
       $right = '@'.$a;
       if($is_null) $right="NULLIF($right,'')";
       return "$a = $right";
     },$this->attrsJugadorArchivo(),$this->attrsJugadorArchivoNullables());
-    $SET_ATTRS = implode(',\n',$SET_ATTRS);
+    $SET_ATTRS = implode(',',$SET_ATTRS);
     
     $query = sprintf("LOAD DATA local INFILE '%s'
     INTO TABLE jugadores_temporal
@@ -671,6 +671,7 @@ class LectorCSVController extends Controller
   }
 
   public function importarJugadores($archivo,$md5,$fecha,$id_plataforma){
+    DB::enableQueryLog();
     $importacion = new ImportacionEstadoJugador;
     $importacion->id_plataforma = $id_plataforma;
     $importacion->fecha_importacion = $fecha;
@@ -725,36 +726,58 @@ class LectorCSVController extends Controller
    	)";
     
     /*
-     Para J en Jnuevos
-      Si existe J en Jproximos
-        Lo muevo para atras 
-     */
-    $err = DB::statement("UPDATE jugador j_prox
-    JOIN jugadores_temporal jt ON (
+     Manejo los jugadores "borrados" (estaban validos y desaparecieron)
+     Para J en Janteriores
+      Si no existe J en Jnuevos
+        Inserto uno igual con fecha_importacion = prox_imp y valido_hasta = igual_que_Jant
+          Siempre que la proxima importacion sea abarcada por el valido_hasta
+          y no sea la misma del proximo jugador
+        Seteo valido_hasta al anterior en 1 dia antes de la importacion
+    */
+    //Jant───────►Jprox => Jant───▻  Jins─►Jprox
+    //       ↑*desaparece*         
+    //Jant─────▻  Jprox => Jant───▻  Jins─►Jprox
+    //       ↑*desaparece*    
+    //Jant►Jprox => Jant Jprox
+    //    ↑*desaparece*    
+    
+    //Inserto uno igual con fecha_importacion = prox_imp y valido_hasta = prox_J-1
+    $prox_imp = ImportacionEstadoJugador::where([
+      ['id_plataforma','=',$importacion->id_plataforma],
+      ['fecha_importacion','>',$importacion->fecha_importacion]
+    ])->orderBy('fecha_importacion','asc')->first();
+    $prox_imp = is_null($prox_imp)? null : $prox_imp->fecha_importacion;
+    
+    $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,".$prefix_attrs('').")
+    SELECT j_ant.id_plataforma,?,j_ant.valido_hasta,".$prefix_attrs('j_ant.')."
+    FROM jugador j_ant
+    JOIN $ant¿¿¿ es_ant ON (
+          j_ant.id_plataforma = es_ant.id_plataforma
+      AND j_ant.codigo = es_ant.codigo
+      AND j_ant.fecha_importacion = es_ant.fecha_importacion
+    )
+    LEFT JOIN jugadores_temporal jt ON (
       jt.id_importacion_estado_jugador = ?
-      AND ".$comp_attrs('jt.','=','j_prox.',' AND ')."
+      AND j_ant.codigo = jt.codigo
     )
-    JOIN $prox¿¿ es_prox ON (
-          j_prox.id_plataforma = es_prox.id_plataforma
-      AND j_prox.codigo = es_prox.codigo
-      AND j_prox.fecha_importacion = es_prox.fecha_importacion
+    LEFT JOIN $prox¿¿ j_prox ON (
+          j_ant.id_plataforma = j_prox.id_plataforma
+      AND j_ant.codigo = j_prox.codigo
     )
-    SET j_prox.fecha_importacion = ?",[
+    WHERE jt.id_importacion_estado_jugador IS NULL
+    AND (j_ant.valido_hasta IS NULL OR j_ant.valido_hasta >= ?)
+    AND (j_prox.fecha_importacion IS NULL OR j_prox.fecha_importacion > ?)
+    AND ? IS NOT NULL",[
+      $prox_imp,
+      $id_plataforma,$fecha,$fecha,//ant¿¿¿
       $importacion->id_importacion_estado_jugador,
-      $id_plataforma,$fecha,//prox¿¿
-      $fecha
+      $id_plataforma,$fecha,//$prox¿¿ 
+      $prox_imp,$prox_imp,$prox_imp
     ]);
     if(!$err){
       throw new \Exception('Error 1 al importar datos del jugador');
     }
-    
-    /*
-     Para J en Janteriores
-      Si no existe J en Jnuevos
-        Seteo valido_hasta a 1 dia antes
-        Inserto uno igual con fecha_importacion = prox_imp y valido_hasta = prox_J-1
-    */
-     
+   
     //Seteo valido_hasta a 1 dia antes
     $err = DB::statement("UPDATE jugador j_ant
     JOIN $ant¿¿¿ es_ant ON (
@@ -776,38 +799,69 @@ class LectorCSVController extends Controller
       throw new \Exception('Error 2 al importar datos del jugador');
     }
     
-    //Inserto uno igual con fecha_importacion = prox_imp y valido_hasta = prox_J-1
-    $prox_imp = ImportacionEstadoJugador::where([
-      ['id_plataforma','=',$importacion->id_plataforma],
-      ['fecha_importacion','>',$importacion->fecha_importacion]
-    ])->orderBy('fecha_importacion','asc')->first();
-    $prox_imp = is_null($prox_imp)? null : $prox_imp->fecha;
-    
-    $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,".$prefix_attrs('').")
-    SELECT j_ant_borrado.id_plataforma,?,DATE_SUB(j_prox.fecha_importacion,INTERVAL 1 DAY),
-           ".$prefix_attrs('j_ant_borrado.')."
-    FROM jugador j_ant_borrado
-    LEFT JOIN $prox¿¿ j_prox ON (
-          j_ant_borrado.id_plataforma = j_prox.id_plataforma
-      AND j_ant_borrado.codigo = j_prox.codigo
+    /*
+      Ahora manejo las inserciones
+      Si es igual al proximo lo muevo nomas
+      Semanticamente igual que hacer una inserción
+      Luego se arregla con el ultimo update el hecho de que quede en el medio
+     Jant───────►Jprox => Jant───────▻     
+                    ↑Jins                Jprox────...  
+     */
+    $err = DB::statement("UPDATE jugador j_prox
+    JOIN jugadores_temporal jt ON (
+      jt.id_importacion_estado_jugador = ?
+      AND ".$comp_attrs('jt.','=','j_prox.',' AND ')."
     )
-    WHERE j_ant_borrado.id_plataforma = ? AND j_ant_borrado.fecha_importacion < ?
-    AND j_ant_borrado.valido_hasta IS NOT NULL
-    AND j_ant_borrado.valido_hasta = DATE_SUB(?,INTERVAL 1 DAY)
-    AND j_prox.fecha_importacion IS NOT NULL
-    AND ? IS NOT NULL AND j_prox.fecha_importacion > ?",[
-      $prox_imp,
-      $id_plataforma,$fecha,//$prox¿¿ 
-      $id_plataforma,$fecha,$fecha,
-      $prox_imp,$prox_imp,
+    JOIN $prox¿¿ es_prox ON (
+          j_prox.id_plataforma = es_prox.id_plataforma
+      AND j_prox.codigo = es_prox.codigo
+      AND j_prox.fecha_importacion = es_prox.fecha_importacion
+    )
+    SET j_prox.fecha_importacion = ?",[
+      $importacion->id_importacion_estado_jugador,
+      $id_plataforma,$fecha,//prox¿¿
+      $fecha
     ]);
     if(!$err){
       throw new \Exception('Error 3 al importar datos del jugador');
     }
     
     //Inserto datos si es distinto a la importacion valida anterior
+    //Si el jugador no tiene importacion anterior, es valido_hasta hasta el mas cercano
+    //entre la fecha de importacion proxima y el jugador importado proximo
+    //(porque puede que haya una importacion anterior sin el jugador)
+    //Casos 
+    //Jant───────►Jprox => Jant───────►Jprox  | seteo igual que el valido_hasta de Jant
+    //       ↑Jins              Jins──►       |
+    //---------------------------------------------------------------------------------------
+    //Jant─────▻  Jprox => Jant─────▻  Jprox  | seteo igual que el valido_hasta de Jant
+    //       ↑Jins             Jins─▻         |
+    //---------------------------------------------------------------------------------------
+    //    [nada]  JProx => Jins───────►Jprox  | seteo el valido_hasta en Jprox-1
+    //       ↑Jins                            |
+    //---------------------------------------------------------------------------------------
+    //[nada] Imp JProx  => Jins─▻Imp   Jprox  | seteo el valido_hasta en la importacion sin el jugador-1
+    //     ↑Jins                              |
+    //---------------------------------------------------------------------------------------
+    //Jant [nada]       => Jant  Jins  [nada] | seteo el valido_hasta en NULL
+    //       ↑Jins                            |
+    //---------------------------------------------------------------------------------------
+    //Jant─────▻ [nada] => Jant──────▻ [nada] | seteo el valido_hasta igual que Jant
+    //     ↑Jins               Jins──▻        |
+    //---------------------------------------------------------------------------------------
+    //Jant─────▻ [nada] => Jant──────▻ Jins   | seteo el valido_hasta en NULL
+    //          ↑Jins                         |
+    //---------------------------------------------------------------------------------------
     $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,".$prefix_attrs('').")
-    SELECT ?,?,DATE_SUB(j_prox.fecha_importacion,INTERVAL 1 DAY),
+    SELECT ?,?,
+      IF(
+        j_ant.id_jugador IS NOT NULL,
+        j_ant.valido_hasta,
+        DATE_SUB(
+          LEAST(COALESCE(j_prox.fecha_importacion,?),COALESCE(?,j_prox.fecha_importacion)),
+          INTERVAL 1 DAY
+        )
+      ),
       ".$prefix_attrs('jt.')."
     FROM jugadores_temporal jt
     LEFT JOIN $ant¿¿¿ j_ant_aux ON (jt.codigo = j_ant_aux.codigo)
@@ -823,6 +877,7 @@ class LectorCSVController extends Controller
       OR ".$comp_attrs('jt.','<>','j_ant.',' OR ')."
     )",[
       $id_plataforma,$fecha,
+      $prox_imp,$prox_imp,
       $id_plataforma,$fecha,$fecha,//ant¿¿¿
       $id_plataforma,$fecha,//prox¿¿
       $importacion->id_importacion_estado_jugador
@@ -831,11 +886,15 @@ class LectorCSVController extends Controller
       throw new \Exception('Error 4 al importar datos del jugador');
     }
   
-    //Updateo el fin de validez para los anteriores que quedaron con
-    //un valido_hasta invalido porque se inserto en el medio o se movio el de adelante
-    //Tambien, si un jugador desaparece en la importacion (con respecto a la anterior)
-    //pongo la validez de la importacion anterior en un dia antes a la importacion
-    //actual
+    //Updateo el fin de validez para los anteriores que quedaron el medio
+    //Casos
+    //Jant ────────►Jprox  => Jant─►Jins──►Jprox 
+    //      Jins───►
+    //Jant ──────▻  Jprox  => Jant─►Jins─▻ Jprox
+    //      Jins─▻
+    //Jant  Jins  [nada]   => Jans─►Jins [nada]
+    //Jant───────▻         => Jant─►Jprox────...
+    //      Jprox────...  
     $err = DB::statement("UPDATE jugador j_ant
     JOIN $ant¿¿¿ es_ant 
       ON (j_ant.id_plataforma = es_ant.id_plataforma 
@@ -845,10 +904,9 @@ class LectorCSVController extends Controller
       ON (j_insertado.id_plataforma = j_ant.id_plataforma
       AND j_insertado.codigo        = j_ant.codigo
       AND j_insertado.fecha_importacion = ?)
-    SET j_ant.valido_hasta = DATE_SUB(j_insertado.fecha_importacion,INTERVAL 1 DAY)
-    WHERE j_ant.valido_hasta IS NULL OR j_ant.valido_hasta >= j_insertado.fecha_importacion",[
+    SET j_ant.valido_hasta = DATE_SUB(j_insertado.fecha_importacion,INTERVAL 1 DAY)",[
       $id_plataforma,$fecha,$fecha,//ant¿¿¿
-      $fecha,
+      $fecha
     ]);
     if(!$err){
       throw new \Exception('Error 5 al importar datos del jugador');
