@@ -85,7 +85,7 @@ class ResumenController extends Controller
       
       foreach($bms as $bm){
         $this->generarResumenMensualProducidoJugadores(
-          $bms->id_plataforma,$bms->id_tipo_moneda,$bms->fecha
+          $bm->id_plataforma,$bm->id_tipo_moneda,$bm->fecha
         );
       }
       
