@@ -38,7 +38,7 @@ class ResumenController extends Controller
     FROM producido_jugadores as pj
     JOIN detalle_producido_jugadores as dpj ON dpj.id_producido_jugadores = pj.id_producido_jugadores
     WHERE pj.id_plataforma = :id_plataforma AND pj.id_tipo_moneda = :id_tipo_moneda AND pj.fecha BETWEEN :primer_dia_mes3 AND LAST_DAY(:primer_dia_mes4)
-    GROUP BY pj.id_plataforma,pj.id_tipo_moneda,periodo.desde,periodo.hasta,dpj.jugador")
+    GROUP BY pj.id_plataforma,pj.id_tipo_moneda,dpj.jugador")
     ->execute([
       'primer_dia_mes1' => $primer_dia_mes,'primer_dia_mes2' => $primer_dia_mes,
       'primer_dia_mes3' => $primer_dia_mes,'primer_dia_mes4' => $primer_dia_mes,
