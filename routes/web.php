@@ -325,3 +325,4 @@ Route::post('enviarTicket',function(Request $request){
 
 //Lo dejo por si en algun momento se cambia estado_juego_importado a una estructura similar
 //Route::get('migrarJugadores','LectorCSVController@migrarJugadores');
+Route::get('regenerarResumenesMensualesProducidosJugadores','ResumenController@regenerarResumenesMensualesProducidosJugadores');
