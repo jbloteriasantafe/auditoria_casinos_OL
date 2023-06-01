@@ -20,7 +20,7 @@ class ResumenController extends Controller
     $sum_attrs = implode(',',$sum_attrs);
     $attrs     = implode(',',self::$pjug_attrs);
     
-    $primer_dia_mes = date('01-m-Y',strtotime($fecha_mes));
+    $primer_dia_mes = date('Y-m-01',strtotime($fecha_mes));
     
     $pdo = DB::connection('mysql')->getPdo();
     
