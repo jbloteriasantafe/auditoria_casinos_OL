@@ -16,7 +16,7 @@ class ResumenController extends Controller
   private static $pjug_attrs = ['apuesta_efectivo','apuesta_bono','apuesta','premio_efectivo','premio_bono','premio','beneficio_efectivo','beneficio_bono','beneficio'];
   
   public function generarResumenMensualProducidoJugadores($id_plataforma,$id_tipo_moneda,$fecha_mes){
-    $sum_attrs = array_map(function($s){return "SUM($s) as $s";},self::$pjug_attrs);
+    $sum_attrs = array_map(function($s){return "SUM(dpj.$s) as $s";},self::$pjug_attrs);
     $sum_attrs = implode(',',$sum_attrs);
     $attrs     = implode(',',self::$pjug_attrs);
     
