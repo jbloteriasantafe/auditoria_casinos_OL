@@ -565,12 +565,12 @@ class informesController extends Controller
       
       foreach($resta_inicio as $ri){
         foreach(self::$attrs_pjug as $attr){
-          $total[0]->{$attr} -= $ri->{attr} ?? 0;
+          $total[0]->{$attr} -= $ri->{$attr} ?? 0;
         }
       }
       foreach($resta_fin as $rf){
         foreach(self::$attrs_pjug as $attr){
-          $total[0]->{$attr} -= $rf->{attr} ?? 0;
+          $total[0]->{$attr} -= $rf->{$attr} ?? 0;
         }
       }
       
