@@ -77,7 +77,7 @@ class ResumenController extends Controller
         CONSTRAINT `fk_r_m_prod_jug_tipomon` FOREIGN KEY (`id_tipo_moneda`) REFERENCES `tipo_moneda` (`id_tipo_moneda`)
       )")->execute();
       
-      $primer_dia_mes = 'DATE(CONCAT(YEAR(fecha),'-',MONTH(fecha),'-',1))';
+      $primer_dia_mes = "DATE(CONCAT(YEAR(fecha),'-',MONTH(fecha),'-',1))";
       $pjs = \App\ProducidoJugadores::orderBy('aniomes','asc')
       ->select('id_plataforma','id_tipo_moneda',DB::raw("$primer_dia_mes as aniomes"))->distinct()
       ->get();
