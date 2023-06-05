@@ -536,7 +536,6 @@ class informesController extends Controller
       ->selectRaw(implode(",",self::obtenerJugadorFaltantesSelect()))
       ->join('detalle_producido_jugadores as rmpj','rmpj.id_producido_jugadores','=','pj.id_producido_jugadores')
       ->where('pj.id_plataforma','=',$request->id_plataforma)
-      ->whereIn('rmpj.jugador',$jugadores_pagina)
       ->groupBy('rmpj.jugador')
       ->orderByRaw($columna.' '.$orden);
       
@@ -551,7 +550,7 @@ class informesController extends Controller
       if(!empty($request->fecha_hasta)) {
         $ultimo_dia_mes = date('Y-m-t',strtotime($request->fecha_hasta));
         $resta_fin = (clone $q_restas)
-        ->where('pj.fecha','>',$request->fecha_desde)
+        ->where('pj.fecha','>',$request->fecha_hasta)
         ->where('pj.fecha','<=',$ultimo_dia_mes)->get()
         ->keyBy('jugador');
       }
@@ -563,6 +562,19 @@ class informesController extends Controller
         }
         $jugadores_faltantes[$jidx]->pdev = $jugadores_faltantes[$jidx]->premio / $jugadores_faltantes[$jidx]->apuesta;
       }
+      
+      foreach($resta_inicio as $ri){
+        foreach(self::$attrs_pjug as $attr){
+          $total->{$attr} -= $ri->{attr} ?? 0;
+        }
+      }
+      foreach($resta_fin as $rf){
+        foreach(self::$attrs_pjug as $attr){
+          $total->{$attr} -= $rf->{attr} ?? 0;
+        }
+      }
+      
+      $total->pdev = $total->premio / $total->apuesta;
     }
     
     return ['data' => $jugadores_faltantes->merge($total->map(function($r){
