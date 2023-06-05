@@ -481,33 +481,31 @@ class informesController extends Controller
     })), 'total' => $count];
   }
 
-  public static $obtenerJugadorFaltantesSelect =
-  [ "dpj.jugador as jugador",
-    "SUM(dpj.apuesta_efectivo)   as apuesta_efectivo"  ,"SUM(dpj.apuesta_bono)               as apuesta_bono",
-    "SUM(dpj.apuesta)            as apuesta"           ,"SUM(dpj.premio_efectivo)            as premio_efectivo",
-    "SUM(dpj.premio_bono)        as premio_bono"       ,"SUM(dpj.premio)                     as premio",
-    "SUM(dpj.beneficio_efectivo) as beneficio_efectivo","SUM(dpj.beneficio_bono)             as beneficio_bono" ,
-    "SUM(dpj.beneficio)          as beneficio"         ,"100*AVG(dpj.premio)/AVG(dpj.apuesta) as pdev"
-  ];
+  private static $attrs_pjug = ['apuesta_efectivo','apuesta_bono','apuesta','premio_efectivo','premio_bono','premio','beneficio_efectivo','beneficio_bono','beneficio'];
+  public static function obtenerJugadorFaltantesSelect(){
+    return array_merge(
+      ["rmpj.jugador as jugador"],
+      array_map(function($s){ return "SUM(rmpj.$s) as $s"; }, self::$attrs_pjug ),
+      ["100*AVG(rmpj.premio)/AVG(rmpj.apuesta) as pdev"]
+    );
+  }
 
   public function obtenerJugadorFaltantesConMovimientos(Request $request){
-    $columna = empty($request->columna)? 'dpj.jugador' : $request->columna;
-    $orden   =   empty($request->orden)? 'asc' : $request->orden;
+    $columna = empty($request->columna)? 'rmpj.jugador' : $request->columna;
+    $orden   = empty($request->orden)? 'asc' : $request->orden;
     
     //Saca los producidos en "0"
     $numericos_distinto_de_cero = array_map(function($s){
-      $columna = substr($s,strpos($s,'('),strpos($s,')')-1);
-      return "(($columna) <> 0)";
-    },array_slice(self::$obtenerJugadorFaltantesSelect,1,-1));//Saco el jugador y el pdev
+      return "(($s) <> 0)";
+    },self::$attrs_pjug);
     $numericos_distinto_de_cero = '('.implode(' OR ',$numericos_distinto_de_cero).')';
     
     $reglas_fechas = [];
-    if(!empty($fecha_desde)) $reglas_fechas[] = ['pj.fecha','>=',$request->fecha_desde];
-    if(!empty($fecha_hasta)) $reglas_fechas[] = ['pj.fecha','<=',$request->fecha_hasta];
+    if(!empty($request->fecha_desde)) $reglas_fechas[] = ['rmpj.aniomes','>=',$request->fecha_desde];
+    if(!empty($request->fecha_hasta)) $reglas_fechas[] = ['rmpj.aniomes','<=',$request->fecha_hasta];
     
-    $q = DB::table('producido_jugadores as pj')
-    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
-    ->where('pj.id_plataforma','=',$request->id_plataforma)
+    $q = DB::table('resumen_mensual_producido_jugadores as rmpj')
+    ->where('rmpj.id_plataforma','=',$request->id_plataforma)
     ->where($reglas_fechas)
     ->whereRaw($numericos_distinto_de_cero)
     //Chequear fecha de importacion contra la del producido? Seria lo mas correcto
@@ -515,21 +513,58 @@ class informesController extends Controller
     ->whereRaw('NOT EXISTS (
       SELECT 1
       FROM jugador as j
-      WHERE j.id_plataforma = pj.id_plataforma AND j.codigo = dpj.jugador AND j.valido_hasta IS NULL
+      WHERE j.id_plataforma = rmpj.id_plataforma AND j.codigo = rmpj.jugador AND j.valido_hasta IS NULL
       LIMIT 1
     )');
     
-    $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::$obtenerJugadorFaltantesSelect))
-    ->groupBy('dpj.jugador')
+    $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::obtenerJugadorFaltantesSelect()))
+    ->groupBy('rmpj.jugador')
     ->orderByRaw($columna.' '.$orden)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
     
-    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct dpj.jugador) as count,".implode(",",array_slice(self::$obtenerJugadorFaltantesSelect,1)))
+    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct rmpj.jugador) as count,".implode(",",array_slice(self::obtenerJugadorFaltantesSelect(),1)))
     ->groupBy(DB::raw('"constant"'))
     ->get();
 
     $count = $total->first()? $total->first()->count : 0;
-
+    
+    {//Fix resto los dias que no estan entre las fechas elegidas
+      $jugadores_pagina = $jugadores_faltantes->map(function($j){return $j->jugador;})->toArray();
+      $resta_inicio = collect([]);
+      $resta_fin = collect([]);
+      $q_restas = DB::table('producido_jugadores as pj')
+      ->selectRaw(implode(",",self::obtenerJugadorFaltantesSelect()))
+      ->join('detalle_producido_jugadores as rmpj','rmpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+      ->where('pj.id_plataforma','=',$request->id_plataforma)
+      ->whereIn('rmpj.jugador',$jugadores_pagina)
+      ->groupBy('rmpj.jugador')
+      ->orderByRaw($columna.' '.$orden);
+      
+      if(!empty($request->fecha_desde)) {
+        $primer_dia_mes = date('Y-m-01',strtotime($request->fecha_desde));
+        $resta_inicio = (clone $q_restas)
+        ->where('pj.fecha','>=',$primer_dia_mes)
+        ->where('pj.fecha','<',$request->fecha_desde)->get()
+        ->keyBy('jugador');
+      }
+      
+      if(!empty($request->fecha_hasta)) {
+        $ultimo_dia_mes = date('Y-m-t',strtotime($request->fecha_hasta));
+        $resta_fin = (clone $q_restas)
+        ->where('pj.fecha','>',$request->fecha_desde)
+        ->where('pj.fecha','<=',$ultimo_dia_mes)->get()
+        ->keyBy('jugador');
+      }
+      
+      foreach($jugadores_faltantes as $jidx => $j){
+        foreach(self::$pjug_attrs as $attr){
+          $jugadores_faltantes[$jidx]->{$attr} -= $resta_inicio[$j->jugador]->{$attr} ?? 0;
+          $jugadores_faltantes[$jidx]->{$attr} -= $resta_fin[$j->jugador]->{$attr} ?? 0;
+        }
+        $jugadores_faltantes[$jidx]->pdev = $jugadores_faltantes[$jidx]->premio / $jugadores_faltantes[$jidx]->apuesta;
+      }
+    }
+    
     return ['data' => $jugadores_faltantes->merge($total->map(function($r){
       unset($r->count);
       return $r;

@@ -11,7 +11,7 @@ $separar_sql = function($col){
   return ['sql' => trim($vals[0]),'alias' => trim($vals[1])];
 };
 $juegoFaltantesSelect = array_map($separar_sql,informesController::$obtenerJuegoFaltantesSelect);
-$jugadorFaltantesSelect = array_map($separar_sql,informesController::$obtenerJugadorFaltantesSelect);
+$jugadorFaltantesSelect = array_map($separar_sql,informesController::obtenerJugadorFaltantesSelect());
 $juegoAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJuegoSelect);
 $jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadorSelect);
 ?>

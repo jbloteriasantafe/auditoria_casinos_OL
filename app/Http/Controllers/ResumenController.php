@@ -14,6 +14,7 @@ class ResumenController extends Controller
   }
   
   private static $pjug_attrs = ['apuesta_efectivo','apuesta_bono','apuesta','premio_efectivo','premio_bono','premio','beneficio_efectivo','beneficio_bono','beneficio'];
+  private static $pjug_type = 'DECIMAL(20,2)';
   
   public function generarResumenMensualProducidoJugadores($id_plataforma,$id_tipo_moneda,$fecha_mes){
     $sum_attrs = array_map(function($s){return "SUM(dpj.$s) as $s";},self::$pjug_attrs);
@@ -26,22 +27,23 @@ class ResumenController extends Controller
     
     $pdo->prepare('DELETE FROM resumen_mensual_producido_jugadores
     WHERE id_plataforma = :id_plataforma AND id_tipo_moneda = :id_tipo_moneda
-    AND   desde = :primer_dia_mes1 AND hasta = LAST_DAY(:primer_dia_mes2)')
+    AND   aniomes = :primer_dia_mes')
     ->execute([
       'id_plataforma' => $id_plataforma,'id_tipo_moneda' => $id_tipo_moneda,
-      'primer_dia_mes1' => $primer_dia_mes,'primer_dia_mes2' => $primer_dia_mes,
+      'primer_dia_mes' => $primer_dia_mes
     ]);
     
     $pdo->prepare("INSERT INTO resumen_mensual_producido_jugadores
-    (id_plataforma,id_tipo_moneda,desde,hasta,jugador,$attrs)
-    SELECT pj.id_plataforma,pj.id_tipo_moneda,:primer_dia_mes1,LAST_DAY(:primer_dia_mes2),dpj.jugador,$sum_attrs
+    (id_plataforma,id_tipo_moneda,aniomes,jugador,$attrs)
+    SELECT pj.id_plataforma,pj.id_tipo_moneda,:primer_dia_mes1,dpj.jugador,$sum_attrs
     FROM producido_jugadores as pj
     JOIN detalle_producido_jugadores as dpj ON dpj.id_producido_jugadores = pj.id_producido_jugadores
-    WHERE pj.id_plataforma = :id_plataforma AND pj.id_tipo_moneda = :id_tipo_moneda AND pj.fecha BETWEEN :primer_dia_mes3 AND LAST_DAY(:primer_dia_mes4)
+    WHERE pj.id_plataforma = :id_plataforma AND pj.id_tipo_moneda = :id_tipo_moneda 
+    AND pj.fecha BETWEEN :primer_dia_mes2 AND LAST_DAY(:primer_dia_mes3)
     GROUP BY pj.id_plataforma,pj.id_tipo_moneda,dpj.jugador")
     ->execute([
       'primer_dia_mes1' => $primer_dia_mes,'primer_dia_mes2' => $primer_dia_mes,
-      'primer_dia_mes3' => $primer_dia_mes,'primer_dia_mes4' => $primer_dia_mes,
+      'primer_dia_mes3' => $primer_dia_mes,
       'id_plataforma' => $id_plataforma,'id_tipo_moneda' => $id_tipo_moneda
     ]);
     
@@ -58,34 +60,31 @@ class ResumenController extends Controller
       $pdo->prepare('DROP TABLE IF EXISTS resumen_mensual_producido_jugadores')
       ->execute();
       
-      $pdo->prepare('CREATE TABLE resumen_mensual_producido_jugadores (
+      $attrs = implode(',',array_map(
+        function($s){return $s.' '.self::$pjug_type.' NOT NULL';},
+        self::$pjug_attrs
+      ));
+      
+      $pdo->prepare("CREATE TABLE resumen_mensual_producido_jugadores (
         id_plataforma INT NOT NULL,
         id_tipo_moneda INT NOT NULL,
-        desde DATE NOT NULL,
-        hasta DATE NOT NULL,
+        aniomes DATE NOT NULL,
         jugador VARCHAR(16) NOT NULL,
-        apuesta_efectivo DECIMAL(15,2) NOT NULL,
-        apuesta_bono DECIMAL(15,2) NOT NULL,
-        apuesta DECIMAL(15,2) NOT NULL,
-        premio_efectivo DECIMAL(15,2) NOT NULL,
-        premio_bono DECIMAL(15,2) NOT NULL,
-        premio DECIMAL(15,2) NOT NULL,
-        beneficio_efectivo DECIMAL(15,2) NOT NULL,
-        beneficio_bono DECIMAL(15,2) NOT NULL,
-        beneficio DECIMAL(15,2) NOT NULL,
-        PRIMARY KEY (`id_plataforma`, `id_tipo_moneda`, `desde`, `hasta`, `jugador`),
+        $attrs,
+        PRIMARY KEY (`id_plataforma`, `id_tipo_moneda`, `aniomes`, `jugador`),
+        UNIQUE KEY `unq_rmpjug1` (`id_plataforma`,`id_tipo_moneda`,`jugador`,`aniomes`),
         CONSTRAINT `fk_r_m_prod_jug_plat` FOREIGN KEY (`id_plataforma`) REFERENCES `plataforma` (`id_plataforma`),
         CONSTRAINT `fk_r_m_prod_jug_tipomon` FOREIGN KEY (`id_tipo_moneda`) REFERENCES `tipo_moneda` (`id_tipo_moneda`)
-      )')->execute();
+      )")->execute();
       
-      $bms = \App\BeneficioMensual::where('validado','=',1)
-      ->orderBy('fecha','asc')
-      ->orderBy('id_plataforma','asc')
-      ->orderBy('id_tipo_moneda','asc')->get();
+      $primer_dia_mes = 'DATE(CONCAT(YEAR(fecha),'-',MONTH(fecha),'-',1))';
+      $pjs = \App\ProducidoJugadores::orderBy('aniomes','asc')
+      ->select('id_plataforma','id_tipo_moneda',DB::raw("$primer_dia_mes as aniomes"))->distinct()
+      ->get();
       
-      foreach($bms as $bm){
+      foreach($pjs as $p){
         $this->generarResumenMensualProducidoJugadores(
-          $bm->id_plataforma,$bm->id_tipo_moneda,$bm->fecha
+          $p->id_plataforma,$p->id_tipo_moneda,$p->aniomes
         );
       }
       
