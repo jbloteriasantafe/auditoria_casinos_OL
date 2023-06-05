@@ -16,6 +16,7 @@ use App\Http\Controllers\LectorCSVController;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Http\Controllers\CacheController;
+use App\Http\Controllers\ResumenController;
 
 class ImportacionController extends Controller
 {
@@ -311,6 +312,11 @@ class ImportacionController extends Controller
       ProducidoJugadores::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducidoJugadores($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
       CacheController::getInstancia()->invalidarDependientes(['producido_jugadores']);
+      ResumenController::getInstancia()->generarResumenMensualProducidoJugadores(
+        $request->id_plataforma,
+        $request->id_tipo_moneda,
+        $request->fecha
+      );
     });
     return $ret;
   }

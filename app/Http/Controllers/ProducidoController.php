@@ -14,6 +14,7 @@ use App\TipoMoneda;
 use App\Juego;
 use App\PdfParalelo;
 use App\Http\Controllers\CacheController;
+use App\Http\Controllers\ResumenController;
 
 class ProducidoController extends Controller
 {
@@ -146,6 +147,9 @@ class ProducidoController extends Controller
       foreach($prod->detalles as $d) $d->delete();
       $prod->delete();
       CacheController::getInstancia()->invalidarDependientes(['producido_jugadores']);
+      ResumenController::getInstancia()->generarResumenMensualProducidoJugadores(
+        $prod->id_plataforma,$prod->id_tipo_moneda,$prod->fecha
+      );
     });
   }
 
