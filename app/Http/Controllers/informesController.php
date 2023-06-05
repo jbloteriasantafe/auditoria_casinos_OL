@@ -565,16 +565,16 @@ class informesController extends Controller
       
       foreach($resta_inicio as $ri){
         foreach(self::$attrs_pjug as $attr){
-          $total->{$attr} -= $ri->{attr} ?? 0;
+          $total[0]->{$attr} -= $ri->{attr} ?? 0;
         }
       }
       foreach($resta_fin as $rf){
         foreach(self::$attrs_pjug as $attr){
-          $total->{$attr} -= $rf->{attr} ?? 0;
+          $total[0]->{$attr} -= $rf->{attr} ?? 0;
         }
       }
       
-      $total->pdev = $total->premio / $total->apuesta;
+      $total[0]->pdev = $total[0]->premio / $total[0]->apuesta;
     }
     
     return ['data' => $jugadores_faltantes->merge($total->map(function($r){
