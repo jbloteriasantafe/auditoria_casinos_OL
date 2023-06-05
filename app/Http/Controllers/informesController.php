@@ -548,7 +548,7 @@ class informesController extends Controller
             ->where('pj.fecha','<',$request->fecha_desde);
           });
         }
-        if(!empty($request->fecha_desde)){
+        if(!empty($request->fecha_hasta)){
           $q->orWhere(function($q2) use ($request){
             $ultimo_dia_mes = date('Y-m-t',strtotime($request->fecha_hasta));
             return $q2->where('pj.fecha','>',$request->fecha_hasta)
