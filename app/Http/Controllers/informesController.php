@@ -505,6 +505,7 @@ class informesController extends Controller
     if(!empty($request->fecha_hasta)) $reglas_fechas[] = ['rmpj.aniomes','<=',$request->fecha_hasta];
     
     $q = DB::table('resumen_mensual_producido_jugadores as rmpj')
+    ->where('rmpj.id_tipo_moneda','=',$request->id_tipo_moneda)
     ->where('rmpj.id_plataforma','=',$request->id_plataforma)
     ->where($reglas_fechas)
     ->whereRaw($numericos_distinto_de_cero)
@@ -530,51 +531,49 @@ class informesController extends Controller
     
     {//Fix resto los dias que no estan entre las fechas elegidas
       $jugadores_pagina = $jugadores_faltantes->map(function($j){return $j->jugador;})->toArray();
-      $resta_inicio = collect([]);
-      $resta_fin = collect([]);
-      $q_restas = DB::table('producido_jugadores as pj')
+
+      $resta = DB::table('producido_jugadores as pj')
       ->selectRaw(implode(",",self::obtenerJugadorFaltantesSelect()))
       ->join('detalle_producido_jugadores as rmpj','rmpj.id_producido_jugadores','=','pj.id_producido_jugadores')
+      ->where('pj.id_tipo_moneda','=',$request->id_tipo_moneda)
       ->where('pj.id_plataforma','=',$request->id_plataforma)
       ->groupBy('rmpj.jugador')
-      ->orderByRaw($columna.' '.$orden);
-      
-      if(!empty($request->fecha_desde)) {
-        $primer_dia_mes = date('Y-m-01',strtotime($request->fecha_desde));
-        $resta_inicio = (clone $q_restas)
-        ->where('pj.fecha','>=',$primer_dia_mes)
-        ->where('pj.fecha','<',$request->fecha_desde)->get()
-        ->keyBy('jugador');
-      }
-      
-      if(!empty($request->fecha_hasta)) {
-        $ultimo_dia_mes = date('Y-m-t',strtotime($request->fecha_hasta));
-        $resta_fin = (clone $q_restas)
-        ->where('pj.fecha','>',$request->fecha_hasta)
-        ->where('pj.fecha','<=',$ultimo_dia_mes)->get()
-        ->keyBy('jugador');
-      }
+      ->orderByRaw($columna.' '.$orden)
+      ->where(function($q) use ($request){
+        $q->whereRaw(DB::raw('0'));
+        if(!empty($request->fecha_desde)){
+          $q->orWhere(function($q2) use ($request){
+            $primer_dia_mes = date('Y-m-01',strtotime($request->fecha_desde));
+            return $q2->where('pj.fecha','>=',$primer_dia_mes)
+            ->where('pj.fecha','<',$request->fecha_desde);
+          });
+        }
+        if(!empty($request->fecha_desde)){
+          $q->orWhere(function($q2) use ($request){
+            $ultimo_dia_mes = date('Y-m-t',strtotime($request->fecha_hasta));
+            return $q2->where('pj.fecha','>',$request->fecha_hasta)
+            ->where('pj.fecha','<=',$ultimo_dia_mes);
+          });
+        }
+        return $q;
+      })
+      ->get()->keyBy('jugador');
       
       foreach($jugadores_faltantes as $jidx => $j){
         foreach(self::$attrs_pjug as $attr){
-          $jugadores_faltantes[$jidx]->{$attr} -= $resta_inicio[$j->jugador]->{$attr} ?? 0;
-          $jugadores_faltantes[$jidx]->{$attr} -= $resta_fin[$j->jugador]->{$attr} ?? 0;
+          $jugadores_faltantes[$jidx]->{$attr} -= $resta[$j->jugador]->{$attr} ?? 0;
         }
         $jugadores_faltantes[$jidx]->pdev = $jugadores_faltantes[$jidx]->premio / $jugadores_faltantes[$jidx]->apuesta;
       }
       
-      foreach($resta_inicio as $ri){
-        foreach(self::$attrs_pjug as $attr){
-          $total[0]->{$attr} -= $ri->{$attr} ?? 0;
+      if(count($total) > 0){
+        foreach($resta as $r){
+          foreach(self::$attrs_pjug as $attr){
+            $total[0]->{$attr} -= $r->{$attr} ?? 0;
+          }
         }
+        $total[0]->pdev = $total[0]->premio / $total[0]->apuesta;
       }
-      foreach($resta_fin as $rf){
-        foreach(self::$attrs_pjug as $attr){
-          $total[0]->{$attr} -= $rf->{$attr} ?? 0;
-        }
-      }
-      
-      $total[0]->pdev = $total[0]->premio / $total[0]->apuesta;
     }
     
     return ['data' => $jugadores_faltantes->merge($total->map(function($r){
