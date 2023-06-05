@@ -557,7 +557,7 @@ class informesController extends Controller
       }
       
       foreach($jugadores_faltantes as $jidx => $j){
-        foreach(self::$pjug_attrs as $attr){
+        foreach(self::$attrs_pjug as $attr){
           $jugadores_faltantes[$jidx]->{$attr} -= $resta_inicio[$j->jugador]->{$attr} ?? 0;
           $jugadores_faltantes[$jidx]->{$attr} -= $resta_fin[$j->jugador]->{$attr} ?? 0;
         }
