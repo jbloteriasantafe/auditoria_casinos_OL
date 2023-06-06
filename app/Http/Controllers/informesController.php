@@ -486,7 +486,7 @@ class informesController extends Controller
     return array_merge(
       ["rmpj.jugador as jugador"],
       array_map(function($s){ return "SUM(rmpj.$s) as $s"; }, self::$attrs_pjug ),
-      ["100*AVG(rmpj.premio)/AVG(rmpj.apuesta) as pdev"]
+      ["100*AVG(rmpj.premio)/NULLIF(AVG(rmpj.apuesta),0) as pdev"]
     );
   }
 
@@ -518,27 +518,25 @@ class informesController extends Controller
       LIMIT 1
     )');
     
-    $jugadores_faltantes = (clone $q)->selectRaw(implode(",",self::obtenerJugadorFaltantesSelect()))
+    $SELECT_JUG = implode(",",self::obtenerJugadorFaltantesSelect());
+    $jugadores_faltantes = (clone $q)->selectRaw($SELECT_JUG)
     ->groupBy('rmpj.jugador')
     ->orderByRaw($columna.' '.$orden)
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get();
     
-    $total = (clone $q)->selectRaw("'TOTAL' as jugador,COUNT(distinct rmpj.jugador) as count,".implode(",",array_slice(self::obtenerJugadorFaltantesSelect(),1)))
+    $SELECT_TOTAL = "'TOTAL' as jugador,COUNT(distinct rmpj.jugador) as count,".implode(",",array_slice(self::obtenerJugadorFaltantesSelect(),1));
+    $total = (clone $q)->selectRaw($SELECT_TOTAL)
     ->groupBy(DB::raw('"constant"'))
     ->get();
 
     $count = $total->first()? $total->first()->count : 0;
     
     {//Fix resto los dias que no estan entre las fechas elegidas
-      $jugadores_pagina = $jugadores_faltantes->map(function($j){return $j->jugador;})->toArray();
-
-      $resta = DB::table('producido_jugadores as pj')
-      ->selectRaw(implode(",",self::obtenerJugadorFaltantesSelect()))
+      $q_fix = DB::table('producido_jugadores as pj')
       ->join('detalle_producido_jugadores as rmpj','rmpj.id_producido_jugadores','=','pj.id_producido_jugadores')
       ->where('pj.id_tipo_moneda','=',$request->id_tipo_moneda)
       ->where('pj.id_plataforma','=',$request->id_plataforma)
-      ->groupBy('rmpj.jugador')
-      ->orderByRaw($columna.' '.$orden)
+      ->whereRaw($numericos_distinto_de_cero)
       ->where(function($q) use ($request){
         $q->whereRaw(DB::raw('0'));
         if(!empty($request->fecha_desde)){
@@ -557,22 +555,53 @@ class informesController extends Controller
         }
         return $q;
       })
+      ->whereRaw('NOT EXISTS (
+        SELECT 1
+        FROM jugador as j
+        WHERE j.id_plataforma = pj.id_plataforma AND j.codigo = rmpj.jugador AND j.valido_hasta IS NULL
+        LIMIT 1
+      )');
+      ->orderByRaw($columna.' '.$orden);
+      
+      $fix_j = (clone $q_resta)
+      ->selectRaw($SELECT_JUG)
+      ->whereIn('rmpj.jugador',$jugadores_faltantes->map(function($j){return $j->jugador;})->toArray())
+      ->groupBy('rmpj.jugador')
       ->get()->keyBy('jugador');
+      
+      $fix_total = (clone $q_resta)
+      ->selectRaw($SELECT_TOTAL)
+      ->get();
       
       foreach($jugadores_faltantes as $jidx => $j){
         foreach(self::$attrs_pjug as $attr){
-          $jugadores_faltantes[$jidx]->{$attr} -= $resta[$j->jugador]->{$attr} ?? 0;
+          $jugadores_faltantes[$jidx]->{$attr} -= $fix_total[$j->jugador]->{$attr} ?? 0;
         }
-        $jugadores_faltantes[$jidx]->pdev = $jugadores_faltantes[$jidx]->premio / $jugadores_faltantes[$jidx]->apuesta;
+        if($jugadores_faltantes[$jidx]->apuesta != 0){
+          $jugadores_faltantes[$jidx]->pdev = $jugadores_faltantes[$jidx]->premio / $jugadores_faltantes[$jidx]->apuesta;
+        }
+        else{
+          $jugadores_faltantes[$jidx]->pdev = null;
+        }
       }
       
-      if(count($total) > 0){
-        foreach($resta as $r){
-          foreach(self::$attrs_pjug as $attr){
-            $total[0]->{$attr} -= $r->{$attr} ?? 0;
-          }
+      if(count($total) == 0 && count($fix_total) > 0){
+        $total = $fix_total;
+        foreach(self::$attrs_pjug as $attr){
+          $total[0]->{$attr} = -($total->{$attr} ?? 0);
         }
+      }
+      else if(count($total) > 0 && count($resta_total) > 0){
+        foreach(self::$attrs_pjug as $attr){
+          $total[0]->{$attr} -= $resta_total->{$attr} ?? 0;
+        }
+      }
+      
+      if($total[0]->apuesta != 0){
         $total[0]->pdev = $total[0]->premio / $total[0]->apuesta;
+      }
+      else{
+        $total[0]->pdev = null;
       }
     }
     
