@@ -873,7 +873,7 @@ class informesController extends Controller
     ->get();
     
     $ret->map(function(&$am){
-      $f = explode(',',$am->aniomes);
+      $f = explode('-',$am->aniomes);
       $am->año = $f[0];
       $am->mes = $f[1];
     });
