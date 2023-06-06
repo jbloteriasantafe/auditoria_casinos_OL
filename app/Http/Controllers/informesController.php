@@ -588,12 +588,12 @@ class informesController extends Controller
       if(count($total) == 0 && count($fix_total) > 0){
         $total = $fix_total;
         foreach(self::$attrs_pjug as $attr){
-          $total[0]->{$attr} = -($total->{$attr} ?? 0);
+          $total[0]->{$attr} = -($total[0]->{$attr} ?? 0);
         }
       }
       else if(count($total) > 0 && count($fix_total) > 0){
         foreach(self::$attrs_pjug as $attr){
-          $total[0]->{$attr} -= $fix_total->{$attr} ?? 0;
+          $total[0]->{$attr} -= $fix_total[0]->{$attr} ?? 0;
         }
       }
       
