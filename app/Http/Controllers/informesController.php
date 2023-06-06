@@ -862,13 +862,14 @@ class informesController extends Controller
       return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
     }
 
+    //@TODO: tal vez agregar una columna "jugadores" a producido_jugadores
+    //para poder hacer esta query a 365 dias
     $ret = DB::table('plataforma as p')
-    ->selectRaw('p.nombre as plataforma,YEAR(fecha) as año, MONTH(fecha) as mes, COUNT(distinct dpj.jugador) as jugadores')
-    ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
-    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
-    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
-    ->groupBy(DB::raw('p.id_plataforma,YEAR(fecha),MONTH(fecha)'))
-    ->orderByRaw('p.nombre asc,YEAR(fecha) asc,MONTH(fecha) asc')
+    ->selectRaw('p.nombre as plataforma,rmpj.aniomes as aniomes, COUNT(distinct rmpj.jugador) as jugadores')
+    ->join('resumen_mensual_producido_jugadores as rmpj','rmpj.id_plataforma','=','p.id_plataforma')
+    ->whereRaw('TIMESTAMPDIFF(MONTH,rmpj.aniomes,CURRENT_DATE()) <= 12')
+    ->groupBy(DB::raw('p.id_plataforma,rmpj.aniomes'))
+    ->orderByRaw('p.nombre asc,rmpj.aniomes asc')
     ->get();
 
     $cc->agregar($codigo,$subcodigo,json_encode($ret),['producido_jugadores','detalle_producido_jugadores','plataforma']);
@@ -884,12 +885,11 @@ class informesController extends Controller
     if(!is_null($cache)){
       return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
     }
-
+    
     $ret = DB::table('plataforma as p')
-    ->selectRaw('p.nombre as plataforma, COUNT(distinct dpj.jugador) as jugadores')
-    ->join('producido_jugadores as pj','pj.id_plataforma','=','p.id_plataforma')
-    ->join('detalle_producido_jugadores as dpj','dpj.id_producido_jugadores','=','pj.id_producido_jugadores')
-    ->whereRaw('DATEDIFF(CURRENT_DATE(),fecha) <= 365')
+    ->selectRaw('p.nombre as plataforma, COUNT(distinct rmpj.jugador) as jugadores')
+    ->join('resumen_mensual_producido_jugadores as rmpj','rmpj.id_plataforma','=','p.id_plataforma')
+    ->whereRaw('TIMESTAMPDIFF(MONTH,rmpj.aniomes,CURRENT_DATE()) <= 12')
     ->groupBy(DB::raw('p.id_plataforma'))
     ->orderByRaw('p.nombre asc')
     ->get();
