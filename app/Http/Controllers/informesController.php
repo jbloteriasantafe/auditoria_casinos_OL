@@ -871,6 +871,12 @@ class informesController extends Controller
     ->groupBy(DB::raw('p.id_plataforma,rmpj.aniomes'))
     ->orderByRaw('p.nombre asc,rmpj.aniomes asc')
     ->get();
+    
+    $ret->map(function(&$am){
+      $f = explode(',',$am->aniomes);
+      $am->año = $f[0];
+      $am->mes = $f[1];
+    });
 
     $cc->agregar($codigo,$subcodigo,json_encode($ret),['producido_jugadores','detalle_producido_jugadores','plataforma']);
     return $ret;
