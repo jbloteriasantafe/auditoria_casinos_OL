@@ -560,7 +560,7 @@ class informesController extends Controller
         FROM jugador as j
         WHERE j.id_plataforma = pj.id_plataforma AND j.codigo = rmpj.jugador AND j.valido_hasta IS NULL
         LIMIT 1
-      )');
+      )')
       ->orderByRaw($columna.' '.$orden);
       
       $fix_j = (clone $q_resta)
