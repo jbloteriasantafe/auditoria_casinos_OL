@@ -563,19 +563,19 @@ class informesController extends Controller
       )')
       ->orderByRaw($columna.' '.$orden);
       
-      $fix_j = (clone $q_resta)
+      $fix_j = (clone $q_fix)
       ->selectRaw($SELECT_JUG)
       ->whereIn('rmpj.jugador',$jugadores_faltantes->map(function($j){return $j->jugador;})->toArray())
       ->groupBy('rmpj.jugador')
       ->get()->keyBy('jugador');
       
-      $fix_total = (clone $q_resta)
+      $fix_total = (clone $q_fix)
       ->selectRaw($SELECT_TOTAL)
       ->get();
       
       foreach($jugadores_faltantes as $jidx => $j){
         foreach(self::$attrs_pjug as $attr){
-          $jugadores_faltantes[$jidx]->{$attr} -= $fix_total[$j->jugador]->{$attr} ?? 0;
+          $jugadores_faltantes[$jidx]->{$attr} -= $fix_j[$j->jugador]->{$attr} ?? 0;
         }
         if($jugadores_faltantes[$jidx]->apuesta != 0){
           $jugadores_faltantes[$jidx]->pdev = $jugadores_faltantes[$jidx]->premio / $jugadores_faltantes[$jidx]->apuesta;
@@ -591,9 +591,9 @@ class informesController extends Controller
           $total[0]->{$attr} = -($total->{$attr} ?? 0);
         }
       }
-      else if(count($total) > 0 && count($resta_total) > 0){
+      else if(count($total) > 0 && count($fix_total) > 0){
         foreach(self::$attrs_pjug as $attr){
-          $total[0]->{$attr} -= $resta_total->{$attr} ?? 0;
+          $total[0]->{$attr} -= $fix_total->{$attr} ?? 0;
         }
       }
       
