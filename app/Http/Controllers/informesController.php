@@ -496,7 +496,7 @@ class informesController extends Controller
     
     //Saca los producidos en "0"
     $numericos_distinto_de_cero = array_map(function($s){
-      return "(($s) <> 0)";
+      return "((rmpj.$s) <> 0)";
     },self::$attrs_pjug);
     $numericos_distinto_de_cero = '('.implode(' OR ',$numericos_distinto_de_cero).')';
     
