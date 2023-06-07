@@ -274,13 +274,12 @@ Route::group(['prefix' => 'informesJuegos'],function(){
 });
 
 Route::group(['prefix' => 'informesGenerales'],function(){
-  Route::get('/','informesController@informesGenerales');
-  Route::get('/beneficiosMensuales','informesController@beneficiosMensuales');
-  Route::get('/beneficiosAnuales','informesController@beneficiosAnuales');
-  Route::get('/jugadoresMensuales','informesController@jugadoresMensuales');
-  Route::get('/jugadoresAnuales','informesController@jugadoresAnuales');
-  Route::get('/estadosDias','informesController@estadosDias');
-  Route::get('/infoAuditoria/{dia}','informesController@infoAuditoria');
+  Route::get('/beneficiosMensuales','InformesGeneralesController@beneficiosMensuales');
+  Route::get('/beneficiosAnuales','InformesGeneralesController@beneficiosAnuales');
+  Route::get('/jugadoresMensuales','InformesGeneralesController@jugadoresMensuales');
+  Route::get('/jugadoresAnuales','InformesGeneralesController@jugadoresAnuales');
+  Route::get('/estadosDias','InformesGeneralesController@estadosDias');
+  Route::get('/infoAuditoria/{dia}','InformesGeneralesController@infoAuditoria');
 });
 
 /*calendario*/
