@@ -180,8 +180,8 @@ Route::group(['prefix' => 'importaciones','middleware' =>'tiene_permiso:ver_secc
   Route::delete('/eliminarProducidoPoker/{id}','ProducidoController@eliminarProducidoPoker');
   Route::delete('/eliminarBeneficioJuegos/{id}','BeneficioMensualController@eliminarBeneficioMensual');
   Route::delete('/eliminarBeneficioPoker/{id}','BeneficioMensualController@eliminarBeneficioMensualPoker');
-  Route::delete('/eliminarEstadoJuegos/{id}','ImportacionController@eliminarEstadoJuegos');
-  Route::delete('/eliminarEstadoJugadores/{id}','ImportacionController@eliminarEstadoJugadores');
+  Route::delete('/eliminarEstadoJuegos/{id}','EstadoController@eliminarEstadoJuegos');
+  Route::delete('/eliminarEstadoJugadores/{id}','EstadoController@eliminarEstadoJugadores');
 });
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
@@ -251,17 +251,17 @@ Route::group(['prefix' => 'informeContableJuego','middleware' =>'tiene_permiso:v
 });
 
 Route::group(['prefix' => 'informeEstadoJugadores','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
-  Route::get('/','informesController@informeEstadoJugadores');
-  Route::post('/buscarJugadores','informesController@buscarJugadores');
-  Route::get('/historial','informesController@historialJugador');
+  Route::get('/','EstadoController@informeEstadoJugadores');
+  Route::post('/buscarJugadores','EstadoController@buscarJugadores');
+  Route::get('/historial','EstadoController@historialJugador');
   Route::post('/importarJugadores','ImportacionController@importarJugadores');
 });
 Route::group(['prefix' => 'informeEstadoJuegos','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){
-  Route::get('/','informesController@informeEstadoJuegos');
-  Route::get('/buscarJuegos','informesController@buscarJuegos');
-  Route::get('/historial','informesController@historialJuego');
+  Route::get('/','EstadoController@informeEstadoJuegos');
+  Route::get('/buscarJuegos','EstadoController@buscarJuegos');
+  Route::get('/historial','EstadoController@historialJuego');
   Route::post('/importarEstadosJuegos','ImportacionController@importarEstadosJuegos');
-  Route::post('/generarDiferenciasEstadosJuegos','informesController@generarDiferenciasEstadosJuegos');
+  Route::post('/generarDiferenciasEstadosJuegos','EstadoController@generarDiferenciasEstadosJuegos');
 });
 
 //@TODO: Agregar y asignar privilegios para esta sección
