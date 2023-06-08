@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\informesController;
+use App\Http\Controllers\InformesGeneralesController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 
@@ -19,7 +19,7 @@ Route::get('login',function(){
     return view('index');
 });
 Route::get('inicio',function(){
-  $datos_inf = ['estado_dia' => (new informesController)->estadosDias()];
+  $datos_inf = ['estado_dia' => (new InformesGeneralesController)->estadosDias()];
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $datos_inf['ultimas_visitadas'] = $usuario->secciones_recientes;
   return view('seccionInicio' ,$datos_inf);

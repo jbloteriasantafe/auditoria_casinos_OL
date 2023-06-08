@@ -91,7 +91,7 @@ class InformesGeneralesController extends Controller
         $estado_dia[$f] = $this->estado_dia($f)['porcentaje'];
         $f = date('Y-m-d',strtotime($f.' +1 day'));
       }
-      $estado_dia[$f] = $this->estado_dia($f);
+      $estado_dia[$f] = $this->estado_dia($f)['porcentaje'];
     }
     return $estado_dia;
   }
@@ -100,7 +100,7 @@ class InformesGeneralesController extends Controller
     $aux = $this->estado_dia($dia);
     
     foreach($aux['queryes'] as $tipo => $q){
-      $aux['queryes'][$tipo] = $q->get()->pluck('codigo');//no mover antes asignar $total pq get modifica la query
+      $aux['queryes'][$tipo] = $q->get()->pluck('codigo');
     }
     
     return array_merge(['total' => $aux['porcentaje']],$aux['queryes']);
@@ -110,58 +110,66 @@ class InformesGeneralesController extends Controller
     $MA = [1];//@HACK: sacar dolares de la BD si no se usa?
     $PA = DB::table('plataforma')->get()->pluck('id_plataforma');
     
-    $queryes = $this->importaciones($f,$MA,$PA);
+    $importaciones = $this->importaciones($f,$MA,$PA);
+    $queryes = $importaciones['queryes'];
     
-    $importaciones = array_reduce(
+    $cantidad = array_reduce(
       $queryes,
       function($carry,$q){return $carry+(clone $q)->count();},//clono pq ->count modifica la query
       0
     );
     
-    $porcentaje = $importaciones / (count($queryes)*count($MA)*count($PA));
+    $porcentaje = $cantidad / $importaciones['maximas_posibles'];
     return compact('queryes','porcentaje');
   }
   
   private function importaciones($dia,$monedas_habilitadas,$plataformas_habilitadas){
-    $ret = [];
+    $queryes = [];
+    $maximas_posibles = 0;
     
-    $ret['producido'] = DB::table('producido')
+    $queryes['producido'] = DB::table('producido')
     ->join('plataforma as plat','plat.id_plataforma','=','producido.id_plataforma')
-    ->where('fecha',date('Y-m-d',strtotime($f)))
+    ->where('fecha',date('Y-m-d',strtotime($dia)))
     ->whereIn('id_tipo_moneda',$monedas_habilitadas)
-    ->whereIn('p.id_plataforma',$plataformas_habilitadas);
+    ->whereIn('plat.id_plataforma',$plataformas_habilitadas);
+    $maximas_posibles += count($monedas_habilitadas)*count($plataformas_habilitadas);
     
-    $ret['producido_jugadores'] = DB::table('producido_jugadores')
+    $queryes['producido_jugadores'] = DB::table('producido_jugadores')
     ->join('plataforma as plat','plat.id_plataforma','=','producido_jugadores.id_plataforma')
-    ->where('fecha',date('Y-m-d',strtotime($f)))
+    ->where('fecha',date('Y-m-d',strtotime($dia)))
     ->whereIn('id_tipo_moneda',$monedas_habilitadas)
-    ->whereIn('p.id_plataforma',$plataformas_habilitadas);
+    ->whereIn('plat.id_plataforma',$plataformas_habilitadas);
+    $maximas_posibles += count($monedas_habilitadas)*count($plataformas_habilitadas);
     
-    $ret['beneficio'] = DB::table('beneficio as b')
+    $queryes['beneficio'] = DB::table('beneficio as b')
     ->join('beneficio_mensual as bm','bm.id_beneficio_mensual','=','b.id_beneficio_mensual')
     ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
-    ->where('b.fecha',date('Y-m-d',strtotime($f)))
+    ->where('b.fecha',date('Y-m-d',strtotime($dia)))
     ->whereIn('id_tipo_moneda',$monedas_habilitadas)
-    ->whereIn('p.id_plataforma',$plataformas_habilitadas);
+    ->whereIn('plat.id_plataforma',$plataformas_habilitadas);
+    $maximas_posibles += count($monedas_habilitadas)*count($plataformas_habilitadas);
     
-    $ret['beneficio_poker'] = DB::table('beneficio_poker as b')
+    $queryes['beneficio_poker'] = DB::table('beneficio_poker as b')
     ->join('beneficio_mensual_poker as bm','bm.id_beneficio_mensual_poker','=','b.id_beneficio_mensual_poker')
     ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
-    ->where('b.fecha',date('Y-m-d',strtotime($f)))
+    ->where('b.fecha',date('Y-m-d',strtotime($dia)))
     ->whereIn('id_tipo_moneda',$monedas_habilitadas)
-    ->whereIn('p.id_plataforma',$plataformas_habilitadas);
+    ->whereIn('plat.id_plataforma',$plataformas_habilitadas);
+    $maximas_posibles += count($monedas_habilitadas)*count($plataformas_habilitadas);
     
-    $ret['estado_jugadores'] = DB::table('importacion_estado_jugador as iej')
+    $queryes['estado_jugadores'] = DB::table('importacion_estado_jugador as iej')
     ->join('plataforma as plat','plat.id_plataforma','=','iej.id_plataforma')
-    ->where('iej.fecha_importacion',date('Y-m-d',strtotime($f)))
-    ->whereIn('p.id_plataforma',$plataformas_habilitadas);
+    ->where('iej.fecha_importacion',date('Y-m-d',strtotime($dia)))
+    ->whereIn('plat.id_plataforma',$plataformas_habilitadas);
+    $maximas_posibles += count($plataformas_habilitadas);
     
-    $ret['estado_juegos'] = DB::table('importacion_estado_juego as iej')
+    $queryes['estado_juegos'] = DB::table('importacion_estado_juego as iej')
     ->join('plataforma as plat','plat.id_plataforma','=','iej.id_plataforma')
-    ->where('iej.fecha_importacion',date('Y-m-d',strtotime($f)))
-    ->whereIn('p.id_plataforma',$plataformas_habilitadas);
+    ->where('iej.fecha_importacion',date('Y-m-d',strtotime($dia)))
+    ->whereIn('plat.id_plataforma',$plataformas_habilitadas);
+    $maximas_posibles += count($plataformas_habilitadas);
     
-    return $ret;
+    return compact('queryes','maximas_posibles');
   }
 }
 
