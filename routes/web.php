@@ -231,13 +231,13 @@ Informes
 ***********/
 //@TODO: Agregar y asignar privilegios para esta sección
 Route::group(['prefix' => 'informePlataforma','middleware' =>'tiene_permiso:ver_seccion_estestadoparque'],function(){
-  Route::get('/' , 'informesController@informePlataforma');
-  Route::get('/obtenerCantidadesPdevs','informesController@obtenerCantidadesPdevs');
-  Route::get('/obtenerJuegoFaltantesConMovimientos','informesController@obtenerJuegoFaltantesConMovimientos');
-  Route::get('/obtenerJugadorFaltantesConMovimientos','informesController@obtenerJugadorFaltantesConMovimientos');
-  Route::get('/obtenerJuegoAlertasDiarias','informesController@obtenerJuegoAlertasDiarias');
-  Route::get('/obtenerJugadorAlertasDiarias','informesController@obtenerJugadorAlertasDiarias');
-  Route::get('/obtenerEvolucionCategorias','informesController@obtenerEvolucionCategorias');
+  Route::get('/' , 'InformePlataformaController@informePlataforma');
+  Route::get('/obtenerCantidadesPdevs','InformePlataformaController@obtenerCantidadesPdevs');
+  Route::get('/obtenerJuegoFaltantesConMovimientos','InformePlataformaController@obtenerJuegoFaltantesConMovimientos');
+  Route::get('/obtenerJugadorFaltantesConMovimientos','InformePlataformaController@obtenerJugadorFaltantesConMovimientos');
+  Route::get('/obtenerJuegoAlertasDiarias','InformePlataformaController@obtenerJuegoAlertasDiarias');
+  Route::get('/obtenerJugadorAlertasDiarias','InformePlataformaController@obtenerJugadorAlertasDiarias');
+  Route::get('/obtenerEvolucionCategorias','InformePlataformaController@obtenerEvolucionCategorias');
 });
 
 Route::group(['prefix' => 'informeContableJuego','middleware' =>'tiene_permiso:ver_seccion_informecontable'],function(){

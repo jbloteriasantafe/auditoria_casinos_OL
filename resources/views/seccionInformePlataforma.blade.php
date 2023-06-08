@@ -1,19 +1,13 @@
 @extends('includes.dashboard')
 <?php
-use Illuminate\Http\Request;
-use App\Http\Controllers\informesController;
-
-$convertir_a_nombre = function($str){
-  return strtoupper(str_replace("_"," ",$str));
-};
 $separar_sql = function($col){
   $vals = explode(' as ',$col);
   return ['sql' => trim($vals[0]),'alias' => trim($vals[1])];
 };
-$juegoFaltantesSelect = array_map($separar_sql,informesController::$obtenerJuegoFaltantesSelect);
-$jugadorFaltantesSelect = array_map($separar_sql,informesController::obtenerJugadorFaltantesSelect());
-$juegoAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJuegoSelect);
-$jugadorAlertasDiariasSelect = array_map($separar_sql,informesController::$obtenerAlertasJugadorSelect);
+$juegoFaltantesSelect = array_map($separar_sql,$obtenerJuegoFaltantesSelect);
+$jugadorFaltantesSelect = array_map($separar_sql,$obtenerJugadorFaltantesSelect);
+$juegoAlertasDiariasSelect = array_map($separar_sql,$obtenerAlertasJuegoSelect);
+$jugadorAlertasDiariasSelect = array_map($separar_sql,$obtenerAlertasJugadorSelect);
 ?>
 
 @section('estilos')
