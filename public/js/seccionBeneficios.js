@@ -186,7 +186,7 @@ function generarBotonAjuste(diferencia,id_beneficio){
   .attr('data-trigger','manual')
   .attr('data-toggle','popover')
   .attr('data-html','true')
-  .attr('title','AJUSTE')
+  .attr('title','AJUSTE AUD')
   .attr('data-content',generarContentAjuste(diferencia,id_beneficio))
   .attr('disabled',(diferencia == 0))
   .append($('<i>').addClass('fa fa-fw fa-wrench'));
@@ -200,6 +200,7 @@ function generarFilaModal(beneficio){
     .append($('<td>').text(beneficio.beneficio_calculado).addClass('calculado'))
     .append($('<td>').text(beneficio.beneficio).addClass('importado'))
     .append($('<td>').text(beneficio.ajuste).addClass('ajuste'))
+    .append($('<td>').text(beneficio.ajuste_auditoria).addClass('ajuste_auditoria'))
     .append($('<td>').text(beneficio.diferencia).addClass('diferencia'))
     .append($('<td>').append(generarBotonAjuste(beneficio.diferencia,beneficio.id_beneficio)))
     .append($('<td>').append($('<textarea>').addClass('form-control').css('resize','vertical').text(beneficio.observacion)))
@@ -272,7 +273,7 @@ $(document).on('click','.ajustar',function(e){
       dataType: 'json',
       success: function (data) {
         const fila = $('#id' + formData.id_beneficio);
-        fila.find('.ajuste').text(data.ajuste.toFixed(2));
+        fila.find('.ajuste_auditoria').text(data.ajuste_auditoria.toFixed(2));
         const dif = data.diferencia.toFixed(2);
         fila.find('.diferencia').text(dif);
         fila.find('.boton_ajuste').popover('destroy');

@@ -12,7 +12,7 @@ class BeneficioMensual extends Model
   protected $visible = array('id_beneficio_mensual','id_plataforma','id_tipo_moneda','fecha'
   ,'depositos','retiros'
   ,'apuesta','premio','beneficio'
-  ,'ajuste','puntos_club_jugadores','validado','canon','md5');
+  ,'ajuste','puntos_club_jugadores','ajuste_auditoria','validado','canon','md5');
   public $timestamps = false;
 
   public function plataforma(){

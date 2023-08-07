@@ -47,6 +47,7 @@
         <th class="tablaInicio">BENEFICIO CALCULADO</th>
         <th class="tablaInicio">BENEFICIO IMPORTADO</th>
         <th class="tablaInicio">AJUSTE</th>
+        <th class="tablaInicio">AJUSTE AUDITORIA</th>
         <th class="tablaInicio">DIFERENCIAS</th>
       </tr>
       @foreach ($dias as $d)
@@ -55,6 +56,7 @@
         <td class="tablaCampos">{{$d->bcalculado}}</td>
         <td class="tablaCampos">{{$d->bimportado}}</td>
         <td class="tablaCampos">{{$d->ajuste}}</td>
+        <td class="tablaCampos">{{$d->ajuste_auditoria}}</td>
         <td class="tablaCampos">{{$d->dif}}</td>
       </tr>
       @endforeach

@@ -195,9 +195,10 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                               <th width="12%">CALCULADO</th>
                                               <th width="12%">IMPORTADO</th>
                                               <th width="12%">AJUSTE</th>
+                                              <th width="12%">AJUSTE AUD</th>
                                               <th width="12%">DIFERENCIA</th>
                                               <th width="3%"></th>
-                                              <th width="37%">OBSERVACIÓN</th>
+                                              <th width="25%">OBSERVACIÓN</th>
                                               <th width="3%"></th>
                                           </tr>
                                       </thead>

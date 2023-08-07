@@ -44,7 +44,7 @@ class informesController extends Controller
                       LPAD(MONTH(beneficio.fecha),2,"00"),"-",
                       YEAR(beneficio.fecha)) as fecha'),
       'beneficio.jugadores','beneficio.apuesta','beneficio.premio',
-      'beneficio.ajuste','beneficio.beneficio','cotizacion.valor as cotizacion',
+      'beneficio.ajuste','beneficio.ajuste_auditoria','beneficio.beneficio','cotizacion.valor as cotizacion',
       'beneficio_poker.utilidad as poker'
     )
     ->join('beneficio_mensual','beneficio_mensual.id_beneficio_mensual','=','beneficio.id_beneficio_mensual')
@@ -69,7 +69,7 @@ class informesController extends Controller
     $total = DB::table('beneficio_mensual')
     ->select(
       DB::raw('"" as jugadores'),'apuesta','premio',
-      'ajuste','beneficio',
+      'ajuste','ajuste_auditoria','beneficio',
       'beneficio_mensual_poker.utilidad as poker'
     )
     ->leftJoin('beneficio_mensual_poker',function($j){
@@ -87,6 +87,7 @@ class informesController extends Controller
       $total->apuesta   = 0;
       $total->premio    = 0;
       $total->ajuste    = 0;
+      $total->ajuste_auditoria = 0;
       $total->beneficio = 0;
       $total->poker     = 0;
     }
@@ -99,7 +100,7 @@ class informesController extends Controller
     else $cotizacionDefecto = $cotizacionDefecto->valor;
 
     $total_cotizado = (object)[
-      'beneficio'=>0.0,'ajuste'=>0.0,'poker'=>0.0
+      'beneficio'=>0.0,'ajuste'=>0.0,'ajuste_auditoria' => 0.0,'poker'=>0.0
     ];
     {
       $ultima_cotizacion = $cotizacionDefecto;
@@ -108,6 +109,7 @@ class informesController extends Controller
         $d->cotizacion     = $ultima_cotizacion;
         $total_cotizado->beneficio += $d->cotizacion*$d->beneficio;
         $total_cotizado->ajuste    += $d->cotizacion*$d->ajuste;
+        $total_cotizado->ajuste_auditoria += $d->cotizacion*$d->ajuste_auditoria;
         $total_cotizado->poker     += $d->cotizacion*$d->poker;
       }
     }

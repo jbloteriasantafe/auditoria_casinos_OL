@@ -37,7 +37,7 @@ class BeneficioController extends Controller
 
   private $diffs_view = "SELECT diff_bm.id_beneficio_mensual,
   SUM((diff_p.beneficio IS NULL AND diff_b.beneficio IS NOT NULL) 
-      OR (diff_p.beneficio <> (diff_b.beneficio+diff_b.ajuste))) as diferencias
+      OR (diff_p.beneficio <> (diff_b.beneficio+diff_b.ajuste_auditoria+diff_b.ajuste))) as diferencias
   FROM beneficio_mensual diff_bm
   LEFT JOIN beneficio diff_b ON diff_b.id_beneficio_mensual = diff_bm.id_beneficio_mensual
   LEFT JOIN producido diff_p ON (diff_p.id_plataforma = diff_bm.id_plataforma AND diff_p.id_tipo_moneda = diff_bm.id_tipo_moneda AND diff_p.fecha = diff_b.fecha)
@@ -114,7 +114,8 @@ class BeneficioController extends Controller
       (IFNULL(producido.beneficio,0)) AS beneficio_calculado,
       (IFNULL(beneficio.beneficio,0)) as beneficio,
       (IFNULL(beneficio.ajuste,0)) as ajuste,
-      (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0)) AS diferencia,
+      (IFNULL(beneficio.ajuste_auditoria,0)) as ajuste_auditoria,
+      (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0) - IFNULL(beneficio.ajuste_auditoria,0)) AS diferencia,
       producido.id_producido as id_producido,
       IFNULL(beneficio.observacion,"") as observacion'
     )
@@ -137,12 +138,12 @@ class BeneficioController extends Controller
     })->validate();
 
     $b = Beneficio::find($request->id_beneficio);
-    $b->ajuste += $request->valor;
+    $b->ajuste_auditoria += $request->valor;
     $b->save();
     $benMensual = $b->beneficio_mensual;
-    $benMensual->ajuste += $request->valor;
+    $benMensual->ajuste_auditoria += $request->valor;
     $benMensual->save();
-    return ['ajuste' => $b->ajuste,'diferencia' => $b->diferencia];
+    return ['ajuste_auditoria' => $b->ajuste_auditoria,'diferencia' => $b->diferencia];
   }
 
   public function validarBeneficios(Request $request){
@@ -215,7 +216,8 @@ class BeneficioController extends Controller
                 IFNULL(producido.beneficio,0) AS beneficio_calculado,
                 IFNULL(beneficio.beneficio,0) as beneficio,
                 IFNULL(beneficio.ajuste,0) as ajuste,
-                (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0)) AS diferencia')
+                IFNULL(beneficio.ajuste_auditoria,0) as ajuste_auditoria,
+                (IFNULL(producido.beneficio,0) - IFNULL(beneficio.beneficio,0) - IFNULL(beneficio.ajuste,0) - IFNULL(beneficio.ajuste_auditoria,0)) AS diferencia')
     ->leftJoin('beneficio','beneficio.id_beneficio_mensual','=','beneficio_mensual.id_beneficio_mensual')
     ->leftJoin('producido',function ($leftJoin) use ($benMensual){
       $leftJoin->on('producido.fecha','=','beneficio.fecha')
@@ -234,6 +236,7 @@ class BeneficioController extends Controller
       $res->bcalculado = number_format($resultado->beneficio_calculado, 2, ",", ".");
       $res->bimportado = number_format($resultado->beneficio, 2, ",", ".");
       $res->ajuste     = number_format($resultado->ajuste, 2, ",", ".");
+      $res->ajuste_auditoria = number_format($resultado->ajuste_auditoria, 2, ",", ".");
       $res->dif        = number_format($resultado->diferencia, 2, ",", ".");
       $dias[] = $res;
     }
@@ -284,7 +287,8 @@ class BeneficioController extends Controller
                  p.beneficio_bono     as ResultadoBonos,
                  p.beneficio          as Resultado, 
                  b.beneficio          as ResultadoFinal,
-                 b.ajuste             as AjustesInformados')
+                 b.ajuste             as AjustesInformados,
+                 b.ajuste_auditoria   as AjustesAuditoria')
     ->leftJoin('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
     ->leftJoin('producido as p',function ($leftJoin){
       $leftJoin->on('p.fecha','=','b.fecha')->on('p.id_plataforma','=','bm.id_plataforma')->on('p.id_tipo_moneda','=','bm.id_tipo_moneda');
@@ -311,7 +315,8 @@ class BeneficioController extends Controller
                 SUM(p.beneficio_bono)     as ResultadoBonos,
                 SUM(p.beneficio)          as Resultado,
                 bm.beneficio              as ResultadoFinal,
-                bm.ajuste                 as AjustesInformados')
+                bm.ajuste                 as AjustesInformados,
+                bm.ajuste_auditoria       as AjustesAuditoria')
     ->leftJoin('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
     ->leftJoin('producido as p',function ($leftJoin){
       $leftJoin->on('p.fecha','=','b.fecha')->on('p.id_plataforma','=','bm.id_plataforma')->on('p.id_tipo_moneda','=','bm.id_tipo_moneda');

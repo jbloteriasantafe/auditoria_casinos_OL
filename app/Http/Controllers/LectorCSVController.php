@@ -45,6 +45,19 @@ class LectorCSVController extends Controller
     $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $producido->diferencia_montos  = 0;
     $producido->save();
+    
+    {//Limpio el ajuste de auditoria que habia en el beneficio
+      $b = Beneficio::where([
+        ['fecha','=',$fecha],['id_tipo_moneda','=',$moneda],['id_plataforma','=',$plataforma]
+      ])->first();
+      if(!is_null($b)){
+        $bm = $b->beneficio_mensual;
+        $bm->ajuste_auditoria -= $b->ajuste_auditoria;
+        $b->ajuste_auditoria   = 0;
+        $b->save();
+        $bm->save();
+      }
+    }
 
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
@@ -404,6 +417,7 @@ class LectorCSVController extends Controller
     $benMensual->depositos = 0;$benMensual->retiros   = 0;
     $benMensual->apuesta   = 0;$benMensual->premio    = 0;$benMensual->beneficio = 0;
     $benMensual->ajuste = 0;
+    $benMensual->ajuste_auditoria = 0;
     $benMensual->puntos_club_jugadores = 0;
     $benMensual->validado = false;
     $benMensual->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
@@ -460,7 +474,8 @@ class LectorCSVController extends Controller
       beneficio,
       ajuste,
       puntos_club_jugadores,
-      observacion
+      observacion,
+      ajuste_auditoria
     )
     SELECT
     id_beneficio_mensual, 
@@ -473,7 +488,8 @@ class LectorCSVController extends Controller
     GrossRevenue     as beneficio,
     TotalManualAdjustments as ajuste,
     TotalVPoints     as puntos_club_jugadores,
-    ''               as observacion
+    ''               as observacion,
+    0                as ajuste_auditoria
     FROM beneficio_temporal
     WHERE beneficio_temporal.id_beneficio_mensual = :id_beneficio_mensual AND beneficio_temporal.Total = ''");
     $query->execute([":id_beneficio_mensual" => $benMensual->id_beneficio_mensual]);
@@ -486,7 +502,8 @@ class LectorCSVController extends Controller
     (
       SELECT SUM(b.depositos) as depositos, SUM(b.retiros)   as retiros,
              SUM(b.apuesta)   as apuesta  , SUM(b.premio)    as premio   , SUM(b.beneficio) as beneficio,
-             SUM(b.ajuste)    as ajuste   , SUM(b.puntos_club_jugadores) as puntos_club_jugadores
+             SUM(b.ajuste)    as ajuste   , SUM(b.puntos_club_jugadores) as puntos_club_jugadores,
+             0 as ajuste_auditoria
       FROM beneficio b
       WHERE b.id_beneficio_mensual = :id_beneficio_mensual1
       GROUP BY b.id_beneficio_mensual

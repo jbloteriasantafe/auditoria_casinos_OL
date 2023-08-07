@@ -12,7 +12,7 @@ class Beneficio extends Model
   protected $visible = array('id_beneficio','id_beneficio_mensual','fecha',
     'jugadores','depositos','retiros',
     'apuesta','premio','beneficio',
-    'ajuste','puntos_club_jugadores','observacion');
+    'ajuste','puntos_club_jugadores','observacion','ajuste_auditoria');
   protected $appends = array('calculado','diferencia','producido');
   public $timestamps = false;
 
@@ -32,6 +32,6 @@ class Beneficio extends Model
   }
 
   public function getDiferenciaAttribute(){
-    return $this->calculado - ($this->beneficio + $this->ajuste);
+    return $this->calculado - ($this->beneficio + $this->ajuste + $this->ajuste_auditoria);
   }
 }
