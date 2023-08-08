@@ -7,6 +7,7 @@ use App\ImportacionEstadoJuego;
 use App\Producido;
 use App\ProducidoJugadores;
 use App\ProducidoPoker;
+use App\Beneficio;
 use App\BeneficioMensual;
 use App\BeneficioMensualPoker;
 use App\Http\Controllers\ProducidoController;
