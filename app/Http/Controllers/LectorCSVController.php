@@ -48,15 +48,23 @@ class LectorCSVController extends Controller
     $producido->save();
     
     {//Limpio el ajuste de auditoria que habia en el beneficio
-      $b = Beneficio::where([
-        ['fecha','=',$fecha],['id_tipo_moneda','=',$moneda],['id_plataforma','=',$plataforma]
-      ])->first();
-      if(!is_null($b)){
-        $bm = $b->beneficio_mensual;
-        $bm->ajuste_auditoria -= $b->ajuste_auditoria;
-        $b->ajuste_auditoria   = 0;
-        $b->save();
-        $bm->save();
+      $aaaammyy = explode('-',$fecha);
+      $bms = BeneficioMensual::whereYear('fecha','=',$fecha[0])
+      ->whereMonth('fecha','=',$fecha[1])
+      ->where('id_tipo_moneda','=',$moneda)
+      ->where('id_plataforma','=',$plataforma)
+      ->get();
+      foreach($bms as $bm){
+        $bens = Beneficio::where([
+          ['id_beneficio_mensual','=',$bm->id_beneficio_mensual],['fecha','=',$fecha]
+        ])->get();
+        foreach($bens as $b) {
+          $bm->ajuste_auditoria -= $b->ajuste_auditoria;
+          $bm->validado = 0;
+          $bm->save();
+          $b->ajuste_auditoria = 0;
+          $b->save();
+        }
       }
     }
 
