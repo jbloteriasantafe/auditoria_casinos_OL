@@ -325,3 +325,10 @@ Route::post('enviarTicket',function(Request $request){
 //Lo dejo por si en algun momento se cambia estado_juego_importado a una estructura similar
 //Route::get('migrarJugadores','LectorCSVController@migrarJugadores');
 Route::get('regenerarResumenesMensualesProducidosJugadores','ResumenController@regenerarResumenesMensualesProducidosJugadores');
+
+Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_mtm'], function () {
+  Route::get('/','BackOfficeController@index');
+  Route::post('buscar','BackOfficeController@buscar');
+  Route::post('descargar','BackOfficeController@descargar');
+});
+
