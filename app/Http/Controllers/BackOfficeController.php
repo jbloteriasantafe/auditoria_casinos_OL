@@ -94,7 +94,7 @@ class BackOfficeController extends Controller {
                    ->on('cot.id_tipo_moneda','=','bm.id_tipo_moneda');
         }),
         'default_order_by' => [
-          'b.fecha' => 'desc'
+          'b.fecha' => 'asc'
         ],
       ]
     ];
