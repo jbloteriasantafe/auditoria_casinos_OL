@@ -20,7 +20,7 @@
     overflow-x: scroll;
   }
   [data-vista="beneficio"] .panel-body:nth-of-type(2) > div {
-    width: 110%;
+    width: 120%;
   }
   table td, table th {
     padding-left: 0 !important;
