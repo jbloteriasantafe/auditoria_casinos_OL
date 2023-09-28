@@ -44,51 +44,27 @@ class BackOfficeController extends Controller {
     foreach($cols_indexes as $val => $constant){
       define($constant,$val);
     }
-
-    $pdev = function($num,$div){
-      $division = "IFNULL(".$num.",0)/".$div;
-      return sprintf("IF((%s) = 0,'',(%s))",$div,$division);
-    };
+    
     $this->vistas = [
       'beneficio' => [
         'cols' => [
           ['b.fecha','fecha','string','input_date_month',[$hoy]],
           ['plat.codigo','plataforma','string','select',[0],$this->selectPlataformaVals('beneficio_mensual')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio_mensual')],
-          ['b.jugadores','jugadores','numeric'],
+          ['b.jugadores','jugadores','integer'],
           ['b.depositos','depositos','numeric'],
           ['b.retiros','retiros','numeric'],
-          ['p.apuesta_efectivo','apuesta_efectivo','numeric'],
-          ['p.apuesta_bono','apuesta_bono','numeric'],
-          ['p.apuesta','apuesta','numeric'],
-          ['p.premio_efectivo','premio_efectivo','numeric'],
-          ['p.premio_bono','premio_bono','numeric'],
-          ['p.premio','premio','numeric'],
-          [$pdev('p.premio_efectivo','p.apuesta_efectivo'),'pdev_efectivo','numeric3d'],
-          [$pdev('p.premio_bono','p.apuesta_bono'),'pdev_bono','numeric3d'],
-          [$pdev('p.premio','p.apuesta'),'pdev','numeric3d'],
-          ['p.beneficio_efectivo','beneficio_efectivo','numeric'],
-          ['p.beneficio_bono','beneficio_bono','numeric'],
-          ['p.beneficio','resultado','numeric'],
+          ['b.apuesta','apuesta','numeric'],
+          ['b.premio','premio','numeric'],
           ['b.ajuste','ajustes_informados','numeric'],
-          ['b.ajuste_auditoria','ajustes_auditoria','numeric'],
-          ['b.beneficio','resultado_final','numeric'],
+          ['b.beneficio','beneficio','numeric'],
           ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
           ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*b.beneficio','cotizado','numeric'],
-        ],
-        'indirect_where' => [
-          'plataforma' => 'plat.id_plataforma',
-          'moneda' => 'tm.id_tipo_moneda',
         ],
         'query' => DB::table('beneficio_mensual as bm')
         ->join('beneficio as b','b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
         ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
         ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','bm.id_tipo_moneda')
-        ->leftJoin('producido as p',function($j){
-          return $j->on('p.fecha','=','b.fecha')
-                   ->on('p.id_tipo_moneda','=','bm.id_tipo_moneda')
-                   ->on('p.id_plataforma','=','bm.id_plataforma');
-        })
         ->leftJoin('cotizacion as cot',function($j){
           return $j->on('cot.fecha','=','b.fecha')
                    ->on('cot.id_tipo_moneda','=','bm.id_tipo_moneda');
@@ -96,6 +72,86 @@ class BackOfficeController extends Controller {
         'default_order_by' => [
           'b.fecha' => 'asc'
         ],
+        'indirect_where' => [
+          'plataforma' => 'plat.id_plataforma',
+          'moneda' => 'tm.id_tipo_moneda',
+        ]
+      ],
+      'beneficio_poker' => [
+        'cols' => [
+          ['b.fecha','fecha','string','input_date_month',[$hoy]],
+          ['plat.codigo','plataforma','string','select',[0],$this->selectPlataformaVals('beneficio_mensual_poker')],
+          ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio_mensual_poker')],
+          ['b.jugadores','jugadores','integer'],
+          ['b.mesas','mesas','integer'],
+          ['b.buy','compra','numeric'],
+          ['b.rebuy','recompra','numeric'],
+          ['b.total_buy','jugado','numeric'],
+          ['b.cash_out','pagado','numeric'],
+          ['b.otros_pagos','otros_pagos','numeric'],
+          ['b.total_bonus','bonus','numeric'],
+          ['b.utilidad','beneficio','numeric'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*b.utilidad','cotizado','numeric'],
+        ],
+        'query' => DB::table('beneficio_mensual_poker as bm')
+        ->join('beneficio_poker as b','b.id_beneficio_mensual_poker','=','bm.id_beneficio_mensual_poker')
+        ->join('plataforma as plat','plat.id_plataforma','=','bm.id_plataforma')
+        ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','bm.id_tipo_moneda')
+        ->leftJoin('cotizacion as cot',function($j){
+          return $j->on('cot.fecha','=','b.fecha')
+                   ->on('cot.id_tipo_moneda','=','bm.id_tipo_moneda');
+        }),
+        'default_order_by' => [
+          'b.fecha' => 'asc'
+        ],
+        'indirect_where' => [
+          'plataforma' => 'plat.id_plataforma',
+          'moneda' => 'tm.id_tipo_moneda',
+        ]
+      ],
+      'producido' => [
+        'cols' => [
+          ['p.fecha','fecha','string','input_date_month',[$hoy]],
+          ['plat.codigo','plataforma','string','select',[0],$this->selectPlataformaVals('producido')],
+          ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')],
+          ['p.apuesta_efectivo','apuesta_efectivo','numeric'],
+          ['p.apuesta_bono','apuesta_bono','numeric'],
+          ['p.apuesta','apuesta','numeric'],
+          ['p.premio_efectivo','premio_efectivo','numeric'],
+          ['p.premio_bono','premio_bono','numeric'],
+          ['p.premio','premio','numeric'],
+          ['p.beneficio_efectivo','producido_efectivo','numeric'],
+          ['p.beneficio_bono','producido_bono','numeric'],
+          ['p.beneficio','producido','numeric'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*p.beneficio','cotizado','numeric'],
+          ['b.ajuste_auditoria','ajuste_beneficio','numeric'],
+        ],
+        'query' => DB::table('producido as p')
+        ->join('plataforma as plat','plat.id_plataforma','=','p.id_plataforma')
+        ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
+        ->leftJoin('cotizacion as cot',function($j){
+          return $j->on('cot.fecha','=','p.fecha')
+                   ->on('cot.id_tipo_moneda','=','p.id_tipo_moneda');
+        })
+        ->leftJoin('beneficio_mensual as bm',function($j){
+          return $j->on('bm.id_plataforma','=','p.id_plataforma')
+                   ->on('bm.id_tipo_moneda','=','p.id_tipo_moneda')
+                   ->on(DB::raw('YEAR(bm.fecha)'),'=',DB::raw('YEAR(p.fecha)'))
+                   ->on(DB::raw('MONTH(bm.fecha)'),'=',DB::raw('MONTH(p.fecha)'));
+        })
+        ->leftJoin('beneficio as b',function($j){
+          return $j->on('b.id_beneficio_mensual','=','bm.id_beneficio_mensual')
+                   ->on('b.fecha','=','p.fecha');
+        }),
+        'default_order_by' => [
+          'p.fecha' => 'asc'
+        ],
+        'indirect_where' => [
+          'plataforma' => 'plat.id_plataforma',
+          'moneda' => 'tm.id_tipo_moneda',
+        ]
       ]
     ];
   }
