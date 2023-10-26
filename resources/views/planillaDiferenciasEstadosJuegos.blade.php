@@ -3,11 +3,9 @@
   $filas_por_col = 69.0;
   $filas_por_pag = $filas_por_col*2;
   
-  $cantidates_por_estado = [];
   $tablas_por_estado = [];
   foreach($resultado as $e => $detalles){
     $tablas_por_estado[$e] = array_chunk($detalles,$filas_por_pag);
-    $cantidades_por_estado[$e] = count($detalles);
   }
   $hoy = date('j-m-y / h:i');
 ?>
@@ -65,9 +63,9 @@ tr:nth-child(even) {
 	@yield('cabezera')
 		
     @foreach($tablas_por_estado as $e => $tablas)		
-		<?php $cantidad = $cantidades_por_estado[$e]; ?>
+		<?php $cantidad = count($resultado[$e]); ?>
 		
-		@foreach($tablas as $detalles)
+		@foreach($tablas as $tdetalles)
 		
 		@if(!$loop->parent->first || !$loop->first)
 		<div style="page-break-after:always;"></div>
@@ -95,28 +93,26 @@ tr:nth-child(even) {
 				</tr>
 			</thead>
 			<tbody>
-				@for($i=0;$i<$filas_por_col;$i++)
-				<tr>
-					@if(isset($detalles[$i]))
-					<td class="tablaCampos center small">{{$detalles[$i]["codigo"]}}</td>
-					<td class="tablaCampos center small">{{$detalles[$i]["juego"]}}</td>
-					<td class="tablaCampos center small">{{$detalles[$i]["estado_recibido"]}}</td>
+        @for($i=0;$i<$filas_por_col;$i++)
+        <tr>
+          @if(isset($tdetalles[$i]))
+					<td class="tablaCampos center small">{{$tdetalles[$i]["codigo"]}}</td>
+					<td class="tablaCampos center small">{{$tdetalles[$i]["juego"]}}</td>
+					<td class="tablaCampos center small">{{$tdetalles[$i]["estado_recibido"]}}</td>
 					@else
+            @break
+					@endif
+          @if(isset($tdetalles[$i+$filas_por_col]))
+          <td class="tablaCampos center small">{{$tdetalles[$i+$filas_por_col]["codigo"]}}</td>
+					<td class="tablaCampos center small">{{$tdetalles[$i+$filas_por_col]["juego"]}}</td>
+					<td class="tablaCampos center small">{{$tdetalles[$i+$filas_por_col]["estado_recibido"]}}</td>
+          @else
 					<td class="tablaCampos center small" style="border: 0;background: white;">&nbsp;</td>
 					<td class="tablaCampos center small" style="border: 0;background: white;">&nbsp;</td>
 					<td class="tablaCampos center small" style="border: 0;background: white;">&nbsp;</td>
 					@endif
-					@if(isset($detalles[$i+$filas_por_col]))
-					<td class="tablaCampos center small">{{$detalles[$i+$filas_por_col]["codigo"]}}</td>
-					<td class="tablaCampos center small">{{$detalles[$i+$filas_por_col]["juego"]}}</td>
-					<td class="tablaCampos center small">{{$detalles[$i+$filas_por_col]["estado_recibido"]}}</td>
-					@else
-					<td class="tablaCampos center small" style="border: 0;background: white;">&nbsp;</td>
-					<td class="tablaCampos center small" style="border: 0;background: white;">&nbsp;</td>
-					<td class="tablaCampos center small" style="border: 0;background: white;">&nbsp;</td>
-					@endif
-				</tr>
-				@endfor
+        </tr>
+        @endfor
 			</tbody>
 		</table>
 		@endforeach
