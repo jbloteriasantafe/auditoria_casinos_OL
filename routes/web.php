@@ -332,3 +332,10 @@ Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_m
   Route::post('descargar','BackOfficeController@descargar');
 });
 
+Route::group(['prefix' => 'actividades'], function () {
+  Route::get('/','ActividadesController@index');
+  Route::get('/buscar','ActividadesController@buscar');
+  Route::post('/guardar','ActividadesController@guardar');
+  Route::delete('/borrar/{numero}','ActividadesController@borrar');
+  Route::get('/archivo/{nro_ticket}/{nro_archivo}','ActividadesController@archivo');
+});

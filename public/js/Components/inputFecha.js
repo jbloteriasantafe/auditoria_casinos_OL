@@ -2,14 +2,15 @@ import "/js/bootstrap-datetimepicker.js";
 import "/js/bootstrap-datetimepicker.es.js";
 
 $(function(e){
-  $('[data-js-fecha]').each(function(_,d){
+  function initInputFecha(d){
     d.disabled = function(disabled){
-      $(d).find('input').attr('disabled',disabled? true : false);
+      $(d).find('input').attr('disabled',disabled? '' : null);
       $(d).attr('data-disabled',disabled? 1 : 0);
     };
-  })
-  .each(function(_,d){
-    console.log($(d).attr('data-start-view'));
+    d.readonly = function(readonly){
+      $(d).find('input').attr('readonly',readonly? '' : null);
+      $(d).attr('data-readonly',readonly? 1 : 0);
+    };
     $(d).datetimepicker({
       language:  $(d).attr('data-date-language') ?? 'es',
       todayBtn:  $(d).attr('data-date-today-btn') ?? 1,
@@ -30,5 +31,20 @@ $(function(e){
     }
     catch (e) {}
     d.disabled(!!disabled);
+    
+    let readonly = true;
+    try {
+      disabled = JSON.parse($(d).attr('data-readonly'));
+    }
+    catch (e) {}
+    d.readonly(!!readonly);
+  }
+  
+  $(document).on('initInputFecha','[data-js-fecha]',function(){
+    initInputFecha(this);
+  });
+  
+  $('[data-js-fecha]').each(function(){
+    $(this).trigger('initInputFecha');
   });
 });
