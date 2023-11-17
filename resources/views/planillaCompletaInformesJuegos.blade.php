@@ -16,7 +16,7 @@ td, th {
   margin: 0;
   padding-top: 1;
   padding-bottom: 1;
-  font-size: 6 !important;
+  font-size: 4.5 !important;
 }
 
 tr:nth-child(even) {
