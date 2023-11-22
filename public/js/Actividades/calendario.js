@@ -59,7 +59,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
       console.log(event);
     },*/
     eventDrop: function(event,delta,revertFunc){
-      if(event.fecha === undefined){
+      if(event.fecha === undefined || event.es_tarea){
         return revertFunc();
       }
       const fecha_nueva = new Date(event.fecha+'T00:00');
@@ -73,7 +73,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
     },
     eventRender: function(event,element,view){
       $(element).toggleClass('finalizado',event.finalizado ?? false);
-      $(element).toggleClass('tarea_sin_modificar',!(event.es_actividad || event.tarea_desprendida));
+      $(element).toggleClass('es_tarea',event.es_tarea ?? true);
     },
     viewRender: actualizar_eventos
   });
@@ -113,8 +113,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
             start: moment(a.fecha),
             numero: numero,
             fecha: a.fecha,
-            tarea_desprendida: a.tarea_desprendida,
-            es_actividad: a.parent == null,
+            es_tarea: a.parent !== null,
             finalizado: ['HECHO','CERRADO SIN SOLUCIÓN','CERRADO'].includes(a.estado),
             backgroundColor: a.color_fondo ?? 'green',
             textColor: a.color_texto ?? 'black',

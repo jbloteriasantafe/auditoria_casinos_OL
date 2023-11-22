@@ -132,38 +132,29 @@ class ActividadesController extends Controller
     return $actividades_tareas->sortByDesc('modified_at')->groupBy('numero');
   }
   
-  private function generarTareas($actividades_tareas,$act){
+  private function generarTareas($act){
     $es_numero = function($i){return $i == intval($i);};
     $tareas = [];
-    $tareas_numeros_ya_creados = [];
-    $id_actividad_tarea = count($actividades_tareas);
+    
+    if(empty($act['hasta']) || empty($act['repetir']))
+      return $tareas;
+    
     for($f=$act['fecha'];$f<=$act['hasta'];$f=date('Y-m-d',strtotime($f.' +1 day'))){
       //No genero para la misma fecha
       if($f == $act['fecha']) continue;
             
       $diario  = $act['repetir'] == 'd';
-      $semanal = $act['repetir'] == 'w' && (diff_dates_days($f,$act['fecha']) % 7) == 0;
-      $mensual = $act['repetir'] == 'm' && $es_numero(diff_dates_logical_months($f,$act['fecha']));
+      $semanal = $act['repetir'] == 'w' && ($this->diff_dates_days($f,$act['fecha']) % 7) == 0;
+      $mensual = $act['repetir'] == 'm' && $es_numero($this->diff_dates_logical_months($f,$act['fecha']));
       $crear_tarea = $diario || $semanal || $mensual;
       
       if(!$crear_tarea) continue;
       
       $t = unserialize(serialize($act));
-      $t['id_actividad_tarea'] = $id_actividad_tarea;
-      $id_actividad_tarea++;
-      
-      do{
-        $numero = $this->generarNumeroActividad($actividades_tareas);
-        if(!($tareas_numeros_ya_creados[$numero] ?? false)){
-          $t['numero'] = $numero;
-          $tareas_numeros_ya_creados[$numero] = true;
-          break;
-        }
-      }while(true);
-      
+      unset($t['id_actividad_tarea']);
+            
       $t['parent']  = $act['numero'];
       $t['fecha']   = $f;
-      $t['fecha_original_tarea'] = $f;
       $t['repetir'] = null;
       $t['hasta']   = null;
       
@@ -188,14 +179,14 @@ class ActividadesController extends Controller
   
   public function guardar(Request $R){
     $actividades_tareas = $this->GET_BD();
-    $at_anterior = null;
+    $at_anterior = [];
     
     Validator::make($R->all(), [
       'numero' => 'nullable|integer',//si es nulo esta creando una actividad
       'titulo' => 'required|string',
       'fecha' => 'required|date',
       'estado' => 'required|string',
-      'es_tarea' => 'nullable',
+      'generar_tareas' => 'nullable',
       'repetir'  => 'required_with:es_tarea|nullable|string',
       'hasta'    => 'required_with:es_tarea|nullable|date',
       'contenido' => 'nullable|string',
@@ -212,7 +203,7 @@ class ActividadesController extends Controller
             break;
           }
         }
-        if(is_null($at_anterior)){
+        if(empty($at_anterior)){
           return $validator->errors()->add('numero','No existe la actividad');
         }
       }
@@ -220,113 +211,158 @@ class ActividadesController extends Controller
     
     return DB::transaction(function() use (&$R,&$actividades_tareas,&$at_anterior){
       $at = [];
-      $at['id_actividad_tarea'] = count($actividades_tareas);
-      $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-          
-      if(is_null($R->numero)){
-        $at['numero'] = $this->generarNumeroActividad($actividades_tareas);
-        $at['parent'] = null;
-        $at['fecha_original_tarea'] = null;
-        $at['created_at']  = (new DateTime())->format('Y-m-d H:i:s');
-        $at['created_by']  = $usuario->id_usuario;
-        $at['modified_at'] = $at['created_at'];
-        $at['modified_by'] = $at['created_by'];
-        $at['deleted_at']  = null;
-      }
-      else{
-        $at['numero']       = $at_anterior['numero'];
-        $at['parent']       = $at_anterior['parent'];
-        $at['titulo']       = $at_anterior['titulo'];
-        $at['fecha_original_tarea'] = $at_anterior['fecha_original_tarea'];
-        $at['created_at']  = $at_anterior['created_at'];
-        $at['modified_at'] = (new DateTime())->format('Y-m-d H:i:s');
-        $at['created_by']  = $at_anterior['created_by'];
-        $at['modified_by'] = $usuario->id_usuario;
-        $at['deleted_at']  = null;
-        $at_anterior['deleted_at'] = $at['modified_at'];
-      }
-      
-      $at['fecha']  = $R->fecha ?? null;
-      $at['estado'] = $R->estado ?? null;
-      $at['contenido'] = $R->contenido ?? null;
-      $at['color_fondo'] = $R->color_fondo ?? null;
-      $at['color_texto'] = $R->color_texto ?? null;
-      $at['color_borde'] = $R->color_borde ?? null;
-      
-      if(is_null($at['parent'])){//actividad
-        $at['titulo'] = $R->titulo ?? null;
-        $at['repetir'] = $R->repetir ?? null;
-        $at['hasta']  = $R->hasta ?? null;
-      }
-      else{//tarea
-        $at['tarea_desprendida'] = $at['fecha'] != $at['fecha_original_tarea'];
-      }
-      
-      if($usuario->es_superusuario){
-        $at['tags_api'] = $R->tags_api ?? null;
-      }
-          
-      {
-        $adjuntos_anteriores = array_keys($at_anterior? $at_anterior['adjuntos'] : []);
-        $adjuntos_viejos_enviados = $R->adjuntos_viejos ?? [];
-        $at['adjuntos'] = [];
-        foreach($adjuntos_anteriores as $adj_ant){
-          if(in_array($adj_ant,$adjuntos_viejos_enviados)){
-            $at['adjuntos'][$adj_ant] = $at_anterior['adjuntos'][$adj_ant];
+      {//Manejo de atributos;
+        $f_sobreescribir = function(&$at,$datos,$attrs){
+          foreach($attrs as $a) $at[$a] = $datos[$a] ?? $at[$a] ?? null;
+        };
+        
+        $f_sobreescribir($at,$at_anterior,['numero','parent','created_by','created_at']);
+        
+        $Rall = $R->all();
+        {
+          $attrs_actividad_y_tarea = ['estado','contenido','color_fondo','color_texto','color_borde'];
+          $f_sobreescribir($at,$at_anterior,$attrs_actividad_y_tarea);
+          $f_sobreescribir($at,$Rall,$attrs_actividad_y_tarea);
+        }
+        {
+          $attrs_actividad = ['fecha','titulo'];
+          $f_sobreescribir($at,$at_anterior,$attrs_actividad);
+          if(is_null($at['parent'] ?? null)){//Es actividad
+            $f_sobreescribir($at,$Rall,$attrs_actividad);
+            
+            $attrs_generar_tareas = ['repetir','hasta'];
+            $f_sobreescribir($at,[],$attrs_generar_tareas);
+            if(($Rall['generar_tareas'] ?? false)){
+              $f_sobreescribir($at,$at_anterior,$attrs_generar_tareas);
+              $f_sobreescribir($at,$Rall,$attrs_generar_tareas);
+            }
           }
+          else{
+            $at['dirty'] = true;//Modifico una tarea @HACK: chequear atributos
+          }
+        }
+        
+        $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+        {
+          $attrs_superusuario = ['tags_api'];
+          $f_sobreescribir($at,$at_anterior,$attrs_superusuario);
+          if($usuario->es_superusuario){
+            $f_sobreescribir($at,$Rall,$attrs_superusuario);
+          }
+        }
+        
+        $at['deleted_at']  = null;
+        $at['modified_at'] = (new DateTime())->format('Y-m-d H:i:s');
+        $at['modified_by'] = $usuario->id_usuario;
+                
+        if(empty($at_anterior)){//Nueva actividad
+          $at['numero'] = $this->generarNumeroActividad($actividades_tareas);
+          $at['created_at'] = $at['modified_at'];
+          $at['created_by'] = $at['modified_by'];
+        }
+        else{
+          $at_anterior['deleted_at'] = $at['modified_at'];
         }
       }
       
-      $PATH_ARCHIVOS = $this->ADJ_CARPETA.'/'.$at['numero'];
-      $ABS_PATH_ARCHIVOS = $this->ABS_ADJ_CARPETA.'/'.$at['numero'];
-      
-      $folder;
-      try{
-        $folder = count(scandir($ABS_PATH_ARCHIVOS))-2;//'.' y '..'
-      }
-      catch(Exception $e){
-        $folder = 0;
-      }
-      
-      foreach($R->file('adjuntos') ?? [] as $adj){
-        $filename = $adj->getClientOriginalName();
-        $adj->storeAs(
-          $PATH_ARCHIVOS.'/'.$folder,$filename
-        );
-        $at['adjuntos'][$folder] = $filename;
-        $folder+=1;
-      }
-      
-      $actividades_tareas[$at['id_actividad_tarea']] = $at;
-      if(!is_null($at_anterior))
-        $actividades_tareas[$at_anterior['id_actividad_tarea']] = $at_anterior;
-      
-      //Si es nuevo y tiene datos para generar tareas, se las genero
-      if($at['created_at'] == $at['modified_at'] && $at['repetir'] && $at['hasta']){
-        $tareas = $this->generarTareas($actividades_tareas,$at);
-        $actividades_tareas = $actividades_tareas->merge($tareas);
-      }
-      //Si es una actividad y fue modificada
-      else if(is_null($at['parent']) && $at['created_at'] != $at['modified_at']){
-        //Borro todo los hijos no desprendidos y creo para que matcheen
-        $tareas = $this->generarTareas($actividades_tareas,$at);
-        foreach($actividades_tareas as &$t){
-          if($t['parent'] !== $at['numero']) continue;
-          if(!is_null($t['deleted_at'])) continue;
-          if(($t['tarea_desprendida'] ?? false)) continue;
-          
-          $t['deleted_at'] = $at['modified_at'];
-              
-          foreach($tareas as &$nt){
-            if($nt['fecha'] == $t['fecha']){
-              $nt['id_actividad_tarea'] = count($actividades_tareas);
-              $nt['numero'] = $t['numero'];
-              $nt['created_at'] = $at['created_at'];
-              $nt['modified_at'] = $at['modified_at'];
-              $actividades_tareas->push($nt);
-              break;
+      {//Manejo de adjuntos
+        {
+          $adjuntos_anteriores = array_keys($at_anterior? $at_anterior['adjuntos'] : []);
+          $adjuntos_viejos_enviados = $R->adjuntos_viejos ?? [];
+          $at['adjuntos'] = [];
+          foreach($adjuntos_anteriores as $adj_ant){
+            if(in_array($adj_ant,$adjuntos_viejos_enviados)){
+              $at['adjuntos'][$adj_ant] = $at_anterior['adjuntos'][$adj_ant];
             }
           }
+        }
+        
+        $PATH_ARCHIVOS = $this->ADJ_CARPETA.'/'.$at['numero'];
+        $ABS_PATH_ARCHIVOS = $this->ABS_ADJ_CARPETA.'/'.$at['numero'];
+        
+        $folder;
+        try{
+          $folder = count(scandir($ABS_PATH_ARCHIVOS))-2;//'.' y '..'
+        }
+        catch(Exception $e){
+          $folder = 0;
+        }
+        
+        foreach($R->file('adjuntos') ?? [] as $adj){
+          $filename = $adj->getClientOriginalName();
+          $adj->storeAs(
+            $PATH_ARCHIVOS.'/'.$folder,$filename
+          );
+          $at['adjuntos'][$folder] = $filename;
+          $folder+=1;
+        }
+      }
+      
+      //Guardo lo modificado
+      $at['id_actividad_tarea'] = count($actividades_tareas);
+      $actividades_tareas[$at['id_actividad_tarea']] = $at;
+      if(!empty($at_anterior))
+        $actividades_tareas[$at_anterior['id_actividad_tarea']] = $at_anterior;
+        
+      if(is_null($at['parent'])){//Generar tareas para las actividades
+        $tareas_nuevas = collect($this->generarTareas($at))
+        ->sortByDesc('fecha');
+        
+        $tareas_bd = $actividades_tareas->filter(function(&$t) use (&$at){
+          return $t['parent'] == $at['numero'] && is_null($t['deleted_at']);
+        })
+        ->sortByDesc('fecha');
+        
+        {//Simplemente borro las que no estan sucias
+          $not_dirty = $tareas_bd->filter(function(&$t){
+            return !($t['dirty'] ?? false);
+          });
+          foreach($not_dirty as &$ot){
+            $ot['deleted_at'] = $at['modified_at'];
+            $actividades_tareas[$ot['id_actividad_tarea']] = $ot;
+          }
+        }
+        
+        $fechas_movidas = [];
+        {//Las que estan sucias trato de moverlas a alguna de las neuvas fechas
+          $dirty = $tareas_bd->filter(function(&$t){
+            return ($t['dirty'] ?? false);
+          });
+          foreach($dirty as &$ot){
+            $closestidx = $this->matchearTarea($ot['fecha'],$tareas_nuevas,$fechas_movidas);
+            //No encontro, lo "descuelgo", pasandolo a actividad.
+            if(is_null($closestidx)){
+              $ot['parent_original'] = $ot['parent'];
+              $ot['parent'] = null;
+              $actividades_tareas[$ot['id_actividad_tarea']] = $ot;
+              continue;
+            }
+            
+            //Encontro, creo una tarea nueva con esa fecha pero todos los datos iguales
+            $nt = unserialize(serialize($ot));
+            
+            $ot['deleted_at'] = $at['modified_at'];
+            $actividades_tareas[$ot['id_actividad_tarea']] = $ot;
+            
+            $nt['fecha'] = $tareas_nuevas[$closestidx]['fecha'];
+            $nt['modified_at'] = $tareas_nuevas[$closestidx]['modified_at'];
+            $nt['modified_by'] = $tareas_nuevas[$closestidx]['modified_by'];
+            $nt['id_actividad_tarea'] = count($actividades_tareas);
+            $actividades_tareas->push($nt);
+            
+            $fechas_movidas[$tareas_nuevas[$closestidx]['fecha']] = true;
+          }
+        }
+        
+        //Para tareas nuevas que antes no estaban
+        foreach($tareas_nuevas as $nt){
+          //Y las fecha no fue ocupada
+          if(($fechas_movidas[$nt['fecha']] ?? false))
+            continue;
+          //Le creo una tarea           
+          $nt['id_actividad_tarea'] = count($actividades_tareas);
+          $nt['numero'] = $this->generarNumeroActividad($actividades_tareas);
+          $actividades_tareas->push($nt);
         }
       }
       
@@ -334,6 +370,19 @@ class ActividadesController extends Controller
       
       return $at;
     });
+  }
+  
+  private function matchearTarea($fecha,$tareas,$blacklist){
+    $closestidx = null;
+    $closestdiff = INF;//Bisect?
+    foreach($tareas as $nidx => &$nt){
+      $diff = abs($this->diff_dates_days($fecha,$nt['fecha']));
+      if($diff < $closestdiff && ($blacklist[$nt['fecha']] ?? false) == false){
+        $closestdiff = $diff;
+        $closestidx = $nidx;
+      }
+    }
+    return $closestidx;
   }
   
   public function borrar(Request $request,int $numero){

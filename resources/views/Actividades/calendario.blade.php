@@ -5,7 +5,7 @@
     color: transparent;
     user-select: none;
   }
-  .calendario .tarea_sin_modificar {
+  .calendario .es_tarea {
     opacity: 0.5;
   }
   .calendario .finalizado {/*Si el evento esta terminado*/

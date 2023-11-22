@@ -152,7 +152,7 @@
           Fecha 
           @component('Components/inputFecha',[
             'attrs' => "name='fecha'",
-            'attrs_dtp' => "data-js-habilitar='creando,editando'"
+            'attrs_dtp' => $es_actividad? "data-js-habilitar='creando,editando'" : "data-js-habilitar=''"
           ])
           @endcomponent
         </div>
