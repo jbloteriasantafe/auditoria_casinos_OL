@@ -94,16 +94,16 @@
 <div id="{{uniqid()}}" class="actividades row" data-js-actividades>
   @component('Components/tabs')
   @slot('tabs')
-  <div>
+  <div data-js-tab-actividad="0">
     Tareas
   </div>
-  <div>
+  <div data-js-tab-actividad="1">
     Actividades
   </div>
   @endslot
   @slot('tab_contents')
   @foreach([0,1] as $es_actividad)
-  <div style="width: 100%;height: 100%;">
+  <div data-js-tab-content-actividad="{{$es_actividad}}" style="width: 100%;height: 100%;">
     @if($es_actividad)
     <div class="botones_actividades col-md-12">
       <button type="button" data-js-agregar><i class="fa fa-fw fa-plus"></i></button>

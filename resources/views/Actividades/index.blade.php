@@ -43,7 +43,7 @@
 <div class="col-md-12">
   <h5>Tarjeta de Relevamientos</h5>
   <p>
-    Actividades diarias y tareas realizadas.
+    Actividades y sus tareas.
   </p>
 </div>
 @endsection

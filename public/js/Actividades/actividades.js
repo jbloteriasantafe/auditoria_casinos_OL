@@ -61,7 +61,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
     });
   }
   
-  $actividades.on('desplegar_actividad',function(e,numero){
+  $actividades.on('desplegar_actividad',function(e,numero,es_tarea){
     const actividad = obtenerActividad(numero);
     if(actividad.length == 0) return;
     
@@ -72,6 +72,8 @@ $(function(){ $('[data-js-actividades]').each(function(){
     
     setearEstadoActividad(actividad.eq(0),'visualizando',1);
     
+    const es_actividad = (!es_tarea)+0;
+    $(`[data-js-tab-actividad="${es_actividad}"]`).click();
     actividad[0].scrollIntoView();
   });
   
