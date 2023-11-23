@@ -215,7 +215,8 @@ class JuegoController extends Controller
         //El codigo del juego es unico
         $juegos_mismo_codigo = DB::table('juego as j')
         ->where('j.cod_juego',$data['cod_juego'])
-        ->where('j.id_juego','<>',$data['id_juego']);
+        ->where('j.id_juego','<>',$data['id_juego'])
+        ->whereNull('j.deleted_at');
         if($juegos_mismo_codigo->count() > 0){
           $validator->errors()->add('cod_juego', 'validation.unique');
         }
