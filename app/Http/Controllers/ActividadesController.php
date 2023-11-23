@@ -107,29 +107,21 @@ class ActividadesController extends Controller
     
     $user_cache = [];//para evitar golpear tanto la bd
     $actividades_tareas = $this->GET_BD()
-    ->filter(function(&$at) use ($request,&$user_cache){
-      if($at['fecha'] >= $request->desde && $at['fecha'] <= $request->hasta){
-        if(array_key_exists($at['created_by'],$user_cache)){
-          $at['user_created'] = $user_cache[$at['created_by']];
+    ->sortBy('fecha')
+    ->groupBy('numero')
+    ->filter(function(&$ats) use (&$request){
+      foreach($ats as $at){
+        if(is_null($at['deleted_at'])){
+          return $at['fecha'] >= $request->desde && $at['fecha'] <= $request->hasta;
         }
-        else{
-          $at['user_created'] = Usuario::withTrashed()->find($at['created_by'])->nombre;
-          $user_cache[$at['created_by']] = $at['user_created'];
-        }
-        if(array_key_exists($at['modified_by'],$user_cache)){
-          $at['user_modified'] = $user_cache[$at['created_by']];
-        }
-        else{
-          $at['user_modified'] = Usuario::withTrashed()->find($at['modified_by'])->nombre;
-          $user_cache[$at['modified_by']] = $at['user_modified'];
-        }
-        return true;
       }
       return false;
+    })
+    ->map(function(&$ats){
+      return $ats->sortByDesc('modified_at')->values();
     });
-      
-    //TODO: ordenar por fecha y modified_at
-    return $actividades_tareas->sortByDesc('modified_at')->groupBy('numero');
+    
+    return $actividades_tareas;
   }
   
   private function generarTareas($act){
