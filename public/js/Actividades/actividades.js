@@ -1,6 +1,7 @@
 import "/js/Components/inputFecha.js";
 import {AUX} from "/js/Components/AUX.js";
 import "/js/Components/tabs.js";
+import "/js/Components/modalEliminar.js";
 
 $(function(){ $('[data-js-actividades]').each(function(){
   const $actividades = $(this);
@@ -208,17 +209,20 @@ $(function(){ $('[data-js-actividades]').each(function(){
     });
     
     a.find('[data-js-eliminar]').click(function(){
-      const numero = a.data('datos')?.numero;
-      if(numero === undefined){
-        return a.remove();
-      }
-      AUX.DELETE(
-        '/actividades/borrar/'+numero,
-        {},
-        function(data){
-          $actividades.trigger('borro_actividad');
-        },
-      );
+      $('[data-js-modal-eliminar]').trigger('mostrar_para_eliminar',[function(){
+        const numero = a.data('datos')?.numero;
+        if(numero === undefined){
+          return a.remove();
+        }
+        AUX.DELETE(
+          '/actividades/borrar/'+numero,
+          {},
+          function(data){
+            $actividades.trigger('borro_actividad');
+            $('[data-js-modal-eliminar]').modal('hide');
+          },
+        );
+      }]);
     });
     
     a.find('[data-js-generar-tareas-toggle]').change(function(){

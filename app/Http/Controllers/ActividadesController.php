@@ -299,10 +299,9 @@ class ActividadesController extends Controller
       }
       
       //Guardo lo modificado
-      $at['id_actividad_tarea'] = count($actividades_tareas);
-      $actividades_tareas[$at['id_actividad_tarea']] = $at;
+      $this->guardarActividadTarea($actividades_tareas,$at);
       if(!empty($at_anterior))
-        $actividades_tareas[$at_anterior['id_actividad_tarea']] = $at_anterior;
+        $this->guardarActividadTarea($actividades_tareas,$at_anterior);
         
       if(is_null($at['parent'])){//Generar tareas para las actividades
         $tareas_nuevas = collect($this->generarTareas($at))
@@ -313,59 +312,49 @@ class ActividadesController extends Controller
         })
         ->sortByDesc('fecha');
         
-        {//Simplemente borro las que no estan sucias
-          $not_dirty = $tareas_bd->filter(function(&$t){
-            return !($t['dirty'] ?? false);
-          });
-          foreach($not_dirty as &$ot){
-            $ot['deleted_at'] = $at['modified_at'];
-            $actividades_tareas[$ot['id_actividad_tarea']] = $ot;
-          }
-        }
-        
         $fechas_movidas = [];
-        {//Las que estan sucias trato de moverlas a alguna de las neuvas fechas
-          $dirty = $tareas_bd->filter(function(&$t){
-            return ($t['dirty'] ?? false);
-          });
-          foreach($dirty as &$ot){
-            $closestidx = $this->matchearTarea($ot['fecha'],$tareas_nuevas,$fechas_movidas);
-            //No encontro, lo "descuelgo", pasandolo a actividad.
-            if(is_null($closestidx)){
-              $ot['parent_original'] = $ot['parent'];
-              $ot['parent'] = null;
-              $actividades_tareas[$ot['id_actividad_tarea']] = $ot;
-              continue;
+        //Las que estan sucias trato de moverlas a alguna de las nuevas fechas
+        foreach($tareas_bd as $t){
+          if($t['dirty'] ?? false){
+            $closestidx = $this->matchearTarea($t['fecha'],$tareas_nuevas,$fechas_movidas);
+            
+            if(is_null($closestidx)){//No encontro, lo "descuelgo", pasandolo a actividad.
+              $ret = $this->descolgarTarea($t,$usuario->id_usuario,$at['modified_at']);
+              $tborrado = $ret[0];$tdescolgado = $ret[1];
+              $this->guardarActividadTarea($actividades_tareas,$tborrado);
+              $this->guardarActividadTarea($actividades_tareas,$tdescolgado);
             }
-            
-            //Encontro, creo una tarea nueva con esa fecha pero todos los datos iguales
-            $nt = unserialize(serialize($ot));
-            
-            $ot['deleted_at'] = $at['modified_at'];
-            $actividades_tareas[$ot['id_actividad_tarea']] = $ot;
-            
-            $nt['fecha'] = $tareas_nuevas[$closestidx]['fecha'];
-            $nt['modified_at'] = $tareas_nuevas[$closestidx]['modified_at'];
-            $nt['modified_by'] = $tareas_nuevas[$closestidx]['modified_by'];
-            $nt['id_actividad_tarea'] = count($actividades_tareas);
-            $actividades_tareas->push($nt);
-            
-            $fechas_movidas[$tareas_nuevas[$closestidx]['fecha']] = true;
+            else{//Encontro, creo una tarea nueva con esa fecha pero todos los datos iguales
+              $tborrado = $this->borrarTarea($t,$usuario->id_usuario,$at['modified_at']);
+              $this->guardarActividadTarea($actividades_tareas,$tborrado);
+              
+              $closest = $tareas_nuevas[$closestidx];
+              $t['id_actividad_tarea'] = null;
+              $t['fecha']       = $closest['fecha'];
+              $t['modified_at'] = $closest['modified_at'];
+              $t['modified_by'] = $closest['modified_by'];
+              $this->guardarActividadTarea($actividades_tareas,$t);
+              
+              $fechas_movidas[$t['fecha']] = true;
+            }
+          }
+          else{//Esta sin tocar, simplemente la borro para insertarle una tarea nueva correcta
+            $tborrado = $this->borrarTarea($t,$usuario->id_usuario,$at['modified_at']);
+            $this->guardarActividadTarea($actividades_tareas,$tborrado);
           }
         }
-        
+      
         //Para tareas nuevas que antes no estaban
         foreach($tareas_nuevas as $nt){
           //Y las fecha no fue ocupada
           if(($fechas_movidas[$nt['fecha']] ?? false))
             continue;
           //Le creo una tarea           
-          $nt['id_actividad_tarea'] = count($actividades_tareas);
           $nt['numero'] = $this->generarNumeroActividad($actividades_tareas);
-          $actividades_tareas->push($nt);
+          $this->guardarActividadTarea($actividades_tareas,$nt);
         }
       }
-      
+        
       $this->SET_BD($actividades_tareas);
       
       return $at;
@@ -388,15 +377,62 @@ class ActividadesController extends Controller
   public function borrar(Request $request,int $numero){
     $actividades_tareas = $this->GET_BD();
     
-    foreach($actividades_tareas as $idx => &$at){
-      if($at['numero'] == $numero && is_null($at['deleted_at'])){
-        $at['deleted_at'] = (new DateTime())->format('Y-m-d H:i:s');
-        break;
+    $actividad = $actividades_tareas
+    ->where('numero',$numero)
+    ->where('parent',null)
+    ->where('deleted_at',null)
+    ->first();
+    
+    if(is_null($actividad)) return 0;
+    
+    $timestamp = (new DateTime())->format('Y-m-d H:i:s');    
+    $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+    
+    $actividad['deleted_at'] = $timestamp;
+    $actividad['deleted_by'] = $id_usuario;
+    $actividades_tareas[$actividad['id_actividad_tarea']] = $actividad;
+    
+    $tareas = $actividades_tareas->where('parent',$numero)
+    ->where('deleted_at',null);
+    foreach($tareas as $t){
+      if($t['dirty'] ?? false){
+        $ret = $this->descolgarTarea($t,$id_usuario,$timestamp);
+        $tborrado = $ret[0];$tdescolgado = $ret[1];
+        $this->guardarActividadTarea($actividades_tareas,$tborrado);
+        $this->guardarActividadTarea($actividades_tareas,$tdescolgado);
+      }
+      else{
+        $tborrado = $this->borrarTarea($t,$id_usuario,$timestamp);
+        $this->guardarActividadTarea($actividades_tareas,$tborrado);
       }
     }
     
     $this->SET_BD($actividades_tareas);
-    return $actividades_tareas;
+    return 1;
+  }
+  
+  private function descolgarTarea(&$t,$id_usuario,$timestamp){
+    $tborrado = $this->borrarTarea($t,$id_usuario,$timestamp);
+    $tdescolgado = unserialize(serialize($t));//@HACK: hace falta clonar?
+    $tdescolgado['modified_at'] = $timestamp;
+    $tdescolgado['parent_original'] = $t['parent'];
+    $tdescolgado['parent'] = null;
+    $tdescolgado['id_actividad_tarea'] = null;
+    return [$tborrado,$tdescolgado];
+  }
+  
+  private function borrarTarea($t,$id_usuario,$timestamp,$clonar = true){
+    $clonedt = unserialize(serialize($t));//@HACK: hace falta clonar?
+    $clonedt['deleted_at'] = $timestamp;
+    $clonedt['deleted_by'] = $id_usuario;
+    return $clonedt;
+  }
+  
+  private function guardarActividadTarea(&$actividades_tareas,$at){
+    if(is_null($at['id_actividad_tarea'] ?? null)){
+      $at['id_actividad_tarea'] = count($actividades_tareas);
+    }
+    $actividades_tareas[$at['id_actividad_tarea']] = $at;
   }
   
   public function archivo(Request $request,int $nro_ticket,int $nro_archivo){

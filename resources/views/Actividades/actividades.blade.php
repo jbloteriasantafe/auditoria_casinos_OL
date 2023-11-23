@@ -252,3 +252,6 @@
     </div>
   </div>
 </div>
+
+@component('Components/modalEliminar')
+@endcomponent
