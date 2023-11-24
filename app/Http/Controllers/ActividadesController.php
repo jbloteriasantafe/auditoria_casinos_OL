@@ -125,20 +125,27 @@ class ActividadesController extends Controller
   }
   
   private function generarTareas($act){
-    $es_numero = function($i){return $i == intval($i);};
     $tareas = [];
     
-    if(empty($act['hasta']) || empty($act['repetir']))
+    if(empty($act['hasta']) || empty($act['tipo_repeticion']) || empty($act['cada_cuanto']))
       return $tareas;
     
     for($f=$act['fecha'];$f<=$act['hasta'];$f=date('Y-m-d',strtotime($f.' +1 day'))){
       //No genero para la misma fecha
       if($f == $act['fecha']) continue;
-            
-      $diario  = $act['repetir'] == 'd';
-      $semanal = $act['repetir'] == 'w' && ($this->diff_dates_days($f,$act['fecha']) % 7) == 0;
-      $mensual = $act['repetir'] == 'm' && $es_numero($this->diff_dates_logical_months($f,$act['fecha']));
-      $crear_tarea = $diario || $semanal || $mensual;
+         
+      $crear_tarea = false;
+      if($act['tipo_repeticion'] == 'd'){
+        $diff = $this->diff_dates_days($f,$act['fecha']);
+        $crear_tarea = $diff > 0 && ($diff % $act['cada_cuanto'])==0;
+      }
+      else if ($act['tipo_repeticion'] == 'm'){
+        $diff = $this->diff_dates_logical_months($f,$act['fecha']);
+        $crear_tarea = $diff > 0 && ($diff-floor($diff))==0 && ($diff % $act['cada_cuanto'])==0;
+      }
+      else{
+        throw new \Exception("Tipo de repeticion {$act['tipo_repeticion']} no soportada");
+      }
       
       if(!$crear_tarea) continue;
       
@@ -152,6 +159,7 @@ class ActividadesController extends Controller
       
       $tareas[] = $t;
     }
+    
     return $tareas;
   }
   
@@ -179,8 +187,9 @@ class ActividadesController extends Controller
       'fecha' => 'required|date',
       'estado' => 'required|string',
       'generar_tareas' => 'nullable',
-      'repetir'  => 'required_with:es_tarea|nullable|string',
-      'hasta'    => 'required_with:es_tarea|nullable|date',
+      'cada_cuanto' => 'required_with:generar_tareas|nullable|integer|min:0',
+      'tipo_repeticion' => 'required_with:generar_tareas|nullable|string|in:d,m',
+      'hasta'    => 'required_with:generar_tareas|nullable|date',
       'contenido' => 'nullable|string',
       'adjuntos_viejos' => 'nullable|array', 
       'adjuntos_viejos.*' => 'nullable|integer',
@@ -222,7 +231,7 @@ class ActividadesController extends Controller
           if(is_null($at['parent'] ?? null)){//Es actividad
             $f_sobreescribir($at,$Rall,$attrs_actividad);
             
-            $attrs_generar_tareas = ['repetir','hasta'];
+            $attrs_generar_tareas = ['cada_cuanto','tipo_repeticion','hasta'];
             $f_sobreescribir($at,[],$attrs_generar_tareas);
             if(($Rall['generar_tareas'] ?? false)){
               $f_sobreescribir($at,$at_anterior,$attrs_generar_tareas);

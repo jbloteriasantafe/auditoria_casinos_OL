@@ -168,24 +168,29 @@
         </div>
       </div>
       @if($es_actividad)
-      <div class="row solo_ver_expandido">
-        <div class="col-md-6">
-          <span>Generar tareas</span>
-          <input type="checkbox" name="generar_tareas" data-js-generar-tareas-toggle data-js-ver="creando,editando,visualizando,historial" data-js-habilitar="creando,editando">
-          <select class="form-control" name="repetir" data-js-tipo="tarea" style="display: none;" data-js-habilitar='creando,editando'>
-            <option value="" default>- Seleccionar -</option>
-            <option value="d">Cada día</option>
-            <option value="w">Cada semana</option>
-            <option value="m">Cada mes</option>
-          </select>
-        </div>
-        <div class="col-md-6" data-js-tipo="tarea" style="display: none;">
-          Hasta
-          @component('Components/inputFecha',[
-            'attrs' => "name='hasta'",
-            'attrs_dtp' => "data-js-habilitar='creando,editando'"
-          ])
-          @endcomponent
+      <div class="solo_ver_expandido">
+        <span>Generar tareas</span>
+        <input type="checkbox" name="generar_tareas" data-js-generar-tareas-toggle data-js-ver="creando,editando,visualizando,historial" data-js-habilitar="creando,editando">
+        <div class="col-md-12" style="display: flex;" style="display: none;" data-js-tipo="tarea">
+          <div style="flex: 1;">
+            <span>Cada: </span>
+            <div style="display: flex;">
+              <input class="form-control" data-js-habilitar='creando,editando' name="cada_cuanto">
+              <select class="form-control" name="tipo_repeticion" data-js-habilitar='creando,editando'>
+                <option value="" default>- Seleccionar -</option>
+                <option value="d">Días</option>
+                <option value="m">Meses</option>
+              </select>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <span>Hasta: </span>
+            @component('Components/inputFecha',[
+              'attrs' => "name='hasta'",
+              'attrs_dtp' => "data-js-habilitar='creando,editando'"
+            ])
+            @endcomponent
+          </div>
         </div>
       </div>
       @endif
