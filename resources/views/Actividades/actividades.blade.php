@@ -258,5 +258,5 @@
   </div>
 </div>
 
-@component('Components/modalEliminar')
+@component('Components/modalEliminar',['elemento_a_eliminar' => 'la actividad'])
 @endcomponent

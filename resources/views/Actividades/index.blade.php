@@ -16,6 +16,11 @@
           @component('Actividades.actividades',compact('casinos','usuario'))
           @endcomponent
         </div>
+        <div class="panel-body" style="height: 2em">
+          <input data-js-cambio-mostrar-sin-completar 
+            type="checkbox" value="off">
+          <span>Mostrar sin completar</span>
+        </div>
       </div>
     </div>
   </div>

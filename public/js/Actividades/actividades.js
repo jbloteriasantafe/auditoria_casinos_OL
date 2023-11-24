@@ -212,7 +212,8 @@ $(function(){ $('[data-js-actividades]').each(function(){
       $('[data-js-modal-eliminar]').trigger('mostrar_para_eliminar',[function(){
         const numero = a.data('datos')?.numero;
         if(numero === undefined){
-          return a.remove();
+          a.remove()
+          return $('[data-js-modal-eliminar]').modal('hide');
         }
         AUX.DELETE(
           '/actividades/borrar/'+numero,

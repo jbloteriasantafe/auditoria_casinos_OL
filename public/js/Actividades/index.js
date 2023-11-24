@@ -3,6 +3,12 @@ import "./calendario.js";
 
 $(function(){
   $('.tituloSeccionPantalla').text('Actividades');
+  
+  $('[data-js-cambio-mostrar-sin-completar]').change(function(e){
+    const mostrar_sin_completar = $(this).prop('checked');
+    $('[data-js-calendario]').trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
+  }).change();
+  
   $('[data-js-calendario]').on('recibio_actividades',function(e,actividades){
     $('[data-js-actividades]').trigger('mostrar_actividades',[actividades]);
   });

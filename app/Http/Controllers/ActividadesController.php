@@ -105,14 +105,28 @@ class ActividadesController extends Controller
     ], [])
     ->validate();
     
+    $estados_sin_completar = [
+      'ABIERTO' => true,
+      'ESPERANDO RESPUESTA' => true
+    ];
+    
     $user_cache = [];//para evitar golpear tanto la bd
     $actividades_tareas = $this->GET_BD()
     ->sortBy('fecha')
     ->groupBy('numero')
-    ->filter(function(&$ats) use (&$request){
+    ->filter(function(&$ats) use (&$request,$estados_sin_completar){
       foreach($ats as $at){
         if(is_null($at['deleted_at'])){
-          return $at['fecha'] >= $request->desde && $at['fecha'] <= $request->hasta;
+          if($request->mostrar_sin_completar ?? false){
+            return $at['fecha'] <= $request->hasta 
+            && (//Si esta sin completar o cae dentro de la ventana
+              ($estados_sin_completar[$at['estado']] ?? false)
+              || $at['fecha'] >= $request->desde
+            );
+          }
+          else{
+            return $at['fecha'] >= $request->desde && $at['fecha'] <= $request->hasta;
+          }
         }
       }
       return false;

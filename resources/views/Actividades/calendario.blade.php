@@ -17,6 +17,7 @@
   }
 </style>
 @endcomponent
+
 <div id="{{uniqid()}}" class="calendario" data-js-calendario>
   <div data-js-inner-calendario></div>
   <i class="fa fa-spinner fa-spin"></i>

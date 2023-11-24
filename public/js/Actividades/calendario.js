@@ -4,6 +4,15 @@ $(function(){ $('[data-js-calendario]').each(function(){
   const $calendario = $(this);
   const $icalendario = $calendario.find('[data-js-inner-calendario]');
   
+  let mostrar_sin_completar = null;
+  $calendario.on('set_mostrar_sin_completar',function(e,val){
+    const evitar_primera_busqueda = mostrar_sin_completar === null;
+    mostrar_sin_completar = val;
+    if(!evitar_primera_busqueda){
+      $calendario.trigger('actualizar_eventos');
+    }
+  });
+  
   function ISOString(f){
     return f.toISOString().split('T')[0];
   }
@@ -98,8 +107,11 @@ $(function(){ $('[data-js-calendario]').each(function(){
 
     AUX.GET(
       '/actividades/buscar',
-      {desde: desde,hasta: hasta},
+      {desde: desde,hasta: hasta,mostrar_sin_completar: mostrar_sin_completar+0},
       function(actividades){
+        const m_desde = moment(desde);
+        const m_hasta = moment(hasta);
+        
         Object.keys(actividades).forEach(function(numero){
           const aux = actividades[numero].filter(function(a){
             return !a.deleted_at;
@@ -108,19 +120,22 @@ $(function(){ $('[data-js-calendario]').each(function(){
           if(aux.length == 0) return;
           const a = aux[0];
                       
-          eventos.push({
-            title: a.titulo,
-            start: moment(a.fecha),
-            numero: numero,
-            fecha: a.fecha,
-            es_tarea: a.parent !== null,
-            finalizado: ['HECHO','CERRADO SIN SOLUCIÓN','CERRADO'].includes(a.estado),
-            backgroundColor: a.color_fondo ?? 'green',
-            textColor: a.color_texto ?? 'black',
-            borderColor: a.color_borde ?? 'green',
-          });
-          
           actividades_visibles[numero] =  actividades[numero];
+          
+          const m_fecha = moment(a.fecha);
+          if(m_fecha >= m_desde && m_fecha <= m_hasta){         
+            eventos.push({
+              title: a.titulo,
+              start: m_fecha,
+              numero: numero,
+              fecha: a.fecha,
+              es_tarea: a.parent !== null,
+              finalizado: ['HECHO','CERRADO SIN SOLUCIÓN','CERRADO'].includes(a.estado),
+              backgroundColor: a.color_fondo ?? 'green',
+              textColor: a.color_texto ?? 'black',
+              borderColor: a.color_borde ?? 'green',
+            });
+          }
         });
         
         event_source.setRawEventDefs(eventos);
