@@ -6,6 +6,11 @@ import "/js/Components/modalEliminar.js";
 $(function(){ $('[data-js-actividades]').each(function(){
   const $actividades = $(this);
   
+  $actividades.find('[data-js-cambio-mostrar-sin-completar]').change(function(e){
+    const mostrar_sin_completar = $(this).prop('checked');
+    $actividades.trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
+  }).change();
+  
   function crearActividad(estado,expandido,datos,historial){
     const es_actividad = (datos.parent === null)? 1 : 0;
     const a = $actividades.find(`[data-js-molde-actividad][data-es-actividad="${es_actividad}"]`).clone()
@@ -34,25 +39,20 @@ $(function(){ $('[data-js-actividades]').each(function(){
     return formData;
   }
 
+  let fecha = (new Date()).toISOString().split('T')[0];
+  let hasta = undefined;
+  
   $actividades.find('[data-js-agregar]').click(function(e){
     crearActividad('creando',true,{
       parent: null,
-      fecha: $('[data-js-fecha-seleccionada]').attr('data-fecha'),
-      hasta: $('[data-js-fecha-seleccionada]').attr('data-hasta') ?? undefined
+      fecha: fecha,
+      hasta: hasta
     }, []);
   });
-  
-  $actividades.on('setear_fechas',function(e,desde,hasta){
-    if(desde == hasta){
-      $actividades.find('[data-js-fecha-seleccionada]').val(desde)
-      .attr('data-fecha',desde)
-      .removeAttr('data-hasta');
-    }
-    else{
-      $actividades.find('[data-js-fecha-seleccionada]').val(`${desde}⭢${hasta}`)
-      .attr('data-fecha',desde)
-      .attr('data-hasta',hasta);
-    }
+
+  $actividades.on('setear_fechas',function(e,desde,hasta2){
+    fecha = desde;
+    hasta = (desde == hasta2)? undefined : hasta2;
   });
   
   function obtenerActividad(numero){

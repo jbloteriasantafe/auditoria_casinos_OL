@@ -11,17 +11,21 @@
     height: 100%;
   }
   
-  .actividades .botones_actividades {
-    height: 3.5em;
+  .actividades .mostrar_sin_completar {
+    height: 2em;
+  }
+  .actividades .agregar_actividad {
+    height: 3em;
   }
   
   .actividades .listado {
     overflow-y: scroll;
-    height: calc(100% - 3.5em);
+    height: calc(100% - 2em - 3em);
   }
   
   .actividades .actividad {
     padding: 1vh 1vh;
+    margin: 1vh 0vh;
     box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.35);
   }
   
@@ -104,17 +108,16 @@
   @slot('tab_contents')
   @foreach([0,1] as $es_actividad)
   <div data-js-tab-content-actividad="{{$es_actividad}}" style="width: 100%;height: 100%;">
-    @if($es_actividad)
-    <div class="botones_actividades col-md-12">
-      <button type="button" data-js-agregar><i class="fa fa-fw fa-plus"></i></button>
-      <div style="float: right;">
-        <input class="form-control" data-js-fecha-seleccionada value="{{date('Y-m-d')}}" data-fecha="{{date('Y-m-d')}}" disabled> 
-      </div>
-    </div>
-    @endif
     <div class="listado col-md-12" data-js-listado-son-actividades="{{$es_actividad}}" class="row">
       <i class="fa fa-spinner fa-spin"></i>
     </div>
+    @if($es_actividad)
+    <div class="col-md-12 mostrar_sin_completar">
+      <input data-js-cambio-mostrar-sin-completar type="checkbox" value="off">
+      <span>Mostrar sin completar</span>
+    </div>
+    <button type="button" class="btn btn-info col-md-12 agregar_actividad" data-js-agregar><i class="fa fa-fw fa-plus"></i>Nuevo</button>
+    @endif
   </div>
   @endforeach
   @endslot
