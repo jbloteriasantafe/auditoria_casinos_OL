@@ -204,6 +204,7 @@ class ActividadesController extends Controller
       'cada_cuanto' => 'required_with:generar_tareas|nullable|integer|min:0',
       'tipo_repeticion' => 'required_with:generar_tareas|nullable|string|in:d,m',
       'hasta'    => 'required_with:generar_tareas|nullable|date',
+      'cambiar_tareas' => 'required_with:generar_tareas|nullable|bool',
       'contenido' => 'nullable|string',
       'adjuntos_viejos' => 'nullable|array', 
       'adjuntos_viejos.*' => 'nullable|integer',
@@ -226,6 +227,9 @@ class ActividadesController extends Controller
     
     return DB::transaction(function() use (&$R,&$actividades_tareas,&$at_anterior){
       $at = [];
+      $Rall = $R->all();
+      $es_actividad = empty($at_anterior) || is_null($at_anterior['parent']);
+      $cambiar_tareas = $es_actividad && ($Rall['cambiar_tareas'] ?? false);
       {//Manejo de atributos;
         $f_sobreescribir = function(&$at,$datos,$attrs){
           foreach($attrs as $a) $at[$a] = $datos[$a] ?? $at[$a] ?? null;
@@ -233,7 +237,6 @@ class ActividadesController extends Controller
         
         $f_sobreescribir($at,$at_anterior,['numero','parent','created_by','created_at']);
         
-        $Rall = $R->all();
         {
           $attrs_actividad_y_tarea = ['estado','contenido','color_fondo','color_texto','color_borde'];
           $f_sobreescribir($at,$at_anterior,$attrs_actividad_y_tarea);
@@ -242,13 +245,12 @@ class ActividadesController extends Controller
         {
           $attrs_actividad = ['fecha','titulo'];
           $f_sobreescribir($at,$at_anterior,$attrs_actividad);
-          if(is_null($at['parent'] ?? null)){//Es actividad
+          if($es_actividad){
             $f_sobreescribir($at,$Rall,$attrs_actividad);
             
-            $attrs_generar_tareas = ['cada_cuanto','tipo_repeticion','hasta'];
-            $f_sobreescribir($at,[],$attrs_generar_tareas);
-            if(($Rall['generar_tareas'] ?? false)){
-              $f_sobreescribir($at,$at_anterior,$attrs_generar_tareas);
+            $attrs_generar_tareas = ['cada_cuanto','tipo_repeticion','hasta'];  
+            $f_sobreescribir($at,$at_anterior,$attrs_generar_tareas);
+            if($cambiar_tareas){
               $f_sobreescribir($at,$Rall,$attrs_generar_tareas);
             }
           }
@@ -318,7 +320,7 @@ class ActividadesController extends Controller
       if(!empty($at_anterior))
         $this->guardarActividadTarea($actividades_tareas,$at_anterior);
         
-      if(is_null($at['parent'])){//Generar tareas para las actividades
+      if($cambiar_tareas){//Generar tareas para las actividades
         $tareas_nuevas = collect($this->generarTareas($at))
         ->sortByDesc('fecha');
         

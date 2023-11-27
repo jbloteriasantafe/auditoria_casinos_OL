@@ -89,6 +89,11 @@
     color: white;
   }
   
+  .actividad .guardar_tareas {
+    background-color: #6dc7be !important;
+    color: white;
+  }
+  
   .actividades .tabs {
     margin-bottom: 1% !important;
   }
@@ -214,7 +219,10 @@
       <div class="row solo_ver_expandido">
         <br>
         <div class="col-md-12">
-          <button type="button" class="btn guardar" data-js-guardar data-js-ver="creando,editando">GUARDAR</button>
+          <button type="button" class="btn guardar" data-js-guardar data-cambiar_tareas="0" data-js-ver="creando,editando">GUARDAR</button>
+          @if($es_actividad)
+          <button data-js-tipo="tarea" type="button" class="btn guardar_tareas" data-js-guardar data-cambiar_tareas="1" data-js-ver="creando,editando">GUARDAR Y CAMBIAR TAREAS</button>
+          @endif
           <button type="button" class="btn" data-js-adjuntar data-js-ver="creando,editando">ADJUNTAR</button>
           <button type="button" class="btn" data-js-cancelar data-js-ver="editando">CANCELAR</button>
           <span>Creado: </span>

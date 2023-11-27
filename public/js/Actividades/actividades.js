@@ -170,7 +170,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
       $(this).val(val);
     });
         
-    a.find('[data-js-guardar]').click(function(){
+    a.find('[data-js-guardar]').click(function(e){
       const formData = objToFormData(AUX.form_entries(a[0]));
       if(a.data('datos')?.numero !== undefined)
         formData.append('numero',a.data('datos')?.numero);
@@ -181,6 +181,8 @@ $(function(){ $('[data-js-actividades]').each(function(){
       a.find('[data-js-archivo]:not([data-nro-archivo])').each(function(){
         formData.append('adjuntos[]',$(this).data('file'),$(this).data('file').name);
       });
+      
+      formData.append('cambiar_tareas',$(this).attr('data-cambiar_tareas'));
       
       $.ajax({
         type: "POST",
@@ -199,7 +201,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
         }
       });
     });
-    
+      
     a.find('[data-js-editar]').click(function(){
       setearEstadoActividad(a,'editando',true);
     });
