@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 use App\Usuario;
+use App\Rol;
 use Validator;
 use Storage;
 use File;
@@ -91,7 +92,11 @@ class ActividadesController extends Controller
   public function index(Request $request){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $casinos = $usuario->casinos;
-    return view('Actividades.index',compact('usuario','casinos'));
+    $roles = $usuario->roles;
+    if($roles->where('descripcion','SUPERUSUARIO')->count() > 0){
+      $roles = Rol::all();
+    }
+    return view('Actividades.index',compact('usuario','casinos','roles'));
   }
   
   public function buscar(Request $request){
@@ -110,11 +115,15 @@ class ActividadesController extends Controller
       'ESPERANDO RESPUESTA' => true
     ];
     
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $roles = $usuario->roles->keyBy('id_rol');
+    $es_superusuario = $usuario->es_superusuario;
+        
     $user_cache = [];//para evitar golpear tanto la bd
     $actividades_tareas = $this->GET_BD()
     ->sortBy('fecha')
     ->groupBy('numero')
-    ->filter(function(&$ats) use (&$request,$estados_sin_completar){
+    ->filter(function(&$ats) use (&$request,$estados_sin_completar,$roles,$usuario){
       foreach($ats as $at){
         if(is_null($at['deleted_at'])){
           if($request->mostrar_sin_completar ?? false){
@@ -126,6 +135,19 @@ class ActividadesController extends Controller
           }
           else{
             return $at['fecha'] >= $request->desde && $at['fecha'] <= $request->hasta;
+          }
+        }
+      }
+      return false;
+    })
+    ->filter(function(&$ats) use ($roles,$es_superusuario){
+      if($es_superusuario){
+        return true;
+      }
+      foreach($ats->where('deleted_at',null) as $at){
+        foreach(($at['roles'] ?? []) as $r){
+          if(!is_null($roles[intval($r)] ?? null)){
+            return true;
           }
         }
       }
@@ -195,6 +217,8 @@ class ActividadesController extends Controller
     $actividades_tareas = $this->GET_BD();
     $at_anterior = [];
     
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
     Validator::make($R->all(), [
       'numero' => 'nullable|integer',//si es nulo esta creando una actividad
       'titulo' => 'required|string',
@@ -208,8 +232,10 @@ class ActividadesController extends Controller
       'contenido' => 'nullable|string',
       'adjuntos_viejos' => 'nullable|array', 
       'adjuntos_viejos.*' => 'nullable|integer',
+      'roles' => 'required|array|min:1',
+      'roles.*' => 'integer|exists:rol,id_rol'
     ], ['required' => 'El valor es requerido','required_with' => 'El valor es requerido'], [])
-    ->after(function ($validator) use (&$actividades_tareas,&$at_anterior){
+    ->after(function ($validator) use (&$actividades_tareas,&$at_anterior,&$usuario){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       if(isset($data['numero'])){
@@ -223,9 +249,22 @@ class ActividadesController extends Controller
           return $validator->errors()->add('numero','No existe la actividad');
         }
       }
+      if(!$usuario->es_superusuario &&
+        ( 
+          $usuario->roles()->whereIn('rol.id_rol',$data['roles'])->count() 
+          != 
+          count($data['roles'])
+        )
+      ){
+        return $validator->errors()->add('roles','No tiene los privilegios');
+      }
     })->validate();
     
-    return DB::transaction(function() use (&$R,&$actividades_tareas,&$at_anterior){
+    
+    return DB::transaction(function() use (&$R,&$actividades_tareas,&$at_anterior,&$usuario){
+      $roles = $usuario->roles->keyBy('id_rol');
+      $es_superusuario = $usuario->es_superusuario;
+      
       $at = [];
       $Rall = $R->all();
       $es_actividad = empty($at_anterior) || is_null($at_anterior['parent']);
@@ -248,6 +287,22 @@ class ActividadesController extends Controller
           if($es_actividad){
             $f_sobreescribir($at,$Rall,$attrs_actividad);
             
+            {
+              $strval = function($i){return $i.'';};
+              $roles_anteriores = collect($at_anterior['roles'] ?? [])->map($strval);
+              //Los enviados si o si le pertenecen al usuario porque son validados
+              $roles_enviados = collect($Rall['roles'] ?? [])->map($strval);
+              
+              $roles_a_mantener = collect([]);
+              if(!$es_superusuario){
+                $roles_usuario = $roles->keys()->map($strval);
+                $roles_a_mantener = $roles_anteriores->diff($roles_usuario);
+              }
+              
+              $at['roles'] = $roles_enviados
+              ->merge($roles_a_mantener)->unique()->values();
+            }
+            
             $attrs_generar_tareas = ['cada_cuanto','tipo_repeticion','hasta'];  
             $f_sobreescribir($at,$at_anterior,$attrs_generar_tareas);
             if($cambiar_tareas){
@@ -255,11 +310,11 @@ class ActividadesController extends Controller
             }
           }
           else{
+            $at['roles'] = $at_anterior['roles'] ?? [];
             $at['dirty'] = true;//Modifico una tarea @HACK: chequear atributos
           }
         }
         
-        $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         {
           $attrs_superusuario = ['tags_api'];
           $f_sobreescribir($at,$at_anterior,$attrs_superusuario);

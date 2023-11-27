@@ -46,7 +46,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
     crearActividad('creando',true,{
       parent: null,
       fecha: fecha,
-      hasta: hasta
+      hasta: hasta,
     }, []);
   });
 
@@ -124,6 +124,12 @@ $(function(){ $('[data-js-actividades]').each(function(){
         return archivo_dom.obj;
       }));
     }
+    if(datos?.numero){
+      const roles = datos?.roles ?? [];
+      a.find('[name="roles[]"]').each(function(_,o){
+        $(this).prop('checked',roles.includes($(this).val()));
+      });
+    }
     
     historial = historial ?? a.data('historial') ?? [];
     
@@ -171,7 +177,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
     });
         
     a.find('[data-js-guardar]').click(function(e){
-      const formData = objToFormData(AUX.form_entries(a[0]));
+      const formData = new FormData(a[0]);
       if(a.data('datos')?.numero !== undefined)
         formData.append('numero',a.data('datos')?.numero);
       
@@ -183,7 +189,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
       });
       
       formData.append('cambiar_tareas',$(this).attr('data-cambiar_tareas'));
-      
+      ocultarErrorValidacion(a.find('[name]'));
       $.ajax({
         type: "POST",
         url: '/actividades/guardar',
@@ -197,7 +203,11 @@ $(function(){ $('[data-js-actividades]').each(function(){
         },
         error: function (data) {
           console.log(data);
-          AUX.mostrarErroresNames(a,data.responseJSON ?? {});
+          const json = data.responseJSON ?? {};
+          AUX.mostrarErroresNames(a,json);
+          if(json.roles){
+            mostrarErrorValidacion(a.find('[name="roles[]"]:first'),json.roles.join(', '),true);
+          }
         }
       });
     });
@@ -278,6 +288,14 @@ $(function(){ $('[data-js-actividades]').each(function(){
         
         reader.readAsBinaryString(file);
       }
+    });
+    
+    a.find('[data-js-click-evento]').on('click',function(e){
+      e.stopPropagation();
+      $(this).find('[data-js-recibir-click-evento]:not([readonly],[disabled])').trigger('click');
+    });
+    a.find('[data-js-recibir-click-evento]').on('click',function(e){
+      e.stopPropagation();
     });
     
     a.find('[name]').change();

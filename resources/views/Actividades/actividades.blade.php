@@ -97,6 +97,22 @@
   .actividades .tabs {
     margin-bottom: 1% !important;
   }
+  
+  .actividades .actividad ul.lista_roles {
+    list-style-type: none;
+    padding-left: 0;
+    user-select: none;
+  }
+  
+  .actividades .actividad ul.lista_roles li:hover {
+    cursor: pointer;
+    background: rgb(0,0,0,0.1);
+  }
+  
+  .actividades .actividad input[type="checkbox"][readonly],
+  .actividades .actividad input[type="checkbox"][disabled] {
+    filter: invert(15%);
+  }
 </style>
 @endcomponent
 
@@ -217,6 +233,47 @@
         </div>
       </div>
       <div class="row solo_ver_expandido">
+        <div style="display: flex;flex-wrap: wrap;" data-js-ver="visualizando,creando,editando,historial">
+          <div style="padding: 1% 1%;">
+            <span>Fondo</span>
+            <input name="color_fondo" type="color" data-js-habilitar="creando,editando" value="#008000">
+          </div>
+          <div style="padding: 1% 1%;">
+            <span>Texto</span>
+            <input name="color_texto" type="color" data-js-habilitar="creando,editando" value="#000000">
+          </div>
+          <div style="padding: 1% 1%;">
+            <span>Borde</span>
+            <input name="color_borde" type="color" data-js-habilitar="creando,editando" value="#008000">
+          </div>
+        </div>
+      </div>
+      @if($es_actividad)
+      <div class="row solo_ver_expandido">
+        <br>
+        <div class="col-md-12" data-js-ver="visualizando,creando,editando,historial">
+          <span>Visible por:</span>
+          <ul class="lista_roles">
+            @foreach($roles as $rol)
+            <li data-js-click-evento>
+              <input data-js-recibir-click-evento type="checkbox" value="{{$rol['id_rol']}}" name="roles[]" data-js-habilitar="creando,editando" checked>
+              <span>{{$rol['descripcion']}}</span>
+            </li>
+            @endforeach
+          </ul>
+        </div>
+      </div>
+      @if($usuario->es_superusuario)
+      <div class="row solo_ver_expandido">
+        <br>
+        <div class="col-md-12" data-js-ver="visualizando,creando,editando,historial">
+          <span>TAGS API</span>
+          <input class="form-control" name="tags_api" value="" data-js-habilitar="creando,editando">
+        </div>
+      </div>
+      @endif
+      @endif
+      <div class="row solo_ver_expandido">
         <br>
         <div class="col-md-12">
           <button type="button" class="btn guardar" data-js-guardar data-cambiar_tareas="0" data-js-ver="creando,editando">GUARDAR</button>
@@ -233,31 +290,6 @@
           <span name="modified_at">{{date('Y-m-d')}}</span>
         </div>
       </div>
-      <div class="row solo_ver_expandido">
-        <div style="display: flex;flex-wrap: wrap;" data-js-ver="visualizando,creando,editando,historial">
-          <div style="padding: 1% 1%;">
-            <span>Fondo</span>
-            <input name="color_fondo" type="color" data-js-habilitar="creando,editando" value="#008000">
-          </div>
-          <div style="padding: 1% 1%;">
-            <span>Texto</span>
-            <input name="color_texto" type="color" data-js-habilitar="creando,editando" value="#000000">
-          </div>
-          <div style="padding: 1% 1%;">
-            <span>Borde</span>
-            <input name="color_borde" type="color" data-js-habilitar="creando,editando" value="#008000">
-          </div>
-        </div>
-      </div>
-      @if($usuario->es_superusuario && $es_actividad)
-      <div class="row solo_ver_expandido">
-        <br>
-        <div class="col-md-12">
-          <span>TAGS API</span>
-          <input class="form-control" name="tags_api" value="">
-        </div>
-      </div>
-      @endif
       <input type="file" multiple data-js-selecciono-archivos style="position: absolute; top: -1000px; left: -1000px;visiblity: hidden;">
     </form>
     @endforeach

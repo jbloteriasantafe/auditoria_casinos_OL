@@ -13,7 +13,7 @@
     <div class="row">
       <div class="panel panel-default">
         <div class="panel-body actividades" style="height: 78vh;">
-          @component('Actividades.actividades',compact('casinos','usuario'))
+          @component('Actividades.actividades',compact('casinos','usuario','roles'))
           @endcomponent
         </div>
       </div>
