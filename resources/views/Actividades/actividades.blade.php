@@ -134,7 +134,7 @@
     </div>
     @if($es_actividad)
     <div class="col-md-12 mostrar_sin_completar">
-      <input data-js-cambio-mostrar-sin-completar type="checkbox" value="off">
+      <input data-js-cambio-mostrar-sin-completar type="checkbox" checked>
       <span>Mostrar sin completar</span>
     </div>
     <button type="button" class="btn btn-info col-md-12 agregar_actividad" data-js-agregar><i class="fa fa-fw fa-plus"></i>Nuevo</button>

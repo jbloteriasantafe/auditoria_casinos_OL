@@ -6,11 +6,8 @@ $(function(){ $('[data-js-calendario]').each(function(){
   
   let mostrar_sin_completar = null;
   $calendario.on('set_mostrar_sin_completar',function(e,val){
-    const evitar_primera_busqueda = mostrar_sin_completar === null;
     mostrar_sin_completar = val;
-    if(!evitar_primera_busqueda){
-      $calendario.trigger('actualizar_eventos');
-    }
+    $calendario.trigger('actualizar_eventos');
   });
   
   function ISOString(f){
@@ -88,6 +85,8 @@ $(function(){ $('[data-js-calendario]').each(function(){
   });
   
   function actualizar_eventos(){
+    if(mostrar_sin_completar === null) return;
+    
     const event_source = $icalendario.fullCalendar('getEventSourceById','eventos_bd');
     const view = $icalendario.fullCalendar('getView');
     

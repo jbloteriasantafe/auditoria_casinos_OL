@@ -1,12 +1,9 @@
-import "./actividades.js";
 import "./calendario.js";
+import "./actividades.js";
 
 $(function(){
   $('.tituloSeccionPantalla').text('Actividades');
   
-  $('[data-js-actividades]').on('set_mostrar_sin_completar',function(e,val){
-    $('[data-js-calendario]').trigger('set_mostrar_sin_completar',[val]);
-  });
   $('[data-js-calendario]').on('recibio_actividades',function(e,actividades){
     $('[data-js-actividades]').trigger('mostrar_actividades',[actividades]);
   });
@@ -22,4 +19,11 @@ $(function(){
   $('[data-js-actividades]').on('guardo_actividad borro_actividad cancelo_actividad',function(e){
     $('[data-js-calendario]').trigger('actualizar_eventos');
   });
+  
+  $('[data-js-actividades]').on('set_mostrar_sin_completar',function(e,mostrar_sin_completar){
+    $('[data-js-calendario]').trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
+  });
+  $('[data-js-actividades]').trigger('get_mostrar_sin_completar',[function(mostrar_sin_completar){
+    $('[data-js-calendario]').trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
+  }]);
 });

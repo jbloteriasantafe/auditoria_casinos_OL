@@ -261,10 +261,7 @@ class ActividadesController extends Controller
     })->validate();
     
     
-    return DB::transaction(function() use (&$R,&$actividades_tareas,&$at_anterior,&$usuario){
-      $roles = $usuario->roles->keyBy('id_rol');
-      $es_superusuario = $usuario->es_superusuario;
-      
+    return DB::transaction(function() use (&$R,&$actividades_tareas,&$at_anterior,&$usuario){     
       $at = [];
       $Rall = $R->all();
       $es_actividad = empty($at_anterior) || is_null($at_anterior['parent']);
@@ -294,8 +291,9 @@ class ActividadesController extends Controller
               $roles_enviados = collect($Rall['roles'] ?? [])->map($strval);
               
               $roles_a_mantener = collect([]);
-              if(!$es_superusuario){
-                $roles_usuario = $roles->keys()->map($strval);
+              if(!$usuario->es_superusuario){
+                $roles_usuario = $usuario->roles->pluck('id_rol')->unique()->values()
+                ->map($strval);
                 $roles_a_mantener = $roles_anteriores->diff($roles_usuario);
               }
               

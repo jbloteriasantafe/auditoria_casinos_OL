@@ -9,8 +9,13 @@ $(function(){ $('[data-js-actividades]').each(function(){
   $actividades.find('[data-js-cambio-mostrar-sin-completar]').change(function(e){
     const mostrar_sin_completar = $(this).prop('checked');
     $actividades.trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
-  }).change();
+  });
   
+  $actividades.on('get_mostrar_sin_completar',function(e,callback){
+    const mostrar_sin_completar = $actividades.find('[data-js-cambio-mostrar-sin-completar]').prop('checked');
+    callback(mostrar_sin_completar);
+  });
+    
   function crearActividad(estado,expandido,datos,historial){
     const es_actividad = (datos.parent === null)? 1 : 0;
     const a = $actividades.find(`[data-js-molde-actividad][data-es-actividad="${es_actividad}"]`).clone()
