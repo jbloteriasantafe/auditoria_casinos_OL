@@ -1,3 +1,14 @@
+@component('Components/include_guard',['nombre' => 'modal-eliminar'])
+<style>
+.modal-backdrop + .modal-backdrop {
+  opacity: 0;/*FIX doble pantalla negra al abrir el modal de eliminar dentro de otro modal*/
+}
+.modal-eliminar {
+  z-index: 2000 !important;/*Adelantar para que salga adelante de los demas modales*/
+}
+</style>
+@endcomponent
+
 @component('Components/modal',[
   'clases_modal' => 'modal-eliminar',
   'attrs_modal' => 'data-js-modal-eliminar',

@@ -153,8 +153,14 @@ class ActividadesController extends Controller
       }
       return false;
     })
-    ->map(function(&$ats){
-      return $ats->sortByDesc('modified_at')->values();
+    ->map(function(&$ats) use (&$user_cache){
+      return $ats->sortByDesc('modified_at')->map(function(&$at) use (&$user_cache){
+        $at['user_created'] = $user_cache[$at['created_by']] ?? Usuario::withTrashed()->find($at['created_by'])->nombre ?? 'null';
+        $at['user_modified'] = $user_cache[$at['modified_by']] ?? Usuario::withTrashed()->find($at['modified_by'])->nombre ?? 'null';
+        $user_cache[$at['created_by']] = $at['user_created'];
+        $user_cache[$at['modified_by']] = $at['user_modified'];
+        return $at;
+      })->values();
     });
     
     return $actividades_tareas;
