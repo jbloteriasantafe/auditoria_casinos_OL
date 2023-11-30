@@ -3,7 +3,7 @@ import {AUX} from "/js/Components/AUX.js";
 
 $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
   const at = $(this);
-  
+   
   const setearEstadoActividad = function(estado = null){
     const datos = at.data('datos') ?? {};
             
@@ -16,8 +16,6 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
         at.find(`span[name="${k}"]`).text(datos[k]);
       }
     });
-    
-    at.find(`[name="generar_tareas"]`).prop('checked',!!datos?.hasta).change();
     
     {
       const adjuntos = datos?.adjuntos ?? {};
@@ -61,11 +59,19 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
         $(o).attr('readonly',deshabilitar);
       }
     });
-        
+    
     at.find('[data-js-ver]').hide().filter(function(){
       const estados = ($(this).attr('data-js-ver') ?? '').split(',');
-      return estados.includes(estado);
+      const visible = estados.includes(estado);
+      $(this).attr('data-js-visible',visible);
+      return visible;
     }).show();
+    
+    at.find(`[name="generar_tareas"]`).prop('checked',!!datos?.hasta);
+    at.find('[data-js-cambio-esconder-guardar]').each(function(){
+      const val = $(this).is('[type="checkbox"]')? $(this).prop('checked') : $(this).val();
+      $(this).attr('data-valor-original',val);
+    }).eq(0).change();
   }
   
   at.on('mostrar',function(e,datos,historial,estado = 'visualizando'){
@@ -98,7 +104,7 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
       formData.append('adjuntos[]',$(this).data('file'),$(this).data('file').name);
     });
     
-    formData.append('cambiar_tareas',$(this).attr('data-cambiar_tareas'));
+    formData.append('generar_tareas',$(this).attr('data-generar_tareas'));
     ocultarErrorValidacion(at.find('[name]'));
     $.ajax({
       type: "POST",
@@ -146,11 +152,6 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
     }]);
   });
   
-  at.find('[data-js-generar-tareas-toggle]').change(function(){
-    const generar_tareas = $(this).prop('checked');
-    at.find('[data-js-tipo="tarea"]').toggle(generar_tareas);
-  });
-    
   at.find('[data-js-historial]').click(function(){
     if(at.attr('data-estado') == 'visualizando'){
       setearEstadoActividad('historial');
@@ -238,4 +239,28 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
       }
     };
   }
+  
+  at.find('[data-js-toggle-generar]').change(function(){
+    const checked = $(this).prop('checked');
+    at.find('[data-js-datos-generar]').toggle(checked);
+    if(!checked){
+      at.find('[data-js-datos-generar] [name]').each(function(){
+        $(this).val($(this).attr('data-valor-original'));
+      }).change();
+    }
+  });
+  
+  at.find('[data-js-cambio-esconder-guardar]').change(function(){
+    let todos_iguales = true;
+    at.find('[data-js-cambio-esconder-guardar]').each(function(){
+      const val = $(this).is('[type="checkbox"]')? ($(this).prop('checked')+'') : $(this).val();
+      todos_iguales = todos_iguales && (val == $(this).attr('data-valor-original'));
+    });
+    const mostrarObj = function(o,visible){
+      visible = visible;
+      o.toggle(visible);
+    };
+    mostrarObj(at.find('[data-js-guardar][data-generar_tareas="0"][data-js-visible="true"]'),todos_iguales);
+    mostrarObj(at.find('[data-js-guardar][data-generar_tareas="1"][data-js-visible="true"]'),!todos_iguales);
+  });
 }); });

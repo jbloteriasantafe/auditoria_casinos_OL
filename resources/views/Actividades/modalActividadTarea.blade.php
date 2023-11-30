@@ -1,7 +1,7 @@
 @component('Components/include_guard',['nombre' => 'modal-actividad-tarea'])
 <style>
   
-  .modal-actividad-tarea .actividad-tarea .botones button{
+  .modal-actividad-tarea .botones button{
     cursor: pointer;
     text-shadow: 0 0 0.4vmin white;
     padding: 0.4vmin 0.8vmin;
@@ -9,18 +9,18 @@
     float: left;
   }
   
-  .modal-actividad-tarea .actividad-tarea .botones button:hover {
+  .modal-actividad-tarea .botones button:hover {
     box-shadow: 0px 0px 0.35vmin blue;
   }
   
-  .modal-actividad-tarea .actividad-tarea .boton_editar {
+  .modal-actividad-tarea .boton_editar {
     background-color: #ffbc40;
   }
-  .modal-actividad-tarea .actividad-tarea .boton_borrar {
+  .modal-actividad-tarea .boton_borrar {
     background-color: #ef3e42;
     float: right !important;
   }
-  .modal-actividad-tarea .actividad-tarea .btn.activo {
+  .modal-actividad-tarea .btn.activo {
     mix-blend-mode: difference;
   }
   
@@ -29,34 +29,34 @@
     color: unset;
   }
   
-  .modal-actividad-tarea .actividad-tarea .guardar {
+  .modal-actividad-tarea .guardar {
     background-color: #6dc7be !important;
     color: white;
   }
   
-  .modal-actividad-tarea .actividad-tarea .guardar_tareas {
+  .modal-actividad-tarea .guardar_tareas {
     background-color: #6dc7be !important;
     color: white;
   }
   
-  .modal-actividad-tarea .actividad-tarea ul.lista_roles {
+  .modal-actividad-tarea ul.lista_roles {
     list-style-type: none;
     padding-left: 0;
     user-select: none;
   }
   
-  .modal-actividad-tarea .actividad-tarea ul.lista_roles li:hover {
+  .modal-actividad-tarea ul.lista_roles li:hover {
     cursor: pointer;
     background: rgb(0,0,0,0.1);
   }
   
-  .modal-actividad-tarea .actividad-tarea input[type="checkbox"][readonly],
-  .modal-actividad-tarea .actividad-tarea input[type="checkbox"][disabled] {
+  .modal-actividad-tarea input[type="checkbox"][readonly],
+  .modal-actividad-tarea input[type="checkbox"][disabled] {
     filter: invert(15%);
   }
   
-  .modal-actividad-tarea .actividad-tarea select[readonly],
-  .modal-actividad-tarea .actividad-tarea input[readonly]
+  .modal-actividad-tarea select[readonly],
+  .modal-actividad-tarea input[readonly]
   {/* FIX select sigue usable cuando esta en readonly */
     pointer-events: none;
   }
@@ -78,7 +78,7 @@
      N° <span name="numero">XXXXXXXXXXXX</span>
   @endslot
   @slot('cuerpo')
-  <form class="actividad-tarea expandido">  
+  <form class="expandido">  
     <div class="row">
       <div class="col-md-12 botones">
         @if($es_actividad)
@@ -124,13 +124,13 @@
     @if($es_actividad)
     <div>
       <span>Generar tareas</span>
-      <input type="checkbox" name="generar_tareas" data-js-generar-tareas-toggle data-js-ver="creando,editando,visualizando,historial" data-js-habilitar="creando,editando">
-      <div class="col-md-12" style="display: flex;" style="display: none;" data-js-tipo="tarea">
+      <input type="checkbox" name="generar_tareas" data-js-toggle-generar data-js-ver="creando,editando,visualizando,historial" data-js-habilitar="creando,editando" data-js-cambio-esconder-guardar>
+      <div class="col-md-12" style="display: flex;" style="display: none;" data-js-datos-generar>
         <div style="flex: 1;">
           <span>Cada: </span>
           <div style="display: flex;">
-            <input class="form-control" data-js-habilitar='creando,editando' name="cada_cuanto">
-            <select class="form-control" name="tipo_repeticion" data-js-habilitar='creando,editando'>
+            <input class="form-control" data-js-habilitar='creando,editando' name="cada_cuanto" data-js-cambio-esconder-guardar>
+            <select class="form-control" data-js-habilitar='creando,editando' name="tipo_repeticion"  data-js-cambio-esconder-guardar>
               <option value="" default>- Seleccionar -</option>
               <option value="d">Días</option>
               <option value="m">Meses</option>
@@ -140,7 +140,7 @@
         <div style="flex: 1;">
           <span>Hasta: </span>
           @component('Components/inputFecha',[
-            'attrs' => "name='hasta'",
+            'attrs' => "name='hasta' data-js-cambio-esconder-guardar",
             'attrs_dtp' => "data-js-habilitar='creando,editando'"
           ])
           @endcomponent
@@ -215,9 +215,9 @@
     <div class="row">
       <br>
       <div class="col-md-12">
-        <button type="button" class="btn guardar" data-js-guardar data-cambiar_tareas="0" data-js-ver="creando,editando">GUARDAR</button>
+        <button type="button" class="btn guardar" data-js-guardar data-generar_tareas="0" data-js-ver="creando,editando">GUARDAR</button>
         @if($es_actividad)
-        <button data-js-tipo="tarea" type="button" class="btn guardar_tareas" data-js-guardar data-cambiar_tareas="1" data-js-ver="creando,editando">GUARDAR Y CAMBIAR TAREAS</button>
+        <button type="button" class="btn guardar_tareas" data-js-guardar data-generar_tareas="1" data-js-ver="creando,editando">GUARDAR Y GENERAR TAREAS</button>
         @endif
         <button type="button" class="btn" data-js-adjuntar data-js-ver="creando,editando">ADJUNTAR</button>
         <button type="button" class="btn" data-js-cancelar data-js-ver="editando">CANCELAR</button>
