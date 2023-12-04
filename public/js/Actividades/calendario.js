@@ -128,7 +128,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
               start: m_fecha,
               numero: numero,
               fecha: a.fecha,
-              es_tarea: a.parent !== null,
+              es_tarea: a.padre_numero !== null,
               finalizado: ['HECHO','CERRADO SIN SOLUCIÓN','CERRADO'].includes(a.estado),
               backgroundColor: a.color_fondo ?? 'green',
               textColor: a.color_texto ?? 'black',

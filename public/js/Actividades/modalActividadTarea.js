@@ -20,7 +20,7 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
     {
       const adjuntos = datos?.adjuntos ?? {};
       at.find('[data-js-archivos]').empty().append(Object.keys(adjuntos).map(function(nro_adjunto){
-        return crearArchivoViejo(adjuntos[nro_adjunto],datos?.numero,datos?.fecha,nro_adjunto);
+        return crearArchivoViejo(adjuntos[nro_adjunto],datos?.numero,nro_adjunto);
       }));
     }
     {
@@ -97,10 +97,10 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
     if(at.data('datos')?.numero !== undefined)
       formData.append('numero',at.data('datos')?.numero);
     
-    at.find('[data-js-archivo][data-nro-archivo]').each(function(){
+    at.find('[data-js-archivo][data-nro-archivo]:not([data-js-molde-archivo])').each(function(){
       formData.append('adjuntos_viejos[]',$(this).attr('data-nro-archivo'));
     });
-    at.find('[data-js-archivo]:not([data-nro-archivo])').each(function(){
+    at.find('[data-js-archivo]:not([data-js-molde-archivo]):not([data-nro-archivo])').each(function(){
       formData.append('adjuntos[]',$(this).data('file'),$(this).data('file').name);
     });
     

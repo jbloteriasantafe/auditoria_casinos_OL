@@ -20,7 +20,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
   });
     
   function crearActividad(estado,datos,historial){
-    const es_actividad = (datos.parent === null)? 1 : 0;
+    const es_actividad = (datos.padre_numero === null)? 1 : 0;
     const a = $actividades.find(`[data-js-molde-actividad]`).clone()
     .removeAttr('data-js-molde-actividad');
     $actividades.find(`[data-js-listado-son-actividades="${es_actividad}"]`).prepend(a);
@@ -54,7 +54,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
   
   $actividades.find('[data-js-agregar]').click(function(e){
     modalActividad.trigger('mostrar',[{
-      parent: null,
+      padre_numero: null,
       fecha: fecha,
       hasta: hasta,
     },[],'creando']);
@@ -76,7 +76,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
     const actividad = obtenerActividad(numero);
     if(actividad.length == 0) return;
     
-    const es_actividad = (actividad.data('datos').parent === null)+0;
+    const es_actividad = (actividad.data('datos').padre_numero === null)+0;
     
     (es_actividad? modalActividad : modalTarea).trigger(
       'mostrar',
@@ -92,7 +92,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
     const a = obtenerActividad(numero);
     if(a.length == 0) return;
     
-    const es_actividad = (a.data('datos').parent === null)+0;
+    const es_actividad = (a.data('datos').padre_numero === null)+0;
     const new_datos = a.data('datos');
     new_datos.fecha = fecha_nueva;
     (es_actividad? modalActividad : modalTarea).trigger(

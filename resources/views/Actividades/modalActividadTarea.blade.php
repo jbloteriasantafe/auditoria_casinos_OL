@@ -224,5 +224,14 @@
       </div>
     </div>
   </form>
+  @if($es_actividad)
+  <div hidden>
+    <div data-js-archivo data-js-molde-archivo style="padding: 0vh 1vw;">
+      <i class="fa fa-spinner fa-spin" data-js-cargando></i>
+      <a name="nombre_archivo">ARCHIVO</a>
+      <span class="borrar_archivo" data-js-borrar-archivo data-js-ver="creando,editando" data-js-habilitar="creando,editando">❌</span>
+    </div>
+  </div>
+  @endif
   @endslot
 @endcomponent
