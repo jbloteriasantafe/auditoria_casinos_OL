@@ -122,7 +122,7 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
         const json = data.responseJSON ?? {};
         AUX.mostrarErroresNames(at,json);
         if(json.roles){
-          mostrarErrorValidacion(at.find('[name="roles[]"]:first'),json.roles.join(', '),true);
+          mostrarErrorValidacion(at.find('[name="roles[]"]').eq(0),json.roles.join(', '),true);
         }
       }
     });

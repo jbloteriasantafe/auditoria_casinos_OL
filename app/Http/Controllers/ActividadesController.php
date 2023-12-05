@@ -86,13 +86,15 @@ class ActividadesController extends Controller
   }
   
   public function buscar(Request $request){
-     Validator::make($request->all(), [
+    Validator::make($request->all(), [
       'desde' => 'required|string|date',
       'hasta' => 'required|string|date',
+      'mostrar_sin_completar' => 'required|bool',
     ], [
       'required' => 'El valor es requerido',
       'string'   => 'El valor tiene que ser una cadena',
       'date'     => 'La fecha tiene que tener formato yyyy-mm-dd',
+      'bool'     => 'El valor tiene que ser 0 o 1',
     ], [])
     ->validate();
     
@@ -105,19 +107,33 @@ class ActividadesController extends Controller
     ->orderBy('at.fecha','asc');
     
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if(!$usuario->es_superusuario){
-      $q = $q->whereIn('at.roles',$usuario->roles->keyBy('id_rol')->keys());
-    }
     
-    if($request->mostrar_sin_completar ?? false){
-      $estados_sin_completar = ['ABIERTO','ESPERANDO RESPUESTA'];
-      $q = $q->whereIn('at.estado',$estados_sin_completar);
+    if($request->mostrar_sin_completar){
+      $q = $q->where(function($q) use (&$request){
+        $estados_sin_completar = ['ABIERTO','ESPERANDO RESPUESTA'];
+        return $q->whereIn('at.estado',$estados_sin_completar)
+        ->orWhere('at.fecha','>=',$request->desde);
+      });
     }
     else{
       $q = $q->where('at.fecha','>=',$request->desde);
     }
     
-    $ats = $q->get()->groupBy('numero');
+    $roles;
+    if($usuario->es_superusuario){
+      $roles = Rol::all()->pluck('id_rol');
+    }
+    else{
+      $roles = $usuario->roles->pluck('id_rol');
+    }
+    
+    $ats = $q->get()->filter(function(&$at) use (&$roles){
+      $at->roles = json_decode($at->roles,true);
+      if(count($roles->intersect($at->roles)) == 0)
+        return false;
+      $at->adjuntos = json_decode($at->adjuntos,true);
+      return true;
+    })->groupBy('numero');
     
     $ats_to_join = DB::table('actividad_tarea as at')
     ->select('at.*','u_c.nombre as user_created','u_m.nombre as user_modified','u_d.nombre as user_deleted')
@@ -131,12 +147,6 @@ class ActividadesController extends Controller
     
     $ats = $ats->map(function($at,$numero) use (&$ats_to_join){
       return $at->merge($ats_to_join[$numero] ?? []);
-    })->map(function(&$at){
-      return $at->map(function(&$a){
-        $a->roles = json_decode($a->roles,true);
-        $a->adjuntos = json_decode($a->adjuntos,true);
-        return $a;
-      });
     });
     
     return $ats;
@@ -214,17 +224,28 @@ class ActividadesController extends Controller
       'numero' => 'nullable|integer',//si es nulo esta creando una actividad
       'titulo' => 'required|string',
       'fecha' => 'required|date',
-      'estado' => 'required|string',
+      'estado' => 'required|string|in:ABIERTO,ESPERANDO RESPUESTA,HECHO,CERRADO SIN SOLUCIÓN,CERRADO',
       'generar_tareas' => 'required|bool',
       'cada_cuanto' => 'required_if:generar_tareas,1|nullable|integer|min:1',
       'tipo_repeticion' => 'required_if:generar_tareas,1|nullable|string|in:d,m',
-      'hasta'    => 'required_if:generar_tareas,1|nullable|date',
+      'hasta'    => 'required_if:generar_tareas,1|nullable|date|after:fecha',
       'contenido' => 'nullable|string',
       'adjuntos_viejos' => 'nullable|array', 
       'adjuntos_viejos.*' => 'nullable|integer',
       'roles' => 'nullable|array|min:1',
-      'roles.*' => 'integer|exists:rol,id_rol'
-    ], ['required' => 'El valor es requerido','required_if' => 'El valor es requerido'], [])
+      'roles.*' => 'integer|exists:rol,id_rol',
+      'color_fondo' => ['required','string','regex:/^#([0-9]|[A-F]){6}$/i'],
+      'color_texto' => ['required','string','regex:/^#([0-9]|[A-F]){6}$/i'],
+      'color_borde' => ['required','string','regex:/^#([0-9]|[A-F]){6}$/i'],
+      'tags_api' => 'nullable|string',
+    ], [
+      'required' => 'El valor es requerido',
+      'required_if' => 'El valor es requerido',
+      'integer' => 'El valor tiene que ser un numero',
+      'min' => 'El valor es menor al valor limite',
+      'after' => 'El valor es menor que el de referencia',
+      'in' => 'El valor no se encuentra dentro de los valores esperados',
+    ], [])
     ->after(function ($validator) use (&$at_anterior,&$usuario){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
@@ -255,12 +276,18 @@ class ActividadesController extends Controller
       
       if($es_actividad){
         if(!isset($data['roles']) || empty($data['roles'])){
-          return $validator->errors()->add('roles[]','El valor es requerido');
+          return $validator->errors()->add('roles','El valor es requerido');
         }
       }
       else{
         if(isset($data['generar_tareas']) && $data['generar_tareas']){
           return $validator->errors()->add('generar_tareas','No puede generar tareas para una tarea');
+        }
+        if($data['fecha'] !== ($at_anterior->fecha ?? null)){
+          return $validator->errors()->add('fecha','No puede alterar la fecha de una tarea');
+        }
+        if($data['titulo'] !== ($at_anterior->titulo ?? null)){
+          return $validator->errors()->add('titulo','No puede alterar el titulo de una tarea');
         }
       }
     })->validate();
@@ -288,20 +315,20 @@ class ActividadesController extends Controller
       $at->modified_at = $timestamp;
       $at->modified_by = $usuario->id_usuario;
       
-      $at->estado = $R->estado ?? $at->estado ?? null;
-      $at->contenido = $R->contenido ?? $at->contenido ?? '';
-      $at->color_fondo = $R->color_fondo ?? $at->color_fondo ?? null;
-      $at->color_texto = $R->color_texto ?? $at->color_texto ?? null;
-      $at->color_borde = $R->color_borde ?? $at->color_borde ?? null;
-      $at->estado = $R->estado ?? $at->estado ?? null;
+      $at->estado = $R->estado;
+      $at->contenido = $R->contenido ?? '';
+      $at->color_fondo = $R->color_fondo;
+      $at->color_texto = $R->color_texto;
+      $at->color_borde = $R->color_borde;
+      $at->estado = $R->estado;
       
       if($usuario->es_superusuario){
         $at->tags_api = $R->tags_api ?? $at->tags_api ?? '';
       }
       
       if(is_null($at->padre_numero)){//Es actividad
-        $at->fecha = $R->fecha ?? $at->fecha ?? null;
-        $at->titulo = $R->titulo ?? $at->titulo ?? null;
+        $at->fecha  = $R->fecha;
+        $at->titulo = $R->titulo;
         
         {
           $strval = function($i){return $i.'';};
@@ -456,7 +483,7 @@ class ActividadesController extends Controller
         if($t->dirty){
           $tdescolgado = $this->clonar($t);
           $this->borrarTarea($t,$id_usuario,$timestamp);
-          $this->descolgarTarea($t,$id_usuario,$timestamp);
+          $this->descolgarTarea($tdescolgado,$id_usuario,$timestamp);
         }
         else{
           $this->borrarTarea($t,$id_usuario,$timestamp);
@@ -470,8 +497,8 @@ class ActividadesController extends Controller
   private function descolgarTarea(&$t,$id_usuario,$timestamp){
     $t->modified_at = $timestamp;
     $t->modified_by = $id_usuario;
-    $t->padre_numero = null;
     $t->padre_numero_original = $t->padre_numero;
+    $t->padre_numero = null;
     $t->save();
   }
   
