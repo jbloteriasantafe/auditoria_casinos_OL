@@ -206,12 +206,9 @@ class ActividadesController extends Controller
   
   private function clonar($at_anterior){
     $at = $at_anterior->replicate();
-    $at->created_at  = $at_anterior->created_at;
-    $at->created_by  = $at_anterior->created_by;
-    $at->modified_by = $at_anterior->modified_by;
+    $at->created_at  = $at_anterior->created_at;;
     $at->modified_at = $at_anterior->modified_at;
     $at->deleted_at  = $at_anterior->deleted_at;
-    $at->deleted_by  = $at_anterior->deleted_by;
     return $at;
   }
   

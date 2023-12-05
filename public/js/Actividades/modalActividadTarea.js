@@ -250,17 +250,14 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
     }
   });
   
-  at.find('[data-js-cambio-esconder-guardar]').change(function(){
+  at.find('[data-js-cambio-esconder-guardar]').change(function(){    
     let todos_iguales = true;
     at.find('[data-js-cambio-esconder-guardar]').each(function(){
       const val = $(this).is('[type="checkbox"]')? ($(this).prop('checked')+'') : $(this).val();
       todos_iguales = todos_iguales && (val == $(this).attr('data-valor-original'));
     });
-    const mostrarObj = function(o,visible){
-      visible = visible;
-      o.toggle(visible);
-    };
-    mostrarObj(at.find('[data-js-guardar][data-generar_tareas="0"][data-js-visible="true"]'),todos_iguales);
-    mostrarObj(at.find('[data-js-guardar][data-generar_tareas="1"][data-js-visible="true"]'),!todos_iguales);
+    
+    at.find('[data-js-guardar][data-generar_tareas="0"][data-js-visible="true"]').toggle(todos_iguales);
+    at.find('[data-js-guardar][data-generar_tareas="1"][data-js-visible="true"]').toggle(!todos_iguales || at.attr('data-estado') == 'editando');
   });
 }); });
