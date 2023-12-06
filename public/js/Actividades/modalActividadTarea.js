@@ -140,13 +140,16 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
     $('[data-js-modal-eliminar]').trigger('mostrar_para_eliminar',[function(){
       const numero = at.data('datos')?.numero;
       if(numero === undefined){
-        return $('[data-js-modal-eliminar]').trigger('esconder');
+        $('[data-js-modal-eliminar]').trigger('esconder');
+        at.modal('hide');
+        return;
       }
       AUX.DELETE(
         '/actividades/borrar/'+numero,
         {},
         function(data){
           $('[data-js-modal-eliminar]').trigger('esconder');
+          at.modal('hide');
         },
       );
     }]);

@@ -30,10 +30,10 @@
     opacity: 0.70;
   }
   
-  .actividades:hover .actividad:hover
-  {
+  .actividades:hover .actividad:hover {
     border: 1px solid orange;
     opacity: 1.0;
+    font-size: 1.25em;
   }
   
   .actividades .actividad .botones button {
@@ -96,32 +96,21 @@
   
   <div hidden>
     <form class="actividad" data-js-molde-actividad data-js-actividad>  
-      <div class="row">
-        <div class="col-md-12 botones">
+      <div>
+        <div style="width: 100%;" class="botones">
           <button type="button" class="btn boton_ver" data-js-ver-actividad title="VER"><i class="fa fa-fw fa-search-plus"></i></button>
           <span name="numero" style="float: left;opacity: 0.8;">---</span>
         </div>
-        <div class="col-md-8">
-         Titulo
-         <input class="form-control" name="titulo" readonly>
-        </div>
-        <div class="col-md-4">
-          Fecha 
-          @component('Components/inputFecha',[
-            'attrs' => "name='fecha'",
-            'attrs_dtp' => 'data-readonly="true"'
-          ])
-          @endcomponent
-        </div>
-        <div class="col-md-12">
-          Estado
-          <select class="form-control" name="estado" readonly>
-            <option default>ABIERTO</option>
-            <option>ESPERANDO RESPUESTA</option>
-            <option>HECHO</option>
-            <option>CERRADO SIN SOLUCIÓN</option>
-            <option>CERRADO</option>
-          </select>
+        <div style="width: 100%;display: flex;flex-wrap: wrap;align-content: center;">
+          <div style="flex: 1;">
+            <span name="fecha">&nbsp;</span>
+          </div>
+          <div style="flex: 1;">
+            <span name="estado">&nbsp;</span>
+          </div>
+          <div style="flex: 3;">
+            <span name="titulo" style="overflow-wrap: anywhere;">&nbsp;</span>
+          </div>
         </div>
       </div>
     </form>

@@ -170,7 +170,7 @@
         </div>
         <div style="padding: 1% 1%;">
           <span>Texto</span>
-          <input name="color_texto" type="color" data-js-habilitar="creando,editando" value="#000000">
+          <input name="color_texto" type="color" data-js-habilitar="creando,editando" value="#FFFFFF">
         </div>
         <div style="padding: 1% 1%;">
           <span>Borde</span>

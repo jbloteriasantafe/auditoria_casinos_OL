@@ -2,18 +2,25 @@
 <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
 <style>
   .calendario .fc-list-item-time {/*Hack para no mostrar "Todo el día"*/
-    color: transparent;
-    user-select: none;
+    display: none;
   }
-  .calendario .es_tarea {
+  .calendario .fc-list-item-title {
+    overflow-wrap: anywhere;/*Para que el titulo se rompa en renglones*/
+  }
+  .calendario .es_tarea:not(:hover) {
     opacity: 0.5;
   }
   .calendario .finalizado {/*Si el evento esta terminado*/
     background: repeating-linear-gradient(45deg, transparent, transparent 3.5%, rgba(0,0,0,0.2) 3.5%, rgba(0,0,0,0.2) 6.25%);
   }
+  .calendario .fc-title {
+    text-shadow: black 0 0 0.05em;
+  }
   .calendario .finalizado .fc-title {
     color: white !important;
-    text-shadow: black 0 0 0.05em;
+  }
+  .calendario .fc-content:hover {
+    font-size: 1.25em !important;
   }
 </style>
 @endcomponent
