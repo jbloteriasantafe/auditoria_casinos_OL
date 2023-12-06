@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AuthenticationController;
 use App\Usuario;
 use App\ActividadTarea;
 use App\Rol;
@@ -22,6 +23,10 @@ class ActividadesController extends Controller
       }
       return self::$instance;
   }
+  
+  private $estados = ['ABIERTO','ESPERANDO RESPUESTA','HECHO','CERRADO SIN SOLUCIÓN','CERRADO'];
+  private $estados_sin_completar = ['ABIERTO','ESPERANDO RESPUESTA'];
+  private $estados_completados = ['HECHO','CERRADO SIN SOLUCIÓN','CERRADO'];
   
   private $ADJ_CARPETA     = 'adjuntos_actividades';
   private $ABS_ADJ_CARPETA = null;
@@ -82,7 +87,13 @@ class ActividadesController extends Controller
     if($roles->where('descripcion','SUPERUSUARIO')->count() > 0){
       $roles = Rol::all();
     }
-    return view('Actividades.index',compact('usuario','casinos','roles'));
+    $estados = $this->estados;
+    $estados_sin_completar = $this->estados_sin_completar;
+    $estados_completados = $this->estados_completados;
+    return view('Actividades.index',compact(
+      'usuario','casinos','roles',
+      'estados','estados_sin_completar','estados_completados'
+    ));
   }
   
   public function buscar(Request $request){
@@ -110,8 +121,7 @@ class ActividadesController extends Controller
     
     if($request->mostrar_sin_completar){
       $q = $q->where(function($q) use (&$request){
-        $estados_sin_completar = ['ABIERTO','ESPERANDO RESPUESTA'];
-        return $q->whereIn('at.estado',$estados_sin_completar)
+        return $q->whereIn('at.estado',$this->estados_sin_completar)
         ->orWhere('at.fecha','>=',$request->desde);
       });
     }
@@ -127,14 +137,15 @@ class ActividadesController extends Controller
       $roles = $usuario->roles->pluck('id_rol');
     }
     
-    $ats = $q->get()->filter(function(&$at) use (&$roles){
-      $at->roles = json_decode($at->roles,true);
+    $decode_roles_adjuntos = function(&$at) use (&$roles){
+      $at->roles = json_decode($at->roles ?? '[]',true);
+      $at->adjuntos = json_decode($at->adjuntos ?? '[]',true);
       if(count($roles->intersect($at->roles)) == 0)
         return false;
-      $at->adjuntos = json_decode($at->adjuntos,true);
       return true;
-    })->groupBy('numero');
+    };
     
+    $ats = $q->get()->filter($decode_roles_adjuntos)->groupBy('numero');
     $ats_to_join = DB::table('actividad_tarea as at')
     ->select('at.*','u_c.nombre as user_created','u_m.nombre as user_modified','u_d.nombre as user_deleted')
     ->join('usuario as u_c','u_c.id_usuario','=','at.created_by')
@@ -143,7 +154,12 @@ class ActividadesController extends Controller
     ->whereNotNull('at.deleted_at')
     ->whereIn('at.numero',$ats->keys())
     ->orderBy('at.modified_at','desc')
-    ->get()->groupBy('numero');
+    ->get()
+    ->map(function(&$at) use (&$decode_roles_adjuntos){
+      $decode_roles_adjuntos($at);
+      return $at;
+    })
+    ->groupBy('numero');
     
     $ats = $ats->map(function($at,$numero) use (&$ats_to_join){
       return $at->merge($ats_to_join[$numero] ?? []);
@@ -221,7 +237,7 @@ class ActividadesController extends Controller
       'numero' => 'nullable|integer',//si es nulo esta creando una actividad
       'titulo' => 'required|string',
       'fecha' => 'required|date',
-      'estado' => 'required|string|in:ABIERTO,ESPERANDO RESPUESTA,HECHO,CERRADO SIN SOLUCIÓN,CERRADO',
+      'estado' => 'required|string|in:'.implode(',',$this->estados),
       'generar_tareas' => 'required|bool',
       'cada_cuanto' => 'required_if:generar_tareas,1|nullable|integer|min:1',
       'tipo_repeticion' => 'required_if:generar_tareas,1|nullable|string|in:d,m',
@@ -516,5 +532,60 @@ class ActividadesController extends Controller
     catch(Exception $e){
       return 'No existe el archivo';
     }
+  }
+  
+  public function cambiarEstado(Request $request){
+    $actividad_tarea = null;
+    $timestamp = (new DateTime())->format('Y-m-d H:i:s');
+    $estados = implode(',',$this->estados);
+    $validator = Validator::make($request->all(), [
+      'fecha'    => 'required|date',
+      'tags_api' => 'required|string',
+      'id_usuario' => 'required|integer|exists:usuario,id_usuario,deleted_at,NULL',
+      'estado' => 'required|string|in:'.$estados,
+    ], [
+      'required' => 'El valor es requerido',
+      'date' => 'Tiene que ser una fecha',
+      'integer' => 'El valor tiene que ser un número entero',
+      'exists' => 'El valor no es valido',
+      'in' => 'El estado tiene que estar dentro de los siguientes valores: '.$estados,
+    ], [])
+    ->after(function ($validator) use (&$actividad_tarea,&$id_usuario){
+      if($validator->errors()->any()) return;
+      
+      $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
+      $metadata = json_decode($api_token->metadata,true);
+      if(!($metadata['puede_cambiar_estados_actividades'] ?? false)){
+        return $validator->errors()->add('privilegios','No tiene los permisos');
+      }
+      
+      $data = $validator->getData();
+      
+      $actividad_tarea = ActividadTarea::where('fecha','=',$data['fecha'])
+      ->whereNull('deleted_at')
+      ->where('tags_api','=',$data['tags_api'])
+      ->orderBy('created_at','desc')->first();
+      
+      if(is_null($actividad_tarea)){
+        return $validator->errors()->add('actividad_tarea','No existe una actividad o tarea con esos parametros');
+      }
+      
+      //@TODO validar id_usuario tiene rol para acceder?
+    });
+    
+    if($validator->errors()->any()) return response()->json($validator->errors(),422);
+    
+    return DB::transaction(function() use (&$request,&$actividad_tarea,&$timestamp){
+      $nuevo = $this->clonar($actividad_tarea);
+      $actividad_tarea->deleted_at = $timestamp;
+      $actividad_tarea->deleted_by = $request->id_usuario;
+      $actividad_tarea->save();
+      
+      $nuevo->estado = $request->estado;
+      $nuevo->modified_at = $timestamp;
+      $nuevo->modified_by = $request->id_usuario;
+      $nuevo->save();
+      return 1;
+    });
   }
 }

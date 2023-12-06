@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\APIToken;
 
 class AuthenticationController extends Controller
 {
@@ -121,5 +122,32 @@ class AuthenticationController extends Controller
 
     $data = json_encode($retorno);
     return $data;
+  }
+  
+  public function obtenerIdUsuario(){
+    $session = null;
+    try{
+      $session = request()->session();
+    }
+    catch(\Exception $e){}
+    
+    $id_usuario = null;
+    if(!is_null($session)){
+      $id_usuario = $session->has('id_usuario') ? $session->get('id_usuario') : null;
+    }
+    
+    if(is_null($id_usuario)){
+      $api_token = $this->obtenerAPIToken();
+      $metadata = json_decode($api_token->metadata ?? '{}',true);
+      $id_usuario = $metadata['id_usuario'] ?? null;
+    }
+    
+    return $id_usuario;
+  }
+
+  public function obtenerAPIToken(){
+    $APIToken = request()->header('API-Token');
+    $api_token = APIToken::where('ip',request()->ip())->where('token',$APIToken)->orderBy('id_api_token','asc')->get()->first();
+    return $api_token;
   }
 }

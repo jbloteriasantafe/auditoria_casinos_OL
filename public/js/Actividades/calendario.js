@@ -129,7 +129,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
               numero: numero,
               fecha: a.fecha,
               es_tarea: a.padre_numero !== null,
-              finalizado: ['HECHO','CERRADO SIN SOLUCIÓN','CERRADO'].includes(a.estado),
+              finalizado: $calendario.find(`[data-estados-completados] option[value="${a.estado}"]`).length > 0,
               backgroundColor: a.color_fondo ?? 'green',
               textColor: a.color_texto ?? 'black',
               borderColor: a.color_borde ?? 'green',

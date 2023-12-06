@@ -13,7 +13,7 @@
     <div class="row">
       <div class="panel panel-default">
         <div class="panel-body actividades" style="height: 78vh;">
-          @component('Actividades.actividades',compact('casinos','usuario','roles'))
+          @component('Actividades.actividades',compact('casinos','usuario','roles','estados','estados_completados','estados_sin_completar'))
           @endcomponent
         </div>
       </div>
@@ -25,7 +25,7 @@
         <h4>CALENDARIO</h4>
       </div>
       <div class="panel-body">
-        @component('Actividades.calendario',compact('casinos','usuario'))
+        @component('Actividades.calendario',compact('casinos','usuario','estados','estados_completados','estados_sin_completar'))
         @endcomponent
       </div>
     </div>

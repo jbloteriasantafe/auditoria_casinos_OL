@@ -26,6 +26,11 @@
 @endcomponent
 
 <div id="{{uniqid()}}" class="calendario" data-js-calendario>
+  <datalist data-estados-completados>
+    @foreach($estados_completados as $e)
+    <option value="{{$e}}"></option>
+    @endforeach
+  </datalist>
   <div data-js-inner-calendario></div>
   <i class="fa fa-spinner fa-spin"></i>
 </div>
