@@ -34,7 +34,6 @@ class CheckUserToken
         $request->session()->put('redirect_to',$url);
         return response()->json(['mensaje' => 'Debe logearse en el sistema.','url' => 'login'],351,[['Content-Type', 'application/json']]);
       }
-      dump($request->path());
       $request->session()->put('redirect_to',$url);
       return redirect('login');
     }

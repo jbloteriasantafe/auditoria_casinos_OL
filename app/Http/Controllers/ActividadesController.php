@@ -541,7 +541,7 @@ class ActividadesController extends Controller
     $validator = Validator::make($request->all(), [
       'fecha'    => 'required|date',
       'tags_api' => 'required|string',
-      'id_usuario' => 'required|integer|exists:usuario,id_usuario,deleted_at,NULL',
+      'user_name' => 'required|string|exists:usuario,user_name,deleted_at,NULL',
       'estado' => 'required|string|in:'.$estados,
     ], [
       'required' => 'El valor es requerido',
@@ -576,14 +576,16 @@ class ActividadesController extends Controller
     if($validator->errors()->any()) return response()->json($validator->errors(),422);
     
     return DB::transaction(function() use (&$request,&$actividad_tarea,&$timestamp){
+      $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
+      
       $nuevo = $this->clonar($actividad_tarea);
       $actividad_tarea->deleted_at = $timestamp;
-      $actividad_tarea->deleted_by = $request->id_usuario;
+      $actividad_tarea->deleted_by = $id_usuario;
       $actividad_tarea->save();
       
       $nuevo->estado = $request->estado;
       $nuevo->modified_at = $timestamp;
-      $nuevo->modified_by = $request->id_usuario;
+      $nuevo->modified_by = $id_usuario;
       $nuevo->save();
       return 1;
     });

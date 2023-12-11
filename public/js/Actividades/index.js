@@ -20,10 +20,8 @@ $(function(){
     $('[data-js-calendario]').trigger('actualizar_eventos');
   });
   
-  $('[data-js-actividades]').on('set_mostrar_sin_completar',function(e,mostrar_sin_completar){
+  $('[data-js-cambio-mostrar-sin-completar]').change(function(e){
+    const mostrar_sin_completar = $(this).prop('checked');
     $('[data-js-calendario]').trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
-  });
-  $('[data-js-actividades]').trigger('get_mostrar_sin_completar',[function(mostrar_sin_completar){
-    $('[data-js-calendario]').trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
-  }]);
+  }).trigger('change');
 });

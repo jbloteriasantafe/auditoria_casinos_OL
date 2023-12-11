@@ -138,8 +138,14 @@ class AuthenticationController extends Controller
     
     if(is_null($id_usuario)){
       $api_token = $this->obtenerAPIToken();
-      $metadata = json_decode($api_token->metadata ?? '{}',true);
-      $id_usuario = $metadata['id_usuario'] ?? null;
+      if(!is_null($api_token)){
+        $metadata = json_decode($api_token->metadata ?? '{}',true);
+        $id_usuario = $metadata['id_usuario'] ?? null;
+        if($metadata['puede_post_user_name'] ?? false){//Este permiso solo deberia usarse entre servidores locales
+          $usuario = \App\Usuario::where('user_name',request()->user_name ?? null)->select('id_usuario')->first();
+          $id_usuario = $usuario? $usuario->id_usuario : $id_usuario;
+        }
+      }
     }
     
     return $id_usuario;

@@ -2,7 +2,7 @@
 <style>
   .actividades {
     padding-top: 1vh;
-    height: 100%;
+    height: calc(78vh - 2.5em);
   }
   
   .actividades .tabs {
@@ -83,10 +83,6 @@
       <i class="fa fa-spinner fa-spin"></i>
     </div>
     @if($es_actividad)
-    <div class="col-md-12 mostrar_sin_completar">
-      <input data-js-cambio-mostrar-sin-completar type="checkbox" checked>
-      <span>Mostrar sin completar</span>
-    </div>
     <button type="button" class="btn btn-info col-md-12 agregar_actividad" data-js-agregar><i class="fa fa-fw fa-plus"></i>Nuevo</button>
     @endif
   </div>

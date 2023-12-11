@@ -8,17 +8,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
   const $actividades = $(this);
   const modalActividad = $('[data-js-modal-actividad-tarea][data-tipo="actividad"]');
   const modalTarea = $('[data-js-modal-actividad-tarea][data-tipo="tarea"]');
-  
-  $actividades.find('[data-js-cambio-mostrar-sin-completar]').change(function(e){
-    const mostrar_sin_completar = $(this).prop('checked');
-    $actividades.trigger('set_mostrar_sin_completar',[mostrar_sin_completar]);
-  });
-  
-  $actividades.on('get_mostrar_sin_completar',function(e,callback){
-    const mostrar_sin_completar = $actividades.find('[data-js-cambio-mostrar-sin-completar]').prop('checked');
-    callback(mostrar_sin_completar);
-  });
-    
+      
   function crearActividad(estado,datos,historial){
     const es_actividad = (datos.padre_numero === null)? 1 : 0;
     const a = $actividades.find(`[data-js-molde-actividad]`).clone()

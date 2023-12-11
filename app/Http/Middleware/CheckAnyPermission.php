@@ -38,7 +38,6 @@ class CheckAnyPermission
         return response()->json(['mensaje' => 'No tiene los permisos encesarios para realizar dicha acción.','url' => $url_to_redirect],
                                 351,[['Content-Type','application/json']]);
       }
-      dump(__FILE__.' '.__LINE__);
       return redirect($url_to_redirect);
     }
 }

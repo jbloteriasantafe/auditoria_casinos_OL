@@ -9,6 +9,7 @@ use App\Rol;
 use App\Plataforma;
 use App\SecRecientes;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\AuthenticationController;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -296,7 +297,7 @@ class UsuarioController extends Controller
   }
 
   public function quienSoy(){
-    $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
-    return ['usuario' => $usuario];
+    $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
+    return ['usuario' => $this->buscarUsuario($id_usuario)['usuario']];
   }
 }

@@ -12,9 +12,13 @@
   <div class="col-md-6">
     <div class="row">
       <div class="panel panel-default">
-        <div class="panel-body actividades" style="height: 78vh;">
+        <div class="panel-body actividades" style="height: 78vh;display:flex;flex-direction: column;">
           @component('Actividades.actividades',compact('casinos','usuario','roles','estados','estados_completados','estados_sin_completar'))
           @endcomponent
+          <div class="col-md-12 mostrar_sin_completar">
+            <input data-js-cambio-mostrar-sin-completar type="checkbox" checked>
+            <span>Mostrar sin completar</span>
+          </div>
         </div>
       </div>
     </div>
