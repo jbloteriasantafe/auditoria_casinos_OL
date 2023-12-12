@@ -13,9 +13,7 @@
     overflow-y: scroll;
     height: calc(100% - 2em - 3em);
   }
-  .actividades .mostrar_sin_completar {
-    height: 2em;
-  }
+  
   .actividades .agregar_actividad {
     height: 3em;
   }
@@ -52,16 +50,11 @@
     background-color: #6dc7be;
   }
   
-  .actividad .form-control[disabled],.form-control[readonly]{
-    background: rgba(0, 0, 0, 0.05);
-    border: 0;
-    box-shadow: unset;
-  }
-  
-  .actividades .activididad select[readonly],
-  .actividades .activididad input[readonly]
-  {/* FIX select sigue usable cuando esta en readonly */
-    pointer-events: none;
+  .actividades hr {
+    border-color: rgb(0,0,0,0.8);
+    border-width: 2px;
+    border-style: inset;
+    margin: 0;
   }
 </style>
 @endcomponent

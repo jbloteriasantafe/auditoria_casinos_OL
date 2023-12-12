@@ -44,11 +44,21 @@ $(function(){ $('[data-js-actividades]').each(function(){
   
   $actividades.on('mostrar_actividades',function(e,actividades){
     $actividades.find('[data-js-listado-son-actividades]').empty(); 
+    const fecha_anterior = [null,null];
+    const tab = [
+      $actividades.find(`[data-js-listado-son-actividades="0"]`),
+      $actividades.find(`[data-js-listado-son-actividades="1"]`)
+    ];
     actividades.forEach(function(a){
       const es_actividad = a.es_actividad? 1 : 0;
+      
+      if(a.fecha != fecha_anterior[es_actividad]){
+        tab[es_actividad].prepend($('<hr>'));
+        fecha_anterior[es_actividad] = a.fecha;
+      }
+      
       const $a = $actividades.find(`[data-js-molde-actividad]`).clone()
       .removeAttr('data-js-molde-actividad');
-      $actividades.find(`[data-js-listado-son-actividades="${es_actividad}"]`).prepend($a);
       
       $a.find('span[name]').text('------');
       Object.keys(a).forEach(function(k){
@@ -57,9 +67,15 @@ $(function(){ $('[data-js-actividades]').each(function(){
         }
       });
       
+      tab[es_actividad].prepend($a);
+      
       $a.find('[data-js-ver-actividad]').on('click',function(){
         $actividades.trigger('ver_actividad',[a.numero]);
       });
+    });
+    
+    tab.forEach(function(t){
+      t.find('hr:last').remove();
     });
   });
     

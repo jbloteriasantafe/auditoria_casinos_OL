@@ -23,7 +23,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
     locale: 'es',
     defaultView: 'basicWeek',
     header:{
-      left: 'basicWeek,listWeek,month',
+      left: 'basicWeek,month',
       center: 'title',
       right:'prev,next today',
     },

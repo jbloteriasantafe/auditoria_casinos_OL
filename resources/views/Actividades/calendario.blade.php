@@ -1,12 +1,6 @@
 @component('Components/include_guard',['nombre' => 'calendario'])
 <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
 <style>
-  .calendario .fc-list-item-time {/*Hack para no mostrar "Todo el día"*/
-    display: none;
-  }
-  .calendario .fc-list-item-title {
-    overflow-wrap: anywhere;/*Para que el titulo se rompa en renglones*/
-  }
   .calendario .es_tarea:not(:hover) {
     opacity: 0.5;
   }
