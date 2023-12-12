@@ -25,7 +25,7 @@
   }
   
   .actividades:hover .actividad:not(:hover){
-    opacity: 0.70;
+    opacity: 0.80;
   }
   
   .actividades:hover .actividad:hover {
@@ -34,7 +34,7 @@
     font-size: 1.25em;
   }
   
-  .actividades .actividad .botones button {
+  .actividades .actividad button {
     cursor: pointer;
     text-shadow: 0 0 0.4vmin white;
     padding: 0.4vmin 0.8vmin;
@@ -84,25 +84,21 @@
   @endcomponent
   
   <div hidden>
-    <form class="actividad" data-js-molde-actividad data-js-actividad>  
-      <div>
-        <div style="width: 100%;" class="botones">
-          <button type="button" class="btn boton_ver" data-js-ver-actividad title="VER"><i class="fa fa-fw fa-search-plus"></i></button>
-          <span name="numero" style="float: left;opacity: 0.8;">---</span>
-        </div>
-        <div style="width: 100%;display: flex;flex-wrap: wrap;align-content: center;">
-          <div style="flex: 1;">
-            <span name="fecha">&nbsp;</span>
-          </div>
-          <div style="flex: 1;">
-            <span name="estado">&nbsp;</span>
-          </div>
-          <div style="flex: 3;">
-            <span name="titulo" style="overflow-wrap: anywhere;">&nbsp;</span>
-          </div>
-        </div>
+    <form class="actividad" data-js-molde-actividad data-js-actividad style="width: 100%;display: flex;flex-wrap: wrap;align-content: center;">  
+      <div style="flex: 0.5;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+        <button type="button" class="btn boton_ver" data-js-ver-actividad title="VER"><i class="fa fa-fw fa-search-plus"></i></button>
+      </div>
+      <div style="flex: 1;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+        <span name="numero" style="padding: 0.5em;">&nbsp;</span>
+      </div>
+      <div style="flex: 1.5;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+        <span name="estado" style="padding: 0.5em;">&nbsp;</span>
+      </div>
+      <div style="flex: 3;display: flex;flex-direction: column;justify-content: center;">
+        <span name="titulo" style="overflow-wrap: anywhere;padding: 0.5em;">&nbsp;</span>
       </div>
     </form>
+    <h4 data-js-molde-fecha-separador style="text-align: center;color: #606060;">XXXX-XX-XX</h4>
   </div>
 </div>
 

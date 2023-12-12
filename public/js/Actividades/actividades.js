@@ -53,7 +53,11 @@ $(function(){ $('[data-js-actividades]').each(function(){
       const es_actividad = a.es_actividad? 1 : 0;
       
       if(a.fecha != fecha_anterior[es_actividad]){
-        tab[es_actividad].prepend($('<hr>'));
+        if(fecha_anterior[es_actividad] !== null){
+          const f = $actividades.find('[data-js-molde-fecha-separador]')
+          .clone().removeAttr('data-js-molde-fecha-separador').text(fecha_anterior[es_actividad]);
+          tab[es_actividad].prepend(f);
+        }
         fecha_anterior[es_actividad] = a.fecha;
       }
       
@@ -74,8 +78,11 @@ $(function(){ $('[data-js-actividades]').each(function(){
       });
     });
     
-    tab.forEach(function(t){
-      t.find('hr:last').remove();
+    fecha_anterior.forEach(function(fa,idx){
+      if(fa === null) return;
+      const f = $actividades.find('[data-js-molde-fecha-separador]')
+      .clone().removeAttr('data-js-molde-fecha-separador').text(fa);
+      tab[idx].prepend(f);
     });
   });
     
