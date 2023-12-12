@@ -27,7 +27,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
       center: 'title',
       right:'prev,next today',
     },
-    googleCalendarApiKey: 'AIzaSyAtOBqjaKwycXtSb_H1GXhbPBusz64ZCX4',
+    //googleCalendarApiKey: 'AIzaSyAtOBqjaKwycXtSb_H1GXhbPBusz64ZCX4',
     eventSources: [
       {
         googleCalendarId: 'es.ar#holiday@group.v.calendar.google.com',
