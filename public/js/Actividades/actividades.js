@@ -9,14 +9,13 @@ $(function(){ $('[data-js-actividades]').each(function(){
   const modalActividad = $('[data-js-modal-actividad-tarea][data-tipo="actividad"]');
   const modalTarea = $('[data-js-modal-actividad-tarea][data-tipo="tarea"]');
       
-  function crearActividad(estado,datos,historial){
-    const es_actividad = (datos.padre_numero === null)? 1 : 0;
+  function crearActividad(estado,datos){
+    const es_actividad = datos.es_actividad? 1 : 0;
     const a = $actividades.find(`[data-js-molde-actividad]`).clone()
     .removeAttr('data-js-molde-actividad');
     $actividades.find(`[data-js-listado-son-actividades="${es_actividad}"]`).prepend(a);
     a.find('[data-js-fecha]').trigger('initInputFecha');//Necesito los inputFecha iniciados para setearEstado
     a.data('datos',datos);
-    a.data('historial',historial);
     setearEstadoActividad(a);
     a.find('[data-js-ver-actividad]').click(function(){
       $actividades.trigger('ver_actividad',[datos.numero]);
@@ -62,44 +61,33 @@ $(function(){ $('[data-js-actividades]').each(function(){
     });
   }
   
-  $actividades.on('ver_actividad',function(e,numero){
-    const actividad = obtenerActividad(numero);
-    if(actividad.length == 0) return;
-    
-    const es_actividad = (actividad.data('datos').padre_numero === null)+0;
-    
-    (es_actividad? modalActividad : modalTarea).trigger(
-      'mostrar',
-      [actividad.data('datos'),actividad.data('historial'),'visualizando']
-    );
+  $actividades.on('ver_actividad',function(e,numero,fecha_nueva = null){
+    AUX.GET('/actividades/obtener/'+numero,{},function(datos){
+      const es_actividad = (datos[0].padre_numero === null)+0;
+      
+      if(fecha_nueva !== null){
+        datos[0].fecha = fecha_nueva;
+      }
+      
+      (es_actividad? modalActividad : modalTarea).trigger(
+        'mostrar',
+        [datos[0],datos,fecha_nueva !== null? 'editando' : 'visualizando']
+      );
         
-    $(`[data-js-tab-actividad="${es_actividad}"]`).click();
-    actividad[0].scrollIntoView();
+      $(`[data-js-tab-actividad="${es_actividad}"]`).click();
+      actividad[0].scrollIntoView();
+    });
   });
   
   
   $actividades.on('cambiar_fecha_actividad',function(e,numero,fecha_nueva){
-    const a = obtenerActividad(numero);
-    if(a.length == 0) return;
-    
-    const es_actividad = (a.data('datos').padre_numero === null)+0;
-    const new_datos = a.data('datos');
-    new_datos.fecha = fecha_nueva;
-    (es_actividad? modalActividad : modalTarea).trigger(
-      'mostrar',
-      [new_datos,a.data('historial'),'editando']
-    );
+    $actividades.trigger('ver_actividad',[numero,fecha_nueva]);
   });
   
   $actividades.on('mostrar_actividades',function(e,actividades){
     $actividades.find('[data-js-listado-son-actividades]').empty(); 
-    Object.keys(actividades).forEach(function(numero){
-      const acts = actividades[numero];
-      const actual = acts.filter(function(a){
-        return !a.deleted_at;
-      });
-      if(actual.length == 0) return;
-      crearActividad('visualizando',actual[0],acts);
+    actividades.forEach(function(a){
+      crearActividad('visualizando',a);
     });
   });
   

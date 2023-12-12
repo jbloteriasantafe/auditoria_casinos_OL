@@ -78,8 +78,8 @@ $(function(){ $('[data-js-calendario]').each(function(){
       $calendario.trigger('cambio_fecha_evento',[event.numero,ISOString(fecha_nueva)]);
     },
     eventRender: function(event,element,view){
-      $(element).toggleClass('finalizado',event.finalizado ?? false);
-      $(element).toggleClass('es_tarea',event.es_tarea ?? true);
+      $(element).toggleClass('finalizado',!!(event.finalizado ?? false));
+      $(element).toggleClass('es_tarea',!(event.es_actividad ?? false));
     },
     viewRender: actualizar_eventos
   });
@@ -88,59 +88,43 @@ $(function(){ $('[data-js-calendario]').each(function(){
     if(mostrar_sin_completar === null) return;
     
     const event_source = $icalendario.fullCalendar('getEventSourceById','eventos_bd');
-    const view = $icalendario.fullCalendar('getView');
+    event_source.setRawEventDefs([]);
+    $calendario.find('.fa-spinner').show();
+    $icalendario.hide().fullCalendar('refetchEventSources',event_source);
+    $calendario.trigger('recibio_actividades',[[]]);
     
+    const view = $icalendario.fullCalendar('getView');
     const desde = ISOString(view.start);
     let hasta   = view.end._i;
     hasta = new Date(hasta);
     hasta.setDate(hasta.getDate()-1);//hacerlo inclusivo
     hasta = ISOString(hasta);
-    
-    const eventos = [];
-    const actividades_visibles = {};
-    
-    event_source.setRawEventDefs(eventos);
-    $calendario.find('.fa-spinner').show();
-    $icalendario.hide().fullCalendar('refetchEventSources',event_source);
-    $calendario.trigger('recibio_actividades',[actividades_visibles]);
 
     AUX.GET(
       '/actividades/buscar',
       {desde: desde,hasta: hasta,mostrar_sin_completar: mostrar_sin_completar+0},
-      function(actividades){
-        const m_desde = moment(desde);
-        const m_hasta = moment(hasta);
-        
-        Object.keys(actividades).forEach(function(numero){
-          const aux = actividades[numero].filter(function(a){
-            return !a.deleted_at;
-          });
-          
-          if(aux.length == 0) return;
-          const a = aux[0];
-                      
-          actividades_visibles[numero] =  actividades[numero];
-          
-          const m_fecha = moment(a.fecha);
-          if(m_fecha >= m_desde && m_fecha <= m_hasta){         
+      function(actividades){        
+        const eventos = [];
+        actividades.forEach(function(a){
+          if(a.fecha >= desde && a.fecha <= hasta){                  
             eventos.push({
               title: a.titulo,
-              start: m_fecha,
-              numero: numero,
+              start: moment(a.fecha),
+              numero: a.numero,
               fecha: a.fecha,
-              es_tarea: a.padre_numero !== null,
-              finalizado: $calendario.find(`[data-estados-completados] option[value="${a.estado}"]`).length > 0,
+              es_actividad: a.es_actividad,
+              finalizado: a.finalizado,
               backgroundColor: a.color_fondo ?? 'green',
               textColor: a.color_texto ?? 'black',
               borderColor: a.color_borde ?? 'green',
             });
           }
         });
-        
         event_source.setRawEventDefs(eventos);
         $calendario.find('.fa-spinner').hide();
         $icalendario.show().fullCalendar('refetchEventSources',event_source);
-        $calendario.trigger('recibio_actividades',[actividades_visibles]);
+        
+        $calendario.trigger('recibio_actividades',[actividades]);
       }
     );
   }

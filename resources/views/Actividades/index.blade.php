@@ -13,7 +13,7 @@
     <div class="row">
       <div class="panel panel-default">
         <div class="panel-body actividades" style="height: 78vh;display:flex;flex-direction: column;">
-          @component('Actividades.actividades',compact('casinos','usuario','roles','estados','estados_completados','estados_sin_completar'))
+          @component('Actividades.actividades',compact('casinos','usuario','roles','estados'))
           @endcomponent
           <div class="col-md-12 mostrar_sin_completar">
             <input data-js-cambio-mostrar-sin-completar type="checkbox" checked>
@@ -29,7 +29,7 @@
         <h4>CALENDARIO</h4>
       </div>
       <div class="panel-body">
-        @component('Actividades.calendario',compact('casinos','usuario','estados','estados_completados','estados_sin_completar'))
+        @component('Actividades.calendario',compact('casinos','usuario'))
         @endcomponent
       </div>
     </div>

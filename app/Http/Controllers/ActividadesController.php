@@ -88,11 +88,8 @@ class ActividadesController extends Controller
       $roles = Rol::all();
     }
     $estados = $this->estados;
-    $estados_sin_completar = $this->estados_sin_completar;
-    $estados_completados = $this->estados_completados;
     return view('Actividades.index',compact(
-      'usuario','casinos','roles',
-      'estados','estados_sin_completar','estados_completados'
+      'usuario','casinos','roles','estados'
     ));
   }
   
@@ -110,7 +107,11 @@ class ActividadesController extends Controller
     ->validate();
     
     $q = DB::table('actividad_tarea as at')
-    ->select('at.*','u_c.nombre as user_created','u_m.nombre as user_modified',DB::raw('NULL as user_deleted'))
+    ->select('at.numero','at.fecha','at.estado','at.titulo','at.roles',
+    DB::raw('at.padre_numero IS NULL as es_actividad'),
+    DB::raw('at.estado IN ("'.implode('","',$this->estados_completados).'") as finalizado'),
+    'at.color_texto','at.color_fondo','at.color_borde',
+    'u_c.nombre as user_created','u_m.nombre as user_modified')
     ->join('usuario as u_c','u_c.id_usuario','=','at.created_by')
     ->join('usuario as u_m','u_m.id_usuario','=','at.modified_by')
     ->whereNull('at.deleted_at')
@@ -136,36 +137,61 @@ class ActividadesController extends Controller
     else{
       $roles = $usuario->roles->pluck('id_rol');
     }
-    
-    $decode_roles_adjuntos = function(&$at) use (&$roles){
+        
+    $ats = $q->get()->filter(function(&$at) use (&$roles){
+      return true;
       $at->roles = json_decode($at->roles ?? '[]',true);
-      $at->adjuntos = json_decode($at->adjuntos ?? '[]',true);
       if(count($roles->intersect($at->roles)) == 0)
         return false;
       return true;
-    };
-    
-    $ats = $q->get()->filter($decode_roles_adjuntos)->groupBy('numero');
-    $ats_to_join = DB::table('actividad_tarea as at')
-    ->select('at.*','u_c.nombre as user_created','u_m.nombre as user_modified','u_d.nombre as user_deleted')
-    ->join('usuario as u_c','u_c.id_usuario','=','at.created_by')
-    ->join('usuario as u_m','u_m.id_usuario','=','at.modified_by')
-    ->join('usuario as u_d','u_d.id_usuario','=','at.deleted_by')
-    ->whereNotNull('at.deleted_at')
-    ->whereIn('at.numero',$ats->keys())
-    ->orderBy('at.modified_at','desc')
-    ->get()
-    ->map(function(&$at) use (&$decode_roles_adjuntos){
-      $decode_roles_adjuntos($at);
-      return $at;
     })
-    ->groupBy('numero');
-    
-    $ats = $ats->map(function($at,$numero) use (&$ats_to_join){
-      return $at->merge($ats_to_join[$numero] ?? []);
+    ->transform(function(&$at){
+      unset($at->roles);
+      return $at;
     });
     
     return $ats;
+  }
+  
+  public function obtener(Request $request,int $numero){
+    Validator::make(compact('numero'), [
+      'numero' => 'required|integer|exists:actividad_tarea,numero,deleted_at,NULL',
+    ], [
+      'required' => 'El valor es requerido',
+      'integer'   => 'El valor tiene que ser un numero',
+      'exits'     => 'No existe',
+    ], [])
+    ->validate();
+    
+    $datos = DB::table('actividad_tarea as at')
+    ->select('at.*','u_c.nombre as user_created','u_m.nombre as user_modified','u_d.nombre as user_deleted')
+    ->join('usuario as u_c','u_c.id_usuario','=','at.created_by')
+    ->join('usuario as u_m','u_m.id_usuario','=','at.modified_by')
+    ->leftJoin('usuario as u_d','u_d.id_usuario','=','at.deleted_by')
+    ->where('at.numero','=',$numero)
+    ->orderBy(DB::raw('at.deleted_at IS NULL'),'desc')//primero el que esta vigente
+    ->orderBy('at.deleted_at','desc')//despues los demas en ordenes descendente de eliminacion
+    ->get()
+    ->map(function(&$at){
+      $at->roles = json_decode($at->roles ?? '[]',true);
+      $at->adjuntos = json_decode($at->adjuntos ?? '[]',true);
+      return $at;
+    });
+    
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $roles;
+    if($usuario->es_superusuario){
+      $roles = Rol::all()->pluck('id_rol');
+    }
+    else{
+      $roles = $usuario->roles->pluck('id_rol');
+    }
+        
+    if(is_null($datos->first()) || count($roles->intersect($datos->first()->roles)) == 0){
+      return response()->json(['numero' => ['No existe o no tiene acceso']],422);
+    }
+    
+    return $datos;
   }
   
   private function generarTareas($act){
@@ -542,7 +568,9 @@ class ActividadesController extends Controller
       'fecha'    => 'required|date',
       'tags_api' => 'required|string',
       'user_name' => 'required|string|exists:usuario,user_name,deleted_at,NULL',
-      'estado' => 'required|string|in:'.$estados,
+      'nuevos_datos' => 'required|array',
+      'nuevos_datos.estado' => 'nullable|string|in:'.$estados,
+      'nuevos_datos.contenido' => 'nullable|string',
     ], [
       'required' => 'El valor es requerido',
       'date' => 'Tiene que ser una fecha',
@@ -583,7 +611,8 @@ class ActividadesController extends Controller
       $actividad_tarea->deleted_by = $id_usuario;
       $actividad_tarea->save();
       
-      $nuevo->estado = $request->estado;
+      $nuevo->estado = $request->nuevos_datos['estado'] ?? $nuevo->estado;
+      $nuevo->contenido = $request->nuevos_datos['contenido'] ?? $nuevo->contenido;
       $nuevo->modified_at = $timestamp;
       $nuevo->modified_by = $id_usuario;
       $nuevo->save();
