@@ -47,7 +47,7 @@ $(function(){ $('[data-js-calendario]').each(function(){
     selectable: true,
     allDaySlot: false,
     eventClick:  function(event, jsEvent, view) {
-      $('[data-js-calendario]').trigger('clickeo_evento',[event.numero,event.es_tarea]);
+      $('[data-js-calendario]').trigger('clickeo_evento',[event.numero]);
     },
     select: function(start, end, jsEvent) {
       start = start.toISOString();

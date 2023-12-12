@@ -110,10 +110,7 @@ class ActividadesController extends Controller
     ->select('at.numero','at.fecha','at.estado','at.titulo','at.roles',
     DB::raw('at.padre_numero IS NULL as es_actividad'),
     DB::raw('at.estado IN ("'.implode('","',$this->estados_completados).'") as finalizado'),
-    'at.color_texto','at.color_fondo','at.color_borde',
-    'u_c.nombre as user_created','u_m.nombre as user_modified')
-    ->join('usuario as u_c','u_c.id_usuario','=','at.created_by')
-    ->join('usuario as u_m','u_m.id_usuario','=','at.modified_by')
+    'at.color_texto','at.color_fondo','at.color_borde')
     ->whereNull('at.deleted_at')
     ->where('at.fecha','<=',$request->hasta)
     ->orderBy('at.fecha','asc');
