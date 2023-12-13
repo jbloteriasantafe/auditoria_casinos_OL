@@ -88,8 +88,11 @@ class ActividadesController extends Controller
       $roles = Rol::all();
     }
     $estados = $this->estados;
+    $estados_completados = $this->estados_completados;
+    $estados_sin_completar = $this->estados_sin_completar;
     return view('Actividades.index',compact(
-      'usuario','casinos','roles','estados'
+      'usuario','casinos','roles','estados',
+      'estados_completados','estados_sin_completar'
     ));
   }
   

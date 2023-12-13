@@ -71,6 +71,10 @@ $(function(){ $('[data-js-actividades]').each(function(){
         }
       });
       
+      $a.find('[data-js-estados]').filter(function(){
+        return $(this).attr('data-js-estados').split(',').includes(a.estado);
+      }).show();
+      
       tab[es_actividad].prepend($a);
       
       $a.find('[data-js-ver-actividad]').on('click',function(){

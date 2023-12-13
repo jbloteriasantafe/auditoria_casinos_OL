@@ -91,7 +91,11 @@
       <div style="flex: 1;display: flex;flex-direction: column;justify-content: center;align-items: center;">
         <span name="numero" style="padding: 0.5em;">&nbsp;</span>
       </div>
-      <div style="flex: 1.5;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+      <div style="display: flex;flex-direction: column;justify-content: center;align-items: center;">
+        <i class="fa fa-check" hidden data-js-estados="{{implode(',',$estados_completados)}}" style="color: green;display: none;"></i>
+        <i class="fa fa-times" hidden data-js-estados="{{implode(',',$estados_sin_completar)}}" style="color: red;display: none;"></i>
+      </div>
+      <div style="flex: 1;display: flex;flex-direction: column;justify-content: center;">
         <span name="estado" style="padding: 0.5em;">&nbsp;</span>
       </div>
       <div style="flex: 3;display: flex;flex-direction: column;justify-content: center;">
