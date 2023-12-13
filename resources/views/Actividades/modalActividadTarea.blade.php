@@ -205,10 +205,10 @@
     @endif
     <div>
       <span>Creado: </span>
-      <span name="user_created" value="{{$usuario->id_usuario}}">{{$usuario->nombre}}</span>
+      <span name="created_by">{{$usuario->user_name}}</span>
       <span name="created_at">{{date('Y-m-d')}}</span>
       <span> | Modificado: </span>
-      <span name="user_modified" value="{{$usuario->id_usuario}}">{{$usuario->nombre}} </span>
+      <span name="modified_by">{{$usuario->user_name}} </span>
       <span name="modified_at">{{date('Y-m-d')}}</span>
     </div>
     <input type="file" multiple data-js-selecciono-archivos style="position: absolute; top: -1000px; left: -1000px;visiblity: hidden;">

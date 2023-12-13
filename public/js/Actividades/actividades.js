@@ -3,6 +3,7 @@ import {AUX} from "/js/Components/AUX.js";
 import "/js/Components/tabs.js";
 import "/js/Components/modalEliminar.js";
 import "/js/Actividades/modalActividadTarea.js";
+import "/js/Actividades/grupos.js";
 
 $(function(){ $('[data-js-actividades]').each(function(){
   const $actividades = $(this);
@@ -92,8 +93,13 @@ $(function(){ $('[data-js-actividades]').each(function(){
     
   modalActividad.on('hidden.bs.modal',function(e){
     $actividades.trigger('actualizar_eventos');
+    $actividades.find('[data-js-grupos]').trigger('actualizar_grupos');
   });
   modalTarea.on('hidden.bs.modal',function(e){
     $actividades.trigger('actualizar_eventos');
+    $actividades.find('[data-js-grupos]').trigger('actualizar_grupos');
   });
+  $actividades.find('[data-js-grupos]').on('actualizo_grupos',function(e){
+    $actividades.trigger('actualizar_eventos');
+  }).trigger('actualizar_grupos');
 }); });

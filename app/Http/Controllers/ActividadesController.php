@@ -6,6 +6,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AuthenticationController;
 use App\Usuario;
 use App\ActividadTarea;
+use App\ActividadTareaGrupo;
 use App\Rol;
 use Validator;
 use Storage;
@@ -164,10 +165,7 @@ class ActividadesController extends Controller
     ->validate();
     
     $datos = DB::table('actividad_tarea as at')
-    ->select('at.*','u_c.nombre as user_created','u_m.nombre as user_modified','u_d.nombre as user_deleted')
-    ->join('usuario as u_c','u_c.id_usuario','=','at.created_by')
-    ->join('usuario as u_m','u_m.id_usuario','=','at.modified_by')
-    ->leftJoin('usuario as u_d','u_d.id_usuario','=','at.deleted_by')
+    ->select('at.*')
     ->where('at.numero','=',$numero)
     ->orderBy(DB::raw('at.deleted_at IS NULL'),'desc')//primero el que esta vigente
     ->orderBy('at.deleted_at','desc')//despues los demas en ordenes descendente de eliminacion
@@ -232,11 +230,11 @@ class ActividadesController extends Controller
     return $tareas;
   }
   
-  private function generarNumeroActividad(){
+  private function generarNumero($tabla){
     $posible_numero = null;
     while(is_null($posible_numero)){
       $posible_numero = rand();
-      $existe = DB::table('actividad_tarea')
+      $existe = DB::table($tabla)
       ->where('numero','=',$posible_numero)
       ->count() > 0;
       if($existe){
@@ -336,9 +334,9 @@ class ActividadesController extends Controller
       $timestamp = (new DateTime())->format('Y-m-d H:i:s');
       if(empty($at_anterior)){
         $at = new ActividadTarea;
-        $at->numero = $this->generarNumeroActividad();
+        $at->numero = $this->generarNumero('actividad_tarea');
         $at->created_at = $timestamp;
-        $at->created_by = $usuario->id_usuario;
+        $at->created_by = $usuario->user_name;
         $at->padre_numero = null;
         $at->cada_cuanto = null;
         $at->tipo_repeticion = null;
@@ -347,12 +345,12 @@ class ActividadesController extends Controller
       else{
         $at = $this->clonar($at_anterior);
         $at_anterior->deleted_at = $timestamp;
-        $at_anterior->deleted_by = $usuario->id_usuario;
+        $at_anterior->deleted_by = $usuario->user_name;
         $at_anterior->save();
       }
       
       $at->modified_at = $timestamp;
-      $at->modified_by = $usuario->id_usuario;
+      $at->modified_by = $usuario->user_name;
       
       $at->estado = $R->estado;
       $at->contenido = $R->contenido ?? '';
@@ -456,12 +454,12 @@ class ActividadesController extends Controller
             $closestidx = $this->matchearTarea($t->fecha,$tareas_nuevas,$fechas_movidas);
             if(is_null($closestidx)){//No encontro, lo "descuelgo", pasandolo a actividad.
               $newt = $this->clonar($t);
-              $this->borrarTarea($t,$usuario->id_usuario,$at->modified_at);
-              $this->descolgarTarea($newt,$usuario->id_usuario,$at->modified_at);
+              $this->borrarTarea($t,$usuario->user_name,$at->modified_at);
+              $this->descolgarTarea($newt,$usuario->user_name,$at->modified_at);
             }
             else{//Encontro, creo una tarea nueva con esa fecha pero todos los datos iguales
               $newt = $this->clonar($t);
-              $this->borrarTarea($t,$usuario->id_usuario,$at->modified_at);
+              $this->borrarTarea($t,$usuario->user_name,$at->modified_at);
               $closest = $tareas_nuevas[$closestidx];
               $newt->fecha       = $closest->fecha;
               $newt->modified_at = $closest->modified_at;
@@ -472,7 +470,7 @@ class ActividadesController extends Controller
             }
           }
           else{//Esta sin tocar, simplemente la borro para insertarle una tarea nueva correcta
-            $this->borrarTarea($t,$usuario->id_usuario,$at->modified_at);
+            $this->borrarTarea($t,$usuario->user_name,$at->modified_at);
           }
         }
       
@@ -482,7 +480,7 @@ class ActividadesController extends Controller
           if(($fechas_movidas[$nt->fecha] ?? false))
             continue;
           //Le creo una tarea           
-          $nt->numero = $this->generarNumeroActividad();
+          $nt->numero = $this->generarNumero('actividad_tarea');
           $nt->save();
         }
       }
@@ -512,20 +510,20 @@ class ActividadesController extends Controller
       if(is_null($actividad)) return 0;
       
       $timestamp = (new DateTime())->format('Y-m-d H:i:s');    
-      $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      $user_name = UsuarioController::getInstancia()->quienSoy()['usuario']->user_name;
       
       $actividad->deleted_at = $timestamp;
-      $actividad->deleted_by = $id_usuario;
+      $actividad->deleted_by = $user_name;
       $actividad->save();
       
       foreach($actividad->tareas as $t){
         if($t->dirty){
           $tdescolgado = $this->clonar($t);
-          $this->borrarTarea($t,$id_usuario,$timestamp);
-          $this->descolgarTarea($tdescolgado,$id_usuario,$timestamp);
+          $this->borrarTarea($t,$user_name,$timestamp);
+          $this->descolgarTarea($tdescolgado,$user_name,$timestamp);
         }
         else{
-          $this->borrarTarea($t,$id_usuario,$timestamp);
+          $this->borrarTarea($t,$user_name,$timestamp);
         }
       }
       
@@ -533,17 +531,17 @@ class ActividadesController extends Controller
     });
   }
   
-  private function descolgarTarea(&$t,$id_usuario,$timestamp){
+  private function descolgarTarea(&$t,$user_name,$timestamp){
     $t->modified_at = $timestamp;
-    $t->modified_by = $id_usuario;
+    $t->modified_by = $user_name;
     $t->padre_numero_original = $t->padre_numero;
     $t->padre_numero = null;
     $t->save();
   }
   
-  private function borrarTarea($t,$id_usuario,$timestamp){
+  private function borrarTarea($t,$user_name,$timestamp){
     $t->deleted_at = $timestamp;
-    $t->deleted_by = $id_usuario;
+    $t->deleted_by = $user_name;
     $t->save();
   }
   
@@ -578,7 +576,7 @@ class ActividadesController extends Controller
       'exists' => 'El valor no es valido',
       'in' => 'El estado tiene que estar dentro de los siguientes valores: '.$estados,
     ], [])
-    ->after(function ($validator) use (&$actividad_tarea,&$id_usuario){
+    ->after(function ($validator) use (&$actividad_tarea){
       if($validator->errors()->any()) return;
       
       $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
@@ -598,25 +596,121 @@ class ActividadesController extends Controller
         return $validator->errors()->add('actividad_tarea','No existe una actividad o tarea con esos parametros');
       }
       
-      //@TODO validar id_usuario tiene rol para acceder?
+      //@TODO validar usuario tiene rol para acceder?
     });
     
     if($validator->errors()->any()) return response()->json($validator->errors(),422);
     
     return DB::transaction(function() use (&$request,&$actividad_tarea,&$timestamp){
-      $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
+      $user_name = UsuarioController::getInstancia()->quienSoy()['usuario']->user_name;
       
       $nuevo = $this->clonar($actividad_tarea);
       $actividad_tarea->deleted_at = $timestamp;
-      $actividad_tarea->deleted_by = $id_usuario;
+      $actividad_tarea->deleted_by = $user_name;
       $actividad_tarea->save();
       
       $nuevo->estado = $request->nuevos_datos['estado'] ?? $nuevo->estado;
       $nuevo->contenido = $request->nuevos_datos['contenido'] ?? $nuevo->contenido;
       $nuevo->modified_at = $timestamp;
-      $nuevo->modified_by = $id_usuario;
+      $nuevo->modified_by = $user_name;
       $nuevo->save();
       return 1;
     });
+  }
+  
+  public function grupos_buscar(Request $request){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
+    Validator::make($request->all(), [], [], [])
+    ->after(function($validator) use (&$usuario){
+      if($validator->errors()->any()) return;
+      if(!$usuario->es_superusuario){
+        return $validator->errors()->add('privilegios','No tiene acceso');
+      }
+    })->validate();
+    
+    return DB::table('actividad_tarea_grupo as g')
+    //saco la coma de inicio y fin
+    ->select('g.numero','g.nombre',DB::raw('SUBSTRING(g.usuarios,2,LENGTH(g.usuarios)-2) as usuarios'))
+    ->whereNull('g.deleted_at')
+    ->orderBy('g.nombre','asc')
+    ->get();
+  }
+  
+  public function grupos_guardar(Request $request){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
+    Validator::make($request->all(), [
+      'numero' => 'nullable|integer|exists:actividad_tarea_grupo,numero,deleted_at,NULL',
+      'nombre' => 'required|string',
+      'usuarios' => 'required|string',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor no existe',
+    ], [])->after(function($validator) use (&$usuario){
+      if($validator->errors()->any()) return;
+      if(!$usuario->es_superusuario){
+        return $validator->errors()->add('privilegios','No tiene acceso');
+      }
+    })->validate();
+    
+    return DB::transaction(function() use ($request,$usuario){
+      $grupo_viejo = ActividadTareaGrupo::where('numero','=',$request->numero ?? null)
+      ->whereNull('deleted_at')->first();
+      $timestamp = (new DateTime())->format('Y-m-d H:i:s');
+            
+      $grupo;
+      if(is_null($grupo_viejo)){
+        $grupo = new ActividadTareaGrupo;
+        $grupo->numero = $this->generarNumero('actividad_tarea_grupo');
+        $grupo->created_at = $timestamp;
+        $grupo->created_by = $usuario->user_name;
+      }
+      else{
+        $grupo = $this->clonar($grupo_viejo);
+        
+        $grupo_viejo->deleted_at = $timestamp;
+        $grupo_viejo->deleted_by = $usuario->user_name;
+        $grupo_viejo->save();
+      }
+      
+      $grupo->modified_at = $timestamp;
+      $grupo->modified_by = $usuario->user_name;
+      $grupo->nombre = $request->nombre;
+      $grupo->usuarios = ','.implode(
+        ',',
+        array_map(
+          function($u){return trim($u);},
+          explode(',',$request->usuarios)
+        )
+      ).',';
+      
+      $grupo->save();
+      return 1;
+    });
+  }
+  
+  public function grupos_borrar(Request $request){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
+    Validator::make($request->all(), [
+      'numero' => 'nullable|integer|exists:actividad_tarea_grupo,numero,deleted_at,NULL',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor no existe',
+    ], [])->after(function($validator) use (&$usuario){
+      if($validator->errors()->any()) return;
+      if(!$usuario->es_superusuario){
+        return $validator->errors()->add('privilegios','No tiene acceso');
+      }
+    })->validate();
+    
+    $grupo = ActividadTareaGrupo::where('numero','=',$request->numero)
+    ->whereNull('deleted_at')->first();
+    
+    $grupo->deleted_at =  (new DateTime())->format('Y-m-d H:i:s');
+    $grupo->deleted_by = $usuario->user_name;
+    $grupo->save();
+    return 1;
   }
 }

@@ -59,6 +59,8 @@
 </style>
 @endcomponent
 
+<?php $mostrar_tab_grupos = $usuario->es_superusuario; ?>
+
 <div id="{{uniqid()}}" class="actividades row" data-js-actividades>
   @component('Components/tabs')
   @slot('tabs')
@@ -68,7 +70,13 @@
   <div data-js-tab-actividad="1">
     Actividades
   </div>
+  @if($mostrar_tab_grupos)
+  <div>
+    Grupos
+  </div>
+  @endif
   @endslot
+  
   @slot('tab_contents')
   @foreach([0,1] as $es_actividad)
   <div data-js-tab-content-actividad="{{$es_actividad}}" style="width: 100%;height: 100%;">
@@ -80,7 +88,15 @@
     @endif
   </div>
   @endforeach
+  
+  @if($mostrar_tab_grupos)
+  <div style="width: 100%;height: 100%;">
+    @component('Actividades.grupos')
+    @endcomponent
+  </div>
+  @endif
   @endslot
+  
   @endcomponent
   
   <div hidden>
