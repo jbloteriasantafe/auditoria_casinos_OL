@@ -84,17 +84,24 @@ class ActividadesController extends Controller
   public function index(Request $request){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $casinos = $usuario->casinos;
-    $roles = $usuario->roles;
-    if($roles->where('descripcion','SUPERUSUARIO')->count() > 0){
-      $roles = Rol::all();
-    }
+    $grupos = ActividadTareaGrupo::whereIn('numero',$this->gruposUsuario($usuario))
+    ->whereNull('deleted_at')->get();
     $estados = $this->estados;
     $estados_completados = $this->estados_completados;
     $estados_sin_completar = $this->estados_sin_completar;
     return view('Actividades.index',compact(
-      'usuario','casinos','roles','estados',
+      'usuario','casinos','grupos','estados',
       'estados_completados','estados_sin_completar'
     ));
+  }
+  
+  private function gruposUsuario($usuario){
+    $grupos = ActividadTareaGrupo::whereNull('deleted_at');
+    if(!$usuario->es_superusuario){
+      $grupos = $grupos->where('usuarios','LIKE','%,'.$usuario->user_name.',%');
+    }
+    $grupos = $grupos->get()->pluck('numero');
+    return $grupos;
   }
   
   public function buscar(Request $request){
@@ -111,16 +118,14 @@ class ActividadesController extends Controller
     ->validate();
     
     $q = DB::table('actividad_tarea as at')
-    ->select('at.numero','at.fecha','at.estado','at.titulo','at.roles',
+    ->select('at.numero','at.fecha','at.estado','at.titulo','at.grupos',
     DB::raw('at.padre_numero IS NULL as es_actividad'),
     DB::raw('at.estado IN ("'.implode('","',$this->estados_completados).'") as finalizado'),
     'at.color_texto','at.color_fondo','at.color_borde')
     ->whereNull('at.deleted_at')
     ->where('at.fecha','<=',$request->hasta)
     ->orderBy('at.fecha','asc');
-    
-    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    
+        
     if($request->mostrar_sin_completar){
       $q = $q->where(function($q) use (&$request){
         return $q->whereIn('at.estado',$this->estados_sin_completar)
@@ -131,23 +136,16 @@ class ActividadesController extends Controller
       $q = $q->where('at.fecha','>=',$request->desde);
     }
     
-    $roles;
-    if($usuario->es_superusuario){
-      $roles = Rol::all()->pluck('id_rol');
-    }
-    else{
-      $roles = $usuario->roles->pluck('id_rol');
-    }
+    $grupos = $this->gruposUsuario(UsuarioController::getInstancia()->quienSoy()['usuario']);
         
-    $ats = $q->get()->filter(function(&$at) use (&$roles){
-      return true;
-      $at->roles = json_decode($at->roles ?? '[]',true);
-      if(count($roles->intersect($at->roles)) == 0)
+    $ats = $q->get()->filter(function(&$at) use (&$grupos){
+      $at->grupos = json_decode($at->grupos ?? '[]',true);
+      if(count($grupos->intersect($at->grupos)) == 0)
         return false;
       return true;
     })
     ->transform(function(&$at){
-      unset($at->roles);
+      unset($at->grupos);
       return $at;
     });
     
@@ -171,21 +169,14 @@ class ActividadesController extends Controller
     ->orderBy('at.deleted_at','desc')//despues los demas en ordenes descendente de eliminacion
     ->get()
     ->map(function(&$at){
-      $at->roles = json_decode($at->roles ?? '[]',true);
+      $at->grupos = json_decode($at->grupos ?? '[]',true);
       $at->adjuntos = json_decode($at->adjuntos ?? '[]',true);
       return $at;
     });
     
-    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $roles;
-    if($usuario->es_superusuario){
-      $roles = Rol::all()->pluck('id_rol');
-    }
-    else{
-      $roles = $usuario->roles->pluck('id_rol');
-    }
+    $grupos = $this->gruposUsuario(UsuarioController::getInstancia()->quienSoy()['usuario']);
         
-    if(is_null($datos->first()) || count($roles->intersect($datos->first()->roles)) == 0){
+    if(is_null($datos->first()) || count($grupos->intersect($datos->first()->grupos)) == 0){
       return response()->json(['numero' => ['No existe o no tiene acceso']],422);
     }
     
@@ -252,7 +243,7 @@ class ActividadesController extends Controller
     return $at;
   }
   
-  public function guardar(Request $R){
+  public function guardar(Request $R){//Forzar recarga de pagina?
     $at_anterior = null;
     
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
@@ -269,8 +260,8 @@ class ActividadesController extends Controller
       'contenido' => 'nullable|string',
       'adjuntos_viejos' => 'nullable|array', 
       'adjuntos_viejos.*' => 'nullable|integer',
-      'roles' => 'nullable|array|min:1',
-      'roles.*' => 'integer|exists:rol,id_rol',
+      'grupos' => 'nullable|array|min:1',
+      'grupos.*' => 'integer|exists:actividad_tarea_grupo,numero,deleted_at,NULL',
       'color_fondo' => ['required','string','regex:/^#([0-9]|[A-F]){6}$/i'],
       'color_texto' => ['required','string','regex:/^#([0-9]|[A-F]){6}$/i'],
       'color_borde' => ['required','string','regex:/^#([0-9]|[A-F]){6}$/i'],
@@ -301,19 +292,14 @@ class ActividadesController extends Controller
                     || is_null($at_anterior) 
                     || is_null($at_anterior->padre_numero);
       
-      if(!$usuario->es_superusuario &&
-        ( 
-          $usuario->roles()->whereIn('rol.id_rol',$data['roles'])->count() 
-          != 
-          count($data['roles'])
-        )
-      ){
-        return $validator->errors()->add('roles','No tiene los privilegios');
+      $grupos = $this->gruposUsuario($usuario);
+      if(count($grupos->intersect($data['grupos'])) == 0){
+        return $validator->errors()->add('grupos','No tiene los privilegios');
       }
       
       if($es_actividad){
-        if(!isset($data['roles']) || empty($data['roles'])){
-          return $validator->errors()->add('roles','El valor es requerido');
+        if(!isset($data['grupos']) || empty($data['grupos'])){
+          return $validator->errors()->add('grupos','El valor es requerido');
         }
       }
       else{
@@ -369,19 +355,14 @@ class ActividadesController extends Controller
         
         {
           $strval = function($i){return $i.'';};
-          $roles_anteriores = collect(json_decode($at_anterior->roles ?? '[]',true))->map($strval);
+          $grupos_anteriores = collect(json_decode($at_anterior->grupos ?? '[]',true))->map($strval);
           //Los enviados si o si le pertenecen al usuario porque son validados
-          $roles_enviados = collect($R->roles ?? [])->map($strval);
+          $grupos_enviados = collect($R->grupos ?? [])->map($strval);
+          $grupos_usuario = $this->gruposUsuario($usuario);
+          $grupos_a_mantener = $grupos_anteriores->diff($grupos_usuario);
           
-          $roles_a_mantener = collect([]);
-          if(!$usuario->es_superusuario){
-            $roles_usuario = $usuario->roles->pluck('id_rol')->unique()->values()
-            ->map($strval);
-            $roles_a_mantener = $roles_anteriores->diff($roles_usuario);
-          }
-          
-          $at->roles = json_encode(
-            $roles_enviados->merge($roles_a_mantener)->unique()->values()->toArray()
+          $at->grupos = json_encode(
+            $grupos_enviados->merge($grupos_a_mantener)->unique()->values()->toArray()
           );
         }
       }
@@ -502,7 +483,7 @@ class ActividadesController extends Controller
     return $closestidx;
   }
   
-  public function borrar(Request $request,int $numero){
+  public function borrar(Request $request,int $numero){//Forzar recarga de pagina?
     DB::transaction(function() use ($numero){
       $actividad = ActividadTarea::where('numero',$numero)
       ->whereNull('padre_numero')->whereNull('deleted_at')->first();

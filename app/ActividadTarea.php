@@ -16,7 +16,7 @@ class ActividadTarea extends Model
     'fecha','titulo',
     'estado','contenido',
     'cada_cuanto','tipo_repeticion','hasta',
-    'roles','adjuntos',
+    'grupos','adjuntos',
     'created_by','created_at',
     'modified_by','modified_at',
     'deleted_by','deleted_at',

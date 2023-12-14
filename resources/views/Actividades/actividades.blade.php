@@ -125,8 +125,8 @@
 @component('Components/modalEliminar',['elemento_a_eliminar' => 'la actividad'])
 @endcomponent
 
-@component('Actividades/modalActividadTarea',['es_actividad' => 1,'roles' => $roles,'usuario' => $usuario])
+@component('Actividades/modalActividadTarea',['es_actividad' => 1,'grupos' => $grupos,'usuario' => $usuario])
 @endcomponent
 
-@component('Actividades/modalActividadTarea',['es_actividad' => 0,'roles' => $roles,'usuario' => $usuario])
+@component('Actividades/modalActividadTarea',['es_actividad' => 0,'grupos' => $grupos,'usuario' => $usuario])
 @endcomponent

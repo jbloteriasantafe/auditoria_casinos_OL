@@ -32,9 +32,9 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
     }
     
     if(datos?.numero){
-      const roles = datos?.roles ?? [];
-      at.find('[name="roles[]"]').each(function(_,o){
-        $(this).prop('checked',roles.includes($(this).val()));
+      const grupos = datos?.grupos ?? [];
+      at.find('[name="grupos[]"]').each(function(_,o){
+        $(this).prop('checked',grupos.includes($(this).val()));
       });
     }
     
@@ -121,8 +121,8 @@ $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
         console.log(data);
         const json = data.responseJSON ?? {};
         AUX.mostrarErroresNames(at,json);
-        if(json.roles){
-          mostrarErrorValidacion(at.find('[name="roles[]"]').eq(0),json.roles.join(', '),true);
+        if(json.grupos){
+          mostrarErrorValidacion(at.find('[name="grupos[]"]').eq(0),json.grupos.join(', '),true);
         }
       }
     });

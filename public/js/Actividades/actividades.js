@@ -100,6 +100,7 @@ $(function(){ $('[data-js-actividades]').each(function(){
     $actividades.find('[data-js-grupos]').trigger('actualizar_grupos');
   });
   $actividades.find('[data-js-grupos]').on('actualizo_grupos',function(e){
-    $actividades.trigger('actualizar_eventos');
+    //Como los grupos estan bakeados en el HTML de los modales, reinicio la pantalla
+    location.reload();
   }).trigger('actualizar_grupos');
 }); });

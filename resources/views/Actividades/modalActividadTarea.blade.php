@@ -39,13 +39,13 @@
     color: white;
   }
   
-  .modal-actividad-tarea ul.lista_roles {
+  .modal-actividad-tarea ul.lista_grupos {
     list-style-type: none;
     padding-left: 0;
     user-select: none;
   }
   
-  .modal-actividad-tarea ul.lista_roles li:hover {
+  .modal-actividad-tarea ul.lista_grupos li:hover {
     cursor: pointer;
     background: rgb(0,0,0,0.1);
   }
@@ -183,11 +183,11 @@
       <br>
       <div class="col-md-12" data-js-ver="visualizando,creando,editando,historial">
         <span>Visible por:</span>
-        <ul class="lista_roles">
-          @foreach($roles as $rol)
+        <ul class="lista_grupos">
+          @foreach($grupos as $g)
           <li data-js-click-evento>
-            <input data-js-recibir-click-evento type="checkbox" value="{{$rol['id_rol']}}" name="roles[]" data-js-habilitar="creando,editando" checked>
-            <span>{{$rol['descripcion']}}</span>
+            <input data-js-recibir-click-evento type="checkbox" value="{{$g->numero}}" name="grupos[]" data-js-habilitar="creando,editando" checked>
+            <span>{{$g->nombre}}</span>
           </li>
           @endforeach
         </ul>
