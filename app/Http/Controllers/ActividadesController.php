@@ -473,7 +473,16 @@ class ActividadesController extends Controller
   }
   
   private function matchearTarea($fecha,$tareas,$blacklist){
-    $closestidx = null;
+    //Antes buscaba la fecha mas cercana, creo que es mejor simplemente no matchear
+    //si no se encuentra en la misma fecha, es mas logico o razonable desde punto de vista
+    //del usuario
+    foreach($tareas as $tidx => &$t){
+      if($t->fecha == $fecha && ($blacklist[$t->fecha] ?? false) == false){
+        return $tidx;
+      }
+    }
+    return null;
+    /*$closestidx = null;
     $closestdiff = INF;//Bisect?
     foreach($tareas as $nidx => &$nt){
       $diff = abs($this->diff_dates_days($fecha,$nt->fecha));
@@ -482,7 +491,7 @@ class ActividadesController extends Controller
         $closestidx = $nidx;
       }
     }
-    return $closestidx;
+    return $closestidx;*/
   }
   
   public function borrar(Request $request,int $numero){//Forzar recarga de pagina?
