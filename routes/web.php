@@ -342,6 +342,6 @@ Route::group(['prefix' => 'actividades'], function () {
   Route::group(['prefix' => 'grupos'],function(){
     Route::get('buscar','ActividadesController@grupos_buscar');
     Route::post('guardar','ActividadesController@grupos_guardar');
-    Route::delete('borrar','ActividadesController@grupos_borrar');
+    Route::delete('borrar/{numero}','ActividadesController@grupos_borrar');
   });
 });

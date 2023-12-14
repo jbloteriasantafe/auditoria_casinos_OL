@@ -9,10 +9,7 @@ $(function(){ $('[data-js-grupos]').each(function(){
     g.find('[data-js-guardar-grupo]').on('click',function(e){
       AUX.POST(
         '/actividades/grupos/guardar',
-        {
-          ...AUX.form_entries(g[0]),
-          numero: g.find('[name="numero"]').text(),
-        },
+        AUX.form_entries(g[0]),
         function(e){
           $grupos.trigger('actualizar_grupos');
           $grupos.trigger('actualizo_grupos');
@@ -26,11 +23,8 @@ $(function(){ $('[data-js-grupos]').each(function(){
     
     g.find('[data-js-borrar-grupo]').on('click',function(e){
       AUX.DELETE(
-        '/actividades/grupos/borrar',
-        {
-          ...AUX.form_entries(g[0]),
-          numero: g.find('[name="numero"]').text(),
-        },
+        '/actividades/grupos/borrar/'+AUX.form_entries(g[0]).numero,
+        {},
         function(e){
           $grupos.trigger('actualizar_grupos');
           $grupos.trigger('actualizo_grupos');

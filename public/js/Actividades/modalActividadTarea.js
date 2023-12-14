@@ -3,6 +3,11 @@ import {AUX} from "/js/Components/AUX.js";
 
 $(function(){ $('[data-js-modal-actividad-tarea]').each(function(){
   const at = $(this);
+  
+  at.on('actualizo_grupos',function(e){
+    //Como los grupos estan bakeados en el HTML de los modales, reinicio la pantalla
+    location.reload();
+  });
    
   const setearEstadoActividad = function(estado = null){
     const datos = at.data('datos') ?? {};

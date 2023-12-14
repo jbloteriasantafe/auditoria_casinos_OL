@@ -39,12 +39,4 @@ class ActividadTarea extends Model
   public function getId(){
     return $this->id_actividad_tarea;
   }
-  
-  public function tareas(){
-    return $this->hasMany('App\ActividadTarea','numero','padre_numero');
-  }
-  
-  public function actividad(){
-    return $this->hasMany('App\ActividadTarea','padre_numero','numero');
-  }
 }

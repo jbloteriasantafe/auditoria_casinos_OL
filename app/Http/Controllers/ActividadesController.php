@@ -84,8 +84,7 @@ class ActividadesController extends Controller
   public function index(Request $request){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $casinos = $usuario->casinos;
-    $grupos = ActividadTareaGrupo::whereIn('numero',$this->gruposUsuario($usuario))
-    ->whereNull('deleted_at')->get();
+    $grupos = $this->gruposUsuario($usuario,true);
     $estados = $this->estados;
     $estados_completados = $this->estados_completados;
     $estados_sin_completar = $this->estados_sin_completar;
@@ -95,12 +94,14 @@ class ActividadesController extends Controller
     ));
   }
   
-  private function gruposUsuario($usuario){
+  private function gruposUsuario($usuario,$completos = false){
     $grupos = ActividadTareaGrupo::whereNull('deleted_at');
     if(!$usuario->es_superusuario){
       $grupos = $grupos->where('usuarios','LIKE','%,'.$usuario->user_name.',%');
     }
-    $grupos = $grupos->get()->pluck('numero');
+    $grupos = $grupos->get();
+    if(!$completos)
+      return $grupos->pluck('numero');
     return $grupos;
   }
   
@@ -291,18 +292,19 @@ class ActividadesController extends Controller
                     || is_null($data['numero']) 
                     || is_null($at_anterior) 
                     || is_null($at_anterior->padre_numero);
-      
-      $grupos = $this->gruposUsuario($usuario);
-      if(count($grupos->intersect($data['grupos'])) == 0){
-        return $validator->errors()->add('grupos','No tiene los privilegios');
-      }
-      
       if($es_actividad){
         if(!isset($data['grupos']) || empty($data['grupos'])){
           return $validator->errors()->add('grupos','El valor es requerido');
         }
+        $grupos = $this->gruposUsuario($usuario);
+        if(count($grupos->intersect($data['grupos'])) == 0){
+          return $validator->errors()->add('grupos','No tiene los privilegios');
+        }
       }
       else{
+        if(isset($data['grupos']) || !empty($data['grupos'])){
+          return $validator->errors()->add('grupos','No pueden reescribirse los grupos de una tarea');
+        }
         if(isset($data['generar_tareas']) && $data['generar_tareas']){
           return $validator->errors()->add('generar_tareas','No puede generar tareas para una tarea');
         }
@@ -493,11 +495,9 @@ class ActividadesController extends Controller
       $timestamp = (new DateTime())->format('Y-m-d H:i:s');    
       $user_name = UsuarioController::getInstancia()->quienSoy()['usuario']->user_name;
       
-      $actividad->deleted_at = $timestamp;
-      $actividad->deleted_by = $user_name;
-      $actividad->save();
-      
-      foreach($actividad->tareas as $t){
+      $tareas = ActividadTarea::where('padre_numero',$numero)
+      ->whereNull('deleted_at')->get();
+      foreach($tareas as $t){
         if($t->dirty){
           $tdescolgado = $this->clonar($t);
           $this->borrarTarea($t,$user_name,$timestamp);
@@ -507,6 +507,10 @@ class ActividadesController extends Controller
           $this->borrarTarea($t,$user_name,$timestamp);
         }
       }
+      
+      $actividad->deleted_at = $timestamp;
+      $actividad->deleted_by = $user_name;
+      $actividad->save();
       
       return 1;
     });
@@ -671,10 +675,10 @@ class ActividadesController extends Controller
     });
   }
   
-  public function grupos_borrar(Request $request){
+  public function grupos_borrar(Request $request,int $numero){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     
-    Validator::make($request->all(), [
+    Validator::make(compact('numero'), [
       'numero' => 'nullable|integer|exists:actividad_tarea_grupo,numero,deleted_at,NULL',
     ], [
       'required' => 'El valor es requerido',
@@ -686,7 +690,7 @@ class ActividadesController extends Controller
       }
     })->validate();
     
-    $grupo = ActividadTareaGrupo::where('numero','=',$request->numero)
+    $grupo = ActividadTareaGrupo::where('numero','=',$numero)
     ->whereNull('deleted_at')->first();
     
     $grupo->deleted_at =  (new DateTime())->format('Y-m-d H:i:s');

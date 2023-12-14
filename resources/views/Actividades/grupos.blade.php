@@ -25,7 +25,7 @@
   <button type="button" class="btn btn-info col-md-12 agregar_grupo" data-js-agregar-grupo><i class="fa fa-fw fa-plus"></i>Nuevo</button>
   <form hidden class="grupo" data-js-molde-grupo data-js-grupo style="width: 100%;">
     <div style="width: 100%;display: flex;flex-wrap: wrap;align-content: center;">
-      <span hidden name="numero"></span>
+      <input hidden name="numero"></span>
       <div style="flex: 0.8;display: flex;flex-direction: column;justify-content: center;align-items: center;">
         <input name="nombre" class="form-control" style="padding: 0.5em;" value="" placeholder="NOMBRE GRUPO">
       </div>
