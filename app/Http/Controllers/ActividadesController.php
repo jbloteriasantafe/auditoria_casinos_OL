@@ -163,11 +163,9 @@ class ActividadesController extends Controller
     ], [])
     ->validate();
     
-    $datos = DB::table('actividad_tarea as at')
-    ->select('at.*')
-    ->where('at.numero','=',$numero)
-    ->orderBy(DB::raw('at.deleted_at IS NULL'),'desc')//primero el que esta vigente
-    ->orderBy('at.deleted_at','desc')//despues los demas en ordenes descendente de eliminacion
+    $datos = ActividadTarea::where('numero','=',$numero)
+    ->orderBy(DB::raw('deleted_at IS NULL'),'desc')//primero el que esta vigente
+    ->orderBy('deleted_at','desc')//despues los demas en ordenes descendente de eliminacion
     ->get()
     ->map(function(&$at){
       $at->grupos = json_decode($at->grupos ?? '[]',true);
@@ -337,15 +335,13 @@ class ActividadesController extends Controller
         $at_anterior->save();
       }
       
-      $at->modified_at = $timestamp;
-      $at->modified_by = $usuario->user_name;
-      
       $at->estado = $R->estado;
       $at->contenido = $R->contenido ?? '';
       $at->color_fondo = $R->color_fondo;
       $at->color_texto = $R->color_texto;
       $at->color_borde = $R->color_borde;
       $at->estado = $R->estado;
+      $this->tag_modificado($at,$usuario->user_name,$timestamp);
       
       if($usuario->es_superusuario){
         $at->tags_api = $R->tags_api ?? $at->tags_api ?? '';
@@ -437,23 +433,31 @@ class ActividadesController extends Controller
             $closestidx = $this->matchearTarea($t->fecha,$tareas_nuevas,$fechas_movidas);
             if(is_null($closestidx)){//No encontro, lo "descuelgo", pasandolo a actividad.
               $newt = $this->clonar($t);
-              $this->borrarTarea($t,$usuario->user_name,$at->modified_at);
-              $this->descolgarTarea($newt,$usuario->user_name,$at->modified_at);
+              
+              $this->tag_borrado($t,$usuario->user_name,$at->modified_at);
+              $t->save();
+              
+              $this->tag_descolgado($newt,$usuario->user_name,$at->modified_at);
+              $newt->save();
             }
             else{//Encontro, creo una tarea nueva con esa fecha pero todos los datos iguales
               $newt = $this->clonar($t);
-              $this->borrarTarea($t,$usuario->user_name,$at->modified_at);
+              
+              $this->tag_borrado($t,$usuario->user_name,$at->modified_at);
+              $t->save();
+              
               $closest = $tareas_nuevas[$closestidx];
-              $newt->fecha       = $closest->fecha;
-              $newt->modified_at = $closest->modified_at;
-              $newt->modified_by = $closest->modified_by;
+              
+              $newt->fecha = $closest->fecha;
+              $this->tag_modicado($closest,$usuario->user_name,$at->modified_at);
               $newt->save();
               
               $fechas_movidas[$newt->fecha] = true;
             }
           }
           else{//Esta sin tocar, simplemente la borro para insertarle una tarea nueva correcta
-            $this->borrarTarea($t,$usuario->user_name,$at->modified_at);
+            $this->tag_borrado($t,$usuario->user_name,$at->modified_at);
+            $t->save();
           }
         }
       
@@ -509,34 +513,54 @@ class ActividadesController extends Controller
       foreach($tareas as $t){
         if($t->dirty){
           $tdescolgado = $this->clonar($t);
-          $this->borrarTarea($t,$user_name,$timestamp);
-          $this->descolgarTarea($tdescolgado,$user_name,$timestamp);
+          
+          $this->tag_borrado($t,$user_name,$timestamp);
+          $t->save();
+          
+          $this->tag_descolgado($tdescolgado,$user_name,$timestamp);
+          $tdescolgado->save();
         }
         else{
-          $this->borrarTarea($t,$user_name,$timestamp);
+          $this->tag_borrado($t,$user_name,$timestamp);
+          $t->save();
         }
       }
       
-      $actividad->deleted_at = $timestamp;
-      $actividad->deleted_by = $user_name;
+      $this->tag_borrado($actividad,$user_name,$timestamp);
       $actividad->save();
       
       return 1;
     });
   }
   
-  private function descolgarTarea(&$t,$user_name,$timestamp){
+  
+  private function tag_modificado(&$t,$user_name,$timestamp){
+    $this->set_ip_token($t);
     $t->modified_at = $timestamp;
     $t->modified_by = $user_name;
-    $t->padre_numero_original = $t->padre_numero;
-    $t->padre_numero = null;
-    $t->save();
   }
   
-  private function borrarTarea($t,$user_name,$timestamp){
+  private function tag_borrado(&$t,$user_name,$timestamp){
+    $this->set_ip_token($t,'deleted_');
     $t->deleted_at = $timestamp;
     $t->deleted_by = $user_name;
-    $t->save();
+  }
+  
+  private function tag_descolgado(&$t,$user_name,$timestamp){
+    $this->tag_modificado($t,$user_name,$timestamp);
+    $t->padre_numero_original = $t->padre_numero;
+    $t->padre_numero = null;
+  }
+  
+  private $ip_token = null; 
+  private function set_ip_token(&$at,$prefix = ''){
+    if(is_null($this->ip_token)){
+      $ip    = request()->ip();
+      $token = AuthenticationController::getInstancia()->obtenerAPIToken();
+      $ip_token = [$ip,$token];
+    }
+    $at->{$prefix.'ip'} = $ip_token[0];
+    $at->{$prefix.'token'} = is_null($ip_token[1])? null : $ip_token[1]->token;
   }
   
   public function archivo(Request $request,int $nro_ticket,int $nro_archivo){
@@ -559,7 +583,7 @@ class ActividadesController extends Controller
     $validator = Validator::make($request->all(), [
       'fecha'    => 'required|date',
       'tags_api' => 'required|string',
-      'user_name' => 'required|string|exists:usuario,user_name,deleted_at,NULL',
+      'user_name' => 'required|string',
       'nuevos_datos' => 'required|array',
       'nuevos_datos.estado' => 'nullable|string|in:'.$estados,
       'nuevos_datos.contenido' => 'nullable|string',
@@ -590,23 +614,28 @@ class ActividadesController extends Controller
         return $validator->errors()->add('actividad_tarea','No existe una actividad o tarea con esos parametros');
       }
       
-      //@TODO validar usuario tiene rol para acceder?
+      $grupos = json_decode($actividad_tarea->grupos,true);
+      $puede_acceder = ActividadTareaGrupo::whereNull('deleted_at')
+      ->whereIn('numero',$grupos)
+      ->where('usuarios','LIKE','%,'.$data['user_name'].',%')
+      ->count() > 0;
+      
+      if(!$puede_acceder){
+        return $validator->errors()->add('user_name','El usuario no puede acceder a esa actividad/tarea');
+      }
     });
     
     if($validator->errors()->any()) return response()->json($validator->errors(),422);
     
-    return DB::transaction(function() use (&$request,&$actividad_tarea,&$timestamp){
-      $user_name = UsuarioController::getInstancia()->quienSoy()['usuario']->user_name;
-      
+    return DB::transaction(function() use (&$request,&$actividad_tarea,&$timestamp){      
       $nuevo = $this->clonar($actividad_tarea);
-      $actividad_tarea->deleted_at = $timestamp;
-      $actividad_tarea->deleted_by = $user_name;
+      
+      $this->tag_borrado($actividad_tarea,$request->user_name,$timestamp);
       $actividad_tarea->save();
       
       $nuevo->estado = $request->nuevos_datos['estado'] ?? $nuevo->estado;
       $nuevo->contenido = $request->nuevos_datos['contenido'] ?? $nuevo->contenido;
-      $nuevo->modified_at = $timestamp;
-      $nuevo->modified_by = $user_name;
+      $this->tag_modificado($nuevo,$request->user_name,$timestamp);
       $nuevo->save();
       return 1;
     });

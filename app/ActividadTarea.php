@@ -20,18 +20,13 @@ class ActividadTarea extends Model
     'created_by','created_at',
     'modified_by','modified_at',
     'deleted_by','deleted_at',
-    'dirty','padre_numero_original',
     'tags_api',
     'color_fondo','color_texto','color_borde'
   ];
   public $timestamps = false;
   protected $appends = [];
-
-  public static function boot(){
-    parent::boot();
-    self::observe(Observers\FullObserver::class);
-  }
-    
+  protected $hidden = ['dirty','padre_numero_original','ip','token','deleted_ip','deleted_token'];
+      
   public function getTableName(){
     return $this->table;
   }
