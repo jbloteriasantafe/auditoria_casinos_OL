@@ -25,14 +25,14 @@ $(function(e){
       endDate: $(d).attr('data-enddate') ?? undefined,
     });
     
-    let disabled = true;
+    let disabled = false;
     try {
       disabled = JSON.parse($(d).attr('data-disabled'));
     }
     catch (e) {}
     d.disabled(!!disabled);
     
-    let readonly = true;
+    let readonly = false;
     try {
       disabled = JSON.parse($(d).attr('data-readonly'));
     }
