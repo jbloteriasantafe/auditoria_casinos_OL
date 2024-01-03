@@ -54,7 +54,7 @@ tr:nth-child(even) {
   <body>
 	@section('cabezera')
 	<div class="encabezadoImg">
-	  <img src="img/logos/banner_nuevo2_portrait.png" width="900">
+	  <img src="img/logos/banner_2024_portrait.png" width="900">
 	  <h2 style="text-align: center;">
 		<span>Informe de diferencias de estados ({{$plataforma}})</span>
 	  </h2>

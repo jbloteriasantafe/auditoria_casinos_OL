@@ -56,7 +56,7 @@ tr:nth-child(even) {
   <body>
     <div class="encabezadoImg" >
       <center>
-        <img src="img/logos/banner_nuevo2_landscape.png" style="width: 900px;">
+        <img src="img/logos/banner_2024_landscape.png" style="width: 900px;">
       </center>
       <h2 style="left:22%;"><span>Juegos Online | Informe completo de beneficios {{$plataforma}} - {{$fecha}} - {{$moneda}}</span></h2>
     </div>
