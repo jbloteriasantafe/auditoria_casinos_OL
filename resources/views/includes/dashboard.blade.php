@@ -282,7 +282,7 @@ $tarjeta_css = null;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_token" content="{!! csrf_token() !!}"/>
 
-    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/faviconOL.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/faviconOnline.ico">
     <title>CASOnline - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->
