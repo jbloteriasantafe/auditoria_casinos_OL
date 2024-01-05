@@ -154,7 +154,7 @@ class GliSoftController extends Controller
   public function guardarGliSoft(Request $request){
     $tipo_lab = 'sin';
     Validator::make($request->all(), [
-      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo'],
+      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo'],//@TODO: verificar bien con soft deleteds
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
       'expedientes' => 'nullable',
@@ -229,18 +229,6 @@ class GliSoftController extends Controller
       $GLI=new GliSoft;
       $GLI->nro_archivo =$request->nro_certificado;
       $GLI->observaciones=$request->observaciones;
-  
-      if($request->file != null){
-        $file=$request->file;
-        $archivo=new Archivo;
-        $data=base64_encode(file_get_contents($file->getRealPath()));
-        $nombre_archivo=$file->getClientOriginalName();
-        $archivo->nombre_archivo=$nombre_archivo;
-        $archivo->archivo=$data;
-        $archivo->save();
-        $GLI->archivo()->associate($archivo->id_archivo);
-      }
-  
       $GLI->save();
   
       if(!empty($request->expedientes)){
@@ -262,11 +250,6 @@ class GliSoftController extends Controller
   
       $GLI->save();
   
-      //obtengo solo el nombre del archivo para devolverlo a la vista
-      if(!empty($GLI->archivo)){
-        $nombre_archivo = $GLI->archivo->nombre_archivo;
-      }
-
       if($tipo_lab == 'sin'){
         $GLI->id_laboratorio = null;
       }
@@ -283,10 +266,57 @@ class GliSoftController extends Controller
         $labBD->save();
         $GLI->id_laboratorio = $labBD->id_laboratorio;
       }
+      
       $GLI->save();
+      
+      if($request->file != null){
+        $archivo = $this->guardarArchivo($GLI,$request->file);
+        $nombre_archivo = $archivo->nombre_archivo;
+      }
     });
     
     return ['gli_soft' => $GLI,  'nombre_archivo' =>$nombre_archivo];
+  }
+  
+  private function guardarArchivo($GLI,$file){
+    $a = new Archivo;
+    $a->save();
+    $GLI->archivo()->associate($a->id_archivo);
+    $GLI->save();
+    //Hago todo esto para poder subir archivos grandes sin superar el limite de paquete
+    //que termina tirando excepcion si asigno directamente al objeto
+    //@HACK: se pueden writear chunks base64eados mientras que sean porciones
+    //originales de multiplos de 57 bytes, ahora estoy cargando todo en memoria
+    $tmpfile = tmpfile();
+    fwrite($tmpfile,base64_encode(file_get_contents($file->getRealPath())));
+    $tmpfile_path = stream_get_meta_data($tmpfile)['uri'];
+    gc_collect_cycles();
+    try{          
+      DB::statement('SET FOREIGN_KEY_CHECKS=0');
+      $pdo = DB::connection('mysql')->getPdo();
+      $query = sprintf("LOAD DATA local INFILE '%s'
+      REPLACE
+      INTO TABLE archivo 
+      (@data)
+      SET 
+      id_archivo = %d,
+      nombre_archivo = %s,
+      archivo = @data",
+        $tmpfile_path,
+        $a->id_archivo,
+        $pdo->quote($file->getClientOriginalName())
+      );
+      
+      DB::connection()->disableQueryLog();
+      $pdo->exec($query);
+      DB::statement('SET FOREIGN_KEY_CHECKS=1');
+      fclose($tmpfile);
+    }
+    catch(\Exception $e){
+      fclose($tmpfile);
+      throw $e;
+    }
+    return Archivo::find($a->id_archivo);
   }
 
   public function buscarGliSofts(Request $request){
@@ -458,39 +488,22 @@ class GliSoftController extends Controller
         JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft, $aux);
 
         $GLI->save();
+        
+        if($GLI->archivo != null || (empty($request->file) && $request->borrado == "true")){
+          $archivoAnterior=$GLI->archivo;
+          $GLI->archivo()->dissociate();
+          $GLI->save();
+          $archivoAnterior->delete();
+        }
   
         if(!empty($request->file)){
-            if($GLI->archivo != null){
-              $archivoAnterior=$GLI->archivo;
-              $GLI->archivo()->dissociate();
-              $GLI->save();
-              $archivoAnterior->delete();
-            }
-  
-            $file=$request->file;
-            $archivo=new Archivo;
-            $archivo->nombre_archivo=$file->getClientOriginalName();
-            $data=base64_encode(file_get_contents($file->getRealPath()));
-            $archivo->archivo=$data;
-            $archivo->save();
-            $GLI->archivo()->associate($archivo->id_archivo);
-            $GLI->save();
-  
-        }else{
-            if($request->borrado == "true"){
-              $archivoAnterior=$GLI->archivo;
-              $GLI->archivo()->dissociate();
-              $GLI->save();
-              $archivoAnterior->delete();
-            }
+          $archivo = $this->guardarArchivo($GLI,$request->file);
+          $nombre_archivo = $archivo->nombre_archivo;
         }
   
         $GLI->save();
+        
         $GLI=GliSoft::find($request->id_gli_soft);
-        if(!empty($GLI->archivo)){
-          $nombre_archivo = $GLI->archivo->nombre_archivo;
-        }
-
         if($tipo_lab == 'sin'){
           $GLI->id_laboratorio = null;
         }
@@ -537,6 +550,8 @@ class GliSoftController extends Controller
     return DB::transaction(function() use ($id){
       $GLI = GliSoft::find($id);
       if(is_null($GLI)) return ['gli' => null,'se_borro' => false];
+      $GLI->archivo->archivo = null;
+      $GLI->archivo->save();
       $GLI->delete();
       return ['gli' => $GLI,'se_borro' => true];
     });
