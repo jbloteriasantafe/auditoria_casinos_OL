@@ -154,7 +154,7 @@ class GliSoftController extends Controller
   public function guardarGliSoft(Request $request){
     $tipo_lab = 'sin';
     Validator::make($request->all(), [
-      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo'],//@TODO: verificar bien con soft deleteds
+      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/'],//@TODO: verificar bien con soft deleteds
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
       'expedientes' => 'nullable',
@@ -167,6 +167,7 @@ class GliSoftController extends Controller
       'laboratorio.url' => 'nullable|string|max:64',
       'laboratorio.nota' => 'nullable|string|max:200',
     ], array(), self::$atributos)->after(function ($validator) use (&$tipo_lab){
+      if($validator->errors()->any()) return;
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
         $plats = [];
         foreach($user->plataformas as $p){
@@ -185,9 +186,16 @@ class GliSoftController extends Controller
             ->whereIn('pj.id_plataforma',$plats)
             ->where('id_juego',$j)->count();
             if($tiene_plataforma > 0 && $accesibles == 0){
-              $validator->errors()->add($j, 'No puede acceder a ese juego');
+              return $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
           }
+        }
+        
+        //@HACK: validar por plataforma???
+        $ya_existe = GliSoft::where('nro_archivo','=',$data['nro_certificado'])
+        ->whereNull('deleted_at')->count() > 0;
+        if($ya_existe){
+          return $validator->errors()->add('nro_certificado','El certificado ya existe');
         }
 
         $lab = $data['laboratorio'];
@@ -384,7 +392,7 @@ class GliSoftController extends Controller
       $tipo_lab = 'sin';
       Validator::make($request->all(), [
         'id_gli_soft' => 'required|exists:gli_soft,id_gli_soft',
-        'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft'],
+        'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
         'observaciones' => 'nullable|string',
         'file' => 'sometimes|mimes:pdf',
         'expedientes' => 'nullable',
@@ -397,6 +405,7 @@ class GliSoftController extends Controller
         'laboratorio.url' => 'nullable|string|max:64',
         'laboratorio.nota' => 'nullable|string|max:200',
       ])->after(function ($validator) use ($user,$plats,&$tipo_lab){
+        if($validator->errors()->any()) return;
         $data = $validator->getData();
         //Verifico que pueda ver el certificado
         $GLI = GliSoft::find($data['id_gli_soft']);
@@ -412,9 +421,17 @@ class GliSoftController extends Controller
             ->whereIn('pj.id_plataforma',$plats)
             ->where('id_juego',$j)->count();
             if($tiene_plataforma > 0 && $accesibles == 0){
-              $validator->errors()->add($j, 'No puede acceder a ese juego');
+              return $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
           }
+        }
+        
+        //@HACK: validar por plataforma???
+        $ya_existe = GliSoft::where('nro_archivo','=',$data['nro_certificado'])
+        ->where('id_gli_soft','<>',$data['id_gli_soft'])
+        ->whereNull('deleted_at')->count() > 0;
+        if($ya_existe){
+          return $validator->errors()->add('nro_certificado','El certificado ya existe');
         }
 
         $lab = $data['laboratorio'];
@@ -550,8 +567,10 @@ class GliSoftController extends Controller
     return DB::transaction(function() use ($id){
       $GLI = GliSoft::find($id);
       if(is_null($GLI)) return ['gli' => null,'se_borro' => false];
-      $GLI->archivo->archivo = null;
-      $GLI->archivo->save();
+      if($GLI->archivo){
+        $GLI->archivo->archivo = null;
+        $GLI->archivo->save();
+      }
       $GLI->delete();
       return ['gli' => $GLI,'se_borro' => true];
     });
