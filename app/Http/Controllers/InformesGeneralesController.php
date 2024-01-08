@@ -93,7 +93,7 @@ class InformesGeneralesController extends Controller
       }
       $estado_dia[$f] = $this->estado_dia($f)['porcentaje'];
     }
-    return $estado_dia;
+    return array_reverse($estado_dia);
   }
   
   public function infoAuditoria($dia){

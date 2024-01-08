@@ -146,7 +146,7 @@ function generarLeyendaCalendario(){
   const gradients = 4;
   for(let i=0;i<=gradients;i++){
     const color = 'rgb('+color_func(i/gradients).join(',')+')';
-    const celda = $('<div>').append(Math.round(100*i/gradients)+'%').css('width','5%').css('background-color',color);
+    const celda = $('<div>').append(Math.round(100*i/gradients)+'%').css('flex','1').css('background-color',color);
     if(i == gradients) celda.css('font-weight','bold');
     leyenda.append(celda);
   }
@@ -293,15 +293,41 @@ function generarCalendario(div,titulo,desde,hasta,leyenda = function(){return $(
   let d   = isoToDate(desde);
   const h = isoToDate(hasta);
   const dias_por_mes = {};
-  while(d.getTime() < h.getTime()){
+  const sumar = Math.sign(h-d);
+  const años = new Set();
+  
+  if(sumar) while(sumar == Math.sign(h-d)){
     const mes = año_mes(d.getFullYear(),d.getMonth()+1);
     if(!(mes in dias_por_mes)) dias_por_mes[mes] = [];
     dias_por_mes[mes].push(new Date(d));
-    d.setDate(d.getDate()+1);
+    d.setDate(d.getDate()+Math.sign(h-d));
+    años.add(d.getFullYear());
   }
-  $(div).append($('<div>').addClass('titulo_ala_highchart').text(titulo));
-  $(div).append(leyenda());
+  
+  Object.keys(dias_por_mes).forEach(function(año_mes){
+    dias_por_mes[año_mes].sort(function(a,b){
+      return Math.sign(a-b);
+    });
+  });
+  
+  const select_año = $('<select>').addClass('form-control').css('text-align','center');
+  {
+    const fila = $('<div>').css('display','flex').css('gap','2rem');
+    
+    fila.append($('<div>').addClass('titulo_ala_highchart').text(titulo));
+    
+    años.forEach(function(año){
+      select_año.append($('<option>').text(año));
+    });
+    fila.append(select_año);
+    
+    fila.append(leyenda());
+    fila.children().css('flex','1');
+    $(div).append(fila);
+  }
+  
   $(div).append($('<br>'));
+  
   const contenido = $('<div>').addClass('row contenido').css('overflow-y','scroll').css('max-height','300px');
   for(const mes in dias_por_mes){
     const tabla = $('#moldeMes').clone().removeAttr('id').css('display','inline-block').css('float','left');
@@ -309,6 +335,8 @@ function generarCalendario(div,titulo,desde,hasta,leyenda = function(){return $(
     const dias = dias_por_mes[mes];
     for(const didx in dias){
       const dia = dias[didx];
+      if(didx == 0)
+        tabla.attr('data-año',dia.getFullYear());
       const d = dia.getDate();
       const celda = setear_celda(dia,$('<div>').addClass('celda').text(d));
       tabla.append(celda);
@@ -324,6 +352,11 @@ function generarCalendario(div,titulo,desde,hasta,leyenda = function(){return $(
     contenido.append(tabla);
   }
   $(div).append(contenido);
+  select_año.change(function(){
+    const año = $(this).val();
+    $(div).find(`[data-año][data-año!="${año}"]`).hide();
+    $(div).find(`[data-año][data-año="${año}"]`).show();
+  }).change();
 }
 
 function año_mes(año,mes){
