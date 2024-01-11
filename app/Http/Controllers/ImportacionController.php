@@ -426,6 +426,7 @@ class ImportacionController extends Controller
         (new EstadoController)->eliminarEstadoJugadores($i->id_importacion_estado_jugador);
       }
       $ret = LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+      CacheController::getInstancia()->invalidarDependientes(['estado_jugadores']);
       return $this->cambiarEstado('estadoJugadores',$request->fecha,$request->id_plataforma,null,$ret);
     });
   }

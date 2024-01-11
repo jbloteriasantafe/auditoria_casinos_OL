@@ -173,6 +173,15 @@ class InformesGeneralesController extends Controller
   }
   
   public function distribucionJugadores(Request $request){
+    $cc = CacheController::getInstancia();
+    $codigo = 'distribucionJugadores';
+    $subcodigo = '';
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
+    if(!is_null($cache)){
+      return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
+    }
+    
     $provincias = ["Misiones","San Luis","San Juan","Entre Ríos","Santa Cruz","Río Negro","Chubut","Córdoba","Mendoza","La Rioja","Catamarca","La Pampa","Santiago del Estero","Corrientes","Santa Fe","Tucumán","Neuquén","Salta","Chaco","Formosa","Jujuy","Ciudad de Buenos Aires","Buenos Aires","Tierra del Fuego"];
     $SIMILARITY_NULL_LIMIT = 71;  
     
@@ -209,6 +218,8 @@ class InformesGeneralesController extends Controller
       
       $ret[$plat->nombre] = $provincias_bd;
     }
+    
+    $cc->agregar($codigo,$subcodigo,json_encode($ret),['estado_jugadores']);
     
     return $ret;
   }
