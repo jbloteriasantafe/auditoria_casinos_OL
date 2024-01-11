@@ -71,6 +71,10 @@ $(document).ready(function(){
     $('#estadoDia option').first().attr('fecha'),
     $('#estadoDia option').last().attr('fecha'),
     generarLeyendaCalendario,setearCeldaCalendario);
+    
+  GET($('#divDistribucionJugadores'),'informesGenerales/distribucionJugadores',function(data){
+    generarGraficoBarrasComparativas($('#divDistribucionJugadores'),'Origen de Jugadores','Cantidad',data);
+  },function(err){});
 });
 
 function color_func(t){
@@ -176,11 +180,7 @@ function generarGraficoTorta(div,titulo,valores){//viene plat1 => val1, plat2 =>
   $(div).append(grafico);
   Highcharts.chart(grafico[0], {
     chart: {
-      spacingBottom: 0,
-      marginBottom: 0,
-      spacingTop: 0,
-      marginTop: 0,
-      height: 350,
+      height: 450,
       backgroundColor: "#fff",
       type: 'pie',
       options3d: {
@@ -202,10 +202,6 @@ function generarGraficoTorta(div,titulo,valores){//viene plat1 => val1, plat2 =>
       layout: 'horizontal',
       align: 'center',
       verticalAlign: 'bottom',
-      y: 0,
-      padding: 0,
-      itemMarginTop: 0,
-      itemMarginBottom: 0,
     },
     tooltip: { 
       formatter: function(){return `${this.y} - <b>${formatPje(this.percentage)}</b>`;}
@@ -219,6 +215,9 @@ function generarGraficoTorta(div,titulo,valores){//viene plat1 => val1, plat2 =>
           enabled: true,
           formatter: function(){return this.y;},
           distance: 20,
+          style: {
+            textOutline: 'none' 
+          }
         },
         showInLegend: true
       }
@@ -259,6 +258,7 @@ function generarGraficoBarras(div,titulo,valores,nombrey,nombrex,labels){//viene
         stacking: 'normal',
         dataLabels: {
             enabled: true,
+            textOutline: 'none' 
         },
       }
     },
@@ -362,4 +362,62 @@ function generarCalendario(div,titulo,desde,hasta,leyenda = function(){return $(
 function año_mes(año,mes){
   const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DEC'];
   return meses[mes-1]+' '+año;
+}
+
+function generarGraficoBarrasComparativas(div,titulo,axis,data){
+    /*
+   *  data = {x1: subtotales1, x2: subtotales2, ... }
+   *  subtotales = {y1: val1,y2: val2, ...}
+   * */
+  const grafico = $('<div>').addClass('grafico col-md-12');   
+  $(div).append(grafico);
+  
+  const categorias = new Set();
+  Object.keys(data).forEach(function(x){
+    Object.keys(data[x]).forEach(c => categorias.add(c));
+  });
+  
+  const series = [];
+  Object.keys(data).forEach(function(x){
+    const s = {name: x,data: []};
+    categorias.forEach(function(c){
+      s.data.push(data[x][c]);
+    });
+    series.push(s);
+  });
+  Highcharts.chart(grafico[0], {
+      chart: {
+          type: 'bar'
+      },
+      title: {
+          text: titulo
+      },
+      xAxis: {
+          categories: Array.from(categorias),
+          minorTickInterval: 0.1,
+      },
+      yAxis: {
+          //min: 0,
+          type: 'logarithmic',
+           tickInterval: 1,
+          title: {
+              text: axis
+          }
+      },
+      legend: {
+          enabled: false
+      },
+      plotOptions: {
+          series: {
+              dataLabels: {
+                  enabled: true,
+                  style: {
+                    textOutline: 'none' 
+                  }
+              }
+          }
+      },
+      series: series
+  });
+
 }

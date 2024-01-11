@@ -22,6 +22,7 @@ Route::get('inicio',function(){
   $datos_inf = ['estado_dia' => (new InformesGeneralesController)->estadosDias()];
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $datos_inf['ultimas_visitadas'] = $usuario->secciones_recientes;
+  $datos_inf['plataformas'] = \App\Plataforma::all();
   return view('seccionInicio' ,$datos_inf);
 });
 
@@ -280,6 +281,7 @@ Route::group(['prefix' => 'informesGenerales'],function(){
   Route::get('/jugadoresAnuales','InformesGeneralesController@jugadoresAnuales');
   Route::get('/estadosDias','InformesGeneralesController@estadosDias');
   Route::get('/infoAuditoria/{dia}','InformesGeneralesController@infoAuditoria');
+  Route::get('/distribucionJugadores','InformesGeneralesController@distribucionJugadores');
 });
 
 /*calendario*/

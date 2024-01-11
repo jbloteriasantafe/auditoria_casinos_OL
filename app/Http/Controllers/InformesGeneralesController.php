@@ -171,5 +171,46 @@ class InformesGeneralesController extends Controller
     
     return compact('queryes','maximas_posibles');
   }
+  
+  public function distribucionJugadores(Request $request){
+    $provincias = ["Misiones","San Luis","San Juan","Entre Ríos","Santa Cruz","Río Negro","Chubut","Córdoba","Mendoza","La Rioja","Catamarca","La Pampa","Santiago del Estero","Corrientes","Santa Fe","Tucumán","Neuquén","Salta","Chaco","Formosa","Jujuy","Ciudad de Buenos Aires","Buenos Aires","Tierra del Fuego"];
+    $SIMILARITY_NULL_LIMIT = 71;  
+    
+    $ret = [];
+        
+    foreach(\App\Plataforma::all() as $plat){//El indice de la tabla es por plataforma por eso lo hago asi
+      $provincias_bd = DB::table('jugador')
+      ->selectRaw('TRIM(UPPER(provincia)) as provincia,COUNT(distinct codigo) as cantidad')
+      ->whereNull('valido_hasta')
+      ->where('id_plataforma','=',$plat->id_plataforma)
+      ->groupBy(DB::raw('TRIM(UPPER(provincia))'))
+      ->get()
+      ->groupBy(function($item) use ($provincias,$SIMILARITY_NULL_LIMIT){
+        $max_similarity = null;
+        $max_similarity_idx = null;
+        foreach($provincias as $pidx => $p){
+          $s;
+          similar_text(metaphone($item->provincia),metaphone($p),$s);
+          if($s < $SIMILARITY_NULL_LIMIT) continue;
+          if($max_similarity === null || $s > $max_similarity){
+            $max_similarity = $s;
+            $max_similarity_idx = $pidx;
+          }
+        }
+        
+        return $max_similarity_idx !== null? $provincias[$max_similarity_idx] : 'EXTERIOR';
+      })
+      ->map(function($item){
+        return $item->reduce(function($carry,$i){
+          return $carry+$i->cantidad;
+        },0);
+      })
+      ->sort()->reverse();
+      
+      $ret[$plat->nombre] = $provincias_bd;
+    }
+    
+    return $ret;
+  }
 }
 

@@ -440,19 +440,7 @@ $('#btn-guardarImportacion').on('click',function(e){
       $('#modalImportacion').modal('hide');
       $('#plataformaInfoImportacion').change();
       $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN');
-
-      if(modo.search(/beneficio/g) != -1){
-        $('#mensajeExito p').text(data.dias + ' registro(s) del BENEFICIO fueron importados');
-      }
-      else if(modo.search(/producido/g) != -1){
-        text = data.cantidad_registros + ' registro(s) fueron importados'
-        if(data.juegos_multiples_reportes > 0) text += '<br>' + data.juegos_multiples_reportes + ' juego(s) reportaron multiples veces';
-        if(data.jugadores_multiples_reportes > 0) text += '<br>' + data.jugadores_multiples_reportes + ' jugador(es) reportaron multiples veces';
-        $('#mensajeExito p').html(text);
-      }
-      else if(modo.search(/estado/g) != -1){
-        $('#mensajeExito p').text('');
-      }
+      $('#mensajeExito p').html(data);
       $('#mensajeExito').show();
     },
     error: function (data) {

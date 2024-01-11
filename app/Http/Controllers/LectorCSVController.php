@@ -175,12 +175,10 @@ class LectorCSVController extends Controller
     ->groupBy('cod_juego')
     ->havingRaw('COUNT(distinct id_detalle_producido) > 1')->get()->count();
 
-    return ['id_producido' => $producido->id_producido,
-    'fecha' => $producido->fecha,
-    'plataforma' => $producido->plataforma->nombre,
-    'tipo_moneda' => $producido->tipo_moneda->descripcion,
-    'cantidad_registros' => $producido->detalles()->count(),
-    'juegos_multiples_reportes' => $duplicados];
+    return [
+      'cantidad_registros' => $producido->detalles()->count(),
+      'juegos_multiples_reportes' => $duplicados
+    ];
   }
 
   public function importarProducidoJugadores($archivoCSV,$fecha,$plataforma,$moneda){
@@ -310,12 +308,10 @@ class LectorCSVController extends Controller
     ->groupBy('jugador')
     ->havingRaw('COUNT(distinct id_detalle_producido_jugadores) > 1')->get()->count();
 
-    return ['id_producido_jugadores' => $producido->id_producido_jugadores,
-    'fecha' => $producido->fecha,
-    'plataforma' => $producido->plataforma->nombre,
-    'tipo_moneda' => $producido->tipo_moneda->descripcion,
-    'cantidad_registros' => $producido->detalles()->count(),
-    'jugadores_multiples_reportes' => $duplicados];
+    return [
+      'cantidad_registros' => $producido->detalles()->count(),
+      'jugadores_multiples_reportes' => $duplicados
+    ];
   }
 
   public function importarProducidoPoker($archivoCSV,$fecha,$plataforma,$moneda){
@@ -398,12 +394,10 @@ class LectorCSVController extends Controller
     ->groupBy('cod_juego')
     ->havingRaw('COUNT(distinct id_detalle_producido_poker) > 1')->get()->count();
 
-    return ['id_producido_poker' => $producido->id_producido_poker,
-    'fecha' => $producido->fecha,
-    'plataforma' => $producido->plataforma->nombre,
-    'tipo_moneda' => $producido->tipo_moneda->descripcion,
-    'cantidad_registros' => $producido->detalles()->count(),
-    'juegos_multiples_reportes' => $duplicados];
+    return [
+      'cantidad_registros' => $producido->detalles()->count(),
+      'juegos_multiples_reportes' => $duplicados
+    ];
   }
 
   public function importarBeneficio($archivoCSV,$fecha,$plataforma,$moneda){
@@ -531,8 +525,10 @@ class LectorCSVController extends Controller
 
     $pdo = null;
 
-    return [ 'id_beneficio_mensual' => $benMensual->id_beneficio_mensual, 'fecha' => $benMensual->fecha, 
-    'bruto' => $benMensual->beneficio, 'dias' => $benMensual->beneficios()->count()]; 
+    return [
+      'bruto' => $benMensual->beneficio,
+      'dias' => $benMensual->beneficios()->count()
+    ]; 
   }
 
   public function importarBeneficioPoker($archivoCSV,$fecha,$plataforma,$moneda){
@@ -659,8 +655,10 @@ class LectorCSVController extends Controller
 
     $pdo = null;
 
-    return [ 'id_beneficio_mensual_poker' => $benMensual->id_beneficio_mensual_poker, 'fecha' => $benMensual->fecha, 
-    'bruto' => $benMensual->utilidad, 'dias' => $benMensual->beneficios()->count()]; 
+    return [
+      'bruto' => $benMensual->utilidad,
+      'dias' => $benMensual->beneficios()->count()
+    ]; 
   }
   
   private function attrsJugadorArchivo(){//Importante el orden porque se usa para leer el archivo
@@ -951,7 +949,15 @@ class LectorCSVController extends Controller
       'id_importacion_estado_jugador' => $importacion->id_importacion_estado_jugador,
     ]);
     
-    return $importacion;
+    return [
+      'jugadores_importados' => DB::table('jugador')
+      ->where('fecha_importacion','<=',$fecha)
+      ->where(function($q) use ($fecha){
+        return $q->where('valido_hasta','>=',$fecha)
+        ->orWhereNull('valido_hasta');
+      })
+      ->count()
+    ];
   }
 
   private function importarEstadosJuegosTemporal($id_importacion_estado_juego,$archivo){
@@ -1060,7 +1066,11 @@ class LectorCSVController extends Controller
     if(!$err){
       throw new \Exception('Error al actualizar los estados de los juegos');
     }*/
-    return 1;
+    return [
+      'juegos_importados' => DB::table('estado_juego_importado as ej')
+      ->where('ej.id_importacion_estado_juego','=',$importacion->id_importacion_estado_juego)
+      ->count()
+    ];
   }
   
   //Lo dejo por si en algun momento se cambia estado_juego_importado a una estructura similar

@@ -180,6 +180,13 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
       </div>
     </div>
     @yield('finpanel')
+    
+    @yield('iniciopanel')
+    <div class="row">
+      <div id="divDistribucionJugadores">
+      </div>
+    </div>
+    @yield('finpanel')
 
     @yield('iniciopanel')
     <div class="row">
@@ -217,7 +224,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 @endsection
 
 @section('scripts')
-<script src="js/highcharts.js"></script>
-<script src="js/highcharts-3d.js"></script>
+<script src="js/highcharts_11_3_0/highcharts.js"></script>
+<script src="js/highcharts_11_3_0/highcharts-3d.js"></script>
+<script src="js/highcharts_11_3_0/exporting.js"></script>
+<script src="js/highcharts_11_3_0/export-data.js"></script>
+<script src="js/highcharts_11_3_0/accessibility.js"></script>
 <script src="js/seccionInicio.js?5"></script>
 @endsection

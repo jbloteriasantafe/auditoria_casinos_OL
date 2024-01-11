@@ -10,6 +10,7 @@ use App\BeneficioMensual;
 use App\BeneficioMensualPoker;
 use App\ImportacionEstadoJugador;
 use App\ImportacionEstadoJuego;
+use App\Plataforma;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\LectorCSVController;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Http\Controllers\CacheController;
 use App\Http\Controllers\ResumenController;
+use App\Http\Controllers\EstadoController;
+use App\Http\Controllers\ActividadesController;
 
 class ImportacionController extends Controller
 {
@@ -281,6 +284,45 @@ class ImportacionController extends Controller
     }
     return ['arreglo' => $arreglo];
   }
+  
+  private function cambiarEstado($tipo,$fecha,$id_plataforma,$id_tipo_moneda,array $contenido,$estado = 'CERRADO'){
+    $tags_api;
+    {
+      $tags_api = [
+        'importacion', $tipo, Plataforma::find($id_plataforma)->codigo
+      ];
+      
+      if(!is_null($id_tipo_moneda)){
+        $tags_api[] = TipoMoneda::find($id_tipo_moneda)->descripcion;
+      }
+      
+      $tags_api = implode('_',$tags_api);
+    }
+    
+    $arr_to_presentable_text = function($arr,$sep="\r\n"){
+      $ret = [];
+      foreach($arr as $k => $val){
+        $k = explode('_',$k);
+        $k = array_map(function($w){
+          return ucfirst($w);
+        },$k);
+        $k = implode(' ',$k);
+        $val = is_array($val)? implode(', ',$val) : $val;
+        $ret[] = "$k: $val";
+      }
+      return implode($sep,$ret);
+    };
+    
+    $ret = ['code' => 200];
+    if(env('ACTIVIDADES_ENVIAR_IMPORTACIONES',false))
+      $ret = ActividadesController::cambiarEstado($fecha,$tags_api,$estado,$arr_to_presentable_text($contenido));
+     
+    $contenido = $arr_to_presentable_text($contenido,'<br>');
+    if($ret['code'] != 200){
+      return $contenido.'<br>'.$arr_to_presentable_text($ret['result'],'<br>');
+    }
+    return $contenido;
+  }
 
   public function importarProducido(Request $request){
     Validator::make($request->all(),[
@@ -290,13 +332,12 @@ class ImportacionController extends Controller
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
     ], array(), self::$atributos)->after(function($validator){})->validate();
 
-    $ret = null;
-    DB::transaction(function() use ($request,&$ret){
+    return DB::transaction(function() use ($request,&$ret){
       Producido::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
       CacheController::getInstancia()->invalidarDependientes(['producido']);
+      return $this->cambiarEstado('producido',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
     });
-    return $ret;
   }
 
   public function importarProducidoJugadores(Request $request){
@@ -317,6 +358,7 @@ class ImportacionController extends Controller
         $request->id_tipo_moneda,
         $request->fecha
       );
+      return $this->cambiarEstado('producidoJugadores',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
     });
     return $ret;
   }
@@ -333,7 +375,8 @@ class ImportacionController extends Controller
     DB::transaction(function() use ($request,&$ret){
       ProducidoPoker::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducidoPoker($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      CacheController::getInstancia()->invalidarDependientes(['producido_poker']);
+      CacheController::getInstancia()->invalidarDependientes(['producido_poker']);      
+      return $this->cambiarEstado('producidoPoker',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
     });
     return $ret;
   }
@@ -348,11 +391,10 @@ class ImportacionController extends Controller
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
 
-    $ret = null;
-    DB::transaction(function() use ($request,&$ret){
+    return DB::transaction(function() use ($request,&$ret){
       $ret = LectorCSVController::getInstancia()->importarBeneficio($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      return $this->cambiarEstado('beneficio',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
     });
-    return $ret;
   }
 
   public function importarBeneficioPoker(Request $request){
@@ -364,11 +406,10 @@ class ImportacionController extends Controller
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
 
-    $ret = null;
-    DB::transaction(function() use ($request,&$ret){
+    return DB::transaction(function() use ($request,&$ret){
       $ret = LectorCSVController::getInstancia()->importarBeneficioPoker($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      return $this->cambiarEstado('beneficioPoker',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
     });
-    return $ret;
   }
 
   public function importarJugadores(Request $request){
@@ -382,10 +423,10 @@ class ImportacionController extends Controller
     return DB::transaction(function() use ($request){
       $importaciones = ImportacionEstadoJugador::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
       foreach($importaciones as $i){
-        $this->eliminarEstadoJugadores($i->id_importacion_estado_jugador);
+        (new EstadoController)->eliminarEstadoJugadores($i->id_importacion_estado_jugador);
       }
-      $importacion = LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
-      return 1;
+      $ret = LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+      return $this->cambiarEstado('estadoJugadores',$request->fecha,$request->id_plataforma,null,$ret);
     });
   }
 
@@ -400,10 +441,11 @@ class ImportacionController extends Controller
     return DB::transaction(function() use ($request){
       $importaciones = ImportacionEstadoJuego::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
       foreach($importaciones as $i){
-        $this->eliminarEstadoJuegos($i->id_importacion_estado_juego);
+        (new EstadoController)->eliminarEstadoJuegos($i->id_importacion_estado_juego);
       }
-
-      return LectorCSVController::getInstancia()->importarEstadosJuegos($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+      
+      $ret = LectorCSVController::getInstancia()->importarEstadosJuegos($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+      return $this->cambiarEstado('estadoJuegos',$request->fecha,$request->id_plataforma,null,$ret);
     });
   }
 
