@@ -251,15 +251,16 @@ function generarGraficoBarras(div,titulo,valores,nombrey,nombrex,labels){//viene
       type: 'column',
     },
     tooltip: { 
-      formatter: function(){return `${this.y} - <b>${formatPje(this.percentage)}</b>`;}
+      formatter: function(){return `${this.y}`;}
     },
     plotOptions: {
-      column: {
-        stacking: 'normal',
-        dataLabels: {
-            enabled: true,
-            textOutline: 'none' 
-        },
+      series: {
+          dataLabels: {
+              enabled: true,
+              style: {
+                textOutline: 'none' 
+              }
+          }
       }
     },
     title: { 
