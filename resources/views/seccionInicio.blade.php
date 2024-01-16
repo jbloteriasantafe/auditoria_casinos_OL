@@ -183,7 +183,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     
     @yield('iniciopanel')
     <div class="row">
-      <div id="divDistribucionJugadores">
+      <div id="divDistribucionJugadoresProvincias" class="col-md-6">
+      </div>
+      <div id="divDistribucionJugadoresLocalidades" class="col-md-6">
       </div>
     </div>
     @yield('finpanel')
@@ -229,5 +231,5 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 <script src="js/highcharts_11_3_0/exporting.js"></script>
 <script src="js/highcharts_11_3_0/export-data.js"></script>
 <script src="js/highcharts_11_3_0/accessibility.js"></script>
-<script src="js/seccionInicio.js?5"></script>
+<script src="js/seccionInicio.js?6"></script>
 @endsection

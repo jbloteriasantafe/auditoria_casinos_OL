@@ -172,6 +172,26 @@ class InformesGeneralesController extends Controller
     return compact('queryes','maximas_posibles');
   }
   
+  private function similarity($s1,$s2,$limit = 0.50){
+    $s1 = preg_replace('/[^A-Za-z0-9\s]/', '', $s1);//Saco caracteres especiales
+    $s2 = preg_replace('/[^A-Za-z0-9\s]/', '', $s2);
+    $s1 = preg_replace('/(^|\s)(de|del|el|la|lo|los|las|en)($|\s)/', '', $s1);//Saco conectores
+    $s2 = preg_replace('/(^|\s)(de|del|el|la|lo|los|las|en)($|\s)/', '', $s2);
+    $s1 = preg_replace('/\s/', ' ', $s1);//Simplifico a espacios simples
+    $s2 = preg_replace('/\s/', ' ', $s2);
+    
+    $MAX = max(strlen($s1),strlen($s2));
+    $porcentaje_escrito = ($MAX - levenshtein($s1,$s2))/$MAX;
+    
+    $M1 = metaphone($s1);
+    $M2 = metaphone($s2);
+    $MAX = max(strlen($M1),strlen($M2));
+    $porcentaje_pronunciado = ($MAX - levenshtein($M1,$M2))/$MAX;
+    
+    $porcentaje = 0.75*$porcentaje_escrito+0.25*$porcentaje_pronunciado;
+    return $porcentaje < $limit? null : $porcentaje;
+  }
+  
   public function distribucionJugadores(Request $request){
     $cc = CacheController::getInstancia();
     $codigo = 'distribucionJugadores';
@@ -181,42 +201,102 @@ class InformesGeneralesController extends Controller
     if(!is_null($cache)){
       return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
     }
-    
-    $provincias = ["Misiones","San Luis","San Juan","Entre Ríos","Santa Cruz","Río Negro","Chubut","Córdoba","Mendoza","La Rioja","Catamarca","La Pampa","Santiago del Estero","Corrientes","Santa Fe","Tucumán","Neuquén","Salta","Chaco","Formosa","Jujuy","Ciudad de Buenos Aires","Buenos Aires","Tierra del Fuego"];
-    $SIMILARITY_NULL_LIMIT = 71;  
-    
+       
     $ret = [];
+    
+    $get_max_similarity = function($arr,$val){
+      $max_similarity = null;
+      $max_similarity_val = null;
+      foreach($arr as $from => $to){
+        $s = $this->similarity($val,$from);
+        if(is_null($s)) continue;
+        if($max_similarity === null || $s > $max_similarity){
+          $max_similarity = $s;
+          $max_similarity_val = $to;
+        }
+      }
+      return [$max_similarity_val,$max_similarity];
+    };
+    
+    $leer_archivo_conversion = function($filename){
+      $ret = [];
+      $fhandle = fopen(storage_path('app/'.$filename),'r');
+      try{
+        $header = true;
+        while(($datos = fgetcsv($fhandle,'',',')) !== FALSE){
+          if($header){
+            $header = false;
+            continue;
+          }
+          $ret[strtoupper(trim($datos[0]))] = strtoupper(trim($datos[1]));
+        }
+      }
+      catch(\Exception $e){
+        fclose($fhandle);
+        throw $e;
+      }
+      fclose($fhandle);
+      return $ret;
+    };
+    
+    $totalizar = function($item){
+      return $item->reduce(function($carry,$i){
+        return $carry+$i->cantidad;
+      },0);
+    };
+    
+    $presentar_llave = function($item,$k){
+      return [ucwords(strtolower($k)) => $item];
+    };
+    
+    
+    $provincia_a_provincia        = $leer_archivo_conversion('provincia_a_provincia.csv');
+    $localidad_a_departamento     = $leer_archivo_conversion('localidad_a_departamento.csv');
+    $distrito_a_departamento      = $leer_archivo_conversion('distrito_a_departamento.csv');
+    $departamento_a_departamento  = $leer_archivo_conversion('departamento_a_departamento.csv');
         
     foreach(\App\Plataforma::all() as $plat){//El indice de la tabla es por plataforma por eso lo hago asi
-      $provincias_bd = DB::table('jugador')
-      ->selectRaw('TRIM(UPPER(provincia)) as provincia,COUNT(distinct codigo) as cantidad')
+      $BD = DB::table('jugador')
+      ->selectRaw('TRIM(UPPER(provincia)) as provincia,TRIM(UPPER(localidad)) as localidad,COUNT(distinct codigo) as cantidad')
       ->whereNull('valido_hasta')
       ->where('id_plataforma','=',$plat->id_plataforma)
-      ->groupBy(DB::raw('TRIM(UPPER(provincia))'))
+      ->groupBy(DB::raw('TRIM(UPPER(provincia)),TRIM(UPPER(localidad))'))
       ->get()
-      ->groupBy(function($item) use ($provincias,$SIMILARITY_NULL_LIMIT){
-        $max_similarity = null;
-        $max_similarity_idx = null;
-        foreach($provincias as $pidx => $p){
-          $s;
-          similar_text(metaphone($item->provincia),metaphone($p),$s);
-          if($s < $SIMILARITY_NULL_LIMIT) continue;
-          if($max_similarity === null || $s > $max_similarity){
-            $max_similarity = $s;
-            $max_similarity_idx = $pidx;
-          }
-        }
-        
-        return $max_similarity_idx !== null? $provincias[$max_similarity_idx] : 'EXTERIOR';
-      })
-      ->map(function($item){
-        return $item->reduce(function($carry,$i){
-          return $carry+$i->cantidad;
-        },0);
-      })
-      ->sort()->reverse();
+      ->groupBy(function(&$item) use ($get_max_similarity,$provincia_a_provincia){
+        $s = $get_max_similarity($provincia_a_provincia,$item->provincia);
+        $item->s = $s[1]; 
+        return $s[0] !== null? $s[0] : 'NO ASIGNABLE / EXTERIOR';
+      });
       
-      $ret[$plat->nombre] = $provincias_bd;
+      $ret['provincias'][$plat->nombre] = $BD
+      ->map($totalizar)
+      ->sort()->reverse()
+      ->mapWithKeys($presentar_llave);
+      //continue;
+    
+      $ret['localidades'][$plat->nombre] = ($BD['SANTA FE'] ?? collect([]))
+      ->groupBy(
+        function($item) use ($get_max_similarity,$localidad_a_departamento,$distrito_a_departamento,$departamento_a_departamento)
+        {      
+          $lo = $get_max_similarity($localidad_a_departamento,$item->localidad); 
+          $di = $get_max_similarity($distrito_a_departamento,$item->localidad); 
+          $de = $get_max_similarity($departamento_a_departamento,$item->localidad); 
+          $max = -1;
+          $max_idx = null;
+          $lista_s = [$lo,$di,$de];
+          foreach($lista_s as $idx => $s){
+            if(!is_null($s[1]) && $s[1] > $max){
+              $max = $s[1];
+              $max_idx = $idx;
+            }
+          }
+          if(is_null($max_idx)) return 'NO ASIGNABLE / EXTERIOR';
+          return $lista_s[$max_idx][0];
+        }
+      )
+      ->map($totalizar)
+      ->sort()->reverse()
+      ->mapWithKeys($presentar_llave);
     }
     
     $cc->agregar($codigo,$subcodigo,json_encode($ret),['estado_jugadores']);
