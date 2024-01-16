@@ -383,20 +383,30 @@ function generarGraficoBarrasComparativas(div,titulo,axis,data){
    * */
   const grafico = $('<div>').addClass('grafico col-md-12');   
   $(div).append(grafico);
-  
-  const categorias = new Set();
+   
+  const totales = {};
   Object.keys(data).forEach(function(x){
-    Object.keys(data[x]).forEach(c => categorias.add(c));
+    Object.entries(data[x]).forEach(function(yv){
+      totales[yv[0]] = totales[yv[0]] ?? 0;
+      totales[yv[0]] += yv[1];
+    });
+  });
+  
+  const categorias_ordenadas = Object.entries(totales).sort(function(t1,t2){
+    return Math.sign(t2[1]-t1[1]);
+  }).map(function(t){
+    return t[0];
   });
   
   const series = [];
   Object.keys(data).forEach(function(x){
     const s = {name: x,data: []};
-    categorias.forEach(function(c){
-      s.data.push(data[x][c]);
+    categorias_ordenadas.forEach(function(c){
+      s.data.push(data[x][c] ?? 0);
     });
     series.push(s);
   });
+  
   Highcharts.chart(grafico[0], {
       chart: {
           type: 'bar'
@@ -405,7 +415,7 @@ function generarGraficoBarrasComparativas(div,titulo,axis,data){
           text: titulo
       },
       xAxis: {
-          categories: Array.from(categorias),
+          categories: categorias_ordenadas,
           minorTickInterval: 0.1,
       },
       yAxis: {

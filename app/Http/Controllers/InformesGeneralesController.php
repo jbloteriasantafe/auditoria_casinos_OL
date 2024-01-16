@@ -270,7 +270,6 @@ class InformesGeneralesController extends Controller
       
       $ret['provincias'][$plat->nombre] = $BD
       ->map($totalizar)
-      ->sort()->reverse()
       ->mapWithKeys($presentar_llave);
       //continue;
     
@@ -295,7 +294,6 @@ class InformesGeneralesController extends Controller
         }
       )
       ->map($totalizar)
-      ->sort()->reverse()
       ->mapWithKeys($presentar_llave);
     }
     
