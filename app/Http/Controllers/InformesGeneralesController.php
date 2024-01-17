@@ -254,6 +254,7 @@ class InformesGeneralesController extends Controller
     $localidad_a_departamento     = $leer_archivo_conversion('localidad_a_departamento.csv');
     $distrito_a_departamento      = $leer_archivo_conversion('distrito_a_departamento.csv');
     $departamento_a_departamento  = $leer_archivo_conversion('departamento_a_departamento.csv');
+    $miscelaneos_a_departamento  = $leer_archivo_conversion('miscelaneos_a_departamento.csv');
         
     foreach(\App\Plataforma::all() as $plat){//El indice de la tabla es por plataforma por eso lo hago asi
       $BD = DB::table('jugador')
@@ -275,14 +276,15 @@ class InformesGeneralesController extends Controller
     
       $ret['localidades'][$plat->nombre] = ($BD['SANTA FE'] ?? collect([]))
       ->groupBy(
-        function($item) use ($get_max_similarity,$localidad_a_departamento,$distrito_a_departamento,$departamento_a_departamento)
+        function($item) use ($get_max_similarity,$localidad_a_departamento,$distrito_a_departamento,$departamento_a_departamento,$miscelaneos_a_departamento)
         {      
           $lo = $get_max_similarity($localidad_a_departamento,$item->localidad); 
           $di = $get_max_similarity($distrito_a_departamento,$item->localidad); 
           $de = $get_max_similarity($departamento_a_departamento,$item->localidad); 
+          $mi = $get_max_similarity($miscelaneos_a_departamento,$item->localidad,0.70);
           $max = -1;
           $max_idx = null;
-          $lista_s = [$lo,$di,$de];
+          $lista_s = [$lo,$di,$de,$mi];
           foreach($lista_s as $idx => $s){
             if(!is_null($s[1]) && $s[1] > $max){
               $max = $s[1];
