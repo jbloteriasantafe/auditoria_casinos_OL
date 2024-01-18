@@ -284,6 +284,8 @@ Route::group(['prefix' => 'informesGenerales'],function(){
   Route::get('/distribucionJugadores','InformesGeneralesController@distribucionJugadores');
 });
 
+Route::get('/genarCsvCodigoPostal','InformesGeneralesController@genarCsvCodigoPostal');
+
 /*calendario*/
 Route::get('calendario_eventos',function(){
     return view('calendar');
