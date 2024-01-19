@@ -284,6 +284,11 @@ class InformesGeneralesController extends Controller
       ->whereNull('valido_hasta')
       ->where('id_plataforma','=',$plat->id_plataforma)
       ->groupBy(DB::raw('TRIM(UPPER(provincia)),TRIM(UPPER(localidad))'))
+      ->whereRaw('jugador.codigo IN (
+        SELECT DISTINCT rm.jugador
+        FROM resumen_mensual_producido_jugadores as rm
+        WHERE rm.id_plataforma = jugador.id_plataforma AND TIMESTAMPDIFF(MONTH,rm.aniomes,CURDATE()) < 12
+      )')
       ->get()
       ->groupBy(function(&$item) use ($f_agrupar,$lista_conversiones_provs){
         return $f_agrupar($item,'provincia',$lista_conversiones_provs);

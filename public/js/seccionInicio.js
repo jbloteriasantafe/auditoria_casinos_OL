@@ -180,6 +180,9 @@ function format$(f){
 function formatPje(f){
   return format(f)+' %';
 }
+function lexicalComp(s1,s2){
+  return -((s1<s2)+0)+((s1>s2)+0);
+}
 
 function generarGraficoTorta(div,titulo,valores){//viene plat1 => val1, plat2 => val2
   const dataseries = [];
@@ -187,6 +190,9 @@ function generarGraficoTorta(div,titulo,valores){//viene plat1 => val1, plat2 =>
     const val = valores[idx];
     dataseries.push([idx,val]);
   }
+  dataseries.sort(function(v1,v2){
+    return lexicalComp(v1[0],v2[0]);
+  });
   const grafico = $('<div>').addClass('grafico col-md-12');
   $(div).append(grafico);
   Highcharts.chart(grafico[0], {
@@ -240,7 +246,6 @@ function generarGraficoTorta(div,titulo,valores){//viene plat1 => val1, plat2 =>
   });
 }
 
-
 function generarGraficoBarras(div,titulo,valores,nombrey,nombrex,labels){//viene plat1 => [x1 => y1,x2 => y2], plat2 => [x1 => y1, x2 => y2]
   const dataseries = [];
   for(const idx in valores){
@@ -252,6 +257,10 @@ function generarGraficoBarras(div,titulo,valores,nombrey,nombrex,labels){//viene
     }
     dataseries.push(series);
   }
+  
+  dataseries.sort(function(v1,v2){
+    return lexicalComp(v1.name,v2.name);
+  });
 
   const grafico = $('<div>').addClass('grafico col-md-12');
   $(div).append(grafico);
@@ -404,6 +413,10 @@ function generarGraficoBarrasComparativas(div,titulo,axis,data){
         return data[x][y] ?? 0;
       })
     };
+  });
+  
+  series.sort(function(v1,v2){
+    return lexicalComp(v1.name,v2.name);
   });
   
   Highcharts.chart(grafico[0], {
