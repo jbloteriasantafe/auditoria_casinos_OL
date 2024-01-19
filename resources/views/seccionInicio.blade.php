@@ -185,7 +185,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <div class="row">
       <div id="divDistribucionJugadoresProvincias" class="col-md-6">
       </div>
-      <div id="divDistribucionJugadoresLocalidades" class="col-md-6">
+      <div id="divDistribucionJugadoresDepartamentos" class="col-md-6">
       </div>
     </div>
     @yield('finpanel')

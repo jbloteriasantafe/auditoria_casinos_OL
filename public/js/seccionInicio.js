@@ -72,7 +72,7 @@ $(document).ready(function(){
     $('#estadoDia option').last().attr('fecha'),
     generarLeyendaCalendario,setearCeldaCalendario);
     
-  GET($('#divDistribucionJugadoresProvincias,#divDistribucionJugadoresLocalidades'),'informesGenerales/distribucionJugadores',function(data){
+  GET($('#divDistribucionJugadoresProvincias,#divDistribucionJugadoresDepartamentos'),'informesGenerales/distribucionJugadores',function(data){
     generarGraficoBarrasComparativas(
       $('#divDistribucionJugadoresProvincias'),
       'Provincia de origen de Jugadores (aproximado)',
@@ -80,10 +80,10 @@ $(document).ready(function(){
       data['provincias']
     );
     generarGraficoBarrasComparativas(
-      $('#divDistribucionJugadoresLocalidades'),
+      $('#divDistribucionJugadoresDepartamentos'),
       'Departamento de origen de Jugadores (aproximado)',
       'Cantidad',
-      data['localidades']
+      data['departamentos']
     );
   },function(err){});
 });

@@ -202,42 +202,69 @@ class InformesGeneralesController extends Controller
     if(!is_null($cache)){
       return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
     }
-       
-    $ret = [];
-    
-    $get_max_similarity = function($arr,$val){
-      $max_similarity = null;
-      $max_similarity_val = null;
-      foreach($arr as $from => $to){
-        $s = $this->similarity($val,$from);
-        if(is_null($s)) continue;
-        if($max_similarity === null || $s > $max_similarity){
-          $max_similarity = $s;
-          $max_similarity_val = $to;
-        }
-      }
-      return [$max_similarity_val,$max_similarity];
-    };
-    
-    $leer_archivo_conversion = function($filename){
-      $ret = [];
-      $fhandle = fopen(storage_path('app/'.$filename),'r');
-      try{
-        $header = true;
-        while(($datos = fgetcsv($fhandle,'',',')) !== FALSE){
-          if($header){
-            $header = false;
-            continue;
+          
+    $lista_conversiones_provs = $lista_conversiones_deps = null;{
+      $leer_archivo_conversion = function($filename){
+        $ret = [];
+        $fhandle = fopen(storage_path('app/'.$filename),'r');
+        try{
+          $header = true;
+          while(($datos = fgetcsv($fhandle,'',',')) !== FALSE){
+            if($header){
+              $header = false;
+              continue;
+            }
+            $ret[strtoupper(trim($datos[0]))] = strtoupper(trim($datos[1]));
           }
-          $ret[strtoupper(trim($datos[0]))] = strtoupper(trim($datos[1]));
+        }
+        catch(\Exception $e){
+          fclose($fhandle);
+          throw $e;
+        }
+        fclose($fhandle);
+        return $ret;
+      };
+      
+      $lista_conversiones_provs = [
+        [$leer_archivo_conversion('provincia_a_provincia.csv'),0.5]
+      ];
+      
+      $lista_conversiones_deps = [
+        [$leer_archivo_conversion('localidad_a_departamento.csv'),0.5],
+        [$leer_archivo_conversion('distrito_a_departamento.csv'),0.5],
+        [$leer_archivo_conversion('departamento_a_departamento.csv'),0.5],
+        [$leer_archivo_conversion('miscelaneos_a_departamento.csv'),0.7],
+        [$leer_archivo_conversion('codigopostal_a_departamento.csv'),0.9]
+      ];
+    }
+    
+    $f_agrupar = function(&$item,$item_attr,$lista_conversiones){
+      $lista_s = [];
+      foreach($lista_conversiones as $lista_y_porcentaje){
+        $max_similarity = null;
+        $max_similarity_val = null;
+        foreach($lista_y_porcentaje[0] as $from => $to){
+          $s = $this->similarity($item->{$item_attr},$from,$lista_y_porcentaje[1]);
+          if(is_null($s)) continue;
+          if($max_similarity === null || $s > $max_similarity){
+            $max_similarity = $s;
+            $max_similarity_val = $to;
+          }
+        }
+        $lista_s[] = [$max_similarity_val,$max_similarity];
+      }
+      
+      $max = -1;//Busco la maxima afinidad
+      $max_idx = null;
+      foreach($lista_s as $idx => $s){
+        if(!is_null($s[1]) && $s[1] > $max){
+          $max = $s[1];
+          $max_idx = $idx;
         }
       }
-      catch(\Exception $e){
-        fclose($fhandle);
-        throw $e;
-      }
-      fclose($fhandle);
-      return $ret;
+      
+      if(is_null($max_idx)) return 'NO ASIGNABLE / EXTERIOR';
+      return $lista_s[$max_idx][0];
     };
     
     $totalizar = function($item){
@@ -249,16 +276,8 @@ class InformesGeneralesController extends Controller
     $presentar_llave = function($item,$k){
       return [ucwords(strtolower($k)) => $item];
     };
-    
-    $provincia_a_provincia = $leer_archivo_conversion('provincia_a_provincia.csv');
-    $lista_conversiones = [
-      [$leer_archivo_conversion('localidad_a_departamento.csv'),0.5],
-      [$leer_archivo_conversion('distrito_a_departamento.csv'),0.5],
-      [$leer_archivo_conversion('departamento_a_departamento.csv'),0.5],
-      [$leer_archivo_conversion('miscelaneos_a_departamento.csv'),0.7],
-      [$leer_archivo_conversion('codigopostal_a_departamento.csv'),0.9]
-    ];
         
+    $ret = [];
     foreach(\App\Plataforma::all() as $plat){//El indice de la tabla es por plataforma por eso lo hago asi
       $BD = DB::table('jugador')
       ->selectRaw('TRIM(UPPER(provincia)) as provincia,TRIM(UPPER(localidad)) as localidad,COUNT(distinct codigo) as cantidad')
@@ -266,38 +285,19 @@ class InformesGeneralesController extends Controller
       ->where('id_plataforma','=',$plat->id_plataforma)
       ->groupBy(DB::raw('TRIM(UPPER(provincia)),TRIM(UPPER(localidad))'))
       ->get()
-      ->groupBy(function(&$item) use ($get_max_similarity,$provincia_a_provincia){
-        $s = $get_max_similarity($provincia_a_provincia,$item->provincia,0.5);
-        $item->s = $s[1]; 
-        return $s[0] !== null? $s[0] : 'NO ASIGNABLE / EXTERIOR';
+      ->groupBy(function(&$item) use ($f_agrupar,$lista_conversiones_provs){
+        return $f_agrupar($item,'provincia',$lista_conversiones_provs);
       });
       
       $ret['provincias'][$plat->nombre] = $BD
       ->map($totalizar)
       ->mapWithKeys($presentar_llave);
       //continue;
-    
-      $ret['localidades'][$plat->nombre] = ($BD['SANTA FE'] ?? collect([]))
-      ->groupBy(
-        function($item) use ($get_max_similarity,$lista_conversiones)
-        {      
-          $lista_s = array_map(function($i) use ($get_max_similarity,$item){
-            return $get_max_similarity($i[0],$item->localidad,$i[1]);
-          },$lista_conversiones);
-          
-          $max = -1;//Busco la maxima afinidad
-          $max_idx = null;
-          foreach($lista_s as $idx => $s){
-            if(!is_null($s[1]) && $s[1] > $max){
-              $max = $s[1];
-              $max_idx = $idx;
-            }
-          }
-          
-          if(is_null($max_idx)) return 'NO ASIGNABLE / EXTERIOR';
-          return $lista_s[$max_idx][0];
-        }
-      )
+         
+      $ret['departamentos'][$plat->nombre] = ($BD['SANTA FE'] ?? collect([]))
+      ->groupBy(function(&$item) use ($f_agrupar,$lista_conversiones_deps){
+        return $f_agrupar($item,'localidad',$lista_conversiones_deps);
+      })
       ->map($totalizar)
       ->mapWithKeys($presentar_llave);
     }
@@ -305,94 +305,6 @@ class InformesGeneralesController extends Controller
     $cc->agregar($codigo,$subcodigo,json_encode($ret),['estado_jugadores']);
     
     return $ret;
-  }
-  
-  public function genarCsvCodigoPostal(){
-    $leer_archivo_conversion = function($filename){
-      $ret = [];
-      $fhandle = fopen(storage_path('app/'.$filename),'r');
-      try{
-        $header = true;
-        while(($datos = fgetcsv($fhandle,'',',')) !== FALSE){
-          if($header){
-            $header = false;
-            continue;
-          }
-          $ret[strtoupper(trim($datos[0]))] = strtoupper(trim($datos[1]));
-        }
-      }
-      catch(\Exception $e){
-        fclose($fhandle);
-        throw $e;
-      }
-      fclose($fhandle);
-      return $ret;
-    };
-    
-    $cps1 = $leer_archivo_conversion('Codigos-Postales-Santa-Fe.csv');
-    $cps2 = $leer_archivo_conversion('XcOOhtqE.csv');
-    $cps = [];
-    foreach($cps1 as $cp => $l){
-      $cps[$cp] = $cps[$cp] ?? [];
-      $cps[$cp][] = $l;
-    }
-    foreach($cps2 as $cp => $l){
-      $cps[$cp] = $cps[$cp] ?? [];
-      if(!in_array($l,$cps[$cp]))
-        $cps[$cp][] = $l;
-    }
-    
-    $provincia_a_provincia        = $leer_archivo_conversion('provincia_a_provincia.csv');
-    $localidad_a_departamento     = $leer_archivo_conversion('localidad_a_departamento.csv');
-    $distrito_a_departamento      = $leer_archivo_conversion('distrito_a_departamento.csv');
-    $departamento_a_departamento  = $leer_archivo_conversion('departamento_a_departamento.csv');
-    $miscelaneos_a_departamento  = $leer_archivo_conversion('miscelaneos_a_departamento.csv');
-    
-    $get_max_similarity = function($arr,$val){
-      $max_similarity = null;
-      $max_similarity_val = null;
-      foreach($arr as $from => $to){
-        $s = $this->similarity($val,$from);
-        if(is_null($s)) continue;
-        if($max_similarity === null || $s > $max_similarity){
-          $max_similarity = $s;
-          $max_similarity_val = $to;
-        }
-      }
-      return [$max_similarity_val,$max_similarity];
-    };
-    
-    $cps_dep = [];
-    foreach($cps as $cp => $ls){
-      $max_d = null;
-      $max = -1;
-      foreach($ls as $l){
-        $lo = $get_max_similarity($localidad_a_departamento,$l,0.70); 
-        $di = $get_max_similarity($distrito_a_departamento,$l,0.70); 
-        $de = $get_max_similarity($departamento_a_departamento,$l,0.70); 
-        $mi = $get_max_similarity($miscelaneos_a_departamento,$l,0.70);
-        foreach([$lo,$di,$de,$mi] as $s){
-          if(!is_null($s[1]) && $s[1] > $max){
-            $max = $s[1];
-            $max_d = $s[0];
-          }
-        }
-      }
-      $cps_dep[$cp] = is_null($max_d)? '' : ucwords(strtolower($max_d));
-    }
-    
-    return response()->stream(
-      function () use($cps_dep){
-        echo collect($cps_dep)->map(function($v,$k){
-          return '"'.$k.'","'.$v.'"';
-        })->values()->implode("\r\n");
-      },
-      200,
-      [
-        'Content-type'        => 'text/csv',
-        'Content-Disposition' => 'attachment; filename=codigopostal_a_departamento.csv'
-      ]
-    );
   }
 }
 
