@@ -198,7 +198,7 @@ class InformesGeneralesController extends Controller
     $cc = CacheController::getInstancia();
     $codigo = 'distribucionJugadores';
     $subcodigo = '';
-    $cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
     $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
     if(!is_null($cache)){
       return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
@@ -242,10 +242,10 @@ class InformesGeneralesController extends Controller
     $f_agrupar = function($string_a_convertir,$lista_conversiones){
       $lista_s = [];
       foreach($lista_conversiones as $lista_y_porcentaje){
-        $max_s = [$lista_y_porcentaje[1]-1e-6,$this->STR_NO_ASIGNABLE];
+        $max_s = [-1,$this->STR_NO_ASIGNABLE];
         foreach($lista_y_porcentaje[0] as $from => $to){
           $s = $this->similarity($string_a_convertir,$from);
-          if($s > $max_s[0]){
+          if($s >= $lista_y_porcentaje[1] && $s > $max_s[0]){
             $max_s[0] = $s;
             $max_s[1] = $to;
           }
@@ -256,7 +256,7 @@ class InformesGeneralesController extends Controller
       //Me quedo con la maxima afinidad
       return array_reduce($lista_s,function($max,$item){
         return ($item[0] > $max[0])? $item : $max;
-      },[-1,$this->STR_NO_ASIGNABLE])[1];
+      },[-2,$this->STR_NO_ASIGNABLE])[1];
     };
     
     $totalizar = function($item){
