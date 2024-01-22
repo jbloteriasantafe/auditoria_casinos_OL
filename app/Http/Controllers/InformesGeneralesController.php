@@ -172,7 +172,7 @@ class InformesGeneralesController extends Controller
     return compact('queryes','maximas_posibles');
   }
   
-  private function similarity($s1,$s2,$limit = 0.50){
+  private function similarity($s1,$s2){
     $s1 = preg_replace('/[^A-Za-z0-9\s]/', '', $s1);//Saco caracteres especiales
     $s2 = preg_replace('/[^A-Za-z0-9\s]/', '', $s2);
     $s1 = preg_replace('/(^|\s)(de|del|el|la|lo|los|las|en)($|\s)/', '', $s1);//Saco conectores
@@ -180,24 +180,25 @@ class InformesGeneralesController extends Controller
     $s1 = preg_replace('/\s/', ' ', $s1);//Simplifico a espacios simples
     $s2 = preg_replace('/\s/', ' ', $s2);
     
-    $MAX = max(strlen($s1),strlen($s2));
-    $porcentaje_escrito = ($MAX - levenshtein($s1,$s2))/$MAX;
+    $sMAX = max(strlen($s1),strlen($s2));
+    if($sMAX == 0) return 1.0;
+    $porcentaje_escrito = ($sMAX - levenshtein($s1,$s2))/$sMAX;
     
-    $M1 = metaphone($s1);
-    $M2 = metaphone($s2);
-    $MAX = max(strlen($M1),strlen($M2));
-    if($MAX == 0) return 1.0;
-    $porcentaje_pronunciado = ($MAX - levenshtein($M1,$M2))/$MAX;
+    $m1 = metaphone($s1);
+    $m2 = metaphone($s2);
+    $mMAX = max(strlen($m1),strlen($m1));
+    if($mMAX == 0) return 1.0;
+    $porcentaje_pronunciado = ($mMAX - levenshtein($m1,$m2))/$mMAX;
     
-    $porcentaje = 0.75*$porcentaje_escrito+0.25*$porcentaje_pronunciado;
-    return $porcentaje < $limit? null : $porcentaje;
+    return 0.75*$porcentaje_escrito+0.25*$porcentaje_pronunciado;
   }
   
+  private $STR_NO_ASIGNABLE = 'NO ASIGNABLE / EXTERIOR';
   public function distribucionJugadores(Request $request){
     $cc = CacheController::getInstancia();
     $codigo = 'distribucionJugadores';
     $subcodigo = '';
-    //$cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
+    $cc->invalidar($codigo,$subcodigo);//LINEA PARA PROBAR Y QUE NO RETORNE RESULTADO CACHEADO
     $cache = $cc->buscarUltimoDentroDeSegundos($codigo,$subcodigo,3600);
     if(!is_null($cache)){
       return json_decode($cache->data,true);//true = retornar como arreglo en vez de objecto
@@ -226,7 +227,7 @@ class InformesGeneralesController extends Controller
       };
       
       $lista_conversiones_provs = [
-        [$leer_archivo_conversion('provincia_a_provincia.csv'),0.5]
+        [$leer_archivo_conversion('provincia_a_provincia.csv'),0.5]//Lista y porcentaje minimo de coincidiencia
       ];
       
       $lista_conversiones_deps = [
@@ -237,34 +238,25 @@ class InformesGeneralesController extends Controller
         [$leer_archivo_conversion('codigopostal_a_departamento.csv'),0.9]
       ];
     }
-    
-    $f_agrupar = function(&$item,$item_attr,$lista_conversiones){
+       
+    $f_agrupar = function($string_a_convertir,$lista_conversiones){
       $lista_s = [];
       foreach($lista_conversiones as $lista_y_porcentaje){
-        $max_similarity = null;
-        $max_similarity_val = null;
+        $max_s = [$lista_y_porcentaje[1]-1e-6,$this->STR_NO_ASIGNABLE];
         foreach($lista_y_porcentaje[0] as $from => $to){
-          $s = $this->similarity($item->{$item_attr},$from,$lista_y_porcentaje[1]);
-          if(is_null($s)) continue;
-          if($max_similarity === null || $s > $max_similarity){
-            $max_similarity = $s;
-            $max_similarity_val = $to;
+          $s = $this->similarity($string_a_convertir,$from);
+          if($s > $max_s[0]){
+            $max_s[0] = $s;
+            $max_s[1] = $to;
           }
         }
-        $lista_s[] = [$max_similarity_val,$max_similarity];
+        $lista_s[] = $max_s;
       }
       
-      $max = -1;//Busco la maxima afinidad
-      $max_idx = null;
-      foreach($lista_s as $idx => $s){
-        if(!is_null($s[1]) && $s[1] > $max){
-          $max = $s[1];
-          $max_idx = $idx;
-        }
-      }
-      
-      if(is_null($max_idx)) return 'NO ASIGNABLE / EXTERIOR';
-      return $lista_s[$max_idx][0];
+      //Me quedo con la maxima afinidad
+      return array_reduce($lista_s,function($max,$item){
+        return ($item[0] > $max[0])? $item : $max;
+      },[-1,$this->STR_NO_ASIGNABLE])[1];
     };
     
     $totalizar = function($item){
@@ -291,7 +283,7 @@ class InformesGeneralesController extends Controller
       )')
       ->get()
       ->groupBy(function(&$item) use ($f_agrupar,$lista_conversiones_provs){
-        return $f_agrupar($item,'provincia',$lista_conversiones_provs);
+        return $f_agrupar($item->provincia,$lista_conversiones_provs);
       });
       
       $ret['provincias'][$plat->nombre] = $BD
@@ -301,7 +293,7 @@ class InformesGeneralesController extends Controller
          
       $ret['departamentos'][$plat->nombre] = ($BD['SANTA FE'] ?? collect([]))
       ->groupBy(function(&$item) use ($f_agrupar,$lista_conversiones_deps){
-        return $f_agrupar($item,'localidad',$lista_conversiones_deps);
+        return $f_agrupar($item->localidad,$lista_conversiones_deps);
       })
       ->map($totalizar)
       ->mapWithKeys($presentar_llave);
