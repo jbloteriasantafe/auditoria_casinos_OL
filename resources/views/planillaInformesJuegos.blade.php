@@ -32,16 +32,19 @@ tr:nth-child(even) {
 
 </style>
   <?php 
-  $widths = ["fecha" => "10","apostado" => "17","premios" => "17","ajuste" => "13", "beneficio" => "17","dev" => "8","poker" =>"17"];
+  $widths = ["fecha" => "10","usuarios" => "17","apostado" => "17","premios" => "17","ajuste" => "13", "beneficio" => "17","dev" => "8","poker" =>"17"];
   if($cotizacionDefecto != 1){
-    $widths = ["fecha" => "9","apostado" => "15","premios" => "15", "cotizacion" => "11","ajuste" => "12","beneficio" => "15","dev" => "8","poker" => "15"];
+    $widths = ["fecha" => "9","usuarios" => "15","apostado" => "15","premios" => "15", "cotizacion" => "11","ajuste" => "12","beneficio" => "15","dev" => "8","poker" => "15"];
   }
   //El campo beneficio YA VIENE ajustado, la apuesta y premio no
   //Si es simplificado
   //APUESTA = A
   //PREMIO = P + Ajus
   //BENEFICIO(AJUSTADO) = APUESTA - PREMIO (A - P - Ajus)
-  $sumar_ajuste_al_premio = $simplificado;
+  $sumar_ajuste_al_premio = !$jol;
+  $mostrar_usuarios       = $jol;
+  $mostrar_poker          = !$jol;
+  $mostrar_pdev           = $jol;
   $total_cotizado_beneficio_y_poker = $total_cotizado->beneficio + $total_cotizado->poker;
   ?>
   <head>
@@ -68,53 +71,68 @@ tr:nth-child(even) {
     <table style="table-layout: fixed;">
       <tr>
         <th class="tablaInicio center" width="{{$widths['fecha']}}%">FECHA</th>
+        @if($mostrar_usuarios)
+        <th class="tablaInicio center" width="{{$widths['usuarios']}}%">USUARIOS</th>
+        @endif
         <th class="tablaInicio center" width="{{$widths['apostado']}}%">APOSTADO</th>
         <th class="tablaInicio center" width="{{$widths['premios']}}%">PREMIOS</th>
-        @if(!$simplificado)
+        @if(!$sumar_ajuste_al_premio)
         <th class="tablaInicio center" width="{{$widths['ajuste']}}%">AJUSTES</th>
         @endif
         @if($cotizacionDefecto != 1)
         <th class="tablaInicio center" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
         @endif
         <th class="tablaInicio center" width="{{$widths['beneficio']}}%">BENEFICIO</th>
-        @if(!$simplificado)
+        @if($mostrar_pdev)
         <th class="tablaInicio center" width="{{$widths['dev']}}%">% DEV</th>
         @endif
+        @if($mostrar_poker)
         <th class="tablaInicio center" width="{{$widths['poker']}}%">POKER</th>
+        @endif
       </tr>
       @foreach ($dias as $d)
       <tr>
         <td class="tablaCampos center">{{$d->fecha}}</td>
+        @if($mostrar_usuarios)
+        <td class="tablaCampos center">{{$d->jugadores}}</td>
+        @endif
         <td class="tablaCampos right">{{number_format($d->apuesta,2,",",".")}}</td>
         <td class="tablaCampos right">{{number_format($d->premio + ($sumar_ajuste_al_premio? $d->ajuste : 0),2,",",".")}}</td>
-        @if(!$simplificado)
+        @if(!$sumar_ajuste_al_premio)
         <td class="tablaCampos right">{{number_format($d->ajuste,2,",",".")}}</td>
         @endif
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos right">{{number_format($d->cotizacion,3,",",".")}}</td>
         @endif
         <td class="tablaCampos right">{{number_format($d->beneficio*$d->cotizacion,2,",",".")}}</td>
-        @if(!$simplificado)
+        @if($mostrar_pdev)
         <td class="tablaCampos right">{{$d->apuesta != 0.0? number_format(round(100*$d->premio/$d->apuesta,2),2,",",".") : '-'}}</td>
         @endif
+        @if($mostrar_poker)
         <td class="tablaCampos right">{{number_format($d->poker*$d->cotizacion,2,",",".")}}</td>
+        @endif
       </tr>
       @endforeach
       <tr class="total">
         <td class="tablaCampos total center">{{$total->fecha}}</td>
+        @if($mostrar_usuarios)
+        <td class="tablaCampos total center">{{$total->jugadores}}</td>
+        @endif
         <td class="tablaCampos total right">{{number_format($total->apuesta,2,",",".")}}</td>
         <td class="tablaCampos total right">{{number_format($total->premio + ($sumar_ajuste_al_premio? $total->ajuste : 0),2,",",".")}}</td>
-        @if(!$simplificado)
+        @if(!$sumar_ajuste_al_premio)
         <td class="tablaCampos total right">{{number_format($total->ajuste,2,",",".")}}</td>
         @endif
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total right">-</td>
         @endif
         <td class="tablaCampos total right">{{number_format($total_cotizado->beneficio,2,",",".")}}</td>
-        @if(!$simplificado)
+        @if($mostrar_pdev)
         <td class="tablaCampos total right">{{$total->apuesta != 0.0? number_format(round(100*$total->premio/$total->apuesta,2),2,",",".") : '-'}}</td>
         @endif
+        @if($mostrar_poker)
         <td class="tablaCampos total right">{{number_format($total_cotizado->poker,2,",",".")}}</td>
+        @endif
       </tr>
     </table>
     @if($cotizacionDefecto != 1)

@@ -32,9 +32,9 @@ tr:nth-child(even) {
 
 </style>
   <?php 
-  $widths = ["fecha" => "15","jugadores" => "25","drop" => "30","utilidad" => "30"];
+  $widths = ["fecha" => "15","jugadores" => "24","drop" => "23","utilidad" => "23","rake" => "15"];
   if($cotizacionDefecto != 1){
-    $widths = ["fecha" => "10","jugadores" => "15","drop" => "20","utilidad" => "20","cotizacion" => "15","conversion" => "20"];
+    $widths = ["fecha" => "10","jugadores" => "14","drop" => "17","utilidad" => "17","cotizacion" => "15","conversion" => "17","rake" => "10"];
   }
   ?>
   <head>
@@ -68,6 +68,7 @@ tr:nth-child(even) {
         <th class="tablaInicio center" width="{{$widths['cotizacion']}}%">COTIZACION (*)</th>
         <th class="tablaInicio center" width="{{$widths['conversion']}}%">CONVERSION</th>
         @endif
+        <th class="tablaInicio center" width="{{$widths['rake']}}%">RAKE</th>
       </tr>
       @foreach ($dias as $d)
       <tr>
@@ -79,6 +80,7 @@ tr:nth-child(even) {
         <td class="tablaCampos right">{{number_format($d->cotizacion,3,",",".")}}</td>
         <td class="tablaCampos right">{{number_format($d->utilidad*$d->cotizacion,2,",",".")}}</td>
         @endif
+        <td class="tablaCampos right">{{number_format($d->rake,3,",",".")}}%</td>
       </tr>
       @endforeach
       <tr class="total">
@@ -90,6 +92,7 @@ tr:nth-child(even) {
         <td class="tablaCampos total right">-</td>
         <td class="tablaCampos total right">{{number_format($total_beneficio,2,",",".")}}</td>
         @endif
+        <td class="tablaCampos total right">{{number_format($total->rake,3,",",".")}}%</td>
       </tr>
     </table>
     @if($cotizacionDefecto != 1)

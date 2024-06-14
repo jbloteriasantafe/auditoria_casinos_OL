@@ -54,13 +54,13 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           <td class="col-xs-5" style="text-align: right;">
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
-                                    class="btn btn-info planilla" type="button">
-                                  <i class="fa fa-fw fa-print"></i>
+                                    class="btn btn-info imprimir" type="button">
+                              <i class="fa fa-fw fa-print"></i>
                             </button>
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
-                                    class="btn btn-info planilla2" type="button">
-                              <i class="fa fa-fw fa-dollar-sign"></i>
+                                    class="btn btn-info jol" type="button">
+                                  <b style="color: black;font-size: 75%">JOL</b>
                             </button>
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
@@ -113,7 +113,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionInformesJuegos.js?3" charset="utf-8"></script>
+    <script src="js/seccionInformesJuegos.js?4" charset="utf-8"></script>
     <script>
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();
