@@ -31,11 +31,8 @@ class informesController extends Controller
 
   No garantizo la validez de la información ni tampoco avalo o aconsejo cualquier acción que se realice a partir de esta.
   */
-  public function generarPlanillaSinAjuste($anio,$mes,$id_plataforma,$id_tipo_moneda){
-    return $this->generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,1,1);
-  }
 
-  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado,$sin_ajuste = 0){
+  public function generarPlanilla($anio,$mes,$id_plataforma,$id_tipo_moneda,$simplificado){
     //@HACK: si el beneficio no esta importado, no muestra el poker del dia
     //Como creo que nunca pasaria lo dejo asi porque es mas simple el query
     //Octavio 11 Noviembre 2022
@@ -117,7 +114,7 @@ class informesController extends Controller
     $mesTexto = $this->obtenerMes($mes);
     $view = View::make('planillaInformesJuegos',compact(
       'mesTexto','dias','cotizacionDefecto','total_cotizado',
-      'total','simplificado','sin_ajuste'
+      'total','simplificado'
     ));
 
     $dompdf = new Dompdf();

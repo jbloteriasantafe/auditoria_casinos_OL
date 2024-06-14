@@ -64,11 +64,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                             </button>
                             <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
                                     data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
-                                    class="btn btn-info planilla_sin_ajuste" type="button">
-                              <b style="color: black;font-size: 80%">S/AJU</b>
-                            </button>
-                            <button data-plataforma="{{$id_plat}}" data-moneda="{{$b->id_tipo_moneda}}"
-                                    data-anio="{{$b->anio}}"       data-mes="{{$b->mes}}" 
                                     class="btn btn-info informe_completo" type="button">
                               <i class="fa fa-fw fa-search-plus"></i>
                             </button>

@@ -41,26 +41,8 @@ tr:nth-child(even) {
   //APUESTA = A
   //PREMIO = P + Ajus
   //BENEFICIO(AJUSTADO) = APUESTA - PREMIO (A - P - Ajus)
-
-  //Si es sin ajuste
-  //APUESTA = A
-  //PREMIO = P
-  //BENEFICIO(SIN AJUSTAR) = BENEFICIO_AJUSTADO + AJUSTE
-
-  $sumar_ajuste_al_beneficio = false;
-  $sumar_ajuste_al_premio = false;
-  if($simplificado){
-    $sumar_ajuste_al_premio = true;
-    $sumar_ajuste_al_beneficio = false;
-  }
-  if($sin_ajuste){
-    $sumar_ajuste_al_beneficio = true;
-    $sumar_ajuste_al_premio = false;
-  }
-  $total_cotizado_beneficio_ajustado = $total_cotizado->beneficio 
-    + ($sumar_ajuste_al_beneficio? $total_cotizado->ajuste : 0);
-  $total_cotizado_beneficio_y_poker = $total_cotizado_beneficio_ajustado
-    + $total_cotizado->poker;
+  $sumar_ajuste_al_premio = $simplificado;
+  $total_cotizado_beneficio_y_poker = $total_cotizado->beneficio + $total_cotizado->poker;
   ?>
   <head>
     <meta charset="utf-8">
@@ -111,7 +93,7 @@ tr:nth-child(even) {
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos right">{{number_format($d->cotizacion,3,",",".")}}</td>
         @endif
-        <td class="tablaCampos right">{{number_format(($d->beneficio + ($sumar_ajuste_al_beneficio? $d->ajuste : 0))*$d->cotizacion,2,",",".")}}</td>
+        <td class="tablaCampos right">{{number_format($d->beneficio*$d->cotizacion,2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos right">{{$d->apuesta != 0.0? number_format(round(100*$d->premio/$d->apuesta,2),2,",",".") : '-'}}</td>
         @endif
@@ -128,7 +110,7 @@ tr:nth-child(even) {
         @if($cotizacionDefecto != 1)
         <td class="tablaCampos total right">-</td>
         @endif
-        <td class="tablaCampos total right">{{number_format($total_cotizado_beneficio_ajustado,2,",",".")}}</td>
+        <td class="tablaCampos total right">{{number_format($total_cotizado->beneficio,2,",",".")}}</td>
         @if(!$simplificado)
         <td class="tablaCampos total right">{{$total->apuesta != 0.0? number_format(round(100*$total->premio/$total->apuesta,2),2,",",".") : '-'}}</td>
         @endif
