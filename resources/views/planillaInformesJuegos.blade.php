@@ -45,7 +45,8 @@ tr:nth-child(even) {
   $mostrar_usuarios       = $jol;
   $mostrar_poker          = !$jol;
   $mostrar_pdev           = $jol;
-  $total_cotizado_beneficio_y_poker = $total_cotizado->beneficio + $total_cotizado->poker;
+  $total_cotizado_beneficio_y_poker = $total_cotizado->beneficio;
+  $total_cotizado_beneficio_y_poker += $jol? 0 : $total_cotizado->poker;
   ?>
   <head>
     <meta charset="utf-8">
