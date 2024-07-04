@@ -8,8 +8,8 @@ foreach($data as $sexo => $por_edad) foreach($por_edad as $grupo => $cantidad)  
 $total_por_edad = [];
 foreach($data as $sexo => $por_edad) foreach($por_edad as $grupo => $cantidad)  $total_por_edad[$grupo] = ($total_por_edad[$grupo] ?? 0) + $cantidad;
 
-$total_por_sexo = collect($total_por_sexo)->sort()->reverse();
-$total_por_edad = collect($total_por_edad)->sort()->reverse();
+$total_por_sexo = collect($total_por_sexo)->sortBy(function($arr,$k){return $k;});
+$total_por_edad = collect($total_por_edad)->sortBy(function($arr,$k){return $k;});
 ?>
 
 

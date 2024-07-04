@@ -351,14 +351,18 @@ public function informeDemografico(Request $request){
         if($d2->edad <= 75) return '66-75';
         return '76+';
       })
+      ->sortBy(function($arr,$k){
+        return $k;
+      })
       ->map(function($por_edad){
         return $por_edad->reduce(function($carry,$d2){
           return $carry+$d2->cantidad;
         },0);
-      })
-      ->sort()->reverse();
+      });
     })
-    ->sort()->reverse();
+    ->sortBy(function($arr,$k){
+      return $k;
+    });
     
     $anio = $request->anio;
     $mes  = $request->mes;
