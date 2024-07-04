@@ -317,5 +317,35 @@ class EstadoController extends Controller
       return 1;
     });
   }
+  
+  public function informeDemografico(Request $request){
+    return DB::table('producido_jugadores as p')
+    ->selectRaw('CASE
+     WHEN j.sexo IS NULL       THEN "-"
+     WHEN j.sexo LIKE "hombre" THEN "H"
+     WHEN j.sexo LIKE "mujer"  THEN "M"
+     ELSE                           "X"
+    END as sexo,
+    IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-") as edad,
+    COUNT(distinct dp.jugador) as cantidad')
+    ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
+    ->leftJoin('jugador as j',function($j){
+      return $j->on('j.id_plataforma','=','p.id_plataforma')->on('j.codigo','=','dp.jugador')->whereNull('j.valido_hasta');
+    })
+    ->where('p.id_plataforma','=',$request->id_plataforma)
+    ->whereYear('p.fecha','=',$request->anio)
+    ->whereMonth('p.fecha','=',$request->mes)
+    ->where(function($q){
+      return $q->where('dp.apuesta','<>',0)->orWhere('dp.premio','<>',0)->orWhere('dp.beneficio','<>',0);
+    })
+    ->groupBy(DB::raw('CASE
+     WHEN j.sexo IS NULL       THEN "-"
+     WHEN j.sexo LIKE "hombre" THEN "H"
+     WHEN j.sexo LIKE "mujer"  THEN "M"
+     ELSE                           "X"
+    END,IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-")'))
+    ->orderBy('sexo','asc')
+    ->orderBy('edad','asc')->get();
+  }
 }
 

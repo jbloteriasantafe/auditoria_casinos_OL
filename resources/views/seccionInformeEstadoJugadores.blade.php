@@ -233,6 +233,69 @@ background-color: #4CAF50;
       </div>
     </div> 
   </div>
+  <div class="col-md-2 col-sm-3">
+    <div class="row">
+      <div class="col-lg-12">
+        <a href="" id="btn-informe-demografico" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+          <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
+          <div class="row">
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo">-</h5>
+                <h4 class="txtNuevo">INFORME DEMOGRAFICO</h4>
+              </center>
+            </div>
+          </div>
+        </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalInformeDemografico" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizarVerificarEstados" type="button" class="close" 
+        data-toggle="collapse" data-minimizar="true" data-target="#modalInformeDemografico .collapse" style="position:relative; right:20px; top:5px">
+          <i class="fa fa-minus"></i>
+        </button>
+        <h3 class="modal-title">| INFORME DEMOGRAFICO</h3>
+      </div>
+      <div class="collapse in">
+        <div class="modal-body modalCuerpo">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Mes</h5>
+              <div class="input-group date" id="dtpMesInformeDemografico">
+                <input type="text" class="form-control" data-date-format="yyyy-mm-dd" id="fechaImportacionEstados" autocomplete="off" style="background-color: rgb(255,255,255);">
+                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h5 style="text-align: center">PLATAFORMA</h5>
+              <select id="plataformaInformeDemografico" class="form-control">
+                <option value="">Seleccione</option>
+                @foreach ($plataformas as $plataforma)
+                <option value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="row" id="animacionGenerando" style="text-align: center;" hidden>&nbsp;</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-successAceptar" id="btn-informeDemografico">VERIFICAR</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 @if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_despacho)
