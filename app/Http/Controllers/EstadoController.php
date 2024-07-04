@@ -318,16 +318,16 @@ class EstadoController extends Controller
     });
   }
   
-  public function informeDemografico(Request $request){
-    return DB::table('producido_jugadores as p')
-    ->selectRaw('CASE
+public function informeDemografico(Request $request){
+    $sexo = 'CASE
      WHEN j.sexo IS NULL       THEN "-"
-     WHEN j.sexo LIKE "hombre" THEN "H"
-     WHEN j.sexo LIKE "mujer"  THEN "M"
+     WHEN j.sexo LIKE "hombre" THEN "HOMBRE"
+     WHEN j.sexo LIKE "mujer"  THEN "MUJER"
      ELSE                           "X"
-    END as sexo,
-    IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-") as edad,
-    COUNT(distinct dp.jugador) as cantidad')
+    END';
+    $edad = 'IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-")';
+    $data = DB::table('producido_jugadores as p')
+    ->selectRaw("$sexo as sexo,$edad as edad,COUNT(distinct dp.jugador) as cantidad")
     ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
     ->leftJoin('jugador as j',function($j){
       return $j->on('j.id_plataforma','=','p.id_plataforma')->on('j.codigo','=','dp.jugador')->whereNull('j.valido_hasta');
@@ -337,15 +337,40 @@ class EstadoController extends Controller
     ->whereMonth('p.fecha','=',$request->mes)
     ->where(function($q){
       return $q->where('dp.apuesta','<>',0)->orWhere('dp.premio','<>',0)->orWhere('dp.beneficio','<>',0);
-    })
-    ->groupBy(DB::raw('CASE
-     WHEN j.sexo IS NULL       THEN "-"
-     WHEN j.sexo LIKE "hombre" THEN "H"
-     WHEN j.sexo LIKE "mujer"  THEN "M"
-     ELSE                           "X"
-    END,IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-")'))
+    }) 
+    ->groupBy(DB::raw("$sexo,$edad"))
     ->orderBy('sexo','asc')
-    ->orderBy('edad','asc')->get();
+    ->orderBy('edad','asc')->get()
+    ->groupBy('sexo')
+    ->map(function($d){
+      return $d->groupBy(function($d2){
+        if($d2->edad <= 35) return '18-35';
+        if($d2->edad <= 45) return '36-45';
+        if($d2->edad <= 55) return '46-55';
+        if($d2->edad <= 65) return '56-65';
+        if($d2->edad <= 75) return '66-75';
+        return '76+';
+      })
+      ->map(function($por_edad){
+        return $por_edad->reduce(function($carry,$d2){
+          return $carry+$d2->cantidad;
+        },0);
+      })
+      ->sort()->reverse();
+    })
+    ->sort()->reverse();
+    
+    $anio = $request->anio;
+    $mes  = $request->mes;
+    $plataforma = Plataforma::find($request->id_plataforma)->nombre;
+    $view = View::make('planillaInformeDemografico',compact('plataforma','anio','mes','data'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    return $dompdf->stream('planilla.pdf',['Attachment'=>0]);
   }
 }
 
