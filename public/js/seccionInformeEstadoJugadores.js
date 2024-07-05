@@ -17,6 +17,13 @@ $(document).ready(function(){
   $('#dtpFechaAltaH').datetimepicker(ddmmyy_dtp);
   $('#dtpFechaUltimoMovimientoD').datetimepicker(ddmmyy_dtp);
   $('#dtpFechaUltimoMovimientoH').datetimepicker(ddmmyy_dtp);
+  $('#dtpMesInformeDemografico').datetimepicker({
+    ...ddmmyy_dtp,
+    format: 'mm/yyyy',
+    startView: 3,
+    minView: 3,
+  });
+  
   $('.tituloSeccionPantalla').text('Estado de Jugadores');
   $('#btn-buscar').trigger('click');
 });
@@ -453,79 +460,27 @@ $(document).on('click', '#modalHistorial .cuerpo tr th[value]', function(e) {
   mostrarHistorial($('#modalHistorial').find('.prevPreview').val(),$('#modalHistorial').find('.previewPage').val());
 });
 
+
 $('#btn-informe-demografico').click(function(e){
   e.preventDefault();
-  reiniciarModalVerificarEstados();
-  $('#modalVerificarEstados').modal('show');
+  $('#dtpMesInformeDemografico').data('datetimepicker').reset();
+  $('#modalInformeDemografico').modal('show');
 });
 
-/*
-$('#btn-verificarEstados').click(function(){
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-
-  let progress = 0;
-  $('#animacionGenerando').show();
-  const loading = setInterval(function(){
-    const message = ['―','/','|','\\'];
-    $('#animacionGenerando').text(message[progress]);
-    progress = (progress + 1)%4;
-  },100);
-
-  const formData = new FormData();
-  formData.append("id_plataforma",$('#plataformaVerificarEstado').val());
-  formData.append("fecha_sistema",$('#fechaSistema').val());
-  formData.append("cambio_fecha_sistema",$('#fechaSistema').data("cambio_fecha_sistema")? 1 : 0);
-  formData.append("fecha_importacion",$('#fechaImportacionEstados').val());
-
-  $.ajax({
-    type: "POST",
-    url: "/informeEstadoJuegos/generarDiferenciasEstadosJuegos",
-    data: formData,
-    processData: false,
-    contentType:false,
-    cache:false,
-    responseType: "blob",
-    success: function (data) {//https://stackoverflow.com/questions/2805330/opening-pdf-string-in-new-window-with-javascript
-      clearInterval(loading);
-      $('#animacionGenerando').empty().append('&nbsp;').hide();
-      const byteCharacters = atob(data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const file = new Blob([byteArray], { type: 'application/pdf;base64' });
-      const fileURL = window.URL.createObjectURL(file);
-      $('#resultado_diferencias').attr('href',fileURL);
-      const codigo_plat = $('#plataformaVerificarEstado option').filter(function(){
-        return $(this).val() == formData.get("id_plataforma");
-      }).attr('data-codigo');
-      const fechaSistema = formData.get("fecha_sistema").slice(0,10).split("-").map(function(val,idx){
-        return idx == 0? val.slice(2) : val;
-      }).join("") + formData.get("fecha_sistema").slice(11).split(":").join("");
-      const fechaImportacion = formData.get("fecha_importacion").split("-").map(function(val,idx){
-        return idx == 0? val.slice(2) : val;
-      }).join("");
-      $('#resultado_diferencias').attr('download',`Diferencias-Estados-${codigo_plat}-${fechaSistema}-${fechaImportacion}.pdf`);
-      $('#resultado_diferencias').show();
-      $('#resultado_diferencias_span').click();//El evento click sobre el <a> no hace nada
-    },
-    error: function (data) {
-      console.log(data);
-      clearInterval(loading);
-      $('#animacionGenerando').text('ERROR');
-      mensajeError(data.responseJSON["errores"]);
-    }
-  });
-});
-
-function reiniciarModalVerificarEstados(){
-  $('#plataformaVerificarEstado').val("");
-  $('#animacionGenerando').empty().append('&nbsp;').hide();
-  $('#resultado_diferencias').attr('href','#').removeAttr('download').hide();
-  const fecha = new Date();
-  $('#dtpFechaSistema').data('datetimepicker').setDate(fecha);
-  $('#fechaSistema').data('cambio_fecha_sistema',false);
-  $('#dtpFechaImportacionEstados').data('datetimepicker').setDate(fecha);
+function encodeQueryData(data){
+  const ret = [];
+  for (let d in data)
+    ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+  return ret.join('&');
 }
-*/
+
+$('#btn-informeDemografico').click(function(){
+  const fecha = $('#dtpMesInformeDemografico').data('datetimepicker').getDate().toISOString().split('T')[0].split('-');
+  const id_plataforma = $('#plataformaInformeDemografico').val();
+  if(!fecha || !id_plataforma) return;
+  window.open('informeEstadoJugadores/informeDemografico?'+encodeQueryData({
+    id_plataforma: id_plataforma,
+    anio: fecha[0],
+    mes: fecha[1]
+  }),'_blank');
+});
