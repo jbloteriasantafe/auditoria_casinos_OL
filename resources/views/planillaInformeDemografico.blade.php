@@ -45,6 +45,18 @@ tr:nth-child(even) {
   text-align: center;
 }
 
+.forzar_blanco {
+  background-color: white !important;
+}
+
+.total_horizontal {
+  border-right: 2px double black;
+}
+
+.separador_sexo_edades {
+  border-bottom: 2px double #a0a0a0 !important;
+}
+
 </style>
   <head>
     <meta charset="utf-8">
@@ -66,53 +78,7 @@ tr:nth-child(even) {
       <tr>
         <th class="tablaInicio center">SEXO</th>
         <th class="tablaInicio center">CANTIDAD</th>
-        <th class="tablaInicio center">%</th>
-      </tr>
-      
-      @foreach($total_por_sexo as $sexo => $cantidad) 
-      <tr>
-        <td class="tablaCampos center">{{$sexo}}</td>
-        <td class="tablaCampos center">{{$cantidad}}</td>
-        <td class="tablaCampos center">{{number_format(100*$cantidad/$total,3,',','.')}}%</td>
-      </tr>
-      @endforeach
-      <tr class="total">
-        <td class="tablaCampos center total">---</td>
-        <td class="tablaCampos center total">{{$total}}</td>
-        <td class="tablaCampos center total">100%</td>
-      </tr>
-    </table>
-    
-    <br>
-    <br>
-
-    <table style="table-layout: fixed;">
-      <tr>
-        <th class="tablaInicio center">EDAD</th>
-        <th class="tablaInicio center">CANTIDAD</th>
-        <th class="tablaInicio center">%</th>
-      </tr>
-
-      @foreach($total_por_edad as $grupo => $cantidad) 
-      <tr>
-        <td class="tablaCampos center">{{$grupo}}</td>
-        <td class="tablaCampos center">{{$cantidad}}</td>
-        <td class="tablaCampos center">{{number_format(100*$cantidad/$total,3,',','.')}}%</td>
-      </tr>
-      @endforeach
-      <tr class="total">
-        <td class="tablaCampos center total">---</td>
-        <td class="tablaCampos center total">{{$total}}</td>
-        <td class="tablaCampos center total">100%</td>
-      </tr>
-    </table>
-
-    <br>
-    <br>
-    
-    <table style="table-layout: fixed;">
-      <tr>
-        <th class="tablaInicio center">SEXO</th>
+        <th class="tablaInicio center total_horizontal">%</th>
         <th class="tablaInicio center">EDAD</th>
         <th class="tablaInicio center">CANTIDAD</th>
         <th class="tablaInicio center">%</th>
@@ -122,26 +88,28 @@ tr:nth-child(even) {
       @foreach($por_edad as $grupo => $cantidad)
       <tr>
         @if($loop->first)
-        <th class="tablaInicio center" style="background-color: white !important;" rowspan={{count($por_edad)}}>{{$sexo}}</th>
+        <th class="tablaInicio center forzar_blanco" rowspan={{count($por_edad)}}>{{$sexo}}</th>
+        <td class="tablaCampos center forzar_blanco" rowspan={{count($por_edad)}}>{{$total_por_sexo[$sexo] ?? 0}}</td>
+        <td class="tablaCampos center forzar_blanco total_horizontal" rowspan={{count($por_edad)}}>{{number_format(100*($total_por_sexo[$sexo] ?? 0)/$total,3,',','.')}}%</td>
         @endif
-        <td class="tablaCampos center">{{$grupo}}</td>
-        <td class="tablaCampos center">{{$cantidad}}</td>
-        <td class="tablaCampos center">{{number_format(100*$cantidad/$total,3,',','.')}}%</td>
+        <td class="tablaCampos center {{$loop->last && !$loop->parent->last? 'separador_sexo_edades' : ''}}">{{$grupo}}</td>
+        <td class="tablaCampos center {{$loop->last && !$loop->parent->last? 'separador_sexo_edades' : ''}}">{{$cantidad}}</td>
+        <td class="tablaCampos center {{$loop->last && !$loop->parent->last? 'separador_sexo_edades' : ''}}">{{number_format(100*$cantidad/$total,3,',','.')}}%</td>
       </tr>
       @endforeach
       @endforeach
+      @foreach($total_por_edad as $grupo => $cantidad)
       <tr class="total">
-        <td class="tablaCampos center total">---</td>
-        <td class="tablaCampos center total">---</td>
-        <td class="tablaCampos center total">{{$total}}</td>
-        <td class="tablaCampos center total">100%</td>
+        @if($loop->first)
+        <th class="tablaCampos center total forzar_blanco" rowspan={{count($total_por_edad)}}>TOTAL</th>
+        <td class="tablaCampos center total forzar_blanco" rowspan={{count($total_por_edad)}}>{{$total}}</td>
+        <td class="tablaCampos center total forzar_blanco total_horizontal" rowspan={{count($total_por_edad)}}>100%</td>
+        @endif
+        <td class="tablaCampos center {{$loop->first? 'total' : ''}}">{{$grupo}}</td>
+        <td class="tablaCampos center {{$loop->first? 'total' : ''}}">{{$cantidad}}</td>
+        <td class="tablaCampos center {{$loop->first? 'total' : ''}}">{{number_format(100*$cantidad/$total,3,',','.')}}%</td>
       </tr>
+      @endforeach
     </table>
-
   </body>
 </html>
-
-
-
-
-
