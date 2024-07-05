@@ -121,7 +121,9 @@ tr:nth-child(even) {
       @foreach($data as $sexo => $por_edad) 
       @foreach($por_edad as $grupo => $cantidad)
       <tr>
-        <td class="tablaCampos center">{{$sexo}}</td>
+        @if($loop->first)
+        <th class="tablaInicio center" style="background-color: white !important;" rowspan={{count($por_edad)}}>{{$sexo}}</th>
+        @endif
         <td class="tablaCampos center">{{$grupo}}</td>
         <td class="tablaCampos center">{{$cantidad}}</td>
         <td class="tablaCampos center">{{number_format(100*$cantidad/$total,3,',','.')}}%</td>
