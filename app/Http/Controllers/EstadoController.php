@@ -344,7 +344,7 @@ public function informeDemografico(Request $request){
     ->groupBy('sexo')
     ->map(function($d){
       return $d->groupBy(function($d2){
-        if(is_null($d2->edad)) return '-';
+        if($d2->edad == '-') return '-';
         if($d2->edad <= 35) return '18-35';
         if($d2->edad <= 45) return '36-45';
         if($d2->edad <= 55) return '46-55';
