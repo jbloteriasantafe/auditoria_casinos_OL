@@ -325,24 +325,29 @@ public function informeDemografico(Request $request){
      WHEN j.sexo LIKE "mujer"  THEN "MUJER"
      ELSE                           "X"
     END';
+    
+    $reglas = [];
+    if(isset($request->id_plataforma) && $request->id_plataforma != 'TODAS'){
+      $reglas[] = ['p.id_plataforma','=',$request->id_plataforma];
+    }
+    
     $edad = 'IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-")';
     $data = DB::table('producido_jugadores as p')
-    ->selectRaw("$sexo as sexo,$edad as edad,COUNT(distinct dp.jugador) as cantidad")
+    ->selectRaw("p.id_plataforma,$sexo as sexo,$edad as edad,COUNT(distinct dp.jugador) as cantidad")
     ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
     ->leftJoin('jugador as j',function($j){
       return $j->on('j.id_plataforma','=','p.id_plataforma')->on('j.codigo','=','dp.jugador')->whereNull('j.valido_hasta');
     })
-    ->where('p.id_plataforma','=',$request->id_plataforma)
+    ->where($reglas)
     ->whereYear('p.fecha','=',$request->anio)
     ->whereMonth('p.fecha','=',$request->mes)
     ->where(function($q){
       return $q->where('dp.apuesta','<>',0)->orWhere('dp.premio','<>',0)->orWhere('dp.beneficio','<>',0);
     }) 
-    ->groupBy(DB::raw("$sexo,$edad"))
+    ->groupBy(DB::raw("p.id_plataforma,$sexo,$edad"))
     ->orderBy('sexo','asc')
     ->orderBy('edad','asc')->get()
-    ->groupBy('sexo')
-    ->map(function($d){
+    ->groupBy('sexo')->map(function($d){
       return $d->groupBy(function($d2){
         if($d2->edad == '-') return '-';
         if($d2->edad <= 35) return '18-35';
@@ -364,10 +369,13 @@ public function informeDemografico(Request $request){
     ->sortBy(function($arr,$k){
       return $k;
     });
-    
+        
     $anio = $request->anio;
     $mes  = $request->mes;
-    $plataforma = Plataforma::find($request->id_plataforma)->nombre;
+    $plataforma = $request->id_plataforma == 'TODAS'?
+      'Plataformas'
+    : Plataforma::find($request->id_plataforma)->nombre;
+    
     $view = View::make('planillaInformeDemografico',compact('plataforma','anio','mes','data'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');

@@ -284,6 +284,7 @@ background-color: #4CAF50;
                 @foreach ($plataformas as $plataforma)
                 <option value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
                 @endforeach
+                <option value="TODAS">- TODAS -</option>
               </select>
             </div>
           </div>
