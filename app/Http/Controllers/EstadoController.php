@@ -319,6 +319,30 @@ class EstadoController extends Controller
   }
   
 public function informeDemografico(Request $request){
+    $reglas = [];
+    if(isset($request->id_plataforma) && $request->id_plataforma != 'TODAS'){
+      $reglas[] = ['p.id_plataforma','=',$request->id_plataforma];
+    }
+    
+    $edad = 'IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-")';
+    
+    $menores_de_18 = DB::table('producido_jugadores as p')
+    ->select('dp.jugador')->distinct()
+    ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
+    ->join('plataforma as pl','p.id_plataforma','=','p.id_plataforma')
+    ->leftJoin('jugador as j',function($j){
+      return $j->on('j.id_plataforma','=','p.id_plataforma')->on('j.codigo','=','dp.jugador')->whereNull('j.valido_hasta');
+    })
+    ->where($reglas)
+    ->whereYear('p.fecha','=',$request->anio)
+    ->whereMonth('p.fecha','=',$request->mes)
+    ->where(function($q){
+      return $q->where('dp.apuesta','<>',0)->orWhere('dp.premio','<>',0)->orWhere('dp.beneficio','<>',0);
+    })
+    ->where(DB::raw($edad),'<',18)
+    ->where(DB::raw($edad),'<>','-') 
+    ->get();
+    
     $sexo = 'CASE
      WHEN j.sexo IS NULL       THEN "-"
      WHEN j.sexo LIKE "hombre" THEN "HOMBRE"
@@ -326,12 +350,6 @@ public function informeDemografico(Request $request){
      ELSE                           "X"
     END';
     
-    $reglas = [];
-    if(isset($request->id_plataforma) && $request->id_plataforma != 'TODAS'){
-      $reglas[] = ['p.id_plataforma','=',$request->id_plataforma];
-    }
-    
-    $edad = 'IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-")';
     $data = DB::table('producido_jugadores as p')
     ->selectRaw("p.id_plataforma,$sexo as sexo,$edad as edad,COUNT(distinct dp.jugador) as cantidad")
     ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
@@ -343,11 +361,12 @@ public function informeDemografico(Request $request){
     ->whereMonth('p.fecha','=',$request->mes)
     ->where(function($q){
       return $q->where('dp.apuesta','<>',0)->orWhere('dp.premio','<>',0)->orWhere('dp.beneficio','<>',0);
-    }) 
+    })
     ->groupBy(DB::raw("p.id_plataforma,$sexo,$edad"))
     ->orderBy('sexo','asc')
-    ->orderBy('edad','asc')->get()
-    ->groupBy('sexo')->map(function($d){
+    ->orderBy('edad','asc')
+    ->get()
+    ->groupBy('sexo')->map(function($d) use (&$menores_de_18) {
       return $d->groupBy(function($d2){
         if($d2->edad == '-') return '-';
         if($d2->edad <  18) return '-18';
@@ -360,8 +379,7 @@ public function informeDemografico(Request $request){
       })
       ->sortBy(function($arr,$k){
         return $k;
-      })
-      ->map(function($por_edad){
+      })->map(function($por_edad){
         return $por_edad->reduce(function($carry,$d2){
           return $carry+$d2->cantidad;
         },0);
@@ -377,7 +395,7 @@ public function informeDemografico(Request $request){
       'Plataformas'
     : Plataforma::find($request->id_plataforma)->nombre;
     
-    $view = View::make('planillaInformeDemografico',compact('plataforma','anio','mes','data'));
+    $view = View::make('planillaInformeDemografico',compact('plataforma','anio','mes','data','menores_de_18'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());

@@ -111,5 +111,15 @@ tr:nth-child(even) {
       </tr>
       @endforeach
     </table>
+    
+    @if(count($menores_de_18 ?? []) > 0)
+      <p>Menores de edad jugando en plataforma:</p>
+      @foreach($menores_de_18 as $m)
+      <p>{{$m->jugador}}</p>
+      @endforeach
+    @else
+    <p>No se encuentran menores de edad jugando en la plataforma</p>
+    @endif
+
   </body>
 </html>
