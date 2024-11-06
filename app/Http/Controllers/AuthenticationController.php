@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Validation\Rule;
+use Illuminate\Contracts\View\View;
+use App\APIToken;
 
 class AuthenticationController extends Controller
 {
@@ -88,6 +91,14 @@ class AuthenticationController extends Controller
     $request->session()->flush();
   }
 
+  public function usuarioTieneRol($id_usuario,$rol){
+    return !empty(DB::table('rol')
+    ->where('rol.descripcion','=',$rol)
+    ->join('usuario_tiene_rol','usuario_tiene_rol.id_rol','=','rol.id_rol')
+    ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+    ->first());
+  }
+  
   public function usuarioTienePermiso($id_usuario,$permiso){
     $result = DB::table('permiso')
     ->where('permiso.descripcion','=',$permiso)
@@ -121,5 +132,38 @@ class AuthenticationController extends Controller
 
     $data = json_encode($retorno);
     return $data;
+  }
+
+  public function obtenerIdUsuario(){
+    $session = null;
+    try{
+      $session = request()->session();
+    }
+    catch(\Exception $e){}
+    
+    $id_usuario = null;
+    if(!is_null($session)){
+      $id_usuario = $session->has('id_usuario') ? $session->get('id_usuario') : null;
+    }
+    
+    if(is_null($id_usuario)){
+      $api_token = $this->obtenerAPIToken();
+      if(!is_null($api_token)){
+        $metadata = $api_token->metadata ?? [];
+        $id_usuario = $metadata['id_usuario'] ?? null;
+        if($metadata['puede_post_user_name'] ?? false){//Este permiso solo deberia usarse entre servidores locales
+          $usuario = \App\Usuario::where('user_name',request()->user_name ?? null)->select('id_usuario')->first();
+          $id_usuario = $usuario? $usuario->id_usuario : $id_usuario;
+        }
+      }
+    }
+    
+    return $id_usuario;
+  }
+
+  public function obtenerAPIToken(){
+    $APIToken = request()->header('API-Token');
+    $api_token = APIToken::where('ip',request()->ip())->where('token',$APIToken)->orderBy('id_api_token','asc')->get()->first();
+    return $api_token;
   }
 }
