@@ -19,7 +19,7 @@ class BeneficioController extends Controller
 
   public static function getInstancia() {
     if (!isset(self::$instance)) {
-      self::$instance = new BeneficioController();
+      self::$instance = new self();
     }
     return self::$instance;
   }
