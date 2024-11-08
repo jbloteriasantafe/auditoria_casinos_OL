@@ -45,13 +45,19 @@ Route::group(['middleware' => ['check_API_token',VerificarPermisoObtenerBruto::c
     if($id_plataforma === null) return response()->json(['id_casino' => 'Falta en tabla'],425);
     
     $bm = DB::table('beneficio_mensual')
-    ->select('beneficio_mensual.beneficio')
+    ->select('beneficio')
     ->where('fecha','=',$request->año_mes)
     ->where('id_plataforma','=',$id_plataforma->valor)
     ->orderBy('id_beneficio_mensual','desc')->first();
-        
-    if($bm === null) return null;
     
-    return $bm->beneficio;
+    $bmp = DB::table('beneficio_mensual_poker')
+    ->select('utilidad')
+    ->where('fecha','=',$request->año_mes)
+    ->where('id_plataforma','=',$id_plataforma->valor)
+    ->orderBy('id_beneficio_mensual_poker','desc')->first();
+        
+    if($bm === null && $bmp === null) return null;
+    
+    return bcadd($bm === null? '0' : $bm->beneficio,$bmp === null? '0' : $bm->utilidad,2);
   });
 });
