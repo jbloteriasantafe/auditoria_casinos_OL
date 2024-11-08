@@ -58,6 +58,6 @@ Route::group(['middleware' => ['check_API_token',VerificarPermisoObtenerBruto::c
         
     if($bm === null && $bmp === null) return null;
     
-    return bcadd($bm === null? '0' : $bm->beneficio,$bmp === null? '0' : $bm->utilidad,2);
+    return bcadd($bm === null? '0' : $bm->beneficio,$bmp === null? '0' : $bmp->utilidad,2);
   });
 });
