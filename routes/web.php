@@ -103,7 +103,7 @@ Juegos
 Route::get('/migrarLog','JuegoController@migrarLogJuegos');
 Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_juegos'], function () {
   Route::get('/','JuegoController@buscarTodo');
-  Route::get('/{id}','JuegoController@buscarTodo');
+  Route::get('/juegosCSV','JuegoController@juegos_csv');
   Route::get('/obtenerLogs/{id}','JuegoController@obtenerLogs');
   Route::get('/obtenerJuego/{id?}','JuegoController@obtenerJuego');
   Route::post('/guardarJuego','JuegoController@guardarJuego');
@@ -111,6 +111,7 @@ Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_ju
   Route::delete('/eliminarJuego/{id}','JuegoController@eliminarJuego');
   Route::post('/buscar','JuegoController@buscarJuegos');
   Route::post('/generarDiferenciasEstadosJuegos','JuegoController@generarDiferenciasEstadosJuegos');
+  Route::get('/{id}','JuegoController@buscarTodo');
 });
 
 /***********

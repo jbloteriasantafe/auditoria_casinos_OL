@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
 use App\Juego;
 use App\GliSoft;
@@ -15,6 +16,17 @@ use Validator;
 use View;
 use Dompdf\Dompdf;
 use App\Http\Controllers\CacheController;
+
+function csvstr(array $fields) : string
+{
+    $f = fopen('php://memory', 'r+');
+    if (fputcsv($f, $fields) === false) {
+        return false;
+    }
+    rewind($f);
+    $csv_line = stream_get_contents($f);
+    return rtrim($csv_line);
+}
 
 class JuegoController extends Controller
 {
@@ -497,5 +509,39 @@ class JuegoController extends Controller
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return base64_encode($dompdf->output());
+  }
+  
+  public function juegos_csv(){
+    $ret = DB::table('juego as j')
+    ->selectRaw("
+      j.nombre_juego,
+      GROUP_CONCAT(DISTINCT p.codigo ORDER BY p.codigo ASC SEPARATOR ',') as plataforma,
+      GROUP_CONCAT(DISTINCT IF(j.movil = 1,j.cod_juego,NULL) ORDER BY p.codigo ASC SEPARATOR ',') as cod_movil,
+      GROUP_CONCAT(DISTINCT IF(j.escritorio = 1,j.cod_juego,NULL) ORDER BY p.codigo ASC SEPARATOR ',') as cod_escritorio
+    ")
+    ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
+    ->join('plataforma as p','p.id_plataforma','=','pj.id_plataforma')
+    ->whereNull('j.deleted_at')
+    ->orderBy('j.nombre_juego','asc')
+    ->groupBy('j.nombre_juego')
+    ->get()
+    ->toArray();
+    
+    $lineas = [];
+    foreach($ret as $v){
+      $lineas[] = csvstr(array_keys((array) $v));
+      break;
+    }
+    
+    foreach($ret as $v){
+      $lineas[] = csvstr((array) $v);
+    }
+    
+    $ret = implode("\r\n",$lineas);
+    $filename = 'juegos '.date('Y-m-d h i s').'.csv';
+    return Response::make($ret, 200, [
+      'Content-Type' => 'text/csv',
+      'Content-Disposition' => 'inline; filename="'.$filename.'"'
+    ]);
   }
 }
