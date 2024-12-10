@@ -515,16 +515,22 @@ class JuegoController extends Controller
     $ret = DB::table('juego as j')
     ->selectRaw("
       j.nombre_juego,
-      p.codigo,
-      GROUP_CONCAT(DISTINCT IF(j.movil = 1,j.cod_juego,NULL) ORDER BY p.codigo ASC SEPARATOR '\r\n') as cod_movil,
-      GROUP_CONCAT(DISTINCT IF(j.escritorio = 1,j.cod_juego,NULL) ORDER BY p.codigo ASC SEPARATOR '\r\n') as cod_escritorio
+      p.codigo as plataforma,
+      CASE
+          WHEN j.movil = 1 AND j.escritorio = 1 THEN 'Escritorio y Móvil'
+          WHEN j.movil = 1 AND j.escritorio = 0 THEN 'Móvil'
+          WHEN j.movil = 0 AND j.escritorio = 1 THEN 'Escritorio'
+          ELSE NULL
+      END as tecnologia,
+      j.cod_juego as codigo
     ")
     ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
     ->join('plataforma as p','p.id_plataforma','=','pj.id_plataforma')
     ->whereNull('j.deleted_at')
     ->orderBy('j.nombre_juego','asc')
     ->orderBy('p.codigo','asc')
-    ->groupBy(DB::raw('j.nombre_juego,p.codigo'))
+    ->orderBy('tecnologia','asc')
+    ->orderBy('j.cod_juego','asc')
     ->get()
     ->toArray();
     
