@@ -522,7 +522,8 @@ class JuegoController extends Controller
           WHEN j.movil = 0 AND j.escritorio = 1 THEN 'Escritorio'
           ELSE NULL
       END as tecnologia,
-      j.cod_juego as codigo
+      j.cod_juego as codigo,
+      j.porcentaje_devolucion
     ")
     ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
     ->join('plataforma as p','p.id_plataforma','=','pj.id_plataforma')
