@@ -522,8 +522,8 @@ class JuegoController extends Controller
     ->join('plataforma_tiene_juego as pj','pj.id_juego','=','j.id_juego')
     ->join('plataforma as p','p.id_plataforma','=','pj.id_plataforma')
     ->whereNull('j.deleted_at')
-    ->orderBy('p.codigo','asc')
     ->orderBy('j.nombre_juego','asc')
+    ->orderBy('p.codigo','asc')
     ->groupBy(DB::raw('j.nombre_juego,p.codigo'))
     ->get()
     ->toArray();

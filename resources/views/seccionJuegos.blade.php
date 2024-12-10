@@ -161,6 +161,26 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                      </a>
                     </div>
                   </div>
+                  <div class="row">
+                    <div class="col-lg-12">
+                      <a href="/juegosCSV" target="_blank" style="text-decoration: none;">
+                        <div class="panel panel-default panelBotonNuevo">
+                          <center>
+                            <img class="imgNuevo" src="/img/logos/CSV_white.png">
+                          </center>
+                          <div class="backgroundNuevo"></div>
+                          <div class="row">
+                            <div class="col-xs-12">
+                              <center>
+                                <h5 class="txtLogo" style="font-size: 165px !important;">↓</h5>
+                                <h4 class="txtNuevo"><br>DESCARGAR JUEGOS</h4>
+                              </center>
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
                 </div>
           </div> <!--/columna TABLA -->
 
