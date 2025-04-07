@@ -112,6 +112,9 @@ Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_ju
   Route::post('/buscar','JuegoController@buscarJuegos');
   Route::post('/generarDiferenciasEstadosJuegos','JuegoController@generarDiferenciasEstadosJuegos');
   Route::get('/{id}','JuegoController@buscarTodo');
+  Route::post('/parsearArchivo','JuegoController@parsearArchivo');
+  Route::post('/validarCargaMasiva','JuegoController@validarCargaMasiva');
+  Route::post('/guardarCargaMasiva','JuegoController@guardarCargaMasiva');
 });
 
 /***********

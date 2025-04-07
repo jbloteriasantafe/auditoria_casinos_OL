@@ -9,6 +9,7 @@ use App\Juego;
 use App\GliSoft;
 use App\TipoMoneda;
 use App\CategoriaJuego;
+use App\Laboratorio;
 use App\EstadoJuego;
 use App\LogJuego;
 use App\Plataforma;
@@ -55,7 +56,8 @@ class JuegoController extends Controller
      'categoria_juego' => CategoriaJuego::all(),
      'estado_juego' => EstadoJuego::all(),
      'plataformas' => $plataformas,
-     'proveedores' => $proveedores
+     'proveedores' => $proveedores,
+     'laboratorios' => Laboratorio::all()
     ]);
   }
 
@@ -91,6 +93,57 @@ class JuegoController extends Controller
       ];
     }
     return $ret;
+  }
+  
+  private function crear_o_modificar_juego($id_juego,$motivo,$params,$plataformas_estado,$certificados){
+    $juego = $id_juego !== null? Juego::find($id_juego) : (new Juego);
+    $log   = new LogJuego;
+    
+    foreach(['nombre_juego','cod_juego','denominacion_juego','porcentaje_devolucion','escritorio',
+               'movil','codigo_operador','proveedor','id_tipo_moneda','id_categoria_juego'] as $attr){
+      $juego->{$attr} = $params[$attr];
+      $log->{$attr} = $params[$attr];//Se guarda todo lo que mando en un log nuevo siempre
+    }
+    
+    $juego->touch();//Fuerza cambio en update_at
+    $juego->save();
+
+    $log->id_juego   = $juego->id_juego;
+    $log->motivo     = $motivo;
+    $log->created_at = $juego->updated_at;
+    $log->updated_at = $juego->updated_at;
+    $log->deleted_at = null;
+    $log->id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+    $log->save();
+    
+    $log_anterior = LogJuego::where('id_juego',$juego->id_juego)->whereNull('deleted_at')
+    ->where('id_juego_log_norm','<>',$log->id_juego_log_norm)
+    ->orderBy('updated_at','desc')->take(1)
+    ->get()->first();
+
+    if(!is_null($log_anterior)){
+      $log_anterior->deleted_at = $juego->updated_at;
+      $log_anterior->save();
+    }
+    
+    $juego->plataformas()->sync($plataformas_estado);
+    $log->plataformas()->sync($plataformas_estado);
+    
+    foreach($juego->gliSoft as $gli){
+      $juego->gliSoft()->detach($gli->id_gli_soft);
+    }
+
+    if(!empty($certificados)){
+      $juego->setearGliSofts($certificados,True);
+      $log->setearGliSofts($certificados,True);
+    }
+
+    $juego->save();
+    $log->save();
+
+    CacheController::getInstancia()->invalidarDependientes(['juego']);
+    
+    return [$juego,$log];
   }
 
   public function guardarJuego(Request $request){
@@ -142,45 +195,18 @@ class JuegoController extends Controller
       }
     })->validate();
 
-    $juego = new Juego;
-    $log  = new LogJuego;
-    DB::transaction(function() use(&$juego,&$log,$request){
-      foreach(['nombre_juego','cod_juego','denominacion_juego','porcentaje_devolucion','escritorio',
-               'movil','codigo_operador','proveedor','id_tipo_moneda','id_categoria_juego'] as $attr){
-        $juego->{$attr} = $request->{$attr};
-        $log->{$attr} = $request->{$attr};//Se guarda todo lo que mando en un log nuevo siempre
-      }
-      $juego->touch();//Fuerza cambio en update_at
-      $juego->save();
-
-      $log->id_juego   = $juego->id_juego;
-      $log->motivo     = $request->motivo ?? '';
-      $log->created_at = $juego->updated_at;
-      $log->updated_at = $juego->updated_at;
-      $log->deleted_at = null;
-      $log->id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
-      $log->save();
-      
-      $syncarr = [];
+    return DB::transaction(function() use($request){      
+      $plataformas_estado = [];
       foreach($request->plataformas as $p){
-        if(!is_null($p['id_estado_juego'])) $syncarr[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
+        if(!is_null($p['id_estado_juego'])){
+          $plataformas_estado[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
+        }
       }
-
-      $juego->plataformas()->sync($syncarr);
-      $log->plataformas()->sync($syncarr);
-  
-      if(isset($request->certificados)){
-        $juego->setearGliSofts($request->certificados,True);
-        $log->setearGliSofts($request->certificados,True);
-      }
-
-      $juego->save();
-      $log->save();
-
-      CacheController::getInstancia()->invalidarDependientes(['juego']);
+      
+      $ret = $this->crear_o_modificar_juego(null,$request->motivo ?? '',$request->all(),$plataformas_estado,$request->certificados ?? [])[0];
+      
+      return ['juego' => $ret[0]];
     });
-
-    return ['juego' => $juego];
   }
 
   public function modificarJuego(Request $request){
@@ -235,82 +261,28 @@ class JuegoController extends Controller
       }
     })->validate();
 
-
-    $juego = Juego::find($request->id_juego);
-    $log = new LogJuego;
-    DB::transaction(function() use($request,&$log,&$juego,$plataformas_usuario){
-      foreach(['nombre_juego','cod_juego','denominacion_juego','porcentaje_devolucion','escritorio',
-      'movil','codigo_operador','proveedor','id_tipo_moneda','id_categoria_juego'] as $attr){
-        $juego->{$attr} = $request->{$attr};
-        $log->{$attr} = $request->{$attr};//Se guarda todo lo que mando en un log nuevo siempre
-      }
-      $juego->touch();//Fuerza cambio en update_at
-      $juego->save();
-
-      $log->id_juego   = $request->id_juego;
-      $log->motivo     = $request->motivo ?? '';
-      $log->created_at = $juego->updated_at;
-      $log->updated_at = $juego->updated_at;
-      $log->deleted_at = null;
-      $log->id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
-      $log->save();
-
-      $log_anterior = LogJuego::where('id_juego',$juego->id_juego)->whereNull('deleted_at')
-      ->where('id_juego_log_norm','<>',$log->id_juego_log_norm)
-      ->orderBy('updated_at','desc')->take(1)
-      ->get()->first();
-
-      if(!is_null($log_anterior)){
-        $log_anterior->deleted_at = $juego->updated_at;
-        $log_anterior->save();
-      }
-
-      $plataformas_enviadas = [];
+    return DB::transaction(function() use($request,$plataformas_usuario){      
+      $plataformas_estado = [];
       foreach($request->plataformas as $p){
-        if(!is_null($p['id_estado_juego'])) $plataformas_enviadas[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
-      }
-
-      $syncarr = [];
-      foreach(Plataforma::all() as $p){
-        $id = $p->id_plataforma;
-        $le_pertenece = in_array($id,$plataformas_usuario);
-        $lo_envio = array_key_exists($id,$plataformas_enviadas);
-        if($le_pertenece && $lo_envio){
-          //Lo seteamos
-          $syncarr[$id] = $plataformas_enviadas[$id];
-        }
-        else if($le_pertenece && !$lo_envio){
-          //Se ignora, eliminandolo de las plataformas al syncear
-        }
-        else if(!$le_pertenece && $lo_envio){
-          //No deberia pasar porque se chequea en la validacion, retornaria error antes
-        }
-        else if(!$le_pertenece && !$lo_envio){
-          //Lo mantenemos
-          $relacion = DB::table('plataforma_tiene_juego')->where('id_juego',$juego->id_juego)->where('id_plataforma',$id)->first();
-          if(!is_null($relacion)) $syncarr[$id] = ['id_estado_juego' =>  $relacion->id_estado_juego];
+        if(!is_null($p['id_estado_juego'])){
+          $plataformas_estado[$p['id_plataforma']] = ['id_estado_juego' => $p['id_estado_juego']];
         }
       }
-
-      $juego->plataformas()->sync($syncarr);
-      $log->plataformas()->sync($syncarr);
-  
-      foreach($juego->gliSoft as $gli){
-        $juego->gliSoft()->detach($gli->id_gli_soft);
+      {
+        $plataforma_tiene_juego = DB::table('plataforma_tiene_juego')
+        ->where('id_juego',$request->id_juego)
+        ->get()->keyBy('id_plataforma');
+        
+        foreach($plataforma_tiene_juego as $pj){//Mantengo las relaciones que el usuario no puede acceder
+          if(!in_array($pj->id_plataforma,$plataformas_usuario)){
+            $plataformas_estado[$pj->id_plataforma] = $pj->id_estado_juego;
+          }
+        }
       }
-
-      if(isset($request->certificados)){
-        $juego->setearGliSofts($request->certificados,True);
-        $log->setearGliSofts($request->certificados,True);
-      }
-
-      $juego->save();
-      $log->save();
-
-      CacheController::getInstancia()->invalidarDependientes(['juego']);
+      
+      $ret = $this->crear_o_modificar_juego($request->id_juego,$request->motivo ?? '',$request->all(),$plataformas_estado,$request->certificados ?? []);
+      return ['juego' => $ret[0]];
     });
-
-    return ['juego' => $juego];
   }
 
   public function eliminarJuego($id){
@@ -551,5 +523,450 @@ class JuegoController extends Controller
       'Content-Type' => 'text/csv',
       'Content-Disposition' => 'inline; filename="'.$filename.'"'
     ]);
+  }
+  
+  private function convertirAnexo($datos){
+    $columnas = [
+      'ID','id_categoria_juego','tecnologia','cod_juego','nombre_juego','porcentaje_devolucion','id_laboratorio','nro_archivo','Jurisdiccion','Estado'
+    ];
+    $columnas_idx = array_flip($columnas);
+        
+    foreach($columnas as $colidx => $col)
+      $datos[0][$colidx] = $col;
+        
+    for($rowidx=0;$rowidx<count($datos);$rowidx++){//Saco las columnas inutiles
+      unset($datos[$rowidx][$columnas_idx['ID']]);
+      unset($datos[$rowidx][$columnas_idx['Estado']]);
+      unset($datos[$rowidx][$columnas_idx['Jurisdiccion']]);
+      
+      $datos[$rowidx] = array_values($datos[$rowidx]);
+    }
+        
+    $columnas = $datos[0];
+    $columnas_idx = array_flip($columnas);
+        
+    {//Transformaciones 1:1
+      $categorias = CategoriaJuego::all();
+      $laboratorios = Laboratorio::all();
+      $CAT_IDX = $columnas_idx['id_categoria_juego'];
+      $LAB_IDX = $columnas_idx['id_laboratorio'];
+      $PJE_IDX = $columnas_idx['porcentaje_devolucion'];
+      $REGEX_ES_PJE = '/^[0-9]{0,3}[1-9]\.[0-9]{0,3}%?$/';
+      $REGEX_EN_PJE = '/^[0-9]{0,3}[1-9],[0-9]{0,3}%?$/';
+      $REGEX_ES_DEC = '/^0,[0-9]{0,6}$/';
+      $REGEX_EN_DEC = '/^0\.[0-9]{0,6}$/';
+      
+      for($rowidx=1;$rowidx<count($datos);$rowidx++){
+        //En las columnas tecnologia y codigo vienen CodigoDesktop y CodigoMovil
+        //Hago esta unificacion para mas adelante
+        $datos[$rowidx][$columnas_idx['cod_juego']] = 
+          $datos[$rowidx][$columnas_idx['tecnologia']]
+          .'|'.
+          $datos[$rowidx][$columnas_idx['cod_juego']];
+        $datos[$rowidx][$columnas_idx['tecnologia']] = '';
+        
+        {
+          $pje = preg_replace('/[[:space:]]/','',$datos[$rowidx][$PJE_IDX]);
+          if(preg_match($REGEX_ES_PJE,$pje)){
+            $pje = str_replace('%','',$pje);
+            $pje = str_replace(',','.',$pje);
+          }
+          else if(preg_match($REGEX_EN_PJE,$pje)){
+            $pje = str_replace('%','',$pje);
+          }
+          else if(preg_match($REGEX_ES_DEC,$pje)){
+            $pje = bcmul(str_replace(',','.',$pje),100,2);
+          }
+          else if(preg_match($REGEX_EN_DEC,$pje)){
+            $pje = bcmul($pje,100,4);
+          }
+          else {
+            $pje = 'ERROR';
+          }
+          $datos[$rowidx][$PJE_IDX] = $pje;
+        }
+        {
+          $closest_cat = null;
+          $closest_cat_percent = -INF;
+          foreach($categorias as $cat){
+            $p = -INF;
+            similar_text(strtolower($cat->nombre),strtolower($datos[$rowidx][$CAT_IDX]),$p);
+            if($p > $closest_cat_percent){
+              $closest_cat_percent = $p;
+              $closest_cat = $cat->id_categoria_juego;
+            }
+          }
+          
+          if($closest_cat !== null){
+            $datos[$rowidx][$CAT_IDX] = $closest_cat;
+          }
+          else{
+            $datos[$rowidx][$CAT_IDX] = '';
+          }
+        }
+        {
+          $closest_lab = null;
+          $closest_lab_percent = -INF;
+          foreach($laboratorios as $lab){
+            $p = -INF;
+            similar_text(strtolower($lab->codigo),strtolower($datos[$rowidx][$LAB_IDX]),$p);
+            if($p > $closest_lab_percent){
+              $closest_lab_percent = $p;
+              $closest_lab = $lab->id_laboratorio;
+            }
+          }
+          
+          if($closest_lab !== null){
+            $datos[$rowidx][$LAB_IDX] = $closest_lab;
+          }
+          else{
+            $datos[$rowidx][$LAB_IDX] = '';
+          }
+        }
+      }
+    }
+    
+    $id_plataforma = null;
+    {//Transformacion 1->N
+      $new_datos = [];
+      $COD_IDX = $columnas_idx['cod_juego'];
+      $TEC_IDX = $columnas_idx['tecnologia'];
+      foreach($datos as $jidx => $j){
+        if($jidx == 0){
+          $new_datos[] = $j;
+          continue;
+        }
+            
+        $cods = explode('|',$j[$COD_IDX]);
+        $cod_desktop = trim($cods[0] ?? '');
+        $cod_mobile  = trim($cods[1] ?? '');
+        $tiene_desktop = !empty($cod_desktop);
+        $tiene_mobile  = !empty($cod_mobile);
+            
+        $tecnologia = '';
+        if($cod_desktop != $cod_mobile){
+          if($tiene_desktop && $tiene_mobile){
+            //BPLAY manda los dos juntos en la misma fila (con distinto codigo) asi que sacamos la plataforma de ahi
+            $id_plataforma = ($id_plataforma === null || $id_plataforma == 2)? 2 : -1;//BPLAY
+            $tecnologia = 'duplicar';
+          }
+          else if($tiene_desktop xor $tiene_mobile){
+            //CCO manda uno por fila
+            $id_plataforma = ($id_plataforma === null || $id_plataforma == 1)? 1 : -1;//CCO
+            $tecnologia = $tiene_desktop? 'escritorio' : 'movil';
+          }
+        }
+        else{//Si tiene el mismo codigo quiere decir que es para ambas tecnologias 
+          $tecnologia = 'escritorio_y_movil';
+        }
+          
+        if($tecnologia == 'duplicar'){
+          $dd = $j;
+          $dd[$TEC_IDX] = 'escritorio';
+          $dd[$COD_IDX] = $cod_desktop;
+          
+          $dm = $j;
+          $dm[$TEC_IDX] = 'movil';
+          $dm[$COD_IDX] = $cod_mobile;
+          
+          $new_datos[] = $dd;
+          $new_datos[] = $dm;
+        }
+        else if($tecnologia == 'escritorio'){
+          $j[$TEC_IDX] = 'escritorio';
+          $j[$COD_IDX] = $cod_desktop;
+          $new_datos[] = $j;
+        }
+        else if($tecnologia == 'movil'){
+          $j[$TEC_IDX] = 'movil';
+          $j[$COD_IDX] = $cod_mobile;
+          $new_datos[] = $j;
+        }
+        else if($tecnologia == 'escritorio_y_movil'){
+          $j[$TEC_IDX] = 'escritorio_y_movil';
+          $j[$COD_IDX] = $cod_desktop;//Cualquiera esta bien porque son el mismo
+          $new_datos[] = $j;
+        }
+        else{
+          throw new \Exception('Unreachable, tecnologia: '.$tecnologia. ' codigos: '.$j[$COD_IDX]);
+        }
+      }
+      
+      $datos = $new_datos;
+    }
+    
+    return [$datos,$id_plataforma];
+  }
+  
+  private function convertirDatosProveedor($datos){
+    if($datos === null) return [null,null];
+    $id_plataforma = 2;//Es BPLAY si tiene datos de proveedor
+    
+    $columnas = $datos[0];
+    $columnas_idx = array_flip($columnas);
+    
+    $ret = [];
+    $NJIDX = $columnas_idx['Nombre del juego'];
+    $PIDX  = $columnas_idx['Proveedor'];
+    foreach($datos as $didx => $d){
+      if($didx == 0) continue;
+      $ret[$d[$NJIDX]] = $d[$PIDX];
+    }
+    
+    return [$ret,$id_plataforma];
+  }
+  
+  public function parsearArchivo(Request $request){
+    $rmdir = function($dir) use(&$rmdir){//Borra recursivamente... cuidado con que se lo llama
+      assert(substr($dir,0,strlen(storage_path())) == storage_path());//Chequea que no se llame con un path raro
+      if(is_dir($dir) === false) return false;
+      $files = array_diff(scandir($dir), ['.', '..']); 
+      
+      foreach($files as $f){
+        $fpath = $dir.'/'.$f;
+        if(is_dir($fpath)){
+          $rmdir($fpath);
+        }
+        else{
+          unlink($fpath);
+        }
+      }
+      
+      return rmdir($dir);
+    };
+    
+    $carpeta_storage = storage_path('juegosImportacion');
+    if(!is_dir($carpeta_storage)){
+      mkdir($carpeta_storage);
+    }
+    
+    $carpeta_storage.='/'.uniqid();
+    $rmdir($carpeta_storage);
+    mkdir($carpeta_storage);
+    
+    $ret = ['id_plataforma' => null,'juegos' => [],'mensaje' => ''];
+      
+    $err_file = $carpeta_storage.'/log.err';
+    $out_dir  = $carpeta_storage.'/out';
+    mkdir($out_dir);
+    
+    $excel = $request->archivo->getPathName();
+    $outfile = $out_dir.'/out.csv';
+    
+    $output = [];
+    $return_var = null;
+    exec('ssconvert --export-file-per-sheet '.escapeshellarg($excel).' '.$outfile.' 2> '.$err_file,$output,$return_var);
+    
+    $clean = function() use ($err_file,$rmdir,$carpeta_storage){
+      try{
+        unlink($err_file);
+        $rmdir($carpeta_storage);
+      }
+      catch(\Exception $e){}
+    };
+    
+    if($return_var != 0){
+      $ret['mensaje'] .= '<span>Code: '.$return_var.'</span>';
+      $ret['mensaje'] .= '<p>Output:<pre><code></code>'.implode("\r\n",$output).'</pre></p>';
+      $ret['mensaje'] .= '<p>Error:<pre><code></code>'.file_get_contents($err_file).'</pre></p>';
+      $clean();
+      return $ret;
+    }
+    
+    $candidatos = scandir($out_dir);
+    $datos = null;
+    $datos_proveedor = null;
+    foreach($candidatos as $cand){
+      if($cand == '.' || $cand == '..') continue;
+      $abs_cand = $out_dir.'/'.$cand;
+      $fhandle = fopen($abs_cand,'r');
+      if($fhandle === FALSE) continue;
+      $linea = fgetcsv($fhandle);
+      $es_anexo = count($linea) > 0 && $linea[0] == "ANEXO A";
+      $es_proveedor = count($linea) > 0 && $linea[0] == "Proveedor";
+      if($es_anexo){
+        $datos = [$linea];
+        while(($linea = fgetcsv($fhandle)) !== FALSE) $datos[]=$linea;
+      }
+      else if($es_proveedor){
+        $datos_proveedor = [$linea];
+        while(($linea = fgetcsv($fhandle)) !== FALSE) $datos_proveedor[]=$linea;
+      }
+      fclose($fhandle);
+    }
+    
+    if($datos === null){
+      $ret['mensaje'] = 'No se encontro al ANEXO A en el archivo';
+      $clean();
+      return $ret;
+    }
+    
+    $datos = array_slice($datos,2);//Saco el titulo y la precabecera
+    
+    $id_plataforma = null;
+    {
+      $aux = $this->convertirAnexo($datos);
+      $datos = $aux[0];
+      $id_plataforma = $aux[1];
+    }
+    {
+      $aux = $this->convertirDatosProveedor($datos_proveedor);
+      $datos_proveedor = $aux[0];
+      $id_plataforma = ($id_plataforma == -1)? $aux[1] : $id_plataforma;
+      $id_plataforma = ($id_plataforma === null)? -1   : $id_plataforma;
+    }
+    {//Le agrego el proveedor
+      $nombre_juego_idx = array_search('nombre_juego',$datos[0] ?? []);
+      if($nombre_juego_idx !== FALSE) foreach($datos as $didx => &$d){
+        if($didx == 0){
+          $d[] = 'proveedor';
+        }
+        else{
+          $d[] = $datos_proveedor[$d[$nombre_juego_idx]] ?? '';
+        }
+      }
+    }
+    
+    $ret['id_plataforma'] = $id_plataforma == -1? null : $id_plataforma;//-1 quiere decir que hubo conflicto detectando
+    $ret['juegos'] = $datos;
+    
+    $clean();
+    return $ret;
+  }
+  
+  private function validarCargaMasiva_arr(array $request){    
+    Validator::make($request, [
+      'id_plataforma' => 'required|exists:plataforma,id_plataforma',
+      'juegos' => 'nullable|array',
+      'juegos.*.id_categoria_juego' => 'required|integer|exists:categoria_juego,id_categoria_juego',
+      'juegos.*.tecnologia' => 'required|string|in:escritorio,movil,escritorio_y_movil',
+      'juegos.*.cod_juego' => 'required|string',
+      'juegos.*.nombre_juego' => 'required|string',
+      'juegos.*.porcentaje_devolucion' => 'required|numeric|between:0,99.99',
+      'juegos.*.nro_archivo' => ['required','string','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
+      'juegos.*.nro_archivo' => ['required','string','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
+      'juegos.*.id_laboratorio' => 'nullable|integer|exists:laboratorio,id_laboratorio',
+      'juegos.*.certificado' => 'nullable|mimes:pdf'
+    ], [
+      'required' => 'El valor es requerido',
+      'numeric' =>'El valor tiene que ser numerico',
+      'between' => 'El valor tiene que ser entre 0-99.99',
+      'regex' => 'El valor tiene formato invalido',
+      'exists' => 'El valor no existe',
+      'in' => 'El valor no existe',
+      'mimes' => 'Tiene que ser un archivo PDF'
+    ], self::$atributos)->after(function ($validator){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      
+      $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas->pluck('id_plataforma')->toArray();
+      if(!in_array($data['id_plataforma'],$plataformas)){
+        return $validator->errors()->add('id_plataforma', 'El usuario no puede acceder a esa plataforma');
+      }
+      
+      $data_certificados = [];
+      foreach(($data['juegos'] ?? []) as $jidx => $j){  
+        $ya_existe = DB::table('juego as j')
+        ->where('j.cod_juego',$j['cod_juego'])
+        ->whereNull('j.deleted_at')->count() > 0;
+        if($ya_existe){
+          $validator->errors()->add("juegos.$jidx.cod_juego", 'El juego ya esta cargado');
+        }
+        
+        $id_laboratorio = $j['id_laboratorio'] ?? null;
+        $certificado = $j['certificado'] ?? null;
+        
+        $data_certificados[$j['nro_archivo']] = $data_certificados[$j['nro_archivo']] ?? [
+          'id_laboratorio' => null,
+          'certificado' => null
+        ];
+        
+        if(empty($data_certificados[$j['nro_archivo']]['id_laboratorio'])){
+          $data_certificados[$j['nro_archivo']]['id_laboratorio'] = $id_laboratorio;
+        }
+        if(empty($data_certificados[$j['nro_archivo']]['certificado'])){
+          $data_certificados[$j['nro_archivo']]['certificado'] = $certificado;
+        }
+        
+        if($data_certificados[$j['nro_archivo']]['id_laboratorio'] != $id_laboratorio && !empty($id_laboratorio)){
+          $validator->errors()->add("juegos.$jidx.id_laboratorio", 'Conflicto de laboratorios');
+        }
+        if($data_certificados[$j['nro_archivo']]['certificado'] != $certificado && !empty($certificado)){
+          $validator->errors()->add("juegos.$jidx.certificado", 'Conflicto de archivos certificados');
+        }
+      }
+      
+      foreach($data_certificados as $nro_archivo => $dc){
+        if(empty($dc['id_laboratorio'])){
+          foreach(($data['juegos'] ?? []) as $jidx => $j){
+            if($j['nro_archivo'] != $nro_archivo) continue;
+            $validator->errors()->add("juegos.$jidx.id_laboratorio",'El valor es requerido');
+          }
+        }
+      }
+      
+      return;
+    })->validate();
+    
+    return 1;
+  }
+  
+  public function validarCargaMasiva(Request $request){
+    return $this->validarCargaMasiva_arr($request->all());
+  }
+  
+  public function guardarCargaMasiva(Request $request){
+    $R = $request->all();
+    $this->validarCargaMasiva_arr($R);
+    $R = collect($R);
+    
+    return DB::transaction(function() use ($R){
+      $certificados = [];
+      foreach(($R['juegos'] ?? []) as $j){
+        if(empty($j['nro_archivo']) 
+        || isset($certificados[$j['nro_archivo']])){
+          continue;
+        }
+        
+        $gli = GliSoft::where('nro_archivo',$j['nro_archivo'])->whereNull('deleted_at')->first();
+        if($gli === null){
+          $gli = new GliSoft;
+        }
+        
+        $gli->nro_archivo = $j['nro_archivo'];
+        $gli->id_laboratorio = empty($j['id_laboratorio'])? null : $j['id_laboratorio'];
+        $gli->save();
+        
+        if(!empty($j['certificado'])){
+          GliSoftController::getInstancia()->guardarArchivo($gli,$j['certificado']);
+        }
+        
+        $certificados[$gli->nro_archivo] = $gli;
+      }
+      
+      $plataformas_estado = [];
+      $plataformas_estado[$R['id_plataforma']] = [
+        'id_estado_juego' => DB::table('estado_juego')->where('nombre','Activo')->first()->id_estado_juego
+      ];
+      
+      foreach(($R['juegos'] ?? []) as $j){
+        $params = [
+          'nombre_juego' => $j['nombre_juego'] ?? null,
+          'cod_juego' =>$j['cod_juego'] ?? null,
+          'denominacion_juego' => 1,
+          'porcentaje_devolucion' => $j['porcentaje_devolucion'] ?? null,
+          'escritorio' => (($j['tecnologia'] == 'escritorio' || $j['tecnologia'] == 'escritorio_y_movil')+0),
+          'movil' => (($j['tecnologia'] == 'movil' || $j['tecnologia'] == 'escritorio_y_movil')+0),
+          'codigo_operador' => '',
+          'proveedor' => $j['proveedor'] ?? '',
+          'id_tipo_moneda' => 1,
+          'id_categoria_juego' => $j['id_categoria_juego'] ?? null
+        ];
+        $cert = ['id_gli_soft' => $certificados[$j['nro_archivo']]->id_gli_soft];
+        $this->crear_o_modificar_juego(null,'Alta por Carga Masiva',$params,$plataformas_estado,[$cert]);
+      }
+      
+      return ['certificados' => array_values($certificados)];
+    });
   }
 }

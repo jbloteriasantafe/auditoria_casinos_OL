@@ -52,9 +52,9 @@ export const AUX = {
     });
     return data;
   },
-  mostrarErroresNames(jqobject,json){
+  mostrarErroresNames(jqobject,json,show = true){
     Object.keys(json).forEach(function(k){
-      mostrarErrorValidacion(jqobject.find(`[name="${k}"]`),json[k].join(', '),true);
+      mostrarErrorValidacion(jqobject.find(`[name="${k}"]`),json[k].join(', '),show);
     });
   },
   form_entries(form){

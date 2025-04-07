@@ -181,6 +181,24 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </a>
                     </div>
                   </div>
+                  <div class="row">
+                    <div class="col-lg-12">
+                     <a href="" id="btn-importar" style="text-decoration: none;">
+                      <div class="panel panel-default panelBotonNuevo">
+                          <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
+                          <div class="backgroundNuevo"></div>
+                          <div class="row">
+                              <div class="col-xs-12">
+                                <center>
+                                    <h5 class="txtLogo">↑</h5>
+                                    <h4 class="txtNuevo">CARGA MASIVA</h4>
+                                </center>
+                              </div>
+                          </div>
+                      </div>
+                     </a>
+                    </div>
+                  </div>
                 </div>
           </div> <!--/columna TABLA -->
 
@@ -346,6 +364,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
           </div>
     </div>
 
+@component('seccionJuegosComponenteCargaMasiva',[
+  'plataformas' => $plataformas,
+  'categoria_juego' => $categoria_juego,
+  'laboratorios' => $laboratorios,
+  'datalistCertificados' => 'datalistCertificados',
+  'datalistProveedores' => 'datalistProveedores'
+])
+@endcomponent
+
 <table hidden>
   <tr id="moldeFilaJuego">
     <td class="col-xs-3 nombre_juego">JUEGO</td>
@@ -404,5 +431,5 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
     <script src="/js/fileinput.min.js" type="text/javascript"></script>
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionJuegos.js?5" charset="utf-8"></script>
+    <script src="/js/seccionJuegos.js?5" charset="utf-8" type="module"></script>
     @endsection

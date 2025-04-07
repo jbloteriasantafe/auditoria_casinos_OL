@@ -1,11 +1,15 @@
+import "/js/seccionJuegosComponenteCargaMasiva.js";
+
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Juegos de Software');
   const url = window.location.pathname.split("/");
   if(url.length >= 3) {
-    let id = url[2]; 
-    let fila_falsa = crearFilaJuego({id_juego : id}).hide();
-    $('#cuerpoTabla').append(fila_falsa);
-    fila_falsa.find('.detalle').trigger('click');
+    const id = url[2];
+    if(id.length != 0){
+      const fila_falsa = crearFilaJuego({id_juego : id}).hide();
+      $('#cuerpoTabla').append(fila_falsa);
+      fila_falsa.find('.detalle').trigger('click');
+    }
   }
   
   $('#btn-buscar').trigger('click');
@@ -26,13 +30,6 @@ $('#btn-minimizar').click(function(){
   $(this).data("minimizar",!estado);
 });
 
-$('#btn-ayuda').click(function(e){
-  e.preventDefault();
-  $('.modal-title').text('| JUEGOS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-	$('#modalAyuda').modal('show');
-});
-
 //Mostrar modal para agregar nuevo Juego
 $('#btn-nuevo').click(function(e){
   e.preventDefault();
@@ -51,6 +48,17 @@ $('#btn-nuevo').click(function(e){
   habilitarControles(true);
   
   $('#modalJuego').modal('show');
+});
+
+
+$('#btn-importar').click(function(e){
+  e.preventDefault();
+  $('[data-js-modal-importacion]').trigger('mostrar').one('completado',function(e2,certificados){
+    certificados.forEach(function(c){
+      $('#datalistCertificados').append(`<option data-id="${c.id_gli_soft}">${c.nro_archivo}</option>`);
+    });
+    $('#btn-buscar').click();
+  });
 });
 
 $('#selectLogJuego').change(function(e){
@@ -88,7 +96,7 @@ $(document).on('click','.detalle',function(){
   });
 });
 
-$('.modal').on('hidden.bs.modal', function() {
+$('#modalJuego').on('hidden.bs.modal', function() {
   $('#btn-guardar').val('');
   $('#id_juego').val(0);
 });

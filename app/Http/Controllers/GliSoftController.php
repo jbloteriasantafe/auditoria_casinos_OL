@@ -286,7 +286,7 @@ class GliSoftController extends Controller
     return ['gli_soft' => $GLI,  'nombre_archivo' =>$nombre_archivo];
   }
   
-  private function guardarArchivo($GLI,$file){
+  public function guardarArchivo($GLI,$file){
     $a = new Archivo;
     $a->save();
     $GLI->archivo()->associate($a->id_archivo);
@@ -611,5 +611,9 @@ class GliSoftController extends Controller
   }
   public function obtenerLab($id_laboratorio){
     return Laboratorio::find($id_laboratorio);
+  }
+  
+  public function guardarGLI($nro_archivo,$id_laboratorio,$file){
+    return 1;
   }
 }
