@@ -36,8 +36,19 @@ class BackOfficeController extends Controller {
   }
   
   private $vistas = null;
+  private $mes_actual = [null,null];
   function __construct(){
     $hoy = date('Y-m');
+    {
+      $inicio_mes = $hoy.'-01';
+      $fin_mes=$hoy.'-';
+      {
+        $hoyarr = explode('-',$hoy);
+        $fin_mes .= cal_days_in_month(CAL_GREGORIAN,intval($hoyarr[1]),intval($hoyarr[0]));
+      }
+      $this->mes_actual[0] = $inicio_mes;
+      $this->mes_actual[1] = $fin_mes;
+    }
     //Directamente vinculado con 'cols', no cambiar el orden si no se cambia el orden de las columnas
     //select, alias, tipo para formateo, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select)
     $cols_indexes = ['BO_SELECT','BO_ALIAS','BO_FMT','BO_TIPO','BO_DEFAULTS','BO_VALUES'];
@@ -48,7 +59,7 @@ class BackOfficeController extends Controller {
     $this->vistas = [
       'beneficio' => [
         'cols' => [
-          ['b.fecha','fecha','string','input_date_month',[$hoy]],
+          ['b.fecha','fecha','string','input_date',$this->mes_actual],
           ['plat.codigo','plataforma','string','select',[0],$this->selectPlataformaVals('beneficio_mensual')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio_mensual')],
           ['b.jugadores','jugadores','integer'],
@@ -79,7 +90,7 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_poker' => [
         'cols' => [
-          ['b.fecha','fecha','string','input_date_month',[$hoy]],
+          ['b.fecha','fecha','string','input_date',$this->mes_actual],
           ['plat.codigo','plataforma','string','select',[0],$this->selectPlataformaVals('beneficio_mensual_poker')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio_mensual_poker')],
           ['b.jugadores','jugadores','integer'],
@@ -112,7 +123,7 @@ class BackOfficeController extends Controller {
       ],
       'producido' => [
         'cols' => [
-          ['p.fecha','fecha','string','input_date_month',[$hoy]],
+          ['p.fecha','fecha','string','input_date',$this->mes_actual],
           ['plat.codigo','plataforma','string','select',[0],$this->selectPlataformaVals('producido')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')],
           ['p.apuesta_efectivo','apuesta_efectivo','numeric'],

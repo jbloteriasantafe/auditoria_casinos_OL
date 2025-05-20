@@ -11,8 +11,6 @@ $(function(){
     .find('[data-js-filtro-tabla]').trigger('buscar');
   }).change();
   
-
-  
   $('[data-js-filtro-tabla]').each(function(_,div){
     $(div).on('buscar',function(e){
       $(div).find('[data-js-cargando]').show();
