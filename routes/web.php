@@ -130,7 +130,16 @@ Notas
 Route::get('notas','NotaController@buscarTodoNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
 Route::post('notas/buscar','NotaController@buscarNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
 Route::delete('notas/eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
- /***********
+ 
+//! NUEVA SECCION DE CARGA DE NOTAS PARA CASINOS
+Route::group(['prefix' => 'cargar-notas','middleware' => 'tiene_permiso:ver_cargar_notas'], function () {
+  Route::get('/','NotasCasino\NotasCasinoController@index');
+  Route::get('/notas/archivo/{id}/{tipo}', 'NotasCasino\NotasCasinoController@descargarArchivo');
+  Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
+  Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
+});
+
+/***********
     GLI soft
  ************/
 Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_seccion_glisoft'],function(){
@@ -337,4 +346,3 @@ Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_m
   Route::post('buscar','BackOfficeController@buscar');
   Route::post('descargar','BackOfficeController@descargar');
 });
-
