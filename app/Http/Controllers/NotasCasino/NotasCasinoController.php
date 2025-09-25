@@ -241,7 +241,7 @@ class NotasCasinoController extends Controller
         $nombreEvento = $request->input('nombreEvento');
         $fechaInicio = $request->input('fechaInicio');
         $fechaFin = $request->input('fechaFin');
-        $casino = $this->USER->casinos->first();
+        $casino = $this->USER->plataformas()->first();
         $origen = $this->obtenerCasino($casino);
         try {
             $query = DB::connection('gestion_notas_mysql')
@@ -367,11 +367,10 @@ class NotasCasinoController extends Controller
     }
 
     private function obtenerCasino ($casino) {
-        $idCasinos = [ 'SANTA-FE' => 1, 'MELINCUE' => 2, 'ROSARIO' => 3, ];
+        $idCasinos = [ 'CCO' => 4, 'BPLAY' => 5,];
         $id = null; 
-        if($casino->id_casino == 1){ $id = $idCasinos['MELINCUE']; } 
-        if($casino->id_casino == 2){ $id = $idCasinos['SANTA-FE']; } 
-        if($casino->id_casino == 3){ $id = $idCasinos['ROSARIO']; }
+        if($casino->id_plataforma == 1){ $id = $idCasinos['CCO']; } 
+        if($casino->id_plataforma == 2){ $id = $idCasinos['BPLAY']; } 
         return $id;
     }
 }
