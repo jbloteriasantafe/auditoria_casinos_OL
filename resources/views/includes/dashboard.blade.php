@@ -53,6 +53,10 @@
                  'link' => '/cargar-notas',
                  'algun_permiso' => ['ver_cargar_notas'],
              ],
+             'Generar informes técnicos' => [
+                 'link' => '/informesTecnicos',
+                 'algun_permiso' => ['ver_seccion_informes_tecnicos'],
+             ],
          ],
      ],
      'Juegos' => [
@@ -187,7 +191,7 @@
          foreach ($hijos as $op => &$h) {
              $h = $promover_permisos_y_asignar_defaults($op, $h);
              $opciones['algun_permiso'] = array_merge($opciones['algun_permiso'], $h['algun_permiso']);
-         };
+         }
      }
      return $opciones;
  };
@@ -205,7 +209,7 @@
                  continue;
              }
              $nuevos_hijos[$op] = $filtrar_permisos($op, $datos);
-         };
+         }
      }
      $opciones['hijos'] = $nuevos_hijos;
      return $opciones;
@@ -224,7 +228,7 @@
                  continue;
              }
              $nuevas_opciones['hijos'][$new_h['k']] = $new_h['opciones'];
-         };
+         }
      }
  
      if ($nivel > 1) {

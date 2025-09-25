@@ -139,6 +139,13 @@ Route::group(['prefix' => 'cargar-notas','middleware' => 'tiene_permiso:ver_carg
   Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
 });
 
+//! NUEVA SECCION PARA GENERAR INFORMES TECNICO DE LAS NOTAS
+Route::group(['prefix' => 'informesTecnicos','middleware'=>'tiene_permiso:ver_seccion_informes_tecnicos'],function (){
+  Route::get('/','NotasCasino\InformesTecnicosController@index');
+  Route::post('paginar', 'NotasCasino\InformesTecnicosController@paginarNotas');
+  Route::get('/notas/archivo/{id}/{tipo}', 'NotasCasino\InformesTecnicosController@descargarArchivo');
+});
+
 /***********
     GLI soft
  ************/
