@@ -70,7 +70,12 @@ function generarFilaTabla(nota) {
     .find(".notas_relacionadas")
     .text(nota.notas_relacionadas || "No hay información disponible")
     .attr("title", nota.notas_relacionadas || "No hay información disponible");
-  //! agregar botones de acciones
+
+  fila.find(".acciones_nota").html(
+    `
+        <button class ="btn btn-info" title="Gestionar informe técnico"><i class="fa fa-cog"></i></button>
+    `
+  );
 
   return fila;
 }

@@ -161,9 +161,14 @@ class InformesTecnicosController extends Controller
             $rutaCompleta = Storage::disk('notas_casinos')->path($rutaArchivo);
             $mime = mime_content_type($rutaCompleta);
         
-            return response()->download($rutaCompleta, $nombreArchivo, [
-                'Content-Type' => $mime,
-            ]);
+            if ($mime === 'application/pdf') {
+                return response()->file($rutaCompleta, [
+                    'Content-Type' => $mime,
+                    'Content-Disposition' => 'inline; filename="'.$nombreArchivo.'"'
+                ]);
+            } else {
+                return response()->download($rutaCompleta, $nombreArchivo);
+            } 
         } catch (Exception $th) {
             Log::info("ha ocurrido un error".$th->getMessage());
             abort(404,$th->getMessage());

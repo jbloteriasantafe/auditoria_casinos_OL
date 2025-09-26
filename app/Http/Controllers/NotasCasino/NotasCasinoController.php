@@ -132,7 +132,7 @@ class NotasCasinoController extends Controller
         if($existeNota) {
             return response()->json(['success' => false, 'error' => 'El número de nota ya existe'], 422);
         }
-        $casino = $this->USER->casinos->first();
+        $casino = $this->USER->plataformas()->first();
         $origen = $this->obtenerCasino($casino);
 
         $responsable = null;
@@ -304,6 +304,7 @@ class NotasCasinoController extends Controller
          try {
             $idReal = Crypt::decryptString($id);
         } catch (Exception $e) {
+            Log::error($e);
             abort(404, 'ID inválido');
         }
 
@@ -358,9 +359,14 @@ class NotasCasinoController extends Controller
             $rutaCompleta = Storage::disk('notas_casinos')->path($rutaArchivo);
             $mime = mime_content_type($rutaCompleta);
         
-            return response()->download($rutaCompleta, $nombreArchivo, [
-                'Content-Type' => $mime,
-            ]);
+            if ($mime === 'application/pdf') {
+                return response()->file($rutaCompleta, [
+                    'Content-Type' => $mime,
+                    'Content-Disposition' => 'inline; filename="'.$nombreArchivo.'"'
+                ]);
+            } else {
+                return response()->download($rutaCompleta, $nombreArchivo);
+            } 
         } catch (Exception $th) {
             abort(404);
         }
