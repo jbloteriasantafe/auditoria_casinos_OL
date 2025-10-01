@@ -64,7 +64,7 @@ return [
         ],
         'notas_casinos' => [
             'driver' => 'local',
-            'root' => '/mnt/eventos_casinos/wampstack-7.4.24-3/apache2/htdocs/eventos_casinos',
+            'root' => '/mnt/notas_casinos/wampstack-7.4.24-3/apache2/htdocs/eventos_casinos',
         ],
 
     ],

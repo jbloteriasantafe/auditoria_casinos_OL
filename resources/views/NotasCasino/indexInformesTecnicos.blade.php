@@ -61,6 +61,49 @@
         #tablaNotas td[title] {
             cursor: help;
         }
+
+        .d-flex {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .icon-button {
+            padding-top: 2px;
+            padding-bottom: 2px;
+            padding-left: 5px;
+            padding-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .lista-juegos {
+            padding: 10px;
+            position: absolute;
+            top: 100%;
+            left: 1.5em;
+            width: 95%;
+            border: 1px solid #ccc;
+            background: white;
+            z-index: 10;
+            border-radius: 5px;
+        }
+
+        .resultados-busqueda {
+            height: 200px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 5px;
+        }
+
+        .list-item {
+            padding: 5px 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .list-item:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 @endsection
 
@@ -162,6 +205,55 @@
                         </table>
                     </div>
                     <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ! MODAL GESTIÓN INFORME TÉCNICO --}}
+    <div class="modal fade" id="modalInformeTecnico" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <button id="btn-minimizar" type="button" class="close" data-toggle="collapse"
+                        data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <h3 class="modal-title" id="myModalLabel">| GESTIÓN INFORME TÉCNICO </h3>
+                </div>
+                <div id="colapsado" class="collapse in">
+                    <div class="modal-body">
+                        <form class="row" id="formulario">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <h5>Juegos</h5>
+                                    <div id="select-juegos" class="form-control d-flex">
+                                        <p class="juego-seleccionado">Seleccione un juego</p>
+                                        <div class="icon-button">
+                                            <i class="fa fa-angle-down icon"></i>
+                                        </div>
+                                        <div class="lista-juegos" style="display: none;">
+                                            <input id="buscador-juegos" type="text" class="form-control"
+                                                placeholder="Buscar juego..." />
+                                            <div class="resultados-busqueda">
+                                                @foreach ($juegos as $juego)
+                                                    <p class="list-item">{{ $juego->nombre_juego }}</p>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 7px;">
+                    <button id="btn-guardar-informe" type="button" value="add"></button>
+                    <button id="btn-cancelar-informe" type="button" class="btn btn-default" id="btn-salir"
+                        data-dismiss="modal" aria-label="Close">CANCELAR</button>
                 </div>
             </div>
         </div>

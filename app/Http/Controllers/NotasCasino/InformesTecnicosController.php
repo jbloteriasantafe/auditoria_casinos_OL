@@ -15,8 +15,16 @@ class InformesTecnicosController extends Controller
     public function index()
     {   
         $casinos = [['id_casino' => 4, 'casino' => 'CITY CENTER ONLINE'], ['id_casino' => 5, 'casino' => 'BPLAY'],];
+        try {
+            $juegos = DB::connection('mysql')
+                        ->table('juego')
+                        ->select('id_juego', 'nombre_juego')
+                        ->get();
+        } catch (Exception $e) {
+            Log::error('Error al obtener juegos: ' . $e->getMessage());
+        }
 
-        return view('NotasCasino.indexInformesTecnicos',compact('casinos'));
+        return view('NotasCasino.indexInformesTecnicos',compact('casinos', 'juegos'));
     }
 
     public function paginarNotas (Request $request){

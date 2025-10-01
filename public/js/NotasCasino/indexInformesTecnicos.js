@@ -5,6 +5,15 @@ $(document).ready(function () {
   cargarNotas();
 });
 
+function colorBoton(boton) {
+  $(boton).removeClass();
+  $(boton).addClass("btn").addClass("btn-successAceptar");
+  $(boton).css("cursor", "pointer");
+  $(boton).text("Guardar Informe");
+  $(boton).show();
+  $(boton).val("nuevo");
+}
+
 //paginacion
 //crear bien los links y ahora creo un controlador que se encargue de mostrar el pdf
 function generarFilaTabla(nota) {
@@ -21,14 +30,14 @@ function generarFilaTabla(nota) {
     .find(".nombre_evento")
     .text(nota.evento || "No hay información disponible")
     .attr("title", nota.evento || "No hay información disponible");
-
+  //! SOLUCION SOLO PARA LA PARTE DE INFORMES TECNICOS
   fila
     .find(".adjunto_pautas")
     .html(
       `${
         !nota.adjunto_pautas
           ? "No hay información disponible"
-          : `<a href='informesTecnicos/notas/archivo/${nota.idevento_enc}/pautas'>${nota.adjunto_pautas}</a>`
+          : `<a href='http://10.1.120.9/eventos_casinos/Eventos_Pautas/${nota.adjunto_pautas}'>${nota.adjunto_pautas}</a>`
       }`
     )
     .attr("title", nota.adjunto_pautas || "No hay información disponible");
@@ -73,7 +82,7 @@ function generarFilaTabla(nota) {
 
   fila.find(".acciones_nota").html(
     `
-        <button class ="btn btn-info" title="Gestionar informe técnico"><i class="fa fa-cog"></i></button>
+        <button class="gestionarInformeTecnico btn btn-info" title="Gestionar informe técnico"><i class="fa fa-cog"></i></button>
     `
   );
 
@@ -159,3 +168,31 @@ $("#btn-buscar").on("click", function (e) {
 
   $("#btn-buscar").prop("disabled", false).text("BUSCAR");
 });
+
+//modal
+$(document).on("click", ".gestionarInformeTecnico", function () {
+  colorBoton($("#btn-guardar-informe"));
+  $("#modalInformeTecnico").modal("show");
+});
+
+$("#select-juegos").on("click", function () {
+  $(".lista-juegos").slideToggle(200);
+});
+
+$(".list-item").on("click", function () {
+  const juegoSeleccionado = $(this).text();
+  $(".juego-seleccionado").text(juegoSeleccionado);
+});
+
+$("#buscador-juegos").on("click", function (e) {
+  e.stopPropagation();
+});
+
+function generarListaJuegos(juegos) {
+  $(".resultados-busqueda").children().remove();
+  juegos.forEach(function (juego) {
+    $(".resultados-busqueda").append(
+      `<p class="list-item">${juego.nombre}</p>`
+    );
+  });
+}
