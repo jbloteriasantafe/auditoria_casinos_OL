@@ -137,6 +137,9 @@ Route::group(['prefix' => 'cargar-notas','middleware' => 'tiene_permiso:ver_carg
   Route::get('/notas/archivo/{id}/{tipo}', 'NotasCasino\NotasCasinoController@descargarArchivo');
   Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
   Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
+  Route::get('/juegosSeleccionados','NotasCasino\NotasCasinoController@juegosSeleccionados');
+  Route::get('/juegos/buscar', 'NotasCasino\NotasCasinoController@buscarJuegos');
+  Route::get('/juegos/buscar/{id}', 'NotasCasino\NotasCasinoController@buscarJuegoPorId');
 });
 
 //! NUEVA SECCION PARA GENERAR INFORMES TECNICO DE LAS NOTAS
@@ -144,6 +147,8 @@ Route::group(['prefix' => 'informesTecnicos','middleware'=>'tiene_permiso:ver_se
   Route::get('/','NotasCasino\InformesTecnicosController@index');
   Route::post('paginar', 'NotasCasino\InformesTecnicosController@paginarNotas');
   Route::get('/notas/archivo/{id}/{tipo}', 'NotasCasino\InformesTecnicosController@descargarArchivo');
+  Route::get('/juegos/buscar', 'NotasCasino\InformesTecnicosController@buscarJuegos');
+  Route::get('/juegosSeleccionados','NotasCasino\InformesTecnicosController@juegosSeleccionados');
 });
 
 /***********

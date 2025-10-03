@@ -1,8 +1,10 @@
 //seteo nombre de la seccion y traigo notas
+const JUEGOS_SELECCIONADOS = [];
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Expedientes");
   cargarNotas();
+  cargarJuegosSeleccionados();
 });
 
 //SETEO FECHA MINIMA CALENDARIOS
@@ -12,7 +14,7 @@ FECHA_HOY.setHours(0, 0, 0, 0);
 $("#fechaInicio").attr("min", hoy);
 $("#fechaFinalizacion").attr("min", hoy);
 
-//FUNCIONES AUXILIARES
+//!FUNCIONES AUXILIARES
 //colorea boton modal
 function colorBoton(boton) {
   $(boton).removeClass();
@@ -92,6 +94,7 @@ function clearErrors() {
   }
 }
 
+//! FUNCIONES PAGINACION
 //paginacion
 //crear bien los links y ahora creo un controlador que se encargue de mostrar el pdf
 function generarFilaTabla(nota) {
@@ -242,7 +245,7 @@ function clickIndice(e, pageNumber, page_size) {
   );
 }
 
-//ACCIONES
+//! CODIGO GESTION DE AGREGACION DE NOTAS
 //abrir modal nota
 $(document).on("click", "#btn-agregar-nota", function (e) {
   e.preventDefault();
@@ -539,7 +542,8 @@ function validarCampos() {
   return esValido;
 }
 
-//manejo posteo de la nota
+//!POSTEO DE LA NOTA
+
 $("#btn-guardar-nota").on("click", function (e) {
   e.preventDefault();
   const isValid = validarCampos();
@@ -624,6 +628,8 @@ $("#btn-guardar-nota").on("click", function (e) {
   });
 });
 
+//! MANEJO DEL FILTRO DE BUSQUEDA
+
 function clearErrorsFiltro() {
   $("#fecha_nota_inicio").removeClass("input-error");
   $("#mensajeErrorFechaInicioFiltro").hide();
@@ -679,4 +685,189 @@ $("#btn-buscar").on("click", function (e) {
   cargarNotas(1, 5, nroNota, nombreEvento, fechaInicio, fechaFin);
 
   $("#btn-buscar").prop("disabled", false).text("BUSCAR");
+});
+
+//!MANEJO DE SELECCION DE JUEGOS Y COMBOBOX
+
+function cargarJuegosSeleccionados() {
+  $.ajax({
+    type: "GET",
+    url: "/cargar-notas/juegosSeleccionados",
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    dataType: "json",
+    success: function (response) {
+      const { success, juegosSeleccionados } = response;
+      if (success) {
+        if (juegosSeleccionados.length === 0) {
+          return;
+        }
+        juegosSeleccionados.forEach((juego) => {
+          JUEGOS_SELECCIONADOS.push(juego.id_juego);
+          $(".lista-juegos-seleccionados").append(`
+              <div class="list-selected-item d-flex">
+                <div>
+                  <p class="nombre-juego"> ${juego.nombre_juego}</p>
+                  <div>
+                    <small>ID: <b>${juego.cod_juego}</b></small> |
+                    <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
+                    <small>Movil: <b>${juego.movil}</b></small> |
+                    <small>Escritorio: <b>${juego.escritorio}</b></small>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm btn-remove-juego"
+                  data-id="${juego.id_juego}">
+                    <i class="fas fa-trash"></i>
+                </button>
+              </div>
+          `);
+        });
+      } else {
+        console.error("Error al cargar juegos seleccionados:", response.error);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error en la solicitud AJAX:", error);
+    },
+  });
+}
+
+$("#select-juegos").on("click", function () {
+  let $lista = $(this).find(".lista-juegos");
+  let offset = $(this).offset();
+  let windowHeight = $(window).height();
+  let scrollTop = $(window).scrollTop();
+
+  let espacioAbajo =
+    windowHeight - (offset.top - scrollTop + $(this).outerHeight());
+
+  // Si hay más espacio abajo → abre hacia abajo
+  if (espacioAbajo > 300) {
+    $lista.removeClass("abrir-arriba").addClass("abrir-abajo").slideToggle(200);
+  } else {
+    // Si hay más espacio arriba → abre hacia arriba
+    $lista.removeClass("abrir-abajo").addClass("abrir-arriba").slideToggle(200);
+  }
+});
+
+$("#buscador-juegos").on("click", function (e) {
+  e.stopPropagation();
+});
+
+function generarListaJuegos(juegos) {
+  $(".resultados-busqueda").empty();
+  juegos.forEach(function (juego) {
+    $(".resultados-busqueda").append(
+      `<div class="list-item" data-id="${juego.id_juego}">
+          <p class="nombre-juego"> ${juego.nombre_juego}</p>
+          <div>
+            <small>ID: <b>${juego.cod_juego}</b></small> |
+            <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
+            <small>Movil: <b>${juego.movil}</b></small> |
+            <small>Escritorio: <b>${juego.escritorio}</b></small>
+          </div>
+        </div>`
+    );
+  });
+}
+
+async function buscarJuegos(query) {
+  $.ajax({
+    type: "GET",
+    url: "cargar-notas/juegos/buscar",
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    data: { query },
+    success: function (response) {
+      const { success, juegos } = response;
+      if (success) {
+        generarListaJuegos(juegos);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al buscar juegos:", error);
+    },
+  });
+}
+
+let currentTimeOut = null;
+const TIME_INTERVAL = 1500;
+
+async function bounce() {
+  if (!currentTimeOut) {
+    currentTimeOut = setTimeout(async () => {
+      await buscarJuegos($("#buscador-juegos").val());
+      currentTimeOut = null;
+    }, TIME_INTERVAL);
+    return;
+  }
+  if (currentTimeOut) {
+    clearTimeout(currentTimeOut);
+    currentTimeOut = setTimeout(async () => {
+      await buscarJuegos($("#buscador-juegos").val());
+      currentTimeOut = null;
+    }, TIME_INTERVAL);
+    return;
+  }
+}
+
+$("#buscador-juegos").on("input", function () {
+  bounce();
+});
+
+$("#buscador-juegos").on("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    console.log("Enter presionado");
+  }
+});
+
+$(".lista-juegos-seleccionados").on("click", ".btn-remove-juego", function () {
+  $(this).closest(".list-selected-item").remove();
+  let idEliminar = $(this).data("id");
+
+  JUEGOS_SELECCIONADOS = JUEGOS_SELECCIONADOS.filter(function (id) {
+    return id !== idEliminar;
+  });
+});
+
+function agregarJuego(juego) {
+  JUEGOS_SELECCIONADOS.push(juego.id_juego);
+  $(".lista-juegos-seleccionados").append(`
+              <div class="list-selected-item d-flex">
+                <div>
+                  <p class="nombre-juego"> ${juego.nombre_juego}</p>
+                  <div>
+                    <small>ID: <b>${juego.cod_juego}</b></small> |
+                    <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
+                    <small>Movil: <b>${juego.movil}</b></small> |
+                    <small>Escritorio: <b>${juego.escritorio}</b></small>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm btn-remove-juego"
+                  data-id="${juego.id_juego}">
+                    <i class="fas fa-trash"></i>
+                </button>
+              </div>
+  `);
+}
+
+function obtenerJuegoPorId(idJuego) {
+  $.ajax({
+    type: "GET",
+    url: `cargar-notas/juegos/buscar/${idJuego}`,
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    success: function (response) {
+      const { success, juego } = response;
+      if (success) {
+        agregarJuego(juego);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al obtener juego:", error);
+    },
+  });
+}
+
+$(".resultados-busqueda").on("click", ".list-item", function () {
+  let idJuego = $(this).data("id");
+  obtenerJuegoPorId(idJuego);
 });

@@ -1,9 +1,51 @@
 //seteo nombre de la seccion y traigo notas
+const JUEGOS_SELECCIONADOS = [];
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Informes Tecnicos");
   cargarNotas();
+  cargarJuegosSeleccionados();
 });
+
+function cargarJuegosSeleccionados() {
+  $.ajax({
+    type: "GET",
+    url: "/informesTecnicos/juegosSeleccionados",
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    dataType: "json",
+    success: function (response) {
+      const { success, juegosSeleccionados } = response;
+      if (success) {
+        if (juegosSeleccionados.length === 0) {
+          return;
+        }
+        juegosSeleccionados.forEach((juego) => {
+          JUEGOS_SELECCIONADOS.push(juego.id_juego);
+          $(".lista-juegos-seleccionados").append(`
+              <div class="list-selected-item d-flex">
+                <div>
+                  <p class="nombre-juego"> ${juego.nombre_juego}</p>
+                  <div>
+                    <small>ID: <b>${juego.id_juego}</b></small> |
+                    <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
+                    <small>Movil: <b>${juego.movil}</b></small> |
+                    <small>Escritorio: <b>${juego.escritorio}</b></small>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm btn-remove-juego"
+                  data-id="${juego.id_juego}"><i class="fas fa-trash"></i></button>
+              </div>
+          `);
+        });
+      } else {
+        console.error("Error al cargar juegos seleccionados:", response.error);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error en la solicitud AJAX:", error);
+    },
+  });
+}
 
 function colorBoton(boton) {
   $(boton).removeClass();
@@ -189,10 +231,70 @@ $("#buscador-juegos").on("click", function (e) {
 });
 
 function generarListaJuegos(juegos) {
-  $(".resultados-busqueda").children().remove();
+  $(".resultados-busqueda").empty();
   juegos.forEach(function (juego) {
     $(".resultados-busqueda").append(
-      `<p class="list-item">${juego.nombre}</p>`
+      `<div class="list-item">
+          <p class="nombre-juego"> ${juego.nombre_juego}</p>
+          <div>
+            <small>ID: <b>${juego.id_juego}</b></small> |
+            <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
+            <small>Movil: <b>${juego.movil}</b></small> |
+            <small>Escritorio: <b>${juego.escritorio}</b></small>
+          </div>
+        </div>`
     );
   });
 }
+
+async function buscarJuegos(query) {
+  $.ajax({
+    type: "GET",
+    url: "informesTecnicos/juegos/buscar",
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    data: { query },
+    success: function (response) {
+      const { success, juegos } = response;
+      if (success) {
+        generarListaJuegos(juegos);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al buscar juegos:", error);
+    },
+  });
+}
+
+//cada vez que escribo:
+//seteo de nuevo un time out
+//cuando se termina el time out hace la busqueda
+let currentTimeOut = null;
+const TIME_INTERVAL = 1500;
+
+async function bounce() {
+  if (!currentTimeOut) {
+    currentTimeOut = setTimeout(async () => {
+      await buscarJuegos($("#buscador-juegos").val());
+      currentTimeOut = null;
+    }, TIME_INTERVAL);
+    return;
+  }
+  if (currentTimeOut) {
+    clearTimeout(currentTimeOut);
+    currentTimeOut = setTimeout(async () => {
+      await buscarJuegos($("#buscador-juegos").val());
+      currentTimeOut = null;
+    }, TIME_INTERVAL);
+    return;
+  }
+}
+
+$("#buscador-juegos").on("input", function () {
+  bounce();
+});
+
+$("#buscador-juegos").on("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+  }
+});

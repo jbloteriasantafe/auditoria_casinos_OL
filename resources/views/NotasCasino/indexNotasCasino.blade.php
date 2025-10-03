@@ -86,6 +86,85 @@
         #tablaNotas td[title] {
             cursor: help;
         }
+
+        .d-flex {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .icon-button {
+            padding-top: 2px;
+            padding-bottom: 2px;
+            padding-left: 5px;
+            padding-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        #select-juegos {
+            position: relative;
+        }
+
+        .lista-juegos {
+            padding: 10px;
+            position: absolute;
+            width: 95%;
+            border: 1px solid #ccc;
+            background: white;
+            z-index: 10;
+            border-radius: 5px;
+        }
+
+        .abrir-abajo {
+            top: 100%;
+            left: 1.5em;
+
+        }
+
+        .abrir-arriba {
+            bottom: 100%;
+            left: 1.5em;
+        }
+
+        .resultados-busqueda {
+            height: 300px;
+            max-height: 350px;
+            overflow-y: auto;
+            margin-top: 5px;
+        }
+
+        .nombre-juego {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .list-item {
+            padding: 5px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .list-selected-item {
+            padding: 5px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .list-selected-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .lista-juegos-seleccionados {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .btn-remove-juego {
+            display: inline-block !important;
+        }
     </style>
 @endsection
 
@@ -386,6 +465,39 @@
                                     placeholder="Ingrese la fecha de referencia (Máximo: 500 caracteres)" />
                                 <span class="error-message" style="display: none;"
                                     id="mensajeErrorFechaReferencia">Máximo: 500 caracteres</span>
+                            </div>
+                            <div class="col-lg-12">
+                                <h5>Agregar juegos</h5>
+                                <div id="select-juegos" class="form-control d-flex">
+                                    <p class="juego-seleccionado">Seleccione un juego</p>
+                                    <div class="icon-button">
+                                        <i class="fa fa-angle-down icon"></i>
+                                    </div>
+                                    <div class="lista-juegos" style="display: none;">
+                                        <input id="buscador-juegos" type="text" class="form-control"
+                                            placeholder="Buscar juego..." />
+                                        <div class="resultados-busqueda">
+                                            @foreach ($juegos as $juego)
+                                                <div class="list-item" data-id="{{ $juego->id_juego }}">
+                                                    <p class="nombre-juego">{{ $juego->nombre_juego }}</p>
+                                                    <div>
+                                                        <small>ID: <b>{{ $juego->cod_juego }}</b></small> |
+                                                        <small>Porcentaje de devolución:
+                                                            <b>{{ $juego->porcentaje_devolucion }}%</b></small> |
+                                                        <small>Movil: <b>{{ $juego->movil }}</b></small> |
+                                                        <small>Escritorio: <b>{{ $juego->escritorio }}</b></small>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <h5>JUEGOS SELECCIONADOS</h5>
+                                <div class="lista-juegos-seleccionados">
+                                    <!-- Aquí se agregarán los juegos seleccionados -->
+                                </div>
                             </div>
                         </form>
                     </div>

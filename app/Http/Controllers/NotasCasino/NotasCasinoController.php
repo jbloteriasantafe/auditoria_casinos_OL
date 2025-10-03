@@ -34,6 +34,11 @@ class NotasCasinoController extends Controller
             ->table('tipo_eventos')
             ->get();
 
+            $juegos = DB::connection('mysql')
+                        ->table('juego')
+                        ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
+                        ->get();
+
             $tipos_nota = array_map(function($item){
                 return (object) $item;
             }, [
@@ -79,7 +84,7 @@ class NotasCasinoController extends Controller
             $anio = date('Y');
         }
         return view('NotasCasino.indexNotasCasino',
-         compact('categorias', 'tipos_evento','tipos_nota', 'anio'));
+         compact('categorias', 'tipos_evento','tipos_nota', 'anio','juegos'));
     }
 
     public function subirNota (Request $request){
@@ -370,6 +375,70 @@ class NotasCasinoController extends Controller
         } catch (Exception $th) {
             abort(404);
         }
+    }
+
+    public function juegosSeleccionados(){
+        //simulacion juegos seleccionados
+        $juegosSeleccionados = [
+            ['id_juego' => 1, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 1],
+            ['id_juego' => 2, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 2],
+            ['id_juego' => 3, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 3],
+            ['id_juego' => 4, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 4],
+            ['id_juego' => 1, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 1],
+            ['id_juego' => 2, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 2],
+            ['id_juego' => 3, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 3],
+            ['id_juego' => 4, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 4],
+        ];
+        return response()->json(['success' => true, 'juegosSeleccionados' => $juegosSeleccionados]);
+    }
+
+    public function buscarJuegos(Request $request){
+        $validator = Validator::make($request->all(),[
+            'query' => 'nullable|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $query = $request->get('query');
+
+       try {
+            if($query){
+                $juegos = DB::connection('mysql')
+                    ->table('juego')
+                    ->where(function ($q) use ($query) {
+                        $q->where('nombre_juego', 'LIKE', "%{$query}%")
+                        ->orWhere('cod_juego', 'LIKE', "%{$query}%");
+                    })
+                    ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
+                    ->get();
+                return response()->json(['success' => true, 'juegos' => $juegos]);
+            }
+            $juegos = DB::connection('mysql')
+                ->table('juego')
+                ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
+                ->get();
+       } catch (Exception $e) {
+           Log::error("Error al buscar juegos: " . $e->getMessage());
+           return response()->json(['success' => false, 'message' => 'Error al buscar juegos'], 500);
+       }
+
+        return response()->json(['success' => true, 'juegos' => $juegos]);
+    }
+
+    public function buscarJuegoPorId($id){
+        $juego = DB::connection('mysql')
+            ->table('juego')
+            ->where('id_juego', $id)
+            ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
+            ->first();
+
+        if (!$juego) {
+            return response()->json(['success' => false, 'message' => 'Juego no encontrado'], 404);
+        }
+
+        return response()->json(['success' => true, 'juego' => $juego]);
     }
 
     private function obtenerCasino ($casino) {
