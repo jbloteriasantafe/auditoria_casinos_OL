@@ -4,7 +4,7 @@ $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Expedientes");
   cargarNotas();
-  cargarJuegosSeleccionados();
+  //cargarJuegosSeleccionados(); ESTO NO VA ACA, LO DEBO AGREGAR SOLO CUANDO VOY A MODIFICAR UNA NOTA
 });
 
 //SETEO FECHA MINIMA CALENDARIOS
@@ -46,6 +46,11 @@ function clearInputs() {
     $(idSpan).text(defaultText);
     $(idButton).hide();
   }
+  //vacio el array JUEGOS_SELECCIONADOS
+  JUEGOS_SELECCIONADOS.splice(0, JUEGOS_SELECCIONADOS.length);
+  //elimino del form todos los juegos seleccionados
+  $(".lista-juegos-seleccionados").empty();
+  buscarJuegos("");
 }
 
 function clearErrors() {
@@ -577,6 +582,11 @@ $("#btn-guardar-nota").on("click", function (e) {
   if ($("#basesyCondiciones")[0].files.length > 0) {
     formData.append("basesyCondiciones", $("#basesyCondiciones")[0].files[0]);
   }
+  if (JUEGOS_SELECCIONADOS.length > 0) {
+    JUEGOS_SELECCIONADOS.forEach((id) => {
+      formData.append("juegosSeleccionados[]", id);
+    });
+  }
 
   $.ajaxSetup({
     headers: {
@@ -756,6 +766,10 @@ $("#buscador-juegos").on("click", function (e) {
 function generarListaJuegos(juegos) {
   $(".resultados-busqueda").empty();
   juegos.forEach(function (juego) {
+    if (JUEGOS_SELECCIONADOS.includes(juego.id_juego)) {
+      return;
+    }
+
     $(".resultados-busqueda").append(
       `<div class="list-item" data-id="${juego.id_juego}">
           <p class="nombre-juego"> ${juego.nombre_juego}</p>
@@ -821,15 +835,20 @@ $("#buscador-juegos").on("keydown", function (e) {
 });
 
 $(".lista-juegos-seleccionados").on("click", ".btn-remove-juego", function () {
-  $(this).closest(".list-selected-item").remove();
   let idEliminar = $(this).data("id");
+  $(this).closest(".list-selected-item").remove();
 
-  JUEGOS_SELECCIONADOS = JUEGOS_SELECCIONADOS.filter(function (id) {
-    return id !== idEliminar;
-  });
+  let index = JUEGOS_SELECCIONADOS.indexOf(idEliminar);
+  if (index !== -1) {
+    JUEGOS_SELECCIONADOS.splice(index, 1);
+  }
+  buscarJuegos("");
 });
 
 function agregarJuego(juego) {
+  if (JUEGOS_SELECCIONADOS.includes(juego.id_juego)) {
+    return;
+  }
   JUEGOS_SELECCIONADOS.push(juego.id_juego);
   $(".lista-juegos-seleccionados").append(`
               <div class="list-selected-item d-flex">
@@ -870,4 +889,5 @@ function obtenerJuegoPorId(idJuego) {
 $(".resultados-busqueda").on("click", ".list-item", function () {
   let idJuego = $(this).data("id");
   obtenerJuegoPorId(idJuego);
+  buscarJuegos("");
 });

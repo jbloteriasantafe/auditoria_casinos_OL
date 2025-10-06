@@ -102,6 +102,8 @@ class NotasCasinoController extends Controller
             'fechaInicio' => 'required|date',
             'fechaFinalizacion' => 'required|date',
             'fechaReferencia' => 'nullable|string|max:500',
+            'juegosSeleccionados' => 'nullable|array|min:1',
+            'juegosSeleccionados.*' => 'integer',
         ]);
 
         if($validator->fails()) {
@@ -189,7 +191,7 @@ class NotasCasinoController extends Controller
             }
         }
 
-        DB::connection('gestion_notas_mysql')->table('eventos')->insert([
+        $idNota = DB::connection('gestion_notas_mysql')->table('eventos')->insertGetId([
             'responsable' => $responsable,
             'nronota_ev' => $nota,
             'origen' => $origen,
@@ -218,7 +220,21 @@ class NotasCasinoController extends Controller
             'idcategoria' => $categoria,
             'dircarpeta' => null
         ]);
-    return response()->json(['success' => true],200);
+        //cargo los juegos relacionados a cada nota
+        $juegosNota = $request->input('juegosSeleccionados');
+        if(!empty($juegosNota)){
+            $registros = [];
+            foreach ($juegosNota as $juego) {
+                $registros[] = [
+                    'idnota' => $idNota,
+                    'id_juego' => $juego
+                ];
+            }
+
+            DB::connection('gestion_notas_mysql')->table('juegos_nota')->insert($registros);
+        }
+
+        return response()->json(['success' => true],200);
         } catch (Exception $e) {
         Log::error($e);
         return response()->json(['success' => false, 'error' => $e->getMessage()],500);
