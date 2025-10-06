@@ -282,6 +282,7 @@
                                     <th class="col-sm-1 text-center" value="estado" title="Estado de la nota">ESTADO</th>
                                     <th class="col-sm-1 text-center" value="notas_relacionadas"
                                         title="Notas relacionadas">NOTAS RELACIONADAS</th>
+                                    <th class="col-sm-1 text-center" value="acciones" title="Acciones">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody id="cuerpoTabla">
@@ -295,6 +296,7 @@
                                     <td class="col-sm-1 text-center fecha_finalizacion_evento"></td>
                                     <td class="col-sm-1 text-center estado"></td>
                                     <td class="col-sm-1 text-center notas_relacionadas"></td>
+                                    <td class="col-sm-1 text-center acciones"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -505,6 +507,225 @@
                 <div class="modal-footer" style="padding-top: 7px;">
                     <button id="btn-guardar-nota" type="button" value="add"></button>
                     <button id="btn-cancelar-nota" type="button" class="btn btn-default" id="btn-salir"
+                        data-dismiss="modal" aria-label="Close">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ! MODAL DE CARGA DE NOTAS --}}
+    <div class="modal fade" id="modalEditarNota" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <button id="btn-minimizar" type="button" class="close" data-toggle="collapse"
+                        data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <h3 class="modal-title" id="myModalLabel">| EDITAR NOTAS </h3>
+                </div>
+                <div id="colapsado" class="collapse in">
+                    <div class="modal-body">
+                        <form class="row" id="formularioEditarNota">
+                            {{-- ! FORMADO DE NOTA --}}
+                            <div class="row">
+                                {{-- ! NRO DE NOTA --}}
+                                <div class="col-lg-4">
+                                    <h5>Nro de nota <span class="asterisco text-muted text-danger"
+                                            title="Este campo es obligatorio">*</span></h5>
+                                    <input id="nroNotaEditar" class="form-control" type="number" required
+                                        placeholder="Mínimo 3 dígitos (Por ejemplo: 001)" />
+                                    <span class="error-message" id="mensajeErrorNroNotaEditar"
+                                        style="display: none;">Este
+                                        campo es obligatorio y debe
+                                        tener como mínimo 3 dígitos</span>
+                                </div>
+                                {{-- ! TIPO DE NOTA --}}
+                                <div class="col-lg-4">
+                                    <h5>Tipo de nota <span class="asterisco text-muted text-danger"
+                                            title="Este campo es obligatorio">*</span></h5>
+                                    <select id="tipoNotaEditar" class="form-control" required>
+                                        <option value="" selected disabled>-- Seleccione un tipo de nota --</option>
+                                        @foreach ($tipos_nota as $tipo)
+                                            <option value="{{ $tipo->id_tipo_nota }}">{{ $tipo->tipo_nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span class="error-message" style="display: none;"
+                                        id="mensajeErrorTipoNotaEditar">Este
+                                        campo es obligatorio</span>
+                                </div>
+                                {{-- ! AÑO DE NOTA --}}
+                                <div class="col-lg-4">
+                                    <h5>Año de nota <span class="asterisco text-muted text-danger"
+                                            title="Este campo es obligatorio">*</span></h5>
+                                    <input id="anioNotaEditar" class="form-control" type="number"
+                                        value="{{ $anio }}" disabled required />
+                                    <span class="error-message" style="display: none;"
+                                        id="mensajeErrorAnioNotaEditar">Este
+                                        campo es obligatorio</span>
+                                </div>
+                            </div>
+                            {{-- ! NOMBRE DEL EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Nombre del evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
+                                <input id="nombreEventoEditar" class="form-control" required maxlength="1000"
+                                    placeholder="Ingrese el nombre del evento (Máximo: 1000 caracteres)" />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorNombreEventoEditar">Este
+                                    campo es obligatorio</span>
+                            </div>
+                            {{-- ! TIPO EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Tipo evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
+                                <select id="tipoEventoEditar" class="form-control" required>
+                                    <option value="" selected disabled>-- Seleccione un tipo de evento --</option>
+                                    @foreach ($tipos_evento as $tipo)
+                                        <option value="{{ $tipo->idtipoevento }}">{{ $tipo->tipo_nombre }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="error-message" style="display: none;" id="mensajeErrorTipoEventoEditar">Este
+                                    campo es obligatorio</span>
+                            </div>
+                            {{-- ! CATEGORIA --}}
+                            <div class="col-lg-12">
+                                <h5>Categoría <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
+                                <select id="categoriaEditar" name="categoria" class="form-control" required>
+                                    <option value="" selected disabled>-- Seleccione una categoría --</option>
+                                    @foreach ($categorias as $categoria)
+                                        <option value="{{ $categoria->idcategoria }}">{{ $categoria->categoria }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span class="error-message" style="display: none;" id="mensajeErrorCategoriaEditar">Este
+                                    campo es obligatorio</span>
+                            </div>
+                            {{-- ! ADJUNTO NOTAS, TODO LO QUE DICE PAUTAS EN TODO EL CODIGO ES DE LAS NOTAS --}}
+                            <div class="col-lg-12">
+                                <h5>Adjunto NOTAS</h5>
+                                <div class="custom-file">
+                                    <input id="adjuntoPautasEditar" name="adjuntoPautas" data-borrado="false"
+                                        class="custom-file-input" type="file" accept=".pdf,.zip"
+                                        style="display:none;" />
+                                    <button type="button" id="adjuntoPautasBtnEditar"
+                                        class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoPautasNameEditar" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoPautasEditar" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
+                                </div>
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorAdjuntoPautasEditar">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
+                            </div>
+                            {{-- ! ADJUNTO DISEÑO --}}
+                            <div class="col-lg-12">
+                                <h5>Adjunto DISEÑO</h5>
+                                <div>
+                                    <input id="adjuntoDisenioEditar" name="adjuntoDisenio" type="file"
+                                        accept=".pdf,.zip" class="custom-file-input" style="display:none;" />
+                                    <button type="button" id="adjuntoDisenioBtnEditar"
+                                        class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoDisenioNameEditar" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoDisenioEditar" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
+                                </div>
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorAdjuntoDisenioEditar">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
+                            </div>
+                            {{-- ! ADJUNTO BASES Y COND. --}}
+                            <div class="col-lg-12">
+                                <h5>Adjunto bases y condiciones</h5>
+                                <div>
+                                    <input id="basesyCondicionesEditar" type="file" accept=".pdf,.zip,.doc,.docx"
+                                        class="custom-file-input" style="display:none;" />
+                                    <button type="button" id="basesyCondicionesBtnEditar"
+                                        class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="basesyCondicionesNameEditar" class="ms-2">Ningún archivo
+                                        seleccionado</span>
+                                    <button id="eliminarBasesyCondicionesEditar" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
+                                </div>
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorBasesyCondicionesEditar">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
+                            </div>
+                            {{-- ! FECHA INICIO EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Fecha inicio evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
+                                <input id="fechaInicioEditar" class="form-control" type="date" required />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaInicioEditar">Este
+                                    campo es obligatorio</span>
+                            </div>
+                            {{-- !FECHA FINALIZACION EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Fecha finalización evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
+                                <input id="fechaFinalizacionEditar" class="form-control" type="date" required />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaFinalizacionEditar">Este
+                                    campo es obligatorio</span>
+                            </div>
+                            {{-- ! FECHA REFERENCIA EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Fecha referencia evento</h5>
+                                <input id="fechaReferenciaEditar" class="form-control" maxlength="500"
+                                    placeholder="Ingrese la fecha de referencia (Máximo: 500 caracteres)" />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaReferenciaEditar">Máximo: 500 caracteres</span>
+                            </div>
+                            <div class="col-lg-12">
+                                <h5>Agregar juegos</h5>
+                                <div id="select-juegos-editar" class="form-control d-flex">
+                                    <p class="juego-seleccionado">Seleccione un juego</p>
+                                    <div class="icon-button">
+                                        <i class="fa fa-angle-down icon"></i>
+                                    </div>
+                                    <div class="lista-juegos" style="display: none;">
+                                        <input id="buscador-juegos-editar" type="text" class="form-control"
+                                            placeholder="Buscar juego..." />
+                                        <div class="resultados-busqueda">
+                                            @foreach ($juegos as $juego)
+                                                <div class="list-item" data-id="{{ $juego->id_juego }}">
+                                                    <p class="nombre-juego">{{ $juego->nombre_juego }}</p>
+                                                    <div>
+                                                        <small>ID: <b>{{ $juego->cod_juego }}</b></small> |
+                                                        <small>Porcentaje de devolución:
+                                                            <b>{{ $juego->porcentaje_devolucion }}%</b></small> |
+                                                        <small>Movil: <b>{{ $juego->movil }}</b></small> |
+                                                        <small>Escritorio: <b>{{ $juego->escritorio }}</b></small>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <h5>JUEGOS SELECCIONADOS</h5>
+                                <div class="lista-juegos-seleccionados">
+                                    <!-- Aquí se agregarán los juegos seleccionados -->
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 7px;">
+                    <button id="btn-guardar-nota-editar" type="button" value="add"></button>
+                    <button id="btn-cancelar-nota-editar" type="button" class="btn btn-default" id="btn-salir"
                         data-dismiss="modal" aria-label="Close">CANCELAR</button>
                 </div>
             </div>

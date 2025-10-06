@@ -164,6 +164,14 @@ function generarFilaTabla(nota) {
     .text(nota.notas_relacionadas || "No hay información disponible")
     .attr("title", nota.notas_relacionadas || "No hay información disponible");
 
+  if (!nota.adjunto_inf_tecnico) {
+    fila.find(".acciones").html(`
+      <button class="btn btn-sm btn-success" title="Editar nota">
+        <i class="fa fa-edit"></i>
+      </button>
+    `);
+  }
+
   return fila;
 }
 
@@ -891,3 +899,5 @@ $(".resultados-busqueda").on("click", ".list-item", function () {
   obtenerJuegoPorId(idJuego);
   buscarJuegos("");
 });
+
+//!MANEJO MODAL DE EDICION DE NOTICIAS

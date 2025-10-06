@@ -275,6 +275,7 @@ class NotasCasinoController extends Controller
                 'eventos.adjunto_pautas',
                 'eventos.adjunto_diseño',
                 'eventos.adjunto_basesycond',
+                'eventos.adjunto_inf_tecnico',
                 'eventos.fecha_evento',
                 'eventos.fecha_finalizacion',
                 'estados.estado',
