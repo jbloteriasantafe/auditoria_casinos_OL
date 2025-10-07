@@ -4,7 +4,6 @@ $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Expedientes");
   cargarNotas();
-  //cargarJuegosSeleccionados(); ESTO NO VA ACA, LO DEBO AGREGAR SOLO CUANDO VOY A MODIFICAR UNA NOTA
 });
 
 //SETEO FECHA MINIMA CALENDARIOS
@@ -20,7 +19,11 @@ function colorBoton(boton) {
   $(boton).removeClass();
   $(boton).addClass("btn").addClass("btn-successAceptar");
   $(boton).css("cursor", "pointer");
-  $(boton).text("Subir Nota");
+  if (boton === "#btn-guardar-nota") {
+    $(boton).text("Subir Nota");
+  } else {
+    $(boton).text("Editar Nota");
+  }
   $(boton).show();
   $(boton).val("nuevo");
 }
@@ -103,6 +106,11 @@ function clearErrors() {
 //paginacion
 //crear bien los links y ahora creo un controlador que se encargue de mostrar el pdf
 function generarFilaTabla(nota) {
+  const ESTADOS = {
+    controlIniciado: "Control Iniciado",
+    cargaInicial: "Carga inicial a sistema",
+  };
+
   let fila = $("#cuerpoTabla .filaTabla")
     .clone()
     .removeClass("filaTabla")
@@ -164,10 +172,15 @@ function generarFilaTabla(nota) {
     .text(nota.notas_relacionadas || "No hay información disponible")
     .attr("title", nota.notas_relacionadas || "No hay información disponible");
 
-  if (!nota.adjunto_inf_tecnico) {
+  if (
+    true
+    /*     !nota.adjunto_inf_tecnico &&
+    (nota.estado === ESTADOS.controlIniciado ||
+      nota.estado === ESTADOS.cargaInicial) */
+  ) {
     fila.find(".acciones").html(`
-      <button class="btn btn-sm btn-success" title="Editar nota">
-        <i class="fa fa-edit"></i>
+      <button class="btn btn-sm btn-success btn-editar-nota" data-id="${nota.idevento}" title="Editar nota">
+        <i class="fa fa-edit"></i> 
       </button>
     `);
   }
@@ -706,49 +719,6 @@ $("#btn-buscar").on("click", function (e) {
 });
 
 //!MANEJO DE SELECCION DE JUEGOS Y COMBOBOX
-
-function cargarJuegosSeleccionados() {
-  $.ajax({
-    type: "GET",
-    url: "/cargar-notas/juegosSeleccionados",
-    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
-    dataType: "json",
-    success: function (response) {
-      const { success, juegosSeleccionados } = response;
-      if (success) {
-        if (juegosSeleccionados.length === 0) {
-          return;
-        }
-        juegosSeleccionados.forEach((juego) => {
-          JUEGOS_SELECCIONADOS.push(juego.id_juego);
-          $(".lista-juegos-seleccionados").append(`
-              <div class="list-selected-item d-flex">
-                <div>
-                  <p class="nombre-juego"> ${juego.nombre_juego}</p>
-                  <div>
-                    <small>ID: <b>${juego.cod_juego}</b></small> |
-                    <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
-                    <small>Movil: <b>${juego.movil}</b></small> |
-                    <small>Escritorio: <b>${juego.escritorio}</b></small>
-                  </div>
-                </div>
-                <button type="button" class="btn btn-danger btn-sm btn-remove-juego"
-                  data-id="${juego.id_juego}">
-                    <i class="fas fa-trash"></i>
-                </button>
-              </div>
-          `);
-        });
-      } else {
-        console.error("Error al cargar juegos seleccionados:", response.error);
-      }
-    },
-    error: function (xhr, status, error) {
-      console.error("Error en la solicitud AJAX:", error);
-    },
-  });
-}
-
 $("#select-juegos").on("click", function () {
   let $lista = $(this).find(".lista-juegos");
   let offset = $(this).offset();
@@ -838,7 +808,6 @@ $("#buscador-juegos").on("input", function () {
 $("#buscador-juegos").on("keydown", function (e) {
   if (e.key === "Enter") {
     e.preventDefault();
-    console.log("Enter presionado");
   }
 });
 
@@ -900,4 +869,11 @@ $(".resultados-busqueda").on("click", ".list-item", function () {
   buscarJuegos("");
 });
 
-//!MANEJO MODAL DE EDICION DE NOTICIAS
+//! CARGAR JUEGOS SELECCIONADOS EDITAR
+$("#cuerpoTabla").on("click", ".btn-editar-nota", function () {
+  let idNota = $(this).data("id");
+  $("#modalEditarNota").modal("show");
+  colorBoton("#btn-guardar-nota-editar");
+});
+
+//!HAY QUE HACER REFACTOR DE LAS FUNCIONES DE BUSQUEDA DE JUEGOS

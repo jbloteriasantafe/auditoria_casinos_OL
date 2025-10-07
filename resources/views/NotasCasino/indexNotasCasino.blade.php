@@ -521,10 +521,6 @@
                     <button type="button" class="close" data-dismiss="modal">
                         <i class="fa fa-times"></i>
                     </button>
-                    <button id="btn-minimizar" type="button" class="close" data-toggle="collapse"
-                        data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px">
-                        <i class="fa fa-minus"></i>
-                    </button>
                     <h3 class="modal-title" id="myModalLabel">| EDITAR NOTAS </h3>
                 </div>
                 <div id="colapsado" class="collapse in">

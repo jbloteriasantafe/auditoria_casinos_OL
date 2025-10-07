@@ -140,6 +140,7 @@ Route::group(['prefix' => 'cargar-notas','middleware' => 'tiene_permiso:ver_carg
   Route::get('/juegosSeleccionados','NotasCasino\NotasCasinoController@juegosSeleccionados');
   Route::get('/juegos/buscar', 'NotasCasino\NotasCasinoController@buscarJuegos');
   Route::get('/juegos/buscar/{id}', 'NotasCasino\NotasCasinoController@buscarJuegoPorId');
+  Route::get('/nota/{id}', 'NotasCasino\NotasCasinoController@buscarNotaById');
 });
 
 //! NUEVA SECCION PARA GENERAR INFORMES TECNICO DE LAS NOTAS
