@@ -1,3 +1,4 @@
+//TODO: Agregar al clearErrors el clear del mensaje de error cuando los archivos son muy grandes.
 //seteo nombre de la seccion y traigo notas
 const JUEGOS_SELECCIONADOS = [];
 $(document).ready(function () {
@@ -14,7 +15,6 @@ $("#fechaInicio").attr("min", hoy);
 $("#fechaFinalizacion").attr("min", hoy);
 
 //!FUNCIONES AUXILIARES
-//colorea boton modal
 function colorBoton(boton) {
   $(boton).removeClass();
   $(boton).addClass("btn").addClass("btn-successAceptar");
@@ -54,6 +54,80 @@ function clearInputs() {
   //elimino del form todos los juegos seleccionados
   $(".lista-juegos-seleccionados").empty();
   buscarJuegos("");
+}
+//limpia los inputs de editar
+function clearInputsEditar() {
+  const defaultText = "Ningún archivo seleccionado";
+  const archivosText = [
+    {
+      idSpan: "#adjuntoPautasNameEditar",
+      idButton: "#eliminarAdjuntoPautasEditar",
+    },
+    {
+      idSpan: "#adjuntoDisenioNameEditar",
+      idButton: "#eliminarAdjuntoDisenioEditar",
+    },
+    {
+      idSpan: "#basesyCondicionesNameEditar",
+      idButton: "#eliminarBasesyCondicionesEditar",
+    },
+  ];
+  $("#formularioEditarNota")[0].reset();
+  for (const { idSpan, idButton } of archivosText) {
+    $(idSpan).text(defaultText);
+    $(idButton).hide();
+  }
+  //despues analizo esto
+  /*   JUEGOS_SELECCIONADOS.splice(0, JUEGOS_SELECCIONADOS.length);
+  $(".lista-juegos-seleccionados").empty();
+  buscarJuegos(""); */
+}
+
+//limpia los errores de editar
+function clearErrorsEditar() {
+  const campos = [
+    {
+      id: "#nroNotaEditar",
+      error: "#mensajeErrorNroNotaEditar",
+    },
+    {
+      id: "#tipoNotaEditar",
+      error: "#mensajeErrorTipoNotaEditar",
+    },
+    {
+      id: "#anioNotaEditar",
+      error: "#mensajeErrorAnioNotaEditar",
+    },
+    {
+      id: "#nombreEventoEditar",
+      error: "#mensajeErrorNombreEventoEditar",
+    },
+    {
+      id: "#tipoEventoEditar",
+      error: "#mensajeErrorTipoEventoEditar",
+    },
+    {
+      id: "#categoriaEditar",
+      error: "#mensajeErrorCategoriaEditar",
+    },
+    {
+      id: "#fechaInicioEditar",
+      error: "#mensajeErrorFechaInicioEditar",
+    },
+    {
+      id: "#fechaFinalizacionEditar",
+      error: "#mensajeErrorFechaFinalizacionEditar",
+    },
+    {
+      id: "#fechaReferenciaEditar",
+      error: "#mensajeErrorFechaReferenciaEditar",
+    },
+  ];
+
+  for (const { id, error } of campos) {
+    $(id).removeClass("input-error");
+    $(error).hide();
+  }
 }
 
 function clearErrors() {
@@ -869,11 +943,344 @@ $(".resultados-busqueda").on("click", ".list-item", function () {
   buscarJuegos("");
 });
 
-//! CARGAR JUEGOS SELECCIONADOS EDITAR
-$("#cuerpoTabla").on("click", ".btn-editar-nota", function () {
-  let idNota = $(this).data("id");
-  $("#modalEditarNota").modal("show");
+//! EDICION DE NOTAS
+let currentIdNota = null;
+function abrirModalEditar(idNota) {
+  clearInputsEditar();
+  clearErrorsEditar();
   colorBoton("#btn-guardar-nota-editar");
+  $("#modalEditarNota").modal("show");
+  currentIdNota = idNota;
+}
+$("#modalEditarNota").on("hidden.bs.modal", function () {
+  clearInputsEditar();
+  clearErrorsEditar();
+  currentIdNota = null;
 });
 
-//!HAY QUE HACER REFACTOR DE LAS FUNCIONES DE BUSQUEDA DE JUEGOS
+$("#cuerpoTabla").on("click", ".btn-editar-nota", function (e) {
+  e.preventDefault();
+  let idNota = $(this).data("id");
+  abrirModalEditar(idNota);
+});
+
+//nro de nota
+$("#nroNotaEditar").on("keydown", function (e) {
+  if (
+    e.key === "Backspace" ||
+    e.key === "Tab" ||
+    e.key === "ArrowLeft" ||
+    e.key === "ArrowRight"
+  ) {
+    return;
+  }
+  if (!/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+  }
+});
+
+$("#nroNotaEditar").on("input", function () {
+  this.value = this.value.replace(/[^0-9]/g, "");
+});
+
+$("#nroNotaEditar").on("blur", function () {
+  let valor = this.value.trim();
+
+  if (!/^\d+$/.test(valor)) {
+    this.value = "";
+    return;
+  }
+
+  let numero = parseInt(valor, 10);
+
+  if (numero >= 1 && numero <= 99) {
+    this.value = numero.toString().padStart(3, "0");
+  } else {
+    this.value = numero.toString();
+  }
+});
+
+$("#adjuntoPautasBtnEditar").on("click", function (e) {
+  $("#adjuntoPautasEditar").click();
+});
+
+$("#adjuntoPautasEditar").on("change", function (e) {
+  if (!this.files[0]) {
+    const fileName = "Ningún archivo seleccionado";
+    $("#adjuntoPautasNameEditar").text(fileName);
+    $("#eliminarAdjuntoPautasEditar").hide();
+    return;
+  }
+  const fileName = this.files[0].name;
+  $("#adjuntoPautasNameEditar").text(fileName);
+  $("#eliminarAdjuntoPautasEditar").show();
+});
+
+$("#adjuntoDisenioBtnEditar").on("click", function (e) {
+  $("#adjuntoDisenioEditar").click();
+});
+
+$("#adjuntoDisenioEditar").on("change", function (e) {
+  if (!this.files[0]) {
+    const fileName = "Ningún archivo seleccionado";
+    $("#adjuntoDisenioNameEditar").text(fileName);
+    $("#eliminarAdjuntoDisenioEditar").hide();
+    return;
+  }
+  const fileName = this.files[0].name;
+  $("#adjuntoDisenioNameEditar").text(fileName);
+  $("#eliminarAdjuntoDisenioEditar").show();
+});
+
+$("#basesyCondicionesBtnEditar").on("click", function (e) {
+  $("#basesyCondicionesEditar").click();
+});
+
+$("#basesyCondicionesEditar").on("change", function (e) {
+  if (!this.files[0]) {
+    const fileName = "Ningún archivo seleccionado";
+    $("#basesyCondicionesNameEditar").text(fileName);
+    $("#eliminarBasesyCondicionesEditar").hide();
+    return;
+  }
+  const fileName = this.files[0].name;
+  $("#basesyCondicionesNameEditar").text(fileName);
+  $("#eliminarBasesyCondicionesEditar").show();
+});
+
+//! SE PODRIA REFACTORIZAR CON UN FOR PARA QUE QUEDE MAS LIMPIO
+//limito el tamaño de los elementos cargados
+
+$("#adjuntoPautasEditar").on("change", function (e) {
+  const archivo = this.files[0];
+  if (archivo && archivo.size > MAX_SIZE_BYTES) {
+    $("#mensajeErrorAdjuntoPautasEditar").show();
+    return;
+  }
+  $("#mensajeErrorAdjuntoPautasEditar").hide();
+});
+
+$("#adjuntoDisenioEditar").on("change", function (e) {
+  const archivo = this.files[0];
+  if (archivo && archivo.size > MAX_SIZE_BYTES) {
+    $("#mensajeErrorAdjuntoDisenioEditar").show();
+    return;
+  }
+  $("#mensajeErrorAdjuntoDisenioEditar").hide();
+});
+
+$("#basesyCondicionesEditar").on("change", function (e) {
+  const archivo = this.files[0];
+  if (archivo && archivo.size > MAX_SIZE_BYTES) {
+    $("#mensajeErrorBasesyCondicionesEditar").show();
+    return;
+  }
+  $("#mensajeErrorBasesyCondicionesEditar").hide();
+});
+
+//! SE PODRIA REFACTORIZAR CON UN FOR PARA QUE QUEDE MAS LIMPIO
+//manejo eliminacion adjuntos
+
+$("#eliminarAdjuntoPautasEditar").on("click", function (e) {
+  $("#adjuntoPautasEditar").val(null);
+  $("#adjuntoPautasNameEditar").text("Ningún archivo seleccionado");
+  $(this).hide();
+});
+
+$("#eliminarAdjuntoDisenioEditar").on("click", function (e) {
+  $("#adjuntoDisenioEditar").val(null);
+  $("#adjuntoDisenioNameEditar").text("Ningún archivo seleccionado");
+  $(this).hide();
+});
+
+$("#eliminarBasesyCondicionesEditar").on("click", function (e) {
+  $("#basesyCondicionesEditar").val(null);
+  $("#basesyCondicionesNameEditar").text("Ningún archivo seleccionado");
+  $(this).hide();
+});
+
+//validacion campos
+function validarFechasEditar() {
+  let esValido = true;
+
+  const fechaInicioStr = $("#fechaInicioEditar").val();
+  const fechaFinalizacionStr = $("#fechaFinalizacionEditar").val();
+
+  const fechaInicio = new Date(fechaInicioStr);
+  const fechaFinalizacion = new Date(fechaFinalizacionStr);
+
+  fechaInicio.setHours(0, 0, 0, 0);
+  fechaFinalizacion.setHours(0, 0, 0, 0);
+
+  // Si no hay fechas, es válido
+  if (!fechaFinalizacionStr && !fechaInicioStr) {
+    return esValido;
+  }
+  //si existe una deben existir ambas
+  //existencia
+  if (!fechaInicioStr) {
+    $("#fechaInicioEditar").addClass("input-error");
+    $("#mensajeErrorFechaInicioEditar").show();
+    esValido = false;
+  }
+  //valdidez
+  if (fechaInicio.getTime() < FECHA_HOY.getTime()) {
+    $("#fechaInicioEditar").addClass("input-error");
+    $("#mensajeErrorFechaInicioEditar").text(
+      "La fecha de inicio no puede ser anterior a la fecha actual."
+    );
+    $("#mensajeErrorFechaInicioEditar").show();
+    esValido = false;
+  }
+  //existencia
+  if (!fechaFinalizacionStr) {
+    $("#fechaFinalizacionEditar").addClass("input-error");
+    $("#mensajeErrorFechaFinalizacionEditar").show();
+    esValido = false;
+  }
+  //validez
+  if (fechaFinalizacion.getTime() < FECHA_HOY.getTime()) {
+    $("#fechaFinalizacionEditar").addClass("input-error");
+    $("#mensajeErrorFechaFinalizacionEditar").text(
+      "La fecha de finalización no puede ser anterior a la fecha actual."
+    );
+    $("#mensajeErrorFechaFinalizacionEditar").show();
+    esValido = false;
+  }
+  //sentido entre si
+  if (fechaInicio.getTime() > fechaFinalizacion.getTime()) {
+    $("#fechaInicioEditar").addClass("input-error");
+    $("#mensajeErrorFechaInicioEditar").text(
+      "La fecha de inicio no puede ser posterior a la fecha de finalización."
+    );
+    $("#mensajeErrorFechaInicioEditar").show();
+  }
+
+  if (fechaFinalizacion.getTime() < fechaInicio.getTime()) {
+    $("#fechaFinalizacionEditar").addClass("input-error");
+    $("#mensajeErrorFechaFinalizacionEditar").text(
+      "La fecha de finalización no puede ser anterior a la fecha de inicio."
+    );
+    $("#mensajeErrorFechaFinalizacionEditar").show();
+    esValido = false;
+  }
+
+  return esValido;
+}
+
+function validarArchivosEditar() {
+  let esValido = true;
+  const archivos = [
+    {
+      input: "#adjuntoPautasEditar",
+      error: "#mensajeErrorAdjuntoPautasEditar",
+    },
+    {
+      input: "#adjuntoDisenioEditar",
+      error: "#mensajeErrorAdjuntoDisenioEditar",
+    },
+    {
+      input: "#basesyCondicionesEditar",
+      error: "#mensajeErrorBasesyCondicionesEditar",
+    },
+  ];
+
+  for (const { input, error } of archivos) {
+    const archivo = $(input)[0].files[0];
+    if (archivo && archivo.size > MAX_SIZE_BYTES) {
+      $(error).show();
+      esValido = false;
+      continue;
+    }
+    $(error).hide();
+  }
+
+  return esValido;
+}
+
+function validarCamposEditar() {
+  clearErrorsEditar();
+
+  let esValido = true;
+
+  const campos = [
+    {
+      id: "#nroNotaEditar",
+      error: "#mensajeErrorNroNotaEditar",
+      validar: (value) => value > 0 && value.length >= 3,
+    },
+    {
+      id: "#anioNotaEditar",
+      error: "#mensajeErrorAnioNotaEditar",
+      validar: (value) => value > 0,
+    },
+    {
+      id: "#nombreEventoEditar",
+      error: "#mensajeErrorNombreEventoEditar",
+      validar: (value) => value?.length <= 1000 || !value,
+    },
+    {
+      id: "#fechaReferenciaEventoEditar",
+      error: "#mensajeErrorFechaReferenciaEventoEditar",
+      validar: (value) => value?.length <= 500 || !value,
+    },
+  ];
+  for (const { id, error, validar } of campos) {
+    const value = $(id).val();
+    if (!validar(value)) {
+      $(id).addClass("input-error");
+      $(error).show();
+      esValido = false;
+    }
+  }
+  const validacionArchivos = validarArchivosEditar();
+  if (!validacionArchivos) {
+    esValido = false;
+  }
+
+  const validacionFechas = validarFechasEditar();
+  if (!validacionFechas) {
+    esValido = false;
+  }
+
+  return esValido;
+}
+
+$("#btn-guardar-nota-editar").on("click", function (e) {
+  e.preventDefault();
+  const isValid = validarCamposEditar();
+  if (!isValid) {
+    return;
+  }
+  $("#btn-guardar-nota-editar").prop("disabled", true).text("PROCESANDO...");
+  let formData = new FormData();
+  const data = {
+    nroNota: $("#nroNotaEditar").val(),
+    tipoNota: $("#tipoNotaEditar").val(),
+    anioNota: $("#anioNotaEditar").val(),
+    nombreEvento: $("#nombreEventoEditar").val(),
+    tipoEvento: $("#tipoEventoEditar").val(),
+    categoria: $("#categoriaEditar").val(),
+    fechaInicio: $("#fechaInicioEditar").val(),
+    fechaFinalizacion: $("#fechaFinalizacionEditar").val(),
+    fechaReferencia: $("#fechaReferenciaEditar").val(),
+  };
+  for (let campo in data) {
+    formData.append(campo, data[campo]);
+  }
+
+  if ($("#adjuntoPautas")[0].files.length > 0) {
+    formData.append("adjuntoPautas", $("#adjuntoPautas")[0].files[0]);
+  }
+  if ($("#adjuntoDisenio")[0].files.length > 0) {
+    formData.append("adjuntoDisenio", $("#adjuntoDisenio")[0].files[0]);
+  }
+  if ($("#basesyCondiciones")[0].files.length > 0) {
+    formData.append("basesyCondiciones", $("#basesyCondiciones")[0].files[0]);
+  }
+  if (JUEGOS_SELECCIONADOS.length > 0) {
+    JUEGOS_SELECCIONADOS.forEach((id) => {
+      formData.append("juegosSeleccionados[]", id);
+    });
+  }
+});

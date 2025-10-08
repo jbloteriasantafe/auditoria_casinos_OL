@@ -513,7 +513,7 @@
         </div>
     </div>
 
-    {{-- ! MODAL DE CARGA DE NOTAS --}}
+    {{-- ! MODAL DE EDICION DE NOTAS --}}
     <div class="modal fade" id="modalEditarNota" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -528,10 +528,18 @@
                         <form class="row" id="formularioEditarNota">
                             {{-- ! FORMADO DE NOTA --}}
                             <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="alert alert-info"
+                                        style="margin-bottom: 20px;  margin-top:20px; border-left: 4px solid #17a2b8; background-color: #d1ecf1; border-color: #bee5eb;">
+                                        <i class="fa fa-info-circle" style="margin-right: 8px; color: #0c5460;"></i>
+                                        <strong>Información importante:</strong> Para editar la información de las notas
+                                        rellene solo los campos que desea actualizar, no es necesario rellenar todo el
+                                        formulario.
+                                    </div>
+                                </div>
                                 {{-- ! NRO DE NOTA --}}
                                 <div class="col-lg-4">
-                                    <h5>Nro de nota <span class="asterisco text-muted text-danger"
-                                            title="Este campo es obligatorio">*</span></h5>
+                                    <h5>Nro de nota</h5>
                                     <input id="nroNotaEditar" class="form-control" type="number" required
                                         placeholder="Mínimo 3 dígitos (Por ejemplo: 001)" />
                                     <span class="error-message" id="mensajeErrorNroNotaEditar"
@@ -541,8 +549,7 @@
                                 </div>
                                 {{-- ! TIPO DE NOTA --}}
                                 <div class="col-lg-4">
-                                    <h5>Tipo de nota <span class="asterisco text-muted text-danger"
-                                            title="Este campo es obligatorio">*</span></h5>
+                                    <h5>Tipo de nota</h5>
                                     <select id="tipoNotaEditar" class="form-control" required>
                                         <option value="" selected disabled>-- Seleccione un tipo de nota --</option>
                                         @foreach ($tipos_nota as $tipo)
@@ -555,8 +562,7 @@
                                 </div>
                                 {{-- ! AÑO DE NOTA --}}
                                 <div class="col-lg-4">
-                                    <h5>Año de nota <span class="asterisco text-muted text-danger"
-                                            title="Este campo es obligatorio">*</span></h5>
+                                    <h5>Año de nota</h5>
                                     <input id="anioNotaEditar" class="form-control" type="number"
                                         value="{{ $anio }}" disabled required />
                                     <span class="error-message" style="display: none;"
@@ -566,8 +572,7 @@
                             </div>
                             {{-- ! NOMBRE DEL EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Nombre del evento <span class="asterisco text-muted text-danger"
-                                        title="Este campo es obligatorio">*</span></h5>
+                                <h5>Nombre del evento</h5>
                                 <input id="nombreEventoEditar" class="form-control" required maxlength="1000"
                                     placeholder="Ingrese el nombre del evento (Máximo: 1000 caracteres)" />
                                 <span class="error-message" style="display: none;"
@@ -576,8 +581,7 @@
                             </div>
                             {{-- ! TIPO EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Tipo evento <span class="asterisco text-muted text-danger"
-                                        title="Este campo es obligatorio">*</span></h5>
+                                <h5>Tipo evento</h5>
                                 <select id="tipoEventoEditar" class="form-control" required>
                                     <option value="" selected disabled>-- Seleccione un tipo de evento --</option>
                                     @foreach ($tipos_evento as $tipo)
@@ -589,8 +593,7 @@
                             </div>
                             {{-- ! CATEGORIA --}}
                             <div class="col-lg-12">
-                                <h5>Categoría <span class="asterisco text-muted text-danger"
-                                        title="Este campo es obligatorio">*</span></h5>
+                                <h5>Categoría</h5>
                                 <select id="categoriaEditar" name="categoria" class="form-control" required>
                                     <option value="" selected disabled>-- Seleccione una categoría --</option>
                                     @foreach ($categorias as $categoria)
@@ -659,8 +662,16 @@
                             </div>
                             {{-- ! FECHA INICIO EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Fecha inicio evento <span class="asterisco text-muted text-danger"
-                                        title="Este campo es obligatorio">*</span></h5>
+                                <div class="alert alert-info"
+                                    style="margin-bottom: 20px;  margin-top:20px; border-left: 4px solid #17a2b8; background-color: #d1ecf1; border-color: #bee5eb;">
+                                    <i class="fa fa-info-circle" style="margin-right: 8px; color: #0c5460;"></i>
+                                    <strong>Información importante:</strong> Si quiere modificar las fechas del evento debe
+                                    seleccionar una nueva fecha de inicio y de fin. Si selecciona solo una, el cambio no se
+                                    efectuará.
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <h5>Fecha inicio evento</h5>
                                 <input id="fechaInicioEditar" class="form-control" type="date" required />
                                 <span class="error-message" style="display: none;"
                                     id="mensajeErrorFechaInicioEditar">Este
@@ -668,8 +679,7 @@
                             </div>
                             {{-- !FECHA FINALIZACION EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Fecha finalización evento <span class="asterisco text-muted text-danger"
-                                        title="Este campo es obligatorio">*</span></h5>
+                                <h5>Fecha finalización evento</h5>
                                 <input id="fechaFinalizacionEditar" class="form-control" type="date" required />
                                 <span class="error-message" style="display: none;"
                                     id="mensajeErrorFechaFinalizacionEditar">Este

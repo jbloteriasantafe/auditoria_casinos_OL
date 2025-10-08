@@ -322,46 +322,6 @@ class NotasCasinoController extends Controller
         }
     }
 
-    public function buscarNotaById ($id){
-        $validator = Validator::make(
-            ['id' => $id],
-            ['id' => 'required|integer']
-        );
-        if($validator->fails()){
-            Log::info($validator->errors());
-            return response()->json(['success' => false, 'error' => $validator->errors()],400);
-        }
-        try {
-            $nota = DB::connection('gestion_notas_mysql')
-                ->table('eventos')
-                ->where('idevento', $id)
-                ->select(
-                    'idevento',
-                    'nronota_ev',
-                    'evento',
-                    'tipo_evento',
-                    'idcategoria',
-                    'adjunto_pautas',
-                    'adjunto_diseño',
-                    'adjunto_basesycond',
-                    'fecha_evento',
-                    'fecha_finalizacion',
-                    'fecha_referencia_evento'
-                )
-                ->first();
-
-            if (!$nota) {
-                return response()->json(['success' => false, 'error' => 'Nota no encontrada'], 404);
-            }
-
-            return response()->json(['success' => true, 'data' => $nota], 200);
-        } catch (Exception $th) {
-            Log::error($th);
-            return response()->json(['success' => false, 'error' => $th->getMessage()],500);
-        }
-
-    }
-
     public function descargarArchivo ($id, $tipo){
          try {
             $idReal = Crypt::decryptString($id);
