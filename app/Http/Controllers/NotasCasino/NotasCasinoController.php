@@ -394,7 +394,7 @@ class NotasCasinoController extends Controller
         }
     }
 
-    public function juegosSeleccionados(){
+    public function juegosSeleccionadosById($id){
         //simulacion juegos seleccionados
         $juegosSeleccionados = [
             ['id_juego' => 1, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 1],

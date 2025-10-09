@@ -106,7 +106,21 @@
             position: relative;
         }
 
+        #select-juegos-editar {
+            position: relative;
+        }
+
         .lista-juegos {
+            padding: 10px;
+            position: absolute;
+            width: 95%;
+            border: 1px solid #ccc;
+            background: white;
+            z-index: 10;
+            border-radius: 5px;
+        }
+
+        .lista-juegos-editar {
             padding: 10px;
             position: absolute;
             width: 95%;
@@ -134,6 +148,13 @@
             margin-top: 5px;
         }
 
+        .resultados-busqueda-editar {
+            height: 300px;
+            max-height: 350px;
+            overflow-y: auto;
+            margin-top: 5px;
+        }
+
         .nombre-juego {
             font-size: 1.2rem;
             font-weight: bold;
@@ -144,7 +165,16 @@
             border-bottom: 1px solid #eee;
         }
 
+        .list-item-editar {
+            padding: 5px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
         .list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .list-item-editar:hover {
             background-color: #f0f0f0;
         }
 
@@ -153,7 +183,16 @@
             border-bottom: 1px solid #eee;
         }
 
+        .list-selected-item-editar {
+            padding: 5px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
         .list-selected-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .list-selected-item-editar:hover {
             background-color: #f0f0f0;
         }
 
@@ -162,7 +201,16 @@
             overflow-y: auto;
         }
 
+        .lista-juegos-seleccionados-editar {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
         .btn-remove-juego {
+            display: inline-block !important;
+        }
+
+        .btn-remove-juego-editar {
             display: inline-block !important;
         }
     </style>
@@ -534,7 +582,10 @@
                                         <i class="fa fa-info-circle" style="margin-right: 8px; color: #0c5460;"></i>
                                         <strong>Información importante:</strong> Para editar la información de las notas
                                         rellene solo los campos que desea actualizar, no es necesario rellenar todo el
-                                        formulario.
+                                        formulario. <br>
+                                        Si quiere modificar el número de nota debe completar los campos <strong>NRO DE NOTA
+                                            y TIPO
+                                            DE NOTA</strong>, de otra forma el cambio no se efectuará.
                                     </div>
                                 </div>
                                 {{-- ! NRO DE NOTA --}}
@@ -544,7 +595,7 @@
                                         placeholder="Mínimo 3 dígitos (Por ejemplo: 001)" />
                                     <span class="error-message" id="mensajeErrorNroNotaEditar"
                                         style="display: none;">Este
-                                        campo es obligatorio y debe
+                                        campo debe
                                         tener como mínimo 3 dígitos</span>
                                 </div>
                                 {{-- ! TIPO DE NOTA --}}
@@ -558,7 +609,7 @@
                                     </select>
                                     <span class="error-message" style="display: none;"
                                         id="mensajeErrorTipoNotaEditar">Este
-                                        campo es obligatorio</span>
+                                        campo es obligatorio si quiere cambiar el NRO DE NOTA</span>
                                 </div>
                                 {{-- ! AÑO DE NOTA --}}
                                 <div class="col-lg-4">
@@ -569,6 +620,12 @@
                                         id="mensajeErrorAnioNotaEditar">Este
                                         campo es obligatorio</span>
                                 </div>
+                                <div class="col-lg-12"><span class="error-message" id="mensajeErrorModificarNroNota"
+                                        style="display: none;">Si
+                                        quiere modificar el
+                                        número de nota debe completar los campos <strong>NRO DE NOTA
+                                            y TIPO
+                                            DE NOTA</strong>, de otra forma el cambio no se efectuará.</span></div>
                             </div>
                             {{-- ! NOMBRE DEL EVENTO --}}
                             <div class="col-lg-12">
@@ -577,7 +634,7 @@
                                     placeholder="Ingrese el nombre del evento (Máximo: 1000 caracteres)" />
                                 <span class="error-message" style="display: none;"
                                     id="mensajeErrorNombreEventoEditar">Este
-                                    campo es obligatorio</span>
+                                    campo puede tener como máximo 1000 caracteres</span>
                             </div>
                             {{-- ! TIPO EVENTO --}}
                             <div class="col-lg-12">
@@ -588,8 +645,6 @@
                                         <option value="{{ $tipo->idtipoevento }}">{{ $tipo->tipo_nombre }}</option>
                                     @endforeach
                                 </select>
-                                <span class="error-message" style="display: none;" id="mensajeErrorTipoEventoEditar">Este
-                                    campo es obligatorio</span>
                             </div>
                             {{-- ! CATEGORIA --}}
                             <div class="col-lg-12">
@@ -601,8 +656,6 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <span class="error-message" style="display: none;" id="mensajeErrorCategoriaEditar">Este
-                                    campo es obligatorio</span>
                             </div>
                             {{-- ! ADJUNTO NOTAS, TODO LO QUE DICE PAUTAS EN TODO EL CODIGO ES DE LAS NOTAS --}}
                             <div class="col-lg-12">
@@ -674,16 +727,14 @@
                                 <h5>Fecha inicio evento</h5>
                                 <input id="fechaInicioEditar" class="form-control" type="date" required />
                                 <span class="error-message" style="display: none;"
-                                    id="mensajeErrorFechaInicioEditar">Este
-                                    campo es obligatorio</span>
+                                    id="mensajeErrorFechaInicioEditar"></span>
                             </div>
                             {{-- !FECHA FINALIZACION EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha finalización evento</h5>
                                 <input id="fechaFinalizacionEditar" class="form-control" type="date" required />
                                 <span class="error-message" style="display: none;"
-                                    id="mensajeErrorFechaFinalizacionEditar">Este
-                                    campo es obligatorio</span>
+                                    id="mensajeErrorFechaFinalizacionEditar"></span>
                             </div>
                             {{-- ! FECHA REFERENCIA EVENTO --}}
                             <div class="col-lg-12">
@@ -700,31 +751,23 @@
                                     <div class="icon-button">
                                         <i class="fa fa-angle-down icon"></i>
                                     </div>
-                                    <div class="lista-juegos" style="display: none;">
+                                    <div class="lista-juegos-editar" style="display: none;">
                                         <input id="buscador-juegos-editar" type="text" class="form-control"
                                             placeholder="Buscar juego..." />
-                                        <div class="resultados-busqueda">
-                                            @foreach ($juegos as $juego)
-                                                <div class="list-item" data-id="{{ $juego->id_juego }}">
-                                                    <p class="nombre-juego">{{ $juego->nombre_juego }}</p>
-                                                    <div>
-                                                        <small>ID: <b>{{ $juego->cod_juego }}</b></small> |
-                                                        <small>Porcentaje de devolución:
-                                                            <b>{{ $juego->porcentaje_devolucion }}%</b></small> |
-                                                        <small>Movil: <b>{{ $juego->movil }}</b></small> |
-                                                        <small>Escritorio: <b>{{ $juego->escritorio }}</b></small>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                        <div class="resultados-busqueda-editar">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-lg-12">
                                 <h5>JUEGOS SELECCIONADOS</h5>
-                                <div class="lista-juegos-seleccionados">
+                                <div class="lista-juegos-seleccionados-editar">
                                     <!-- Aquí se agregarán los juegos seleccionados -->
                                 </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <span class="error-message" style="display: none;" id="mensajeErrorFormVacio">El
+                                    formulario está vacío</span>
                             </div>
                         </form>
                     </div>

@@ -1,6 +1,6 @@
-//TODO: Agregar al clearErrors el clear del mensaje de error cuando los archivos son muy grandes.
 //seteo nombre de la seccion y traigo notas
 const JUEGOS_SELECCIONADOS = [];
+const JUEGOS_SELECCIONADOS_EDITAR = [];
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Expedientes");
@@ -12,7 +12,9 @@ const hoy = new Date().toISOString().split("T")[0];
 const FECHA_HOY = new Date(hoy);
 FECHA_HOY.setHours(0, 0, 0, 0);
 $("#fechaInicio").attr("min", hoy);
+$("#fechaInicioEditar").attr("min", hoy);
 $("#fechaFinalizacion").attr("min", hoy);
+$("#fechaFinalizacionEditar").attr("min", hoy);
 
 //!FUNCIONES AUXILIARES
 function colorBoton(boton) {
@@ -122,11 +124,35 @@ function clearErrorsEditar() {
       id: "#fechaReferenciaEditar",
       error: "#mensajeErrorFechaReferenciaEditar",
     },
+    {
+      id: "#nroNotaEditar",
+      error: "#mensajeErrorModificarNroNota",
+    },
+    {
+      id: null,
+      error: "#mensajeErrorFormVacio",
+    },
+    {
+      id: null,
+      error: "#mensajeErrorAdjuntoPautasEditar",
+    },
+    {
+      id: null,
+      error: "#mensajeErrorAdjuntoDisenioEditar",
+    },
+    {
+      id: null,
+      error: "#mensajeErrorBasesyCondicionesEditar",
+    },
   ];
 
   for (const { id, error } of campos) {
-    $(id).removeClass("input-error");
-    $(error).hide();
+    if (id !== null) {
+      $(id).removeClass("input-error");
+    }
+    if (error !== null) {
+      $(error).hide();
+    }
   }
 }
 
@@ -168,11 +194,27 @@ function clearErrors() {
       id: "#fechaReferencia",
       error: "#mensajeErrorFechaReferencia",
     },
+    {
+      id: null,
+      error: "#mensajeErrorAdjuntoPautas",
+    },
+    {
+      id: null,
+      error: "#mensajeErrorAdjuntoDisenio",
+    },
+    {
+      id: null,
+      error: "#mensajeErrorBasesyCondiciones",
+    },
   ];
 
   for (const { id, error } of campos) {
-    $(id).removeClass("input-error");
-    $(error).hide();
+    if (id !== null) {
+      $(id).removeClass("input-error");
+    }
+    if (error !== null) {
+      $(error).hide();
+    }
   }
 }
 
@@ -951,6 +993,22 @@ function abrirModalEditar(idNota) {
   colorBoton("#btn-guardar-nota-editar");
   $("#modalEditarNota").modal("show");
   currentIdNota = idNota;
+
+  $.ajax({
+    type: "GET",
+    url: `cargar-notas/juegosSeleccionados/${currentIdNota}`,
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    success: function (response) {
+      const { success, juegosSeleccionados } = response;
+      if (success) {
+        generarListaJuegosSeleccionadosEditar(juegosSeleccionados);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al buscar juegos:", error);
+    },
+  });
+  buscarJuegosEditar("");
 }
 $("#modalEditarNota").on("hidden.bs.modal", function () {
   clearInputsEditar();
@@ -1197,6 +1255,19 @@ function validarArchivosEditar() {
 
   return esValido;
 }
+function nroNotaEsValido() {
+  let esValido = true;
+  if (
+    (!$("#nroNotaEditar").val() && $("#tipoNotaEditar").val()) ||
+    ($("#nroNotaEditar").val() && !$("#tipoNotaEditar").val())
+  ) {
+    $("#nroNotaEditar").addClass("input-error");
+    $("#tipoNotaEditar").addClass("input-error");
+    $("#mensajeErrorModificarNroNota").show();
+    esValido = false;
+  }
+  return esValido;
+}
 
 function validarCamposEditar() {
   clearErrorsEditar();
@@ -1207,7 +1278,7 @@ function validarCamposEditar() {
     {
       id: "#nroNotaEditar",
       error: "#mensajeErrorNroNotaEditar",
-      validar: (value) => value > 0 && value.length >= 3,
+      validar: (value) => value?.length >= 3 || !value,
     },
     {
       id: "#anioNotaEditar",
@@ -1242,12 +1313,134 @@ function validarCamposEditar() {
   if (!validacionFechas) {
     esValido = false;
   }
+  //valido que si quiere cambiar el numero de nota tenga que poner el tipo
+  const nroNotaValido = nroNotaEsValido();
+  if (!nroNotaValido) {
+    esValido = false;
+  }
 
   return esValido;
 }
 
+//agregar un mensaje de formulario vacio
+function formularioEditarVacio() {
+  let vacio = true;
+  const campos = [
+    "#nroNotaEditar",
+    "#tipoNotaEditar",
+    "#nombreEventoEditar",
+    "#tipoEventoEditar",
+    "#categoriaEditar",
+    "#adjuntoPautasEditar",
+    "#adjuntoDisenioEditar",
+    "#basesyCondicionesEditar",
+    "#fechaInicioEditar",
+    "#fechaFinalizacionEditar",
+    "#fechaReferenciaEditar",
+    /* "faltaria agregar juegos editar" */
+  ];
+
+  for (const campo of campos) {
+    if ($(campo).val()) {
+      vacio = false;
+      break;
+    }
+  }
+  return vacio;
+}
+
+//!gestion de juegos para editar nota
+
+//falta manejar todos los eventos de seleccion y eliminarcion, y del input dentro del select
+
+$("#select-juegos-editar").on("click", function () {
+  let $lista = $(this).find(".lista-juegos-editar");
+  let offset = $(this).offset();
+  let windowHeight = $(window).height();
+  let scrollTop = $(window).scrollTop();
+
+  let espacioAbajo =
+    windowHeight - (offset.top - scrollTop + $(this).outerHeight());
+
+  // Si hay más espacio abajo → abre hacia abajo
+  if (espacioAbajo > 300) {
+    $lista.removeClass("abrir-arriba").addClass("abrir-abajo").slideToggle(200);
+  } else {
+    // Si hay más espacio arriba → abre hacia arriba
+    $lista.removeClass("abrir-abajo").addClass("abrir-arriba").slideToggle(200);
+  }
+});
+
+function buscarJuegosEditar(query) {
+  $.ajax({
+    type: "GET",
+    url: "cargar-notas/juegos/buscar",
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    data: { query },
+    success: function (response) {
+      const { success, juegos } = response;
+      if (success) {
+        generarListaJuegosEditar(juegos);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al buscar juegos:", error);
+    },
+  });
+}
+
+function generarListaJuegosEditar(juegos) {
+  $(".resultados-busqueda-editar").empty();
+  juegos.forEach(function (juego) {
+    if (JUEGOS_SELECCIONADOS_EDITAR.includes(juego.id_juego)) {
+      return;
+    }
+
+    $(".resultados-busqueda-editar").append(
+      `<div class="list-item-editar" data-id="${juego.id_juego}">
+          <p class="nombre-juego"> ${juego.nombre_juego}</p>
+          <div>
+            <small>ID: <b>${juego.cod_juego}</b></small> |
+            <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
+            <small>Movil: <b>${juego.movil}</b></small> |
+            <small>Escritorio: <b>${juego.escritorio}</b></small>
+          </div>
+        </div>`
+    );
+  });
+}
+
+function generarListaJuegosSeleccionadosEditar(juegos) {
+  $(".lista-juegos-seleccionados-editar").empty();
+  juegos.forEach(function (juego) {
+    JUEGOS_SELECCIONADOS_EDITAR.push(juego.id_juego);
+    $(".lista-juegos-seleccionados-editar").append(`
+      <div class="list-selected-item-editar d-flex">
+        <div>
+          <p class="nombre-juego">${juego.nombre_juego}</p>
+          <div>
+            <small>ID: <b>${juego.cod_juego}</b></small> |
+            <small>Porcentaje de devolución: <b>${juego.porcentaje_devolucion}%</b></small> |
+            <small>Movil: <b>${juego.movil}</b></small> |
+            <small>Escritorio: <b>${juego.escritorio}</b></small>
+          </div>
+        </div>
+        <button type="button" class="btn btn-danger btn-sm btn-remove-juego-editar"
+          data-id="${juego.id_juego}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `);
+  });
+}
+
 $("#btn-guardar-nota-editar").on("click", function (e) {
   e.preventDefault();
+  const vacio = formularioEditarVacio();
+  if (vacio) {
+    return;
+  }
+
   const isValid = validarCamposEditar();
   if (!isValid) {
     return;
