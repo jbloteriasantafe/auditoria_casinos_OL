@@ -136,6 +136,7 @@ Route::group(['prefix' => 'cargar-notas','middleware' => 'tiene_permiso:ver_carg
   Route::get('/','NotasCasino\NotasCasinoController@index');
   Route::get('/notas/archivo/{id}/{tipo}', 'NotasCasino\NotasCasinoController@descargarArchivo');
   Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
+  Route::post('/modificar', 'NotasCasino\NotasCasinoController@modificarNota');
   Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
   Route::get('/juegosSeleccionados/{id}','NotasCasino\NotasCasinoController@juegosSeleccionadosById');
   Route::get('/juegos/buscar', 'NotasCasino\NotasCasinoController@buscarJuegos');

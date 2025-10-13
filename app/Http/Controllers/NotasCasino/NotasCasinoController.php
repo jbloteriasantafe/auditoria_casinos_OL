@@ -241,6 +241,64 @@ class NotasCasinoController extends Controller
         }
     }
 
+    public function modificarNota(Request $request){
+        $validator = Validator::make($request->all(),[
+            'idNota' => 'required|integer',
+            'nroNota' => 'nullable|integer',
+            'tipoNota' => 'nullable|integer',
+            'anioNota' => 'nullable|integer',
+            'nombreEvento' => 'nullable|string|max:1000',
+            'tipoEvento' => 'nullable|integer',
+            'categoria' => 'nullable|integer',
+            'adjuntoPautas' => 'nullable|file|mimes:pdf,zip|max:153600',
+            'adjuntoDisenio' => 'nullable|file|mimes:pdf,zip|max:153600',
+            'basesyCondiciones' => 'nullable|file|mimes:pdf,zip,doc,docx|max:153600',
+            'fechaInicio' => 'nullable|date',
+            'fechaFinalizacion' => 'nullable|date',
+            'fechaReferencia' => 'nullable|string|max:500',
+            'juegosSeleccionados' => 'nullable|array|min:1',
+            'juegosSeleccionados.*' => 'integer',
+        ]);
+        if($validator->fails()) {
+            Log::error('Validación fallida', $validator->errors()->toArray());
+            return response()->json($validator->errors(), 422);
+        }
+
+        $idNota = $request->input('idNota');
+        $nroNota = $request->input('nroNota');
+        $tipoNota = $request->input('tipoNota');
+        $anioNota = $request->input('anioNota');
+        $nombreEvento = $request->input('nombreEvento');
+        $tipoEvento = $request->input('tipoEvento');
+        $categoria = $request->input('categoria');
+        $adjuntoPautas = $request->file('adjuntoPautas');
+        $adjuntoDisenio = $request->file('adjuntoDisenio');
+        $basesyCondiciones = $request->file('basesyCondiciones');
+        $fechaInicio = $request->input('fechaInicio');
+        $fechaFinalizacion = $request->input('fechaFinalizacion');
+        $fechaReferencia = $request->input('fechaReferencia');
+        $juegosSeleccionados = $request->input('juegosSeleccionados');
+
+        $nota = null;
+        if($nroNota && $tipoNota && $anioNota){
+            $resto = $anioNota % 1000;
+        
+            $formatos = [
+                1 => "{$nroNota}-{$resto}",
+                2 => "{$nroNota}-{$resto} Bis",
+                3 => "MKT-{$nroNota}-{$resto}",
+                4 => "PK-{$nroNota}-{$resto}"
+            ];
+
+            if (isset($formatos[$tipoNota])) {
+                $nota = $formatos[$tipoNota];
+            } else {
+                $nota = null;
+            }
+        }
+        
+    }
+
     public function paginarNotas (Request $request){
         //me faltaria agregar los filtros para el order by
         $validator = Validator::make($request->all(),[
@@ -395,18 +453,30 @@ class NotasCasinoController extends Controller
     }
 
     public function juegosSeleccionadosById($id){
-        //simulacion juegos seleccionados
-        $juegosSeleccionados = [
-            ['id_juego' => 1, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 1],
-            ['id_juego' => 2, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 2],
-            ['id_juego' => 3, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 3],
-            ['id_juego' => 4, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 4],
-            ['id_juego' => 1, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 1],
-            ['id_juego' => 2, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 2],
-            ['id_juego' => 3, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true, 'cod_juego' => 3],
-            ['id_juego' => 4, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false, 'cod_juego' => 4],
-        ];
-        return response()->json(['success' => true, 'juegosSeleccionados' => $juegosSeleccionados]);
+        $validator = Validator::make([
+            'id' => $id
+        ], [
+            'id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $juegosSeleccionados = DB::connection('gestion_notas_mysql')
+                ->table('eventos')
+                ->join('juegos_nota', 'eventos.idevento', '=', 'juegos_nota.idnota')
+                ->join('juego', 'juegos_nota.id_juego', '=', 'juego.id_juego')
+                ->where('eventos.idevento', $id)
+                ->select('juego.id_juego', 'juego.nombre_juego','juego.porcentaje_devolucion','juego.movil','juego.escritorio','juego.cod_juego')
+                ->get();
+
+            return response()->json(['success' => true, 'juegosSeleccionados' => $juegosSeleccionados]);
+        } catch (Exception $e) {
+            Log::error("Error al obtener juegos seleccionados: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al obtener juegos seleccionados'], 500);
+        }
     }
 
     public function buscarJuegos(Request $request){

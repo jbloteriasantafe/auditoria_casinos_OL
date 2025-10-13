@@ -79,10 +79,9 @@ function clearInputsEditar() {
     $(idSpan).text(defaultText);
     $(idButton).hide();
   }
-  //despues analizo esto
-  /*   JUEGOS_SELECCIONADOS.splice(0, JUEGOS_SELECCIONADOS.length);
-  $(".lista-juegos-seleccionados").empty();
-  buscarJuegos(""); */
+  JUEGOS_SELECCIONADOS_EDITAR.splice(0, JUEGOS_SELECCIONADOS_EDITAR.length);
+  $(".lista-juegos-seleccionados-editar").empty();
+  buscarJuegosEditar("");
 }
 
 //limpia los errores de editar
@@ -751,7 +750,7 @@ $("#btn-guardar-nota").on("click", function (e) {
           $("#mensajeExito").fadeIn();
         }, 100);
 
-        $("#btn-guardar-nota").prop("disabled", false).text("ACEPTAR");
+        $("#btn-guardar-nota").prop("disabled", false).text("Subir Nota");
 
         clearInputs();
         clearErrors();
@@ -759,7 +758,7 @@ $("#btn-guardar-nota").on("click", function (e) {
       }
     },
     error: function (error) {
-      $("#btn-guardar-nota").prop("disabled", false).text("ACEPTAR");
+      $("#btn-guardar-nota").prop("disabled", false).text("Subir Nota");
 
       $("#mensajeError .textoMensaje").empty();
       $("#mensajeError .textoMensaje").append(
@@ -986,6 +985,7 @@ $(".resultados-busqueda").on("click", ".list-item", function () {
 });
 
 //! EDICION DE NOTAS
+//! ARREGLAR EL ENDPOINT DE JUEGOS SELECCIONADOS
 let currentIdNota = null;
 function abrirModalEditar(idNota) {
   clearInputsEditar();
@@ -1351,8 +1351,6 @@ function formularioEditarVacio() {
 
 //!gestion de juegos para editar nota
 
-//falta manejar todos los eventos de seleccion y eliminarcion, y del input dentro del select
-
 $("#select-juegos-editar").on("click", function () {
   let $lista = $(this).find(".lista-juegos-editar");
   let offset = $(this).offset();
@@ -1371,7 +1369,7 @@ $("#select-juegos-editar").on("click", function () {
   }
 });
 
-function buscarJuegosEditar(query) {
+async function buscarJuegosEditar(query) {
   $.ajax({
     type: "GET",
     url: "cargar-notas/juegos/buscar",
@@ -1433,7 +1431,102 @@ function generarListaJuegosSeleccionadosEditar(juegos) {
     `);
   });
 }
+function agregarJuegoEditar(juego) {
+  if (JUEGOS_SELECCIONADOS_EDITAR.includes(juego.id_juego)) {
+    return;
+  }
+  JUEGOS_SELECCIONADOS_EDITAR.push(juego.id_juego);
+  $(".lista-juegos-seleccionados-editar").append(`
+              <div class="list-selected-item-editar d-flex">
+                <div>
+                  <p class="nombre-juego"> ${juego.nombre_juego}</p>
+                  <div>
+                    <small>ID: <b>${juego.cod_juego}</b></small> |
+                    <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
+                    <small>Movil: <b>${juego.movil}</b></small> |
+                    <small>Escritorio: <b>${juego.escritorio}</b></small>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm btn-remove-juego-editar"
+                  data-id="${juego.id_juego}">
+                    <i class="fas fa-trash"></i>
+                </button>
+              </div>
+  `);
+}
 
+function obtenerJuegoPorIdEditar(idJuego) {
+  $.ajax({
+    type: "GET",
+    url: `cargar-notas/juegos/buscar/${idJuego}`,
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    success: function (response) {
+      const { success, juego } = response;
+      if (success) {
+        agregarJuegoEditar(juego);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al obtener juego:", error);
+    },
+  });
+}
+
+$(".lista-juegos-seleccionados-editar").on(
+  "click",
+  ".btn-remove-juego-editar",
+  function () {
+    const idJuego = $(this).data("id");
+    $(this).closest(".list-selected-item-editar").remove();
+
+    let index = JUEGOS_SELECCIONADOS_EDITAR.indexOf(idJuego);
+    if (index !== -1) {
+      JUEGOS_SELECCIONADOS_EDITAR.splice(index, 1);
+    }
+    buscarJuegosEditar("");
+  }
+);
+
+$(".resultados-busqueda-editar").on("click", ".list-item-editar", function () {
+  let idJuego = $(this).data("id");
+  obtenerJuegoPorIdEditar(idJuego);
+  buscarJuegosEditar("");
+});
+
+let currentTimeOutEditar = null;
+async function bounceEditar() {
+  if (!currentTimeOutEditar) {
+    currentTimeOutEditar = setTimeout(async () => {
+      await buscarJuegosEditar($("#buscador-juegos-editar").val());
+      currentTimeOutEditar = null;
+    }, TIME_INTERVAL);
+    return;
+  }
+  if (currentTimeOutEditar) {
+    clearTimeout(currentTimeOutEditar);
+    currentTimeOutEditar = setTimeout(async () => {
+      await buscarJuegosEditar($("#buscador-juegos-editar").val());
+      currentTimeOutEditar = null;
+    }, TIME_INTERVAL);
+    return;
+  }
+}
+
+$("#buscador-juegos-editar").on("click", function (e) {
+  e.stopPropagation();
+});
+
+$("#buscador-juegos-editar").on("input", function () {
+  bounceEditar();
+});
+
+$("#buscador-juegos-editar").on("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+  }
+});
+
+//! terminar posteo del edit
 $("#btn-guardar-nota-editar").on("click", function (e) {
   e.preventDefault();
   const vacio = formularioEditarVacio();
@@ -1448,6 +1541,7 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
   $("#btn-guardar-nota-editar").prop("disabled", true).text("PROCESANDO...");
   let formData = new FormData();
   const data = {
+    idNota: currentIdNota,
     nroNota: $("#nroNotaEditar").val(),
     tipoNota: $("#tipoNotaEditar").val(),
     anioNota: $("#anioNotaEditar").val(),
@@ -1459,7 +1553,13 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
     fechaReferencia: $("#fechaReferenciaEditar").val(),
   };
   for (let campo in data) {
-    formData.append(campo, data[campo]);
+    if (
+      data[campo] !== null &&
+      data[campo] !== undefined &&
+      data[campo] !== ""
+    ) {
+      formData.append(campo, data[campo]);
+    }
   }
 
   if ($("#adjuntoPautas")[0].files.length > 0) {
@@ -1471,9 +1571,54 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
   if ($("#basesyCondiciones")[0].files.length > 0) {
     formData.append("basesyCondiciones", $("#basesyCondiciones")[0].files[0]);
   }
-  if (JUEGOS_SELECCIONADOS.length > 0) {
-    JUEGOS_SELECCIONADOS.forEach((id) => {
+  if (JUEGOS_SELECCIONADOS_EDITAR.length > 0) {
+    JUEGOS_SELECCIONADOS_EDITAR.forEach((id) => {
       formData.append("juegosSeleccionados[]", id);
     });
   }
+
+  $.ajax({
+    url: "cargar-notas/modificar",
+    type: "POST",
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    success: function (response) {
+      if (response.success) {
+        $("#mensajeExito h3").text("ÉXITO DE EDICIÓN");
+        $("#mensajeExito p").text("La nota se editó correctamente");
+        $("#modalSubirNota").modal("hide");
+
+        $("#mensajeExito").hide();
+        $("#mensajeExito").removeAttr("hidden");
+
+        setTimeout(function () {
+          $("#mensajeExito").fadeIn();
+        }, 100);
+
+        $("#btn-guardar-nota-editar")
+          .prop("disabled", false)
+          .text("Editar Nota");
+
+        clearInputsEditar();
+        clearErrorsEditar();
+        cargarNotas();
+      }
+    },
+    error: function (error) {
+      $("#btn-guardar-nota-editar").prop("disabled", false).text("Editar Nota");
+
+      $("#mensajeError .textoMensaje").empty();
+      $("#mensajeError .textoMensaje").append(
+        $("<h3></h3>").text(
+          "Ocurrio un error al guardar la nota, por favor intenta nuevamente."
+        )
+      );
+      $("#mensajeError").hide();
+      setTimeout(function () {
+        $("#mensajeError").show();
+      }, 250);
+    },
+  });
 });
