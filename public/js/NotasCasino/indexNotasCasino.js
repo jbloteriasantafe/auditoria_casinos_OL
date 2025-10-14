@@ -288,10 +288,9 @@ function generarFilaTabla(nota) {
     .attr("title", nota.notas_relacionadas || "No hay información disponible");
 
   if (
-    true
-    /*     !nota.adjunto_inf_tecnico &&
+    !nota.adjunto_inf_tecnico &&
     (nota.estado === ESTADOS.controlIniciado ||
-      nota.estado === ESTADOS.cargaInicial) */
+      nota.estado === ESTADOS.cargaInicial)
   ) {
     fila.find(".acciones").html(`
       <button class="btn btn-sm btn-success btn-editar-nota" data-id="${nota.idevento}" title="Editar nota">
@@ -1346,6 +1345,9 @@ function formularioEditarVacio() {
       break;
     }
   }
+  if (JUEGOS_SELECCIONADOS_EDITAR.length > 0) {
+    vacio = false;
+  }
   return vacio;
 }
 
@@ -1533,7 +1535,6 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
   if (vacio) {
     return;
   }
-
   const isValid = validarCamposEditar();
   if (!isValid) {
     return;
@@ -1584,6 +1585,7 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
     dataType: "json",
     processData: false,
     contentType: false,
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
     success: function (response) {
       if (response.success) {
         $("#mensajeExito h3").text("ÉXITO DE EDICIÓN");
@@ -1601,6 +1603,7 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
           .prop("disabled", false)
           .text("Editar Nota");
 
+        $("#modalEditarNota").modal("hide");
         clearInputsEditar();
         clearErrorsEditar();
         cargarNotas();

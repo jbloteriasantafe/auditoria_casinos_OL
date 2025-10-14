@@ -144,14 +144,11 @@ class NotasCasinoController extends Controller
 
         $responsable = null;
         switch($origen){
-            case 1://CSF
-                $responsable = 28;//santa fe
+            case 4://CCOL
+                $responsable = 27;//rosario
                 break;
-            case 2://CME
-                $responsable = 29; //melincue
-                break;
-            case 3://CRO
-                $responsable = 27; //rosario
+            case 5://BPLAY
+                $responsable = 28; //santa fe
                 break;
             default:
                 $responsable = 4; //usuario de Mecha
@@ -271,13 +268,30 @@ class NotasCasinoController extends Controller
         $nombreEvento = $request->input('nombreEvento');
         $tipoEvento = $request->input('tipoEvento');
         $categoria = $request->input('categoria');
-        $adjuntoPautas = $request->file('adjuntoPautas');
-        $adjuntoDisenio = $request->file('adjuntoDisenio');
-        $basesyCondiciones = $request->file('basesyCondiciones');
         $fechaInicio = $request->input('fechaInicio');
         $fechaFinalizacion = $request->input('fechaFinalizacion');
         $fechaReferencia = $request->input('fechaReferencia');
         $juegosSeleccionados = $request->input('juegosSeleccionados');
+
+        if (
+            is_null($idNota) &&
+            is_null($nroNota) &&
+            is_null($tipoNota) &&
+            is_null($anioNota) &&
+            is_null($nombreEvento) &&
+            is_null($tipoEvento) &&
+            is_null($categoria) &&
+            !$request->hasFile('adjuntoPautas') &&
+            !$request->hasFile('adjuntoDisenio') &&
+            !$request->hasFile('basesyCondiciones') &&
+            is_null($fechaInicio) &&
+            is_null($fechaFinalizacion) &&
+            is_null($fechaReferencia) &&
+            is_null($juegosSeleccionados)
+            ) {
+            Log::error("No hay datos para actualizar");
+            return response()->json(['success' => false, 'message' => 'No hay datos para actualizar'], 400);
+        }
 
         $nota = null;
         if($nroNota && $tipoNota && $anioNota){
@@ -289,14 +303,110 @@ class NotasCasinoController extends Controller
                 3 => "MKT-{$nroNota}-{$resto}",
                 4 => "PK-{$nroNota}-{$resto}"
             ];
+            $nota = $formatos[$tipoNota] ?? null;
+        }
 
-            if (isset($formatos[$tipoNota])) {
-                $nota = $formatos[$tipoNota];
-            } else {
-                $nota = null;
+        $camposUpdate = [];
+        if (!is_null($nota)) $camposUpdate['nronota_ev'] = $nota;
+        if (!is_null($nombreEvento)) $camposUpdate['evento'] = $nombreEvento;
+        if (!is_null($tipoEvento)) $camposUpdate['tipo_evento'] = $tipoEvento;
+        if (!is_null($categoria)) $camposUpdate['idcategoria'] = $categoria;
+        if (!is_null($fechaReferencia)) $camposUpdate['fecha_referencia_evento'] = $fechaReferencia;
+        if (!is_null($fechaInicio) && !is_null($fechaFinalizacion)) {
+            $camposUpdate['fecha_evento'] = $fechaInicio;
+            $camposUpdate['fecha_finalizacion'] = $fechaFinalizacion;
+        }
+        $archivos = [
+            'adjuntoPautas' => 'Eventos_Pautas',
+            'adjuntoDisenio' => 'Eventos_Diseño',
+            'basesyCondiciones' => 'Eventos_byc',
+        ];
+
+        $pathsGuardados = [];
+        foreach ($archivos as $input => $subcarpeta) {
+            if ($request->hasFile($input)) {
+                $archivo = $request->file($input);
+                $nombreArchivo = $archivo->getClientOriginalName();
+
+                // Guardar en el disco 'notas_casinos'
+                $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
+                    $subcarpeta,
+                    $archivo,
+                    $nombreArchivo
+                );
+
+                // Guardamos solo el nombre (o podrías guardar $rutaGuardada completo si preferís)
+                $pathsGuardados[$input] = basename($rutaGuardada);
             }
         }
+        // Agregar paths al array de actualización
+        if (isset($pathsGuardados['adjuntoPautas'])) {
+            $camposUpdate['adjunto_pautas'] = $pathsGuardados['adjuntoPautas'];
+        }
+        if (isset($pathsGuardados['adjuntoDisenio'])) {
+            $camposUpdate['adjunto_diseño'] = $pathsGuardados['adjuntoDisenio'];
+            Log::info("entro disenio");
+        }
+        if (isset($pathsGuardados['basesyCondiciones'])) {
+            $camposUpdate['adjunto_basesycond'] = $pathsGuardados['basesyCondiciones'];
+        }
         
+        try {
+            if($nota){
+                $existeNota = DB::connection('gestion_notas_mysql')->table('eventos')
+                                    ->where('nronota_ev', $nota)
+                                    ->exists();
+                if($existeNota) {
+                    Log::error("La nota ya existe");
+                    return response()->json(['success' => false, 'error' => 'El número de nota ya existe'], 422);
+                }
+            }
+            $casino = $this->USER->plataformas()->first();
+            $origen = $this->obtenerCasino($casino);
+
+            $responsable = null;
+            switch($origen){
+                case 4://CCOL
+                    $responsable = 27;//rosario
+                    break;
+                case 5://BPLAY
+                    $responsable = 28; //santa fe
+                    break;
+                default:
+                    $responsable = 4; //usuario de Mecha
+                    break;
+            }
+            $camposUpdate['responsable'] = $responsable;
+            $camposUpdate['origen'] = $origen;
+            $camposUpdate['idestado'] = 9;
+
+
+            DB::connection('gestion_notas_mysql')
+                ->table('eventos')
+                ->where('idevento', $idNota)
+                ->update($camposUpdate);
+
+            if(!is_null($juegosSeleccionados)){
+                //elimino los juegos actuales
+                DB::connection('gestion_notas_mysql')->table('juegos_nota')->where('idnota', $idNota)->delete();
+                foreach ($juegosSeleccionados as $juego) {
+                    DB::connection('gestion_notas_mysql')->table('juegos_nota')->insert([
+                        'idnota' => $idNota,
+                        'id_juego' => $juego,
+                    ]);
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Nota modificada correctamente']);
+            
+        } catch (Exception $e) {
+            Log::error("Error al actualizar evento: {$e->getMessage()}");
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al actualizar la nota',
+            ], 500);
+        }
     }
 
     public function paginarNotas (Request $request){

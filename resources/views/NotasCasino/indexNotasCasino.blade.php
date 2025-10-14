@@ -727,14 +727,16 @@
                                 <h5>Fecha inicio evento</h5>
                                 <input id="fechaInicioEditar" class="form-control" type="date" required />
                                 <span class="error-message" style="display: none;"
-                                    id="mensajeErrorFechaInicioEditar"></span>
+                                    id="mensajeErrorFechaInicioEditar">Para modificar las fechas debe seleccionar
+                                    ambas</span>
                             </div>
                             {{-- !FECHA FINALIZACION EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha finalización evento</h5>
                                 <input id="fechaFinalizacionEditar" class="form-control" type="date" required />
                                 <span class="error-message" style="display: none;"
-                                    id="mensajeErrorFechaFinalizacionEditar"></span>
+                                    id="mensajeErrorFechaFinalizacionEditar">Para modificar las fechas debe seleccionar
+                                    ambas</span>
                             </div>
                             {{-- ! FECHA REFERENCIA EVENTO --}}
                             <div class="col-lg-12">
