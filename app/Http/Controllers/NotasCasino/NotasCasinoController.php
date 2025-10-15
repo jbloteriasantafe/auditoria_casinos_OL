@@ -241,7 +241,7 @@ class NotasCasinoController extends Controller
     public function modificarNota(Request $request){
         $validator = Validator::make($request->all(),[
             'idNota' => 'required|integer',
-            'nroNota' => 'nullable|integer',
+            'nroNota' => 'nullable|string',
             'tipoNota' => 'nullable|integer',
             'anioNota' => 'nullable|integer',
             'nombreEvento' => 'nullable|string|max:1000',

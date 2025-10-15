@@ -1345,7 +1345,7 @@ function formularioEditarVacio() {
       break;
     }
   }
-  if (JUEGOS_SELECCIONADOS_EDITAR.length > 0) {
+  if (JUEGOS_SELECCIONADOS_EDITAR.length >= 0) {
     vacio = false;
   }
   return vacio;
@@ -1563,14 +1563,17 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
     }
   }
 
-  if ($("#adjuntoPautas")[0].files.length > 0) {
-    formData.append("adjuntoPautas", $("#adjuntoPautas")[0].files[0]);
+  if ($("#adjuntoPautasEditar")[0].files.length > 0) {
+    formData.append("adjuntoPautas", $("#adjuntoPautasEditar")[0].files[0]);
   }
-  if ($("#adjuntoDisenio")[0].files.length > 0) {
-    formData.append("adjuntoDisenio", $("#adjuntoDisenio")[0].files[0]);
+  if ($("#adjuntoDisenioEditar")[0].files.length > 0) {
+    formData.append("adjuntoDisenio", $("#adjuntoDisenioEditar")[0].files[0]);
   }
-  if ($("#basesyCondiciones")[0].files.length > 0) {
-    formData.append("basesyCondiciones", $("#basesyCondiciones")[0].files[0]);
+  if ($("#basesyCondicionesEditar")[0].files.length > 0) {
+    formData.append(
+      "basesyCondiciones",
+      $("#basesyCondicionesEditar")[0].files[0]
+    );
   }
   if (JUEGOS_SELECCIONADOS_EDITAR.length > 0) {
     JUEGOS_SELECCIONADOS_EDITAR.forEach((id) => {
