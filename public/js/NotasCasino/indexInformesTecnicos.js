@@ -1,51 +1,9 @@
 //seteo nombre de la seccion y traigo notas
-const JUEGOS_SELECCIONADOS = [];
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Informes Tecnicos");
   cargarNotas();
-  cargarJuegosSeleccionados();
 });
-
-function cargarJuegosSeleccionados() {
-  $.ajax({
-    type: "GET",
-    url: "/informesTecnicos/juegosSeleccionados",
-    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
-    dataType: "json",
-    success: function (response) {
-      const { success, juegosSeleccionados } = response;
-      if (success) {
-        if (juegosSeleccionados.length === 0) {
-          return;
-        }
-        juegosSeleccionados.forEach((juego) => {
-          JUEGOS_SELECCIONADOS.push(juego.id_juego);
-          $(".lista-juegos-seleccionados").append(`
-              <div class="list-selected-item d-flex">
-                <div>
-                  <p class="nombre-juego"> ${juego.nombre_juego}</p>
-                  <div>
-                    <small>ID: <b>${juego.id_juego}</b></small> |
-                    <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
-                    <small>Movil: <b>${juego.movil}</b></small> |
-                    <small>Escritorio: <b>${juego.escritorio}</b></small>
-                  </div>
-                </div>
-                <button type="button" class="btn btn-danger btn-sm btn-remove-juego"
-                  data-id="${juego.id_juego}"><i class="fas fa-trash"></i></button>
-              </div>
-          `);
-        });
-      } else {
-        console.error("Error al cargar juegos seleccionados:", response.error);
-      }
-    },
-    error: function (xhr, status, error) {
-      console.error("Error en la solicitud AJAX:", error);
-    },
-  });
-}
 
 function colorBoton(boton) {
   $(boton).removeClass();
@@ -125,6 +83,8 @@ function generarFilaTabla(nota) {
   fila.find(".acciones_nota").html(
     `
         <button class="gestionarInformeTecnico btn btn-info" title="Gestionar informe técnico"><i class="fa fa-cog"></i></button>
+        <button class="descargarInformeTecnico btn btn-success" title="Descargar informe técnico"><i class="fa fa-download"></i></button>
+        <button class="cargarInformeTecnico btn btn-warning" title="Cargar informe técnico" data-id="${nota.idevento}"><i class="fa fa-upload"></i></button>
     `
   );
 
@@ -210,91 +170,86 @@ $("#btn-buscar").on("click", function (e) {
 
   $("#btn-buscar").prop("disabled", false).text("BUSCAR");
 });
-
-//modal
-$(document).on("click", ".gestionarInformeTecnico", function () {
-  colorBoton($("#btn-guardar-informe"));
-  $("#modalInformeTecnico").modal("show");
+//TODO: FALTA POSTEAR EL INFORME, Y HACER UN CLEAR ERRORS E INPUTS Y VARIABLE ID_NOTA_ACTUAL AL CERRAR EL FORM O POSTEARLO
+let ID_NOTA_ACTUAL = null;
+$("#cuerpoTabla").on("click", ".cargarInformeTecnico", function (e) {
+  e.preventDefault();
+  ID_NOTA_ACTUAL = $(this).data("id");
+  colorBoton("#btn-guardar-informeTecnico");
+  $("#modalCargaInfTecnico").modal("show");
 });
 
-$("#select-juegos").on("click", function () {
-  $(".lista-juegos").slideToggle(200);
-});
+const MAX_SIZE_MB = 150;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
-$(".list-item").on("click", function () {
-  const juegoSeleccionado = $(this).text();
-  $(".juego-seleccionado").text(juegoSeleccionado);
-});
-
-$("#buscador-juegos").on("click", function (e) {
-  e.stopPropagation();
-});
-
-function generarListaJuegos(juegos) {
-  $(".resultados-busqueda").empty();
-  juegos.forEach(function (juego) {
-    $(".resultados-busqueda").append(
-      `<div class="list-item">
-          <p class="nombre-juego"> ${juego.nombre_juego}</p>
-          <div>
-            <small>ID: <b>${juego.id_juego}</b></small> |
-            <small>Porcentaje de devolución:<b>${juego.porcentaje_devolucion}%</b></small> |
-            <small>Movil: <b>${juego.movil}</b></small> |
-            <small>Escritorio: <b>${juego.escritorio}</b></small>
-          </div>
-        </div>`
-    );
-  });
+function validarInforme(archivo) {
+  if (!archivo) {
+    return false;
+  }
+  if (archivo.size > MAX_SIZE_BYTES) {
+    return false;
+  }
+  return true;
 }
 
-async function buscarJuegos(query) {
+$("#adjuntoInformeTecnicoBtn").on("click", function (e) {
+  $("#adjuntoInformeTecnico").click();
+});
+
+$("#adjuntoInformeTecnico").on("change", function (e) {
+  if (!this.files[0]) {
+    const fileName = "Ningún archivo seleccionado";
+    $("#adjuntoInformeTecnicoName").text(fileName);
+    $("#eliminarAdjuntoInformeTecnico").hide();
+    return;
+  }
+  const fileName = this.files[0].name;
+  const archivo = this.files[0];
+  if (archivo && archivo.size > MAX_SIZE_BYTES) {
+    $("#mensajeErrorAdjuntoInformeTecnico").show();
+    $("#eliminarAdjuntoInformeTecnico").hide();
+    $("#adjuntoInformeTecnico").val(null);
+    return;
+  }
+  $("#mensajeErrorAdjuntoInformeTecnico").hide();
+  $("#adjuntoInformeTecnicoName").text(fileName);
+  $("#eliminarAdjuntoInformeTecnico").show();
+});
+
+$("#eliminarAdjuntoInformeTecnico").on("click", function (e) {
+  $("#adjuntoInformeTecnico").val(null);
+  $("#adjuntoInformeTecnicoName").text("Ningún archivo seleccionado");
+  $(this).hide();
+});
+
+$("#btn-guardar-informeTecnico").on("click", function (e) {
+  e.preventDefault();
+  const archivo = $("#adjuntoInformeTecnico")[0].files[0];
+  const esValido = validarInforme(archivo);
+  if (!esValido) {
+    $("#mensajeErrorAdjuntoInformeTecnico").show();
+    $("#eliminarAdjuntoInformeTecnico").hide();
+    $("#adjuntoInformeTecnico").val(null);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append(
+    "adjuntoInformeTecnico",
+    $("#adjuntoInformeTecnico")[0].files[0]
+  );
+
   $.ajax({
-    type: "GET",
-    url: "informesTecnicos/juegos/buscar",
+    type: "POST",
+    url: "/informesTecnicos/guardar",
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
     headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
-    data: { query },
-    success: function (response) {
-      const { success, juegos } = response;
-      if (success) {
-        generarListaJuegos(juegos);
-      }
-    },
+    success: function (response) {},
     error: function (xhr, status, error) {
-      console.error("Error al buscar juegos:", error);
+      console.error("Error al guardar informe técnico:", error);
     },
   });
-}
-
-//cada vez que escribo:
-//seteo de nuevo un time out
-//cuando se termina el time out hace la busqueda
-let currentTimeOut = null;
-const TIME_INTERVAL = 1500;
-
-async function bounce() {
-  if (!currentTimeOut) {
-    currentTimeOut = setTimeout(async () => {
-      await buscarJuegos($("#buscador-juegos").val());
-      currentTimeOut = null;
-    }, TIME_INTERVAL);
-    return;
-  }
-  if (currentTimeOut) {
-    clearTimeout(currentTimeOut);
-    currentTimeOut = setTimeout(async () => {
-      await buscarJuegos($("#buscador-juegos").val());
-      currentTimeOut = null;
-    }, TIME_INTERVAL);
-    return;
-  }
-}
-
-$("#buscador-juegos").on("input", function () {
-  bounce();
-});
-
-$("#buscador-juegos").on("keydown", function (e) {
-  if (e.key === "Enter") {
-    e.preventDefault();
-  }
 });

@@ -62,67 +62,11 @@
             cursor: help;
         }
 
-        .d-flex {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .icon-button {
-            padding-top: 2px;
-            padding-bottom: 2px;
-            padding-left: 5px;
-            padding-right: 5px;
-            margin-bottom: 5px;
-        }
-
-        .lista-juegos {
-            padding: 10px;
-            position: absolute;
-            top: 100%;
-            left: 1.5em;
-            width: 95%;
-            border: 1px solid #ccc;
-            background: white;
-            z-index: 10;
-            border-radius: 5px;
-            display: none;
-        }
-
-        .resultados-busqueda {
-            height: 300px;
-            max-height: 350px;
-            overflow-y: auto;
-            margin-top: 5px;
-        }
-
-        .nombre-juego {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .list-item {
-            padding: 5px 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .list-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .list-selected-item {
-            padding: 5px 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .list-selected-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .lista-juegos-seleccionados {
-            max-height: 300px;
-            overflow-y: auto;
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
         }
     </style>
 @endsection
@@ -184,7 +128,6 @@
                         <table id="tablaNotas" class="table">
                             <thead>
                                 <tr>
-                                    <!-- <i class="fa fa-sort"></i> -->
                                     <th class="col-sm-1 text-center" value="numero_nota" estado=""
                                         title="Número de nota">NRO. DE NOTA</th>
                                     <th class="col-sm-1 text-center" value="nombre_evento" estado=""
@@ -229,9 +172,8 @@
             </div>
         </div>
     </div>
-
-    {{-- ! MODAL GESTIÓN INFORME TÉCNICO --}}
-    <div class="modal fade" id="modalInformeTecnico" tabindex="-1" role="dialog" aria-hidden="true">
+    {{-- ! MODAL DE CARGA DE INFORMES TECNICOS --}}
+    <div class="modal fade" id="modalCargaInfTecnico" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
@@ -242,52 +184,36 @@
                         data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px">
                         <i class="fa fa-minus"></i>
                     </button>
-                    <h3 class="modal-title" id="myModalLabel">| GESTIÓN INFORME TÉCNICO </h3>
+                    <h3 class="modal-title" id="myModalLabel">| SUBIR INFORME TÉCNICO </h3>
                 </div>
                 <div id="colapsado" class="collapse in">
                     <div class="modal-body">
-                        <form class="row" id="formulario">
-                            <div class="row">
-                                <div class="col-lg-12">
-                                    <h5>Agregar juegos</h5>
-                                    <div id="select-juegos" class="form-control d-flex">
-                                        <p class="juego-seleccionado">Seleccione un juego</p>
-                                        <div class="icon-button">
-                                            <i class="fa fa-angle-down icon"></i>
-                                        </div>
-                                        <div class="lista-juegos">
-                                            <input id="buscador-juegos" type="text" class="form-control"
-                                                placeholder="Buscar juego..." />
-                                            <div class="resultados-busqueda">
-                                                @foreach ($juegos as $juego)
-                                                    <div class="list-item">
-                                                        <p class="nombre-juego">{{ $juego->nombre_juego }}</p>
-                                                        <div>
-                                                            <small>ID: <b>{{ $juego->id_juego }}</b></small> |
-                                                            <small>Porcentaje de devolución:
-                                                                <b>{{ $juego->porcentaje_devolucion }}%</b></small> |
-                                                            <small>Movil: <b>{{ $juego->movil }}</b></small> |
-                                                            <small>Escritorio: <b>{{ $juego->escritorio }}</b></small>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <form class="row" id="formularioCargaInfTecnico">
+                            {{-- ! INFORME TÉCNICO --}}
                             <div class="col-lg-12">
-                                <h5>JUEGOS SELECCIONADOS</h5>
-                                <div class="lista-juegos-seleccionados">
-                                    <!-- Aquí se agregarán los juegos seleccionados -->
+                                <h5>INFORME TÉCNICO</h5>
+                                <div class="custom-file">
+                                    <input id="adjuntoInformeTecnico" name="adjuntoInformeTecnico" data-borrado="false"
+                                        class="custom-file-input" type="file" accept=".pdf,.zip,.doc,.docx"
+                                        style="display:none;" />
+                                    <button type="button" id="adjuntoInformeTecnicoBtn"
+                                        class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoInformeTecnicoName" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoInformeTecnico" type="button" style="display: none;"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorAdjuntoInformeTecnico">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
                             </div>
                         </form>
                     </div>
                 </div>
                 <div class="modal-footer" style="padding-top: 7px;">
-                    <button id="btn-guardar-informe" type="button" value="add"></button>
-                    <button id="btn-cancelar-informe" type="button" class="btn btn-default" id="btn-salir"
+                    <button id="btn-guardar-informeTecnico" type="button" value="add"></button>
+                    <button id="btn-cancelar-informeTecnico" type="button" class="btn btn-default" id="btn-salir"
                         data-dismiss="modal" aria-label="Close">CANCELAR</button>
                 </div>
             </div>

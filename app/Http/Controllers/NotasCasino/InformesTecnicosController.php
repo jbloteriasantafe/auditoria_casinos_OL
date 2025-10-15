@@ -15,16 +15,8 @@ class InformesTecnicosController extends Controller
     public function index()
     {   
         $casinos = [['id_casino' => 4, 'casino' => 'CITY CENTER ONLINE'], ['id_casino' => 5, 'casino' => 'BPLAY'],];
-        try {
-            $juegos = DB::connection('mysql')
-                        ->table('juego')
-                        ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio')
-                        ->get();
-        } catch (Exception $e) {
-            Log::error('Error al obtener juegos: ' . $e->getMessage());
-        }
 
-        return view('NotasCasino.indexInformesTecnicos',compact('casinos', 'juegos'));
+        return view('NotasCasino.indexInformesTecnicos',compact('casinos'));
     }
 
     public function paginarNotas (Request $request){
@@ -183,53 +175,13 @@ class InformesTecnicosController extends Controller
         }
     }
 
-    public function buscarJuegos(Request $request){
+    public function guardarInformeTecnico (Request $request){
         $validator = Validator::make($request->all(),[
-            'query' => 'nullable|string|max:255'
+            'id' => 'required|integer',
+            'adjuntoInformeTecnico' => 'required|file|mimes:pdf,doc,docx,zip|max:153600'
         ]);
-
-        if ($validator->fails()) {
+        if($validator->fails()){
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
-
-        $query = $request->get('query');
-
-       try {
-            if($query){
-                $juegos = DB::connection('mysql')
-                    ->table('juego')
-                    ->where(function ($q) use ($query) {
-                        $q->where('nombre_juego', 'LIKE', "%{$query}%")
-                        ->orWhere('id_juego', 'LIKE', "%{$query}%");
-                    })
-                    ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio')
-                    ->get();
-                return response()->json(['success' => true, 'juegos' => $juegos]);
-            }
-            $juegos = DB::connection('mysql')
-                ->table('juego')
-                ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio')
-                ->get();
-       } catch (Exception $e) {
-           Log::error("Error al buscar juegos: " . $e->getMessage());
-           return response()->json(['success' => false, 'message' => 'Error al buscar juegos'], 500);
-       }
-
-        return response()->json(['success' => true, 'juegos' => $juegos]);
-    }
-
-    public function juegosSeleccionados(){
-        //simulacion juegos seleccionados
-        $juegosSeleccionados = [
-            ['id_juego' => 1, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true],
-            ['id_juego' => 2, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false],
-            ['id_juego' => 3, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true],
-            ['id_juego' => 4, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false],
-            ['id_juego' => 1, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true],
-            ['id_juego' => 2, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false],
-            ['id_juego' => 3, 'nombre_juego' => 'Juego 1', 'porcentaje_devolucion' => 95, 'movil' => true, 'escritorio' => true],
-            ['id_juego' => 4, 'nombre_juego' => 'Juego 2', 'porcentaje_devolucion' => 90, 'movil' => true, 'escritorio' => false],
-        ];
-        return response()->json(['success' => true, 'juegosSeleccionados' => $juegosSeleccionados]);
     }
 }

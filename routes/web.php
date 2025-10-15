@@ -148,8 +148,7 @@ Route::group(['prefix' => 'informesTecnicos','middleware'=>'tiene_permiso:ver_se
   Route::get('/','NotasCasino\InformesTecnicosController@index');
   Route::post('paginar', 'NotasCasino\InformesTecnicosController@paginarNotas');
   Route::get('/notas/archivo/{id}/{tipo}', 'NotasCasino\InformesTecnicosController@descargarArchivo');
-  Route::get('/juegos/buscar', 'NotasCasino\InformesTecnicosController@buscarJuegos');
-  Route::get('/juegosSeleccionados','NotasCasino\InformesTecnicosController@juegosSeleccionados');
+  Route::post('guardar', 'NotasCasino\InformesTecnicosController@guardarInformeTecnico');
 });
 
 /***********
