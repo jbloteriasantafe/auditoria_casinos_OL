@@ -181,7 +181,30 @@ class InformesTecnicosController extends Controller
             'adjuntoInformeTecnico' => 'required|file|mimes:pdf,doc,docx,zip|max:153600'
         ]);
         if($validator->fails()){
+            Log::error("Error de validación al guardar informe técnico: " . json_encode($validator->errors()));
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $archivo = $request->file('adjuntoInformeTecnico');
+        $nombreArchivo = $archivo->getClientOriginalName();
+        $subCarpeta = 'Eventos_inftec';
+
+        $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
+            $subCarpeta,
+            $archivo,
+            $nombreArchivo
+        );
+        $id = $request->input('id');
+        $pathGuardado = basename($rutaGuardada);
+        try{
+            DB::connection('gestion_notas_mysql')
+                ->table('eventos')
+                ->where('idevento', $id)
+                ->update(['adjunto_inf_tecnico' => $pathGuardado]);
+            return response()->json(['success' => true]);
+        }catch (Exception $e){
+            Log::error("Error al guardar el archivo: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al guardar el archivo.'], 500);
         }
     }
 }

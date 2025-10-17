@@ -82,8 +82,7 @@ function generarFilaTabla(nota) {
 
   fila.find(".acciones_nota").html(
     `
-        <button class="gestionarInformeTecnico btn btn-info" title="Gestionar informe técnico"><i class="fa fa-cog"></i></button>
-        <button class="descargarInformeTecnico btn btn-success" title="Descargar informe técnico"><i class="fa fa-download"></i></button>
+        <button class="gestionarInformeTecnico btn btn-info" title="Generar informe técnico" data-id="${nota.idevento}"><i class="fa fa-file-alt"></i></button>
         <button class="cargarInformeTecnico btn btn-warning" title="Cargar informe técnico" data-id="${nota.idevento}"><i class="fa fa-upload"></i></button>
     `
   );
@@ -170,13 +169,30 @@ $("#btn-buscar").on("click", function (e) {
 
   $("#btn-buscar").prop("disabled", false).text("BUSCAR");
 });
-//TODO: FALTA POSTEAR EL INFORME, Y HACER UN CLEAR ERRORS E INPUTS Y VARIABLE ID_NOTA_ACTUAL AL CERRAR EL FORM O POSTEARLO
+
+function clearInputInfTec() {
+  $("#adjuntoInformeTecnico").val(null);
+  $("#adjuntoInformeTecnicoName").text("Ningún archivo seleccionado");
+  $("#eliminarAdjuntoInformeTecnico").hide();
+}
+function clearErrorsInfTec() {
+  $("#mensajeErrorAdjuntoInformeTecnico").hide();
+}
+
 let ID_NOTA_ACTUAL = null;
 $("#cuerpoTabla").on("click", ".cargarInformeTecnico", function (e) {
   e.preventDefault();
   ID_NOTA_ACTUAL = $(this).data("id");
+  clearInputInfTec();
+  clearErrorsInfTec();
   colorBoton("#btn-guardar-informeTecnico");
   $("#modalCargaInfTecnico").modal("show");
+});
+
+$("#modalCargaInfTecnico").on("hidden.bs.modal", function () {
+  clearInputInfTec();
+  clearErrorsInfTec();
+  ID_NOTA_ACTUAL = null;
 });
 
 const MAX_SIZE_MB = 150;
@@ -234,6 +250,7 @@ $("#btn-guardar-informeTecnico").on("click", function (e) {
   }
 
   const formData = new FormData();
+  formData.append("id", ID_NOTA_ACTUAL);
   formData.append(
     "adjuntoInformeTecnico",
     $("#adjuntoInformeTecnico")[0].files[0]
@@ -247,8 +264,59 @@ $("#btn-guardar-informeTecnico").on("click", function (e) {
     processData: false,
     contentType: false,
     headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
-    success: function (response) {},
+    success: function (response) {
+      const { success, message } = response;
+      if (success) {
+        $("#mensajeExito h3").text("LA CARGA DEL INFORME SE REALIZO CON EXITO");
+        $("#mensajeExito p").text("El informe se guardó correctamente");
+        $("#modalCargaInfTecnico").modal("hide");
+        ID_NOTA_ACTUAL = null;
+        $("#mensajeExito").hide();
+        $("#mensajeExito").removeAttr("hidden");
+
+        setTimeout(function () {
+          $("#mensajeExito").fadeIn();
+        }, 100);
+
+        $("#btn-guardar-informeTecnico")
+          .prop("disabled", false)
+          .text("Guardar Informe");
+        clearInputInfTec();
+        clearErrorsInfTec();
+        cargarNotas();
+      } else {
+        $("#btn-guardar-informeTecnico")
+          .prop("disabled", false)
+          .text("Guardar Informe");
+
+        $("#mensajeError .textoMensaje").empty();
+        $("#mensajeError .textoMensaje").append(
+          $("<h3></h3>").text(
+            "Ocurrio un error al guardar el informe, por favor intenta nuevamente."
+          )
+        );
+        $("#mensajeError").hide();
+        setTimeout(function () {
+          $("#mensajeError").show();
+        }, 250);
+        console.error("Error al guardar informe técnico:", message);
+      }
+    },
     error: function (xhr, status, error) {
+      $("#btn-guardar-informeTecnico")
+        .prop("disabled", false)
+        .text("Guardar Informe");
+
+      $("#mensajeError .textoMensaje").empty();
+      $("#mensajeError .textoMensaje").append(
+        $("<h3></h3>").text(
+          "Ocurrio un error al guardar el informe, por favor intenta nuevamente."
+        )
+      );
+      $("#mensajeError").hide();
+      setTimeout(function () {
+        $("#mensajeError").show();
+      }, 250);
       console.error("Error al guardar informe técnico:", error);
     },
   });
