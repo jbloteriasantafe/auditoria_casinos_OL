@@ -219,6 +219,43 @@
             </div>
         </div>
     </div>
+    {{-- ! MODAL DE GENERACIÓN DE INFORMES TECNICOS --}}
+    <div class="modal fade" id="modalGeneracionInfTecnico" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <button id="btn-minimizar" type="button" class="close" data-toggle="collapse"
+                        data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <h3 class="modal-title" id="myModalLabel">| GENERAR INFORME TÉCNICO </h3>
+                </div>
+                <div id="colapsado" class="collapse in">
+                    <div class="modal-body">
+                        <div class="row" id="divGeneracionInfTecnico">
+                            {{-- ! INFORME TÉCNICO --}}
+                            <div class="col-lg-12">
+                                <h5>INFORME TÉCNICO</h5>
+                                <embed id="informeTecnicoEmbed" src="" type="application/pdf" width="100%"
+                                    height="600px" style="display: none;">
+                                <span id="mensajeErrorInformeTecnico" class="error-message" style="display: none;">No se
+                                    ha podido cargar la
+                                    previsualizaión del informe técnico</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 7px;">
+                    <button id="btn-guardar-informeTecnico-generado" type="button" value="add"></button>
+                    <button id="btn-cancelar-informeTecnico-generado" type="button" class="btn btn-default"
+                        id="btn-salir" data-dismiss="modal" aria-label="Close">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('tituloDeAyuda')

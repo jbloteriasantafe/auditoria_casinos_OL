@@ -47,7 +47,7 @@ function generarFilaTabla(nota) {
       `${
         !nota.adjunto_diseño
           ? "No hay información disponible"
-          : `<a href='informesTecnicos/notas/archivo/${nota.idevento_enc}/disenio'>${nota.adjunto_diseño}</a>`
+          : `<a href='http://10.1.120.9/eventos_casinos/Eventos_Diseño/${nota.adjunto_diseño}'>${nota.adjunto_diseño}</a>`
       }`
     )
     .attr("title", nota.adjunto_diseño || "No hay información disponible");
@@ -57,7 +57,7 @@ function generarFilaTabla(nota) {
       `${
         !nota.adjunto_basesycond
           ? "No hay información disponible"
-          : `<a href='informesTecnicos/notas/archivo/${nota.idevento_enc}/basesycond'>${nota.adjunto_basesycond}</a>`
+          : `<a href='http://10.1.120.9/eventos_casinos/Eventos_byc/${nota.adjunto_basesycond}'>${nota.adjunto_basesycond}</a>`
       }`
     )
     .attr("title", nota.adjunto_basesycond || "No hay información disponible");
@@ -67,7 +67,7 @@ function generarFilaTabla(nota) {
       `${
         !nota.adjunto_inf_tecnico
           ? "No hay información disponible"
-          : `<a href='informesTecnicos/notas/archivo/${nota.idevento_enc}/inf_tecnico'>${nota.adjunto_inf_tecnico}</a>`
+          : `<a href='http://10.1.120.9/eventos_casinos/Eventos_inftec/${nota.adjunto_inf_tecnico}'>${nota.adjunto_inf_tecnico}</a>`
       }`
     )
     .attr("title", nota.adjunto_inf_tecnico || "No hay información disponible");
@@ -81,7 +81,7 @@ function generarFilaTabla(nota) {
     .attr("title", nota.notas_relacionadas || "No hay información disponible");
 
   fila.find(".acciones_nota").html(
-    `
+    `   <a href="/informesTecnicos/generar">d</a>
         <button class="gestionarInformeTecnico btn btn-info" title="Generar informe técnico" data-id="${nota.idevento}"><i class="fa fa-file-alt"></i></button>
         <button class="cargarInformeTecnico btn btn-warning" title="Cargar informe técnico" data-id="${nota.idevento}"><i class="fa fa-upload"></i></button>
     `
@@ -318,6 +318,37 @@ $("#btn-guardar-informeTecnico").on("click", function (e) {
         $("#mensajeError").show();
       }, 250);
       console.error("Error al guardar informe técnico:", error);
+    },
+  });
+});
+
+function colorBotonGenerar(boton) {
+  $(boton).removeClass();
+  $(boton).addClass("btn").addClass("btn-successAceptar");
+  $(boton).css("cursor", "pointer");
+  $(boton).text("Generar Informe");
+  $(boton).show();
+  $(boton).val("nuevo");
+}
+
+let idNotaGenerarInformeTecnico = null;
+//! SECCION DE GENERACION DE INFORMES TECNICOS
+$("#cuerpoTabla").on("click", ".gestionarInformeTecnico", function (e) {
+  e.preventDefault();
+  idNotaGenerarInformeTecnico = $(this).data("id");
+  $("#modalGeneracionInfTecnico").modal("show");
+  colorBotonGenerar($("#btn-guardar-informeTecnico-generado"));
+  $.ajax({
+    type: "GET",
+    url: "/informesTecnicos/preview/" + idNotaGenerarInformeTecnico,
+    success: function (response) {
+      $("#informeTecnicoEmbed").show();
+      $("#informeTecnicoEmbed").attr("src", response.pdfUrl);
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al generar informe técnico:", error);
+      $("#informeTecnicoEmbed").hide();
+      $("#mensajeErrorInformeTecnico").show();
     },
   });
 });
