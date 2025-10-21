@@ -6,9 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preview Informe Técnico</title>
     <style>
-        /* Estilos para simular una hoja de papel */
+        @page {
+            margin-top: 6.25%;
+            margin-left: 16.3%;
+            margin-right: 16.3%;
+        }
+
         body {
-            background-color: #f0f0f0;
             font-family: 'Times New Roman', Times, serif;
             /* Fuente común en documentos */
             line-height: 1.5;
@@ -16,23 +20,8 @@
             padding: 0;
         }
 
-        .page {
-            width: 210mm;
-            /* Ancho A4 */
-            min-height: 297mm;
-            /* Alto A4 */
-            padding: 2cm;
-            /* Márgenes estándar */
-            margin: 20px auto;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
-            /* Asegura que el padding no afecte el ancho total */
-            font-size: 12pt;
-            /* Tamaño de fuente estándar para documentos */
-        }
 
-        /* Estilos específicos del documento */
+
         .header-date {
             text-align: right;
             margin-bottom: 30px;
@@ -45,13 +34,15 @@
 
         .ref {
             margin-bottom: 20px;
-            font-weight: bold;
+            text-align: right;
         }
 
         p {
             margin-bottom: 16px;
             text-align: justify;
+            text-indent: 120px;
         }
+
 
         table {
             width: 100%;
@@ -65,14 +56,29 @@
         td {
             border: 1px solid #333;
             padding: 8px;
-            text-align: left;
-            vertical-align: top;
+            text-align: center;
+            vertical-align: middle;
         }
 
         th {
             background-color: #f4f4f4;
             font-weight: bold;
             text-align: center;
+
+        }
+
+        thead tr:first-child th {
+            background-color: #2E5C9A;
+            color: black;
+        }
+
+        thead tr:nth-child(2) th {
+            background-color: #7FA9D1;
+            color: black;
+        }
+
+        tbody tr td {
+            background-color: #DCE6F1;
         }
 
         .footer-date {
@@ -81,13 +87,11 @@
 
         .signature-block {
             margin-top: 40px;
-            /* Puedes ajustar la alineación si es necesario */
-            /* text-align: right; */
+            text-align: right;
         }
 
         .signature-image {
             max-width: 250px;
-            /* Ajusta el tamaño de la imagen de la firma */
             height: auto;
             display: block;
         }
@@ -97,7 +101,6 @@
             font-weight: bold;
             font-size: 1.1em;
             font-family: 'Brush Script MT', 'cursive';
-            /* Simula una firma, ajusta según tu imagen */
         }
 
         .signature-title {
@@ -108,7 +111,6 @@
 </head>
 
 <body>
-
     <div class="page">
         <div class="header-date">
             Santa Fe, {{ $fecha_texto }}
@@ -119,17 +121,17 @@
             Sub-Director de<br>
             Casinos y Bingos<br>
             Lotería de Santa Fe<br>
-            S / D
+            <strong>S________/________D</strong>
         </div>
 
         <div class="ref">
-            REF.: Verificación Solicitud N° {{ $casino }} {{ $numero_nota }}.-
+            <small><strong>REF.: </strong>Verificación Solicitud N° {{ $casino }} {{ $numero_nota }}.-</small>
         </div>
 
         <p>
             En referencia a la solicitud de autorización de la Acción Promocional del operador
-            de la plataforma {{ $texto_plataforma }} operada por {{ $duenio_plataforma }}
-            de nota recibida con fecha {{ $fecha_nota_recep }}, denominada "{{ $nombre_evento }}",
+            <strong>de la plataforma {{ $texto_plataforma }} operada por {{ $duenio_plataforma }}</strong>
+            de nota recibida con fecha {{ $fecha_nota_recep }}, <strong>denominada "{{ $nombre_evento }}"</strong>,
             se informa que se ha evaluado la solicitud y se autoriza la realización de la acción
             promocional mencionada.
         </p>
@@ -146,38 +148,34 @@
         <table>
             <thead>
                 <tr>
-                    <th colspan="2">Game Code</th>
-                    <th rowspan="2">Nombre del Juego</th>
-                    <th rowspan="2">% Dev</th>
+                    <th colspan="2"><strong>Game Code</strong></th>
+                    <th rowspan="2"><strong>Nombre del Juego</strong></th>
                 </tr>
                 <tr>
-                    <th>Desktop</th>
-                    <th>Mobile</th>
+                    <th><strong>Desktop</strong></th>
+                    <th><strong>Mobile</strong></th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($lista_juegos as $juego)
                     <tr>
-                        <td>{{ $juego->desktop_id ?? 'N/A' }}</td> {{-- Ajusta el nombre del campo --}}
-                        <td>{{ $juego->mobile_id ?? 'N/A' }}</td> {{-- Ajusta el nombre del campo --}}
-                        <td>{{ $juego->nombre_juego ?? 'N/A' }}</td> {{-- Ajusta el nombre del campo --}}
-                        <td>{{ $juego->porcentaje_dev ?? 'N/A' }}</td> {{-- Ajusta el nombre del campo --}}
+                        <td>{{ $juego->desktop_id ?? '-' }}</td>
+                        <td>{{ $juego->mobile_id ?? '-' }}</td>
+                        <td>{{ $juego->nombre_juego ?? '-' }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" style="text-align: center;">No se encontraron juegos asociados.</td>
+                        <td colspan="4" style="text-align: center;">-</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
 
         <div class="footer-date">
-            FECHA: {{ $fecha_nota_recep }} .-
+            FECHA: <strong>{{ $fecha_hoy }} .-</strong>
         </div>
 
         <div class="signature-block">
-            {{-- <img src="{{ asset('path/to/signature_image.png') }}" alt="Firma" class="signature-image"> --}}
-
             <div class="signature-name">
                 Ma. Mercedes Irwinkelried.-
             </div>

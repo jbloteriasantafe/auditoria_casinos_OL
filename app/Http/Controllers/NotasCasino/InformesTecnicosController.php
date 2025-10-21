@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\NotasCasino;
 
 use App\Http\Controllers\Controller;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\File as HttpFile;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Http\Request;
@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpWord\TemplateProcessor;
+use Barryvdh\DomPDF\Facade as PDF;
+use Carbon\Carbon;
 
 class InformesTecnicosController extends Controller
 {
@@ -215,6 +217,108 @@ class InformesTecnicosController extends Controller
             'id' => 'required|string'
         ]);
         if ($validator->fails()) {
+            Log::error("Error de validación al previsualizar informe técnico: " . json_encode($validator->errors()));
+            return response()->json(['success' => false, 'message' => 'ID inválido'], 400);
+        }
+        try {
+            $nota = DB::connection('gestion_notas_mysql')
+                ->table('eventos')
+                ->where('idevento', $id)
+                ->first();
+
+            if (!$nota) {
+                Log::error("No existe la nota");
+                return response()->json(['success' => false, 'message' => 'No existe la nota.'], 404);
+            }
+
+            $lista_juegos = DB::connection('gestion_notas_mysql')
+                ->table('juegos_nota')
+                ->join('juego', 'juegos_nota.id_juego', '=', 'juego.id_juego')
+                ->where('idnota', $id)
+                ->select(
+                    'juego.movil',
+                    'juego.escritorio',
+                    'juego.nombre_juego',
+                    'juego.cod_juego'
+                )
+                ->get()
+                ->map(function ($juego) {
+                    return (object)[
+                        'desktop_id' => $juego->escritorio ? $juego->cod_juego : '-',
+                        'mobile_id'  => $juego->movil ? $juego->cod_juego : '-',
+                        'nombre_juego' => $juego->nombre_juego,
+                    ];
+                });
+
+            $numero_nota = $nota->nronota_ev;
+            $casino = $nota->origen;
+            $duenio_plataforma = null;
+            switch ($casino) {
+                case 4:
+                    $duenio_plataforma = 'Casinos Rosario S.A.';
+                    break;
+                case 5:
+                    $duenio_plataforma = 'Casinos Santa Fe S.A.';
+                    break;
+                default:
+                    $duenio_plataforma = 'DESCONOCIDO';
+            }
+            $texto_plataforma = null;
+            switch ($casino) {
+                case 4:
+                    $texto_plataforma = 'City Center Online';
+                    break;
+                case 5:
+                    $texto_plataforma = 'BPLAY';
+                    break;
+                default:
+                    $texto_plataforma = 'DESCONOCIDO';
+            }
+            switch ($casino) {
+                case 4:
+                    $casino = 'CCOL';
+                    break;
+                case 5:
+                    $casino = 'BPLAY';
+                    break;
+                default:
+                    $casino = 'DESCONOCIDO';
+            }
+            $nombre_evento = $nota->evento;
+            $fecha_nota_recep = Carbon::parse($nota->fecha_nota_recep)->format('d/m/Y');
+            setlocale(LC_TIME, 'es_ES.UTF-8');
+            $fecha_texto = Carbon::now()->formatLocalized('%d de %B de %Y');
+            $fecha_hoy = Carbon::now()->format('d/m/Y');
+            
+            $pdf = PDF::loadView('NotasCasino.previewInfTecnico', compact(
+                'juegos',
+                'numero_nota',
+                'casino',
+                'duenio_plataforma',
+                'texto_plataforma',
+                'nombre_evento',
+                'fecha_nota_recep',
+                'fecha_texto',
+                'lista_juegos',
+                'fecha_hoy'
+            ));
+            $pdfContent = $pdf->output();
+            return response($pdfContent, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="previsualizacion_informe_tecnico.pdf"'
+            ]);
+
+        } catch (Exception $th) {
+            Log::error("Error al previsualizar el informe técnico: " . $th->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al previsualizar el informe técnico.'], 500);
+        }
+    }
+    public function generarInformeTecnico ($id){
+        $validator = Validator::make(['id' => $id], [
+            'id' => 'required|string'
+        ]);
+        if ($validator->fails()) {
+            Log::error("Error de validación al previsualizar informe técnico: " . json_encode($validator->errors()));
             return response()->json(['success' => false, 'message' => 'ID inválido'], 400);
         }
 
@@ -225,115 +329,114 @@ class InformesTecnicosController extends Controller
                 ->first();
 
             if (!$nota) {
+                Log::error("No existe la nota");
                 return response()->json(['success' => false, 'message' => 'No existe la nota.'], 404);
             }
 
-            $datos_de_prueba = [
-                // --- Datos de la Nota ---
-                'fecha_texto' => '20 de octubre de 2025', // Simula Carbon::now()->isoFormat(...)
-                'casino' => 'CAS-ROS',
-                'numero_nota' => 'E-2025-12345-SFE',
-                'texto_plataforma' => 'Plataforma "El Gran Juego"',
-                'duenio_plataforma' => 'Empresa Operadora S.A.',
-                'fecha_nota_recep' => '15/10/2025', // Simula Carbon::parse(...)->format(...)
-                'nombre_evento' => 'Torneo Semanal de Slots "Primavera Dorada"',
+            $lista_juegos = DB::connection('gestion_notas_mysql')
+                ->table('juegos_nota')
+                ->join('juego', 'juegos_nota.id_juego', '=', 'juego.id_juego')
+                ->where('idnota', $id)
+                ->select(
+                    'juego.movil',
+                    'juego.escritorio',
+                    'juego.nombre_juego',
+                    'juego.cod_juego'
+                )
+                ->get()
+                ->map(function ($juego) {
+                    return (object)[
+                        'desktop_id' => $juego->escritorio ? $juego->cod_juego : '-',
+                        'mobile_id'  => $juego->movil ? $juego->cod_juego : '-',
+                        'nombre_juego' => $juego->nombre_juego,
+                    ];
+                });
 
-                // --- Lista de Juegos (para el @foreach) ---
-                'lista_juegos' => [
-                    // Juego 1
-                    (object) [ // Usamos (object) para simular la stdClass de la DB
-                        'desktop_id' => 'BG-SL-001A',
-                        'mobile_id' => 'BG-SL-001M',
-                        'nombre_juego' => 'Gates of Olympus',
-                        'porcentaje_dev' => '96.50%',
-                    ],
-                    // Juego 2
-                    (object) [
-                        'desktop_id' => 'PR-SL-002D',
-                        'mobile_id' => 'PR-SL-002M',
-                        'nombre_juego' => 'Sweet Bonanza',
-                        'porcentaje_dev' => '96.48%',
-                    ],
-                    // Juego 3
-                    (object) [
-                        'desktop_id' => 'EV-RG-005D',
-                        'mobile_id' => 'EV-RG-005M',
-                        'nombre_juego' => 'Lightning Roulette',
-                        'porcentaje_dev' => '97.30%',
-                    ],
-                    // Juego 4 (con un dato faltante)
-                    (object) [
-                        'desktop_id' => 'NG-SL-010D',
-                        'mobile_id' => null, // Para probar el ?? 'N/A'
-                        'nombre_juego' => 'Book of Ra Deluxe',
-                        'porcentaje_dev' => '95.10%',
-                    ],
-                ],
+            $numero_nota = $nota->nronota_ev;
+            $casino = $nota->origen;
+            $duenio_plataforma = null;
+            switch ($casino) {
+                case 4:
+                    $duenio_plataforma = 'Casinos Rosario S.A.';
+                    break;
+                case 5:
+                    $duenio_plataforma = 'Casinos Santa Fe S.A.';
+                    break;
+                default:
+                    $duenio_plataforma = 'DESCONOCIDO';
+            }
+            $texto_plataforma = null;
+            switch ($casino) {
+                case 4:
+                    $texto_plataforma = 'City Center Online';
+                    break;
+                case 5:
+                    $texto_plataforma = 'BPLAY';
+                    break;
+                default:
+                    $texto_plataforma = 'DESCONOCIDO';
+            }
+            switch ($casino) {
+                case 4:
+                    $casino = 'CCOL';
+                    break;
+                case 5:
+                    $casino = 'BPLAY';
+                    break;
+                default:
+                    $casino = 'DESCONOCIDO';
+            }
+            $nombre_evento = $nota->evento;
+            $fecha_nota_recep = Carbon::parse($nota->fecha_nota_recep)->format('d/m/Y');
+            setlocale(LC_TIME, 'es_ES.UTF-8');
+            $fecha_texto = Carbon::now()->formatLocalized('%d de %B de %Y');
+            $fecha_hoy = Carbon::now()->format('d/m/Y');
+
+            $templatePath = storage_path('app/templates/TemplateInformeTecnico.docx');
+
+            $template = new TemplateProcessor($templatePath);
+
+            $template->setValue('fecha_texto', $fecha_texto);
+            $template->setValue('casino', $casino);
+            $template->setValue('numero_nota', $numero_nota);
+            $template->setValue('texto_plataforma', $texto_plataforma);
+            $template->setValue('duenio_plataforma', $duenio_plataforma);
+            $template->setValue('nombre_evento', $nombre_evento);
+            $template->setValue('fecha_nota_recep', $fecha_nota_recep);
+            $template->setValue('fecha_hoy', $fecha_hoy);
+
+            $template->cloneRow('desktop', count($lista_juegos));
+            foreach ($lista_juegos as $index => $juego) {
+                $i = $index + 1;
+                $template->setValue("desktop#{$i}", $juego->desktop_id);
+                $template->setValue("mobile#{$i}", $juego->mobile_id);
+                $template->setValue("nombre_juego#{$i}", $juego->nombre_juego);
+            }
+
+            $tempPath = storage_path('app/templates/temp_informe_'.$numero_nota.'.docx');
+            $template->saveAs($tempPath);
+            $fileName = 'Informe_Tecnico_'.$casino.'_'.$numero_nota.'.docx';
+            $subCarpeta = 'Eventos_inftec';
+
+            $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
+                $subCarpeta,
+                new HttpFile($tempPath),
+                $fileName
+            );
+
+            $pathGuardado = basename($rutaGuardada);
+
+            unlink($tempPath);
+
+            DB::connection('gestion_notas_mysql')
+                ->table('eventos')
+                ->where('idevento', $id)
+                ->update(['adjunto_inf_tecnico' => $pathGuardado]);
                 
-                // --- Datos para la Opción A (un solo juego) ---
-                // (Solo por si decides no usar el @foreach)
-                'desktop' => 'BG-SL-001A',
-                'mobile' => 'BG-SL-001M',
-                'nombre_juego' => 'Gates of Olympus',
-                'porcentaje_devolucion' => '96.50%',
-            ];
-            //$pdf = Pdf::loadView('NotasCasino.plantillaInformeTecnico', $datos_de_prueba);
-
-
-        } catch (Exception $th) {
-            Log::error("Error al previsualizar el informe técnico: " . $th->getMessage());
-            return response()->json(['success' => false, 'message' => 'Error al previsualizar el informe técnico.'], 500);
+            return response()->json(['success' => true]);
+        } catch (Exception $e) {
+            Log::error("Error al generar el informe técnico: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al generar el informe técnico.'], 500);
         }
-    }
-    public function generarInformeTecnico (Request $request){
-        $templatePath = storage_path('app/templates/TemplateInformeTecnico.docx');
-        $template = new TemplateProcessor($templatePath);
-
-        $juegos = [
-        [
-            'desktop' => 'ea4-10',
-            'mobile' => 'ea4-10',
-            'nombre_juego' => 'Clasi. Voucher WSOP 250 USD - Evento en Vivo',
-            'porcentaje_devolucion' => '97.50%'
-        ],
-        [
-            'desktop' => '584-10',
-            'mobile' => '584-10',
-            'nombre_juego' => 'Clasi. Freeroll WSOP Fase 1/3 - Evento en Vivo',
-            'porcentaje_devolucion' => '95.00%'
-        ],
-        [
-            'desktop' => '58c-10',
-            'mobile' => '58c-10',
-            'nombre_juego' => 'Clasi. Voucher WSOP Fase 2/3 - Evento en Vivo',
-            'porcentaje_devolucion' => '96.00%'
-        ]
-    ];
-
-
-        $template->setValue('fecha_texto', '20 de octubre de 2025');
-        $template->setValue('casino','CCOL');
-        $template->setValue('numero_nota','PK 124/25');
-        $template->setValue('texto_plataforma','City Center Online');
-        $template->setValue('duenio_plataforma','Casinos Rosario S.A. ');
-        $template->setValue('nombre_evento','Evento del juego online');
-        $template->setValue('fecha_nota_recep','20/10/2025');
-
-        $template->cloneRow('desktop', count($juegos));
-        foreach ($juegos as $index => $juego) {
-            $i = $index + 1;
-
-            $template->setValue("desktop#{$i}", $juego['desktop']);
-            $template->setValue("mobile#{$i}", $juego['mobile']);
-            $template->setValue("nombre_juego#{$i}", $juego['nombre_juego']);
-            $template->setValue("porcentaje_devolucion#{$i}", $juego['porcentaje_devolucion']);
-        }
-
-            // Guardar archivo
-        $fileName = 'Informe_Final1.docx';
-        $filePath = storage_path($fileName);
-        $template->saveAs($filePath);
-
-        return response()->download($filePath)->deleteFileAfterSend(true);
     }
 }

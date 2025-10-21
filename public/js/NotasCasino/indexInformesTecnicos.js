@@ -81,7 +81,7 @@ function generarFilaTabla(nota) {
     .attr("title", nota.notas_relacionadas || "No hay información disponible");
 
   fila.find(".acciones_nota").html(
-    `   <a href="/informesTecnicos/generar">d</a>
+    `   
         <button class="gestionarInformeTecnico btn btn-info" title="Generar informe técnico" data-id="${nota.idevento}"><i class="fa fa-file-alt"></i></button>
         <button class="cargarInformeTecnico btn btn-warning" title="Cargar informe técnico" data-id="${nota.idevento}"><i class="fa fa-upload"></i></button>
     `
@@ -337,18 +337,89 @@ $("#cuerpoTabla").on("click", ".gestionarInformeTecnico", function (e) {
   e.preventDefault();
   idNotaGenerarInformeTecnico = $(this).data("id");
   $("#modalGeneracionInfTecnico").modal("show");
+  $("#btn-guardar-informeTecnico-generado").prop("disabled", false);
   colorBotonGenerar($("#btn-guardar-informeTecnico-generado"));
+  $("#informeTecnicoEmbed")
+    .attr(
+      "src",
+      "/informesTecnicos/previsualizar/" + idNotaGenerarInformeTecnico
+    )
+    .show();
+});
+
+$("#modalGeneracionInfTecnico").on("hidden.bs.modal", function () {
+  $("#informeTecnicoEmbed").attr("src", "").hide();
+  idNotaGenerarInformeTecnico = null;
+});
+
+$("#btn-guardar-informeTecnico-generado").on("click", function (e) {
+  e.preventDefault();
+  if (!idNotaGenerarInformeTecnico) {
+    console.error("ID de nota no establecido para generar informe técnico.");
+    return;
+  }
+  $(this).prop("disabled", true).text("GENERANDO...");
+
   $.ajax({
-    type: "GET",
-    url: "/informesTecnicos/preview/" + idNotaGenerarInformeTecnico,
+    type: "POST",
+    url: "/informesTecnicos/generar/" + idNotaGenerarInformeTecnico,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
     success: function (response) {
-      $("#informeTecnicoEmbed").show();
-      $("#informeTecnicoEmbed").attr("src", response.pdfUrl);
+      const { success } = response;
+      if (success) {
+        $("btn-guardar-informeTecnico-generado")
+          .prop("disabled", false)
+          .text("Generar Informe");
+        $("#modalGeneracionInfTecnico").modal("hide");
+        $("#mensajeExito h3").text("EL INFORME SE GENERÓ CON ÉXITO");
+        $("#mensajeExito p").text("El informe se generó correctamente");
+        $("#modalCargaInfTecnico").modal("hide");
+        idNotaGenerarInformeTecnico = null;
+        $("#mensajeExito").hide();
+        $("#mensajeExito").removeAttr("hidden");
+
+        setTimeout(function () {
+          $("#mensajeExito").fadeIn();
+        }, 100);
+
+        $("#btn-guardar-informeTecnico")
+          .prop("disabled", false)
+          .text("Guardar Informe");
+        cargarNotas();
+      } else {
+        $("#btn-guardar-informeTecnico-generado")
+          .prop("disabled", false)
+          .text("Generar Informe");
+        $("#mensajeError .textoMensaje").empty();
+        $("#mensajeError .textoMensaje").append(
+          $("<h3></h3>").text(
+            "Ocurrio un error al guardar el informe, por favor intenta nuevamente."
+          )
+        );
+        $("#mensajeError").hide();
+        setTimeout(function () {
+          $("#mensajeError").show();
+        }, 250);
+      }
     },
     error: function (xhr, status, error) {
       console.error("Error al generar informe técnico:", error);
-      $("#informeTecnicoEmbed").hide();
-      $("#mensajeErrorInformeTecnico").show();
+      $("#btn-guardar-informeTecnico-generado")
+        .prop("disabled", false)
+        .text("Generar Informe");
+      $("#mensajeError .textoMensaje").empty();
+      $("#mensajeError .textoMensaje").append(
+        $("<h3></h3>").text(
+          "Ocurrio un error al guardar el informe, por favor intenta nuevamente."
+        )
+      );
+      $("#mensajeError").hide();
+      setTimeout(function () {
+        $("#mensajeError").show();
+      }, 250);
     },
   });
 });
