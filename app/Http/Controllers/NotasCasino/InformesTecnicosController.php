@@ -182,7 +182,7 @@ class InformesTecnicosController extends Controller
     public function guardarInformeTecnico (Request $request){
         $validator = Validator::make($request->all(),[
             'id' => 'required|integer',
-            'adjuntoInformeTecnico' => 'required|file|mimes:pdf,doc,docx,zip|max:153600'
+            'adjuntoInformeTecnico' => 'required|file|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/octet-stream|max:153600',
         ]);
         if($validator->fails()){
             Log::error("Error de validación al guardar informe técnico: " . json_encode($validator->errors()));
