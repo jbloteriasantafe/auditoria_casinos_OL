@@ -136,9 +136,10 @@
             promocional mencionada.
         </p>
         <p>
-            De acuerdo con lo establecido por la Ley 14293 y con el artículo 20 del Decreto
-            Reglamentario N° 0562 de la Ley N° 14.235, se han analizado las Bases y Condiciones
-            junto Y podemos confirmar que los elementos cumplen con los requisitos establecidos.
+            De conformidad con lo establecido en la Ley N.º 14.293 y el Articulo 20 del Decreto Reglamentario N.º 0562
+            de la Ley N.º 14.235, se ha analizado las Bases y Condiciones presentadas para la acción. Tras la evaluación
+            correspondiente, se <strong>AUTORIZA</strong> la realización de la acción promocional mencionada,
+            confirmando que todos sus elementos cumplen con los requisitos legales y normativos vigentes.
         </p>
         <p>
             Sobre los juegos verificados, detallamos la información de identificación registrada
