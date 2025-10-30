@@ -123,6 +123,19 @@
              ],
          ],
      ],
+     'Eventos casinos' => [
+         'icono' => '<i class="fa fa-calendar-check"></i>',
+         'hijos' => [
+             'Importacion y Validacion' => [
+                 'link' => '/auditoriaEventos',
+                 'algun_permiso' => ['ver_seccion_auditoria_eventos'],
+             ],
+             'Exportacion' => [
+                 'link' => '/validacionEventosExport',
+                 'algun_permiso' => [],
+             ],
+         ],
+     ],
  ];
  $estadisticas_hijos = [
      'Informes' => [
