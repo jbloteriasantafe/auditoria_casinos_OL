@@ -43,7 +43,7 @@
                         <div class="col-xs-12">
                             <center>
                                 <h5 class="txtLogo">+</h5>
-                                <h4 class="txtNuevo">IMPORTAR UN ARCHIVO</h4>
+                                <h4 class="txtNuevo">IMPORTAR EVENTOS</h4>
                             </center>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                                     archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
                                     MB.</span>
                                 <span class="error-message" style="display: none;" id="mensajeErrorAdjuntoVacio">No se ha
-                                    seleccionado ningún arhcivos</span>
+                                    seleccionado ningún archivo</span>
                             </div>
                         </form>
                     </div>

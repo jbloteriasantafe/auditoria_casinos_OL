@@ -44,6 +44,7 @@ $("#adjuntoEventos").on("change", function (e) {
     return;
   }
   $("#mensajeErrorAdjuntoEventos").hide();
+  $("#mensajeErrorAdjuntoVacio").hide();
   $("#adjuntoEventosName").text(fileName);
   $("#eliminarAdjuntoEventos").show();
 });
@@ -59,14 +60,33 @@ $("#modalImporteEventos").on("hidden.bs.modal", function () {
   $("#adjuntoEventosName").text("Ningún archivo seleccionado");
   $("#mensajeErrorAdjuntoEventos").hide();
   $("#eliminarAdjuntoEventos").hide();
+  $("#mensajeErrorAdjuntoVacio").hide();
 });
 
 $("#btn-guardar-evento").on("click", function (e) {
   e.preventDefault();
   const archivo = $("#adjuntoEventos")[0].files[0];
   if (!archivo) {
+    $("#mensajeErrorAdjuntoVacio").show();
     return;
   }
   const formData = new FormData();
-  formData.append("archivo", archivo);
+  formData.append("adjuntoEventos", archivo);
+
+  $.ajax({
+    url: "/auditoriaEventos/importar",
+    type: "POST",
+    data: formData,
+    dataType: "json",
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    processData: false,
+    contentType: false,
+    success: function (response) {
+      const { success } = response;
+      if (success) {
+        console.log("Importación exitosa");
+      }
+    },
+    error: function (xhr, status, error) {},
+  });
 });
