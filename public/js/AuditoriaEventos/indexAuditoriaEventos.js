@@ -70,6 +70,10 @@ $("#btn-guardar-evento").on("click", function (e) {
     $("#mensajeErrorAdjuntoVacio").show();
     return;
   }
+
+  $("#btn-guardar-evento").attr("disabled", true);
+  $("#btn-guardar-evento").text("Importando...");
+
   const formData = new FormData();
   formData.append("adjuntoEventos", archivo);
 
@@ -84,9 +88,51 @@ $("#btn-guardar-evento").on("click", function (e) {
     success: function (response) {
       const { success } = response;
       if (success) {
-        console.log("Importación exitosa");
+        $("#mensajeExito h3").text("ÉXITO DE IMPORTACIÓN");
+        $("#mensajeExito p").text(
+          "Los eventos se han importado correctamente."
+        );
+        $("#modalImporteEventos").modal("hide");
+
+        $("#mensajeExito").hide();
+        $("#mensajeExito").removeAttr("hidden");
+
+        setTimeout(function () {
+          $("#mensajeExito").fadeIn();
+        }, 100);
+        $("#btn-guardar-evento").attr("disabled", false);
+        $("#btn-guardar-evento").text("Importar Eventos");
+      } else {
+        $("#btn-guardar-evento")
+          .attr("disabled", false)
+          .text("Importar Eventos");
+
+        $("#mensajeError .textoMensaje").empty();
+        $("#mensajeError .textoMensaje").append(
+          $("<h3></h3>").text(
+            "Ocurrio un error al cargar los eventos, por favor intenta nuevamente."
+          )
+        );
+        $("#mensajeError").hide();
+        setTimeout(function () {
+          $("#mensajeError").show();
+        }, 250);
       }
     },
-    error: function (xhr, status, error) {},
+    error: function (xhr, status, error) {
+      console.log("Error al importar los eventos:", error);
+      $("#btn-guardar-evento").attr("disabled", false).text("Importar Eventos");
+
+      $("#mensajeError .textoMensaje").empty();
+      $("#mensajeError .textoMensaje").append(
+        $("<h3></h3>").text(
+          "Ocurrio un error al cargar los eventos, por favor intenta nuevamente."
+        )
+      );
+      $("#mensajeError").hide();
+      setTimeout(function () {
+        $("#mensajeError").show();
+      }, 250);
+    },
   });
 });

@@ -64,7 +64,7 @@ class AuditoriaEventosController extends Controller
                 $fecha_evento = Carbon::createFromFormat('d/m/Y', $evento['fecha_evento'])->format('Y-m-d');
                 $fecha_finalizacion = Carbon::createFromFormat('d/m/Y', $evento['fecha_finalizacion'])->format('Y-m-d');
 
-                $evento = DB::connection('gestion_notas_mysql')
+                $eventoDB = DB::connection('gestion_notas_mysql')
                     ->table('eventos')
                     ->where('nronota_ev', '=', $evento['nro_nota'])
                     ->where('origen', '=', $evento['origen'])
@@ -79,20 +79,30 @@ class AuditoriaEventosController extends Controller
                     ], 422);
                 }
 
-                $fechaEventoDB = Carbon::parse($evento->fecha_evento);
-                $fechaFinalizacionDB = Carbon::parse($evento->fecha_finalizacion);
+                $fechaEventoDB = Carbon::parse($eventoDB->fecha_evento);
+                $fechaFinalizacionDB = Carbon::parse($eventoDB->fecha_finalizacion);
                 $fechaHoy = Carbon::now();
                 $esValido = false;
+                $esActivo = false;
 
-                if (
-                    $fechaHoy->between($fechaEventoDB, $fechaFinalizacionDB)
-                    && $evento->fecha_evento === $fecha_evento
-                    && $evento->fecha_finalizacion === $fecha_finalizacion
-                ) {
+                //SI LA FECHA DE HOY SE ENCUENTRA ENTRE LAS FECHAS DEL EVENTO ESTA ACTIVO
+                if ($fechaHoy->between($fechaEventoDB, $fechaFinalizacionDB)) {
+                    $esActivo = true;
+                }
+
+                //SI EL EVENTO ESTA ACTIVO Y SU ESTADO ES 'ACTIVO' ES VALIDO
+                if ($esActivo && $evento['estado'] === 'ACTIVO') {
+                    $esValido = true;
+                }
+                //SI EL EVENTO NO ESTA ACTIVO Y SU ESTADO ES 'FINALIZADO' ES VALIDO
+                if (!$esActivo && $evento['estado'] === 'FINALIZADO') {
                     $esValido = true;
                 }
 
-                if ($esValido && $evento->estado !== 'FINALIZADO') {
+                //SI HAY DIFERENCIAS ENTRE LAS FECHAS O DATOS DEL EVENTO ES INVALIDO
+                if (
+                    $fecha_evento !== $eventoDB->fecha_evento && $fecha_finalizacion !== $eventoDB->fecha_finalizacion
+                ) {
                     $esValido = false;
                 }
 
