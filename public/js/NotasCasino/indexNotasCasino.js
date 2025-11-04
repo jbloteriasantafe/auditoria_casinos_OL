@@ -218,8 +218,6 @@ function clearErrors() {
 }
 
 //! FUNCIONES PAGINACION
-//paginacion
-//crear bien los links y ahora creo un controlador que se encargue de mostrar el pdf
 function generarFilaTabla(nota) {
   const ESTADOS = {
     controlIniciado: "Control Iniciado",

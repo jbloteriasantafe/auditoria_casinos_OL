@@ -1,6 +1,9 @@
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Auditoría de Eventos ");
+  const casinoSeleccionado = $("#filtroCasino").val();
+  const fechaSeleccionada = $("#filtroFecha").val();
+  cargarNotas(1, 5, casinoSeleccionado, fechaSeleccionada);
 });
 
 //! FUNCIONES AUXILIARES
@@ -11,6 +14,32 @@ function colorBoton(boton) {
   $(boton).text("Importar Eventos");
   $(boton).show();
   $(boton).val("nuevo");
+}
+
+function actualizarFechasCarga() {
+  let nuevaFecha = null;
+  $.ajax({
+    type: "GET",
+    url: "/auditoriaEventos/fechasCarga",
+    dataType: "json",
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    processData: false,
+    contentType: false,
+    success: function (response) {
+      console.log(response);
+      const { fechas } = response;
+      nuevaFecha = fechas[0].fecha;
+      const filtroFecha = $("#filtroFecha");
+      filtroFecha.empty();
+      fechas.forEach((fecha) => {
+        filtroFecha.append(
+          `<option value="${fecha}">${fecha.formateada}</option>`
+        );
+      });
+    },
+  });
+  console.log(nuevaFecha);
+  return nuevaFecha;
 }
 
 //! MODAL IMPORTAR EVENTOS
@@ -88,6 +117,8 @@ $("#btn-guardar-evento").on("click", function (e) {
     success: function (response) {
       const { success } = response;
       if (success) {
+        const nuevaFecha = actualizarFechasCarga();
+        cargarNotas(1, 5, $("#filtroCasino").val(), nuevaFecha);
         $("#mensajeExito h3").text("ÉXITO DE IMPORTACIÓN");
         $("#mensajeExito p").text(
           "Los eventos se han importado correctamente."
@@ -135,4 +166,149 @@ $("#btn-guardar-evento").on("click", function (e) {
       }, 250);
     },
   });
+});
+
+//! FUNCIONES PAGINACION
+function generarFilaTabla(evento) {
+  let fila = $("#cuerpoTabla .filaTabla")
+    .clone()
+    .removeClass("filaTabla")
+    .show();
+
+  fila
+    .find(".numero_nota")
+    .text(evento.nro_nota || "No hay información disponible")
+    .attr("title", evento.nro_nota || "No hay información disponible");
+  fila
+    .find(".casino_origen")
+    .text(
+      ` ${
+        evento.casino_origen === 4
+          ? "CCOL"
+          : evento.casino_origen === 5
+          ? "BPLAY"
+          : "No hay información disponible"
+      } `
+    )
+    .attr("title", evento.casino_origen || "No hay información disponible");
+  fila
+    .find(".nombre_evento")
+    .text(evento.nombre_evento || "No hay información disponible")
+    .attr("title", evento.nombre_evento || "No hay información disponible");
+  fila
+    .find(".fecha_inicio_evento")
+    .text(evento.fecha_inicio_evento || "No hay información disponible")
+    .attr(
+      "title",
+      evento.fecha_inicio_evento || "No hay información disponible"
+    );
+  fila
+    .find(".fecha_finalizacion_evento")
+    .text(evento.fecha_finalizacion_evento || "No hay información disponible")
+    .attr(
+      "title",
+      evento.fecha_finalizacion_evento || "No hay información disponible"
+    );
+  fila
+    .find(".fecha_carga")
+    .text(evento.fecha_carga || "No hay información disponible")
+    .attr("title", evento.fecha_carga || "No hay información disponible");
+  fila
+    .find(".estado")
+    .text(evento.estado || "No hay información disponible")
+    .attr("title", evento.estado || "No hay información disponible");
+  fila
+    .find(".url_promo")
+    .html(
+      `
+      ${
+        evento.url_promo
+          ? `<a href="${evento.url_promo}" target="_blank">${evento.url_promo}</a>`
+          : "No hay información disponible"
+      }
+    `
+    )
+    .attr("title", evento.url_promo || "No hay información disponible");
+  fila
+    .find(".valido")
+    .html(
+      `
+      ${
+        evento.valido
+          ? `<i class="fas fa-check" style="color: green;"></i>`
+          : '<i class="fas fa-times" style="color: red;"></i>'
+      }
+    `
+    )
+    .attr("title", evento.valido ? "Sí" : "No");
+
+  return fila;
+}
+
+function cargarNotas(page = 1, perPage = 5, casino, fechaCarga) {
+  let formData = new FormData();
+  formData.append("page", page);
+  formData.append("perPage", perPage);
+
+  if (casino) {
+    formData.append("casino", casino);
+  }
+  if (fechaCarga) {
+    formData.append("fechaCarga", fechaCarga);
+  }
+  console.log(fechaCarga);
+  $.ajax({
+    type: "POST",
+    url: "/auditoriaEventos/paginar",
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
+    success: function (response) {
+      // Limpiar tabla
+      $("#cuerpoTabla tr").not(".filaTabla").remove();
+
+      // Llenar tabla
+      response.data.data.forEach(function (evento) {
+        $("#tablaNotas tbody").append(generarFilaTabla(evento));
+      });
+
+      // Actualizar paginación
+      $("#herramientasPaginacion").generarTitulo(
+        response.current_page,
+        response.per_page,
+        response.total,
+        clickIndice
+      );
+      $("#herramientasPaginacion").generarIndices(
+        response.current_page,
+        response.per_page,
+        response.total,
+        clickIndice
+      );
+    },
+    error: function (xhr, status, error) {
+      // Manejar el error
+      console.error("Error al cargar notas:", err);
+    },
+  });
+}
+
+function clickIndice(e, pageNumber, page_size) {
+  e && e.preventDefault();
+  var page_size = $("#size").val() || 5;
+
+  var casino = $("#filtroCasino").val();
+  var fechaCarga = $("#filtroFecha").val();
+
+  cargarNotas(pageNumber, page_size, casino, fechaCarga);
+}
+
+//TODOS:AL IMPORTAR EVENTOS RECARGAR LAS FECHAS DE CARGA Y LA TABLA
+$("#filtroCasino, #filtroFecha").on("change", function () {
+  const casino = $("#filtroCasino").val();
+  const fecha = $("#filtroFecha").val();
+
+  cargarNotas(1, 5, casino, fecha);
 });

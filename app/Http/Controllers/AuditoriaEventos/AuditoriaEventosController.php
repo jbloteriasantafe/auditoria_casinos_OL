@@ -13,7 +13,21 @@ class AuditoriaEventosController extends Controller
 {
     public function index()
     {
-        return view('AuditoriaEventos.indexAuditoriaEventos');
+        $fechas = DB::table('evento_publicidad_casino')
+            ->select(DB::raw('DATE(created_at) as fecha_creacion'))
+            ->distinct()
+            ->orderByDesc('fecha_creacion')
+            ->get();
+
+        $fechas_array = $fechas->map(function ($item) {
+            return $item->fecha_creacion;
+        })->toArray();
+        $casinos = [
+            ['id' => '4', 'nombre' => 'CCOL'],
+            ['id' => '5', 'nombre' => 'BPLAY'],
+        ];
+
+        return view('AuditoriaEventos.indexAuditoriaEventos', compact('casinos', 'fechas_array'));
     }
 
     public function importarEventos(Request $request)
@@ -124,6 +138,90 @@ class AuditoriaEventosController extends Controller
             return response()->json([
                 'success' => false,
                 'errors' => ['adjuntoEventos' => ['Error al procesar el archivo.']]
+            ], 500);
+        }
+    }
+
+    public function paginarEventos(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'page' => 'nullable|integer|min:1',
+            'perPage' => 'nullable|integer|min:5|max:50',
+            'casino' => 'nullable|integer',
+            'fechaCarga' => 'nullable|date',
+        ]);
+        if ($validator->fails()) {
+            Log::error('Error de validación al paginar eventos: ', $validator->errors()->toArray());
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 400);
+        }
+        $page = $request->input('page', 1);
+        $perPage = $request->input('perPage', 5);
+        $casino = $request->input('casino', null);
+        $fecha = $request->input('fechaCarga', null);
+
+        try {
+            $query = DB::table('evento_publicidad_casino')
+                ->select(
+                    'nro_nota',
+                    'origen as casino_origen',
+                    'evento as nombre_evento',
+                    DB::raw("DATE_FORMAT(fecha_evento, '%d/%m/%Y') as fecha_inicio_evento"),
+                    DB::raw("DATE_FORMAT(fecha_finalizacion, '%d/%m/%Y') as fecha_finalizacion_evento"),
+                    'estado',
+                    'url_promo',
+                    'valido',
+                    DB::raw("DATE_FORMAT(created_at, '%d/%m/%Y') as fecha_carga")
+                );
+
+            if ($casino) {
+                $query->where('origen', '=', $casino);
+            }
+
+            if ($fecha) {
+                $query->whereDate('created_at', '=', $fecha);
+            }
+
+            $resultados = $query->paginate($perPage, ['*'], 'page', $page);
+
+            return response()->json([
+                'current_page' => $resultados->currentPage(),
+                'per_page' => $resultados->perPage(),
+                'total' => $resultados->total(),
+                'data' => $resultados
+            ]);
+        } catch (Exception $e) {
+            Log::error('Error al paginar eventos: ', ['exception' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'errors' => ['pagination' => ['Error al paginar los eventos.']]
+            ], 500);
+        }
+    }
+
+    public function fechasCarga()
+    {
+        try {
+            $fechas = DB::table('evento_publicidad_casino')
+                ->select(DB::raw('DATE(created_at) as fecha_creacion'))
+                ->distinct()
+                ->orderByDesc('fecha_creacion')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'fecha' => $item->fecha_creacion,
+                        'formateada' => Carbon::parse($item->fecha_creacion)->format('d/m/Y'),
+                    ];
+                });
+
+            return response()->json(['fechas' => $fechas]);
+        } catch (Exception $e) {
+            Log::error('Error al obtener las fechas de carga: ', ['exception' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'errors' => ['fechasCarga' => ['Error al obtener las fechas de carga.']]
             ], 500);
         }
     }

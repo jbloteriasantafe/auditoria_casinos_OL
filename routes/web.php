@@ -157,6 +157,8 @@ Route::group(['prefix' => 'informesTecnicos', 'middleware' => 'tiene_permiso:ver
 Route::group(['prefix' => 'auditoriaEventos', 'middleware' => 'tiene_permiso:ver_seccion_auditoria_eventos'], function () {
   Route::get('/', 'AuditoriaEventos\AuditoriaEventosController@index');
   Route::post('importar', 'AuditoriaEventos\AuditoriaEventosController@importarEventos');
+  Route::post('paginar', 'AuditoriaEventos\AuditoriaEventosController@paginarEventos');
+  Route::get('fechasCarga', 'AuditoriaEventos\AuditoriaEventosController@fechasCarga');
 });
 
 /***********
