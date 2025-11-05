@@ -183,6 +183,7 @@ class AuditoriaEventosController extends Controller
             if ($fecha) {
                 $query->whereDate('created_at', '=', $fecha);
             }
+            $query->orderBy('created_at', 'desc');
 
             $resultados = $query->paginate($perPage, ['*'], 'page', $page);
 

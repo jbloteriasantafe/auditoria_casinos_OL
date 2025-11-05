@@ -33,13 +33,14 @@ function actualizarFechasCarga() {
       filtroFecha.empty();
       fechas.forEach((fecha) => {
         filtroFecha.append(
-          `<option value="${fecha}">${fecha.formateada}</option>`
+          `<option value="${fecha.fecha}">${fecha.formateada}</option>`
         );
       });
+      console.log(nuevaFecha);
+      console.log(typeof nuevaFecha);
+      cargarNotas(1, 5, $("#filtroCasino").val(), nuevaFecha);
     },
   });
-  console.log(nuevaFecha);
-  return nuevaFecha;
 }
 
 //! MODAL IMPORTAR EVENTOS
@@ -117,8 +118,7 @@ $("#btn-guardar-evento").on("click", function (e) {
     success: function (response) {
       const { success } = response;
       if (success) {
-        const nuevaFecha = actualizarFechasCarga();
-        cargarNotas(1, 5, $("#filtroCasino").val(), nuevaFecha);
+        actualizarFechasCarga();
         $("#mensajeExito h3").text("ÉXITO DE IMPORTACIÓN");
         $("#mensajeExito p").text(
           "Los eventos se han importado correctamente."
