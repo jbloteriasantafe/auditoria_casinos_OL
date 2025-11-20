@@ -301,6 +301,19 @@ class NotasCasinoController extends Controller
             return response()->json(['success' => false, 'message' => 'No hay datos para actualizar'], 400);
         }
 
+        $notaDB = DB::connection('gestion_notas_mysql')
+            ->table('eventos')
+            ->where('idevento', $idNota)
+            ->select('adjunto_inf_tecnico', 'idestado')
+            ->first();
+
+        $estadoInvalido = !in_array($notaDB->idestado, [1, 9]);
+
+        if ($estadoInvalido || !is_null($notaDB->adjunto_inf_tecnico)) {
+            Log::error("La nota no puede ser modificada");
+            return response()->json(['success' => false, 'error' => 'La nota no puede ser modificada'], 422);
+        }
+
         $nota = null;
         if ($nroNota && $tipoNota && $anioNota) {
             $resto = $anioNota % 1000;
