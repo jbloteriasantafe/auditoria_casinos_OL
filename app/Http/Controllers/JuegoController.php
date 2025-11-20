@@ -160,6 +160,7 @@ class JuegoController extends Controller
     $juegoSecundario = Juego::on('gestion_notas_mysql')->find($juego->id_juego);
     if($juegoSecundario === null){
       $juegoSecundario = new Juego;
+      $juegoSecundario->setConnection('gestion_notas_mysql');
     }
     
     foreach($attrs as $attr){
