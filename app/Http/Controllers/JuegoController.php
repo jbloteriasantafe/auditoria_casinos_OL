@@ -159,16 +159,7 @@ class JuegoController extends Controller
     $juego->save();
     $juegoSecundario = $juego->replicate();
     $juegoSecundario->setConnection('gestion_notas_mysql');
-    {//@HACK hasta que Javier agregue Auto Increment a id_juego
-      $id_juego = DB::connection('gestion_notas_mysql')
-      ->table('juego')
-      ->selectRaw('MAX(id_juego) as id_juego')
-      ->groupBy(DB::raw('"constant"'))
-      ->get()
-      ->first();
-      $id_juego = $id_juego === null? 0 : $id_juego->id_juego;
-      $juegoSecundario->id_juego = $id_juego;
-    }
+    $juegoSecundario->id_juego = $juego->id_juego;
     $juegoSecundario->save();
     $log->save();
 
