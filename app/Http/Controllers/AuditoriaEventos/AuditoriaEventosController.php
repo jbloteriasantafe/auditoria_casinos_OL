@@ -51,6 +51,15 @@ class AuditoriaEventosController extends Controller
         }
 
         $adjuntoEventos = $request->file('adjuntoEventos');
+        //HAGO ENCODING A UTF-8 PARA QUE SE ACEPTEN CARACTERES ESPECIALES
+        $path = $adjuntoEventos->getRealPath();
+        $content = file_get_contents($path);
+        $encoding = mb_detect_encoding($content, ['UTF-8', 'ISO-8859-1', 'WINDOWS-1252'], true);
+
+        if ($encoding !== 'UTF-8') {
+            $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+            file_put_contents($path, $content);
+        }
 
         if (($handle = fopen($adjuntoEventos->getRealPath(), 'r')) === false) {
             Log::error('Error al abrir el archivo CSV: ', ['file' => $adjuntoEventos->getRealPath()]);
@@ -85,7 +94,7 @@ class AuditoriaEventosController extends Controller
                     ->select('fecha_evento', 'fecha_finalizacion')
                     ->first();
 
-                if (!$evento) {
+                if (!$eventoDB) {
                     Log::error('El evento no existe en la base de datos de gestión de notas: ', ['nro_nota' => $evento['nro_nota'], 'origen' => $evento['origen']]);
                     return response()->json([
                         'success' => false,
