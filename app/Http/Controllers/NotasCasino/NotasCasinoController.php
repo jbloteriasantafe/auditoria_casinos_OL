@@ -18,78 +18,84 @@ class NotasCasinoController extends Controller
 
     protected $USER;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware(function ($request, $next) {
-        $this->USER = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-        return $next($request);
-    });
+            $this->USER = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+            return $next($request);
+        });
     }
 
-    public function index(){
-        try{
+    public function index()
+    {
+        try {
             $categorias = DB::connection('gestion_notas_mysql')
-            ->table('categorias')
-            ->get();
+                ->table('categorias')
+                ->get();
             $tipos_evento = DB::connection('gestion_notas_mysql')
-            ->table('tipo_eventos')
-            ->get();
+                ->table('tipo_eventos')
+                ->get();
 
             $juegos = DB::connection('mysql')
-                        ->table('juego')
-                        ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
-                        ->get();
+                ->table('juego')
+                ->select('id_juego', 'nombre_juego', 'porcentaje_devolucion', 'movil', 'escritorio', 'cod_juego')
+                ->limit(20)
+                ->get();
 
-            $tipos_nota = array_map(function($item){
+            $tipos_nota = array_map(function ($item) {
                 return (object) $item;
             }, [
-                ['id_tipo_nota'=>'1','tipo_nombre' => 'Comun'],
-                ['id_tipo_nota'=>'2','tipo_nombre' => 'Publicidad (Bis)'],
-                ['id_tipo_nota'=>'3','tipo_nombre' => 'Marketing (MKT)'],
-                ['id_tipo_nota'=>'4','tipo_nombre' => 'Poker (PK)'],
+                ['id_tipo_nota' => '1', 'tipo_nombre' => 'Comun'],
+                ['id_tipo_nota' => '2', 'tipo_nombre' => 'Publicidad (Bis)'],
+                ['id_tipo_nota' => '3', 'tipo_nombre' => 'Marketing (MKT)'],
+                ['id_tipo_nota' => '4', 'tipo_nombre' => 'Poker (PK)'],
             ]);
 
             $anio = date('Y');
-        }catch(Exception $e){
-            Log::error('Error al obtener los datos: '.$e->getMessage()); 
+        } catch (Exception $e) {
+            Log::error('Error al obtener los datos: ' . $e->getMessage());
 
-            $categorias = array_map(function($item){
+            $categorias = array_map(function ($item) {
                 return (object) $item;
             }, [
-                ['idcategoria' => 1, 'categoria' => 'Diseño'], 
-                ['idcategoria' => 2, 'categoria' => 'Pautas'], 
+                ['idcategoria' => 1, 'categoria' => 'Diseño'],
+                ['idcategoria' => 2, 'categoria' => 'Pautas'],
                 ['idcategoria' => 3, 'categoria' => 'Contratos'],
                 ['idcategoria' => 4, 'categoria' => 'Torneo'],
                 ['idcategoria' => 5, 'categoria' => 'Torneo + Gráficas']
             ]);
 
-            $tipos_evento = array_map(function($item){
+            $tipos_evento = array_map(function ($item) {
                 return (object) $item;
             }, [
-                ['idtipoevento'=>1,'tipo_nombre'=>'Activaciones'],
-                ['idtipoevento'=>2,'tipo_nombre'=>'Medios Masivos/Tradicionales'],
-                ['idtipoevento'=>3,'tipo_nombre'=>'Medios Digitales'],
-                ['idtipoevento'=>4,'tipo_nombre'=>'Promociones'],
-                ['idtipoevento'=>5,'tipo_nombre'=>'Torneos'],
-                ['idtipoevento'=>6,'tipo_nombre'=>'Via Publica'],
-                ['idtipoevento'=>7,'tipo_nombre'=>'Contratos'],
+                ['idtipoevento' => 1, 'tipo_nombre' => 'Activaciones'],
+                ['idtipoevento' => 2, 'tipo_nombre' => 'Medios Masivos/Tradicionales'],
+                ['idtipoevento' => 3, 'tipo_nombre' => 'Medios Digitales'],
+                ['idtipoevento' => 4, 'tipo_nombre' => 'Promociones'],
+                ['idtipoevento' => 5, 'tipo_nombre' => 'Torneos'],
+                ['idtipoevento' => 6, 'tipo_nombre' => 'Via Publica'],
+                ['idtipoevento' => 7, 'tipo_nombre' => 'Contratos'],
             ]);
-            $tipos_nota = array_map(function($item){
+            $tipos_nota = array_map(function ($item) {
                 return (object) $item;
             }, [
-                ['id_tipo_nota'=>'1','tipo_nombre' => 'Comun'],
-                ['id_tipo_nota'=>'2','tipo_nombre' => 'Publicidad (Bis)'],
-                ['id_tipo_nota'=>'3','tipo_nombre' => 'Marketing (MKT)'],
-                ['id_tipo_nota'=>'4','tipo_nombre' => 'Poker (PK)'],
+                ['id_tipo_nota' => '1', 'tipo_nombre' => 'Comun'],
+                ['id_tipo_nota' => '2', 'tipo_nombre' => 'Publicidad (Bis)'],
+                ['id_tipo_nota' => '3', 'tipo_nombre' => 'Marketing (MKT)'],
+                ['id_tipo_nota' => '4', 'tipo_nombre' => 'Poker (PK)'],
             ]);
             $anio = date('Y');
         }
-        return view('NotasCasino.indexNotasCasino',
-         compact('categorias', 'tipos_evento','tipos_nota', 'anio','juegos'));
+        return view(
+            'NotasCasino.indexNotasCasino',
+            compact('categorias', 'tipos_evento', 'tipos_nota', 'anio', 'juegos')
+        );
     }
 
-    public function subirNota (Request $request){
+    public function subirNota(Request $request)
+    {
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'nroNota' => 'required|integer',
             'tipoNota' => 'required|integer',
             'anioNota' => 'required|integer',
@@ -106,7 +112,7 @@ class NotasCasinoController extends Controller
             'juegosSeleccionados.*' => 'integer',
         ]);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             Log::info('Validación fallida', $validator->errors()->toArray());
             return response()->json($validator->errors(), 422);
         }
@@ -116,7 +122,7 @@ class NotasCasinoController extends Controller
         $tipoNota = $request->input('tipoNota');
         $anioNota = $request->input('anioNota');
         $resto = $anioNota % 1000;
-        
+
         $formatos = [
             1 => "{$nroNota}-{$resto}",
             2 => "{$nroNota}-{$resto} Bis",
@@ -130,116 +136,118 @@ class NotasCasinoController extends Controller
             $nota = '';
         }
 
-        try{
-        //verifico si el numero de nota es unico
-        $existeNota = DB::connection('gestion_notas_mysql')->table('eventos')
-            ->where('nronota_ev', $nota)
-            ->exists();
+        try {
+            //verifico si el numero de nota es unico
+            $casino = $this->USER->plataformas()->first();
+            $origen = $this->obtenerCasino($casino);
 
-        if($existeNota) {
-            return response()->json(['success' => false, 'error' => 'El número de nota ya existe'], 422);
-        }
-        $casino = $this->USER->plataformas()->first();
-        $origen = $this->obtenerCasino($casino);
+            $existeNota = DB::connection('gestion_notas_mysql')->table('eventos')
+                ->where(['nronota_ev' => $nota, 'origen' => $origen])
+                ->exists();
 
-        $responsable = null;
-        switch($origen){
-            case 4://CCOL
-                $responsable = 27;//rosario
-                break;
-            case 5://BPLAY
-                $responsable = 28; //santa fe
-                break;
-            default:
-                $responsable = 4; //usuario de Mecha
-                break;
-        }
-
-        // obtnego los datos de la request
-        $evento = $request->input('nombreEvento');
-        $tipoEvento = $request->input('tipoEvento');
-        $fechaInicio = $request->input('fechaInicio');
-        $fechaFinalizacion = $request->input('fechaFinalizacion');
-        $categoria = $request->input('categoria');
-        $idEstado = 9; //carga inicial
-        $fechaReferencia = null;
-
-        if($request->has('fechaReferencia')) {
-            $fechaReferencia = $request->input('fechaReferencia');
-        }
-        $archivos = [
-            'adjuntoPautas' => 'Eventos_Pautas',
-            'adjuntoDisenio' => 'Eventos_Diseño',
-            'basesyCondiciones' => 'Eventos_byc',
-        ];
-        $pathsGuardados = [];
-        foreach ($archivos as $input => $subcarpeta) {
-            if ($request->hasFile($input)) {
-                $archivo = $request->file($input);
-                $nombreArchivo = $archivo->getClientOriginalName();
-                // Guardar en el disco notas_casinos dentro de la subcarpeta correspondiente
-                $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
-                $subcarpeta,        // subcarpeta dentro del disco
-                $archivo,           // archivo a guardar
-                $nombreArchivo      // conservar el nombre original
-                );
-
-                $pathsGuardados[$input] = basename($rutaGuardada);
-            }
-        }
-
-        $idNota = DB::connection('gestion_notas_mysql')->table('eventos')->insertGetId([
-            'responsable' => $responsable,
-            'nronota_ev' => $nota,
-            'origen' => $origen,
-            'evento' => $evento,
-            'fecha_nota_recep' => null,
-            'tipo_evento' => $tipoEvento,
-            'fecha_evento' => $fechaInicio,
-            'fecha_finalizacion' => $fechaFinalizacion,
-            'estado_fecha' => null,
-            'fecha_referencia_evento' => $fechaReferencia,
-            'mes_referencia_evento' => null,
-            'anio' => null,
-            'adjunto_pautas' => isset($pathsGuardados['adjuntoPautas']) ? $pathsGuardados['adjuntoPautas'] : null,
-            'adjunto_diseño' => isset($pathsGuardados['adjuntoDisenio']) ? $pathsGuardados['adjuntoDisenio'] : null,
-            'adjunto_basesycond' => isset($pathsGuardados['basesyCondiciones']) ? $pathsGuardados['basesyCondiciones'] : null,
-            'adjunto_inf_tecnico' => null,
-            'idestado' => $idEstado,
-            'idest_seg' => null,
-            'observaciones' => null,
-            'obs_seguim' => null,
-            'fecha_orden' => null,
-            'material_entrega' => null,
-            'fecha_hora_reg' => null,
-            'fecha_hora_modif' => null,
-            'notas_relacionadas' => null,
-            'idcategoria' => $categoria,
-            'dircarpeta' => null
-        ]);
-        //cargo los juegos relacionados a cada nota
-        $juegosNota = $request->input('juegosSeleccionados');
-        if(!empty($juegosNota)){
-            $registros = [];
-            foreach ($juegosNota as $juego) {
-                $registros[] = [
-                    'idnota' => $idNota,
-                    'id_juego' => $juego
-                ];
+            if ($existeNota) {
+                return response()->json(['success' => false, 'error' => 'El número de nota ya existe'], 422);
             }
 
-            DB::connection('gestion_notas_mysql')->table('juegos_nota')->insert($registros);
-        }
+            $responsable = null;
+            switch ($origen) {
+                case 4://CCOL
+                    $responsable = 27;//rosario
+                    break;
+                case 5://BPLAY
+                    $responsable = 28; //santa fe
+                    break;
+                default:
+                    $responsable = 4; //usuario de Mecha
+                    break;
+            }
 
-        return response()->json(['success' => true],200);
+            // obtnego los datos de la request
+            $evento = $request->input('nombreEvento');
+            $tipoEvento = $request->input('tipoEvento');
+            $fechaInicio = $request->input('fechaInicio');
+            $fechaFinalizacion = $request->input('fechaFinalizacion');
+            $categoria = $request->input('categoria');
+            $idEstado = 9; //carga inicial
+            $fechaReferencia = null;
+
+            if ($request->has('fechaReferencia')) {
+                $fechaReferencia = $request->input('fechaReferencia');
+            }
+            $archivos = [
+                'adjuntoPautas' => 'Eventos_Pautas',
+                'adjuntoDisenio' => 'Eventos_Diseño',
+                'basesyCondiciones' => 'Eventos_byc',
+            ];
+            $pathsGuardados = [];
+            foreach ($archivos as $input => $subcarpeta) {
+                if ($request->hasFile($input)) {
+                    $archivo = $request->file($input);
+                    $nombreArchivo = $archivo->getClientOriginalName();
+                    // Guardar en el disco notas_casinos dentro de la subcarpeta correspondiente
+                    $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
+                        $subcarpeta,        // subcarpeta dentro del disco
+                        $archivo,           // archivo a guardar
+                        $nombreArchivo      // conservar el nombre original
+                    );
+
+                    $pathsGuardados[$input] = basename($rutaGuardada);
+                }
+            }
+
+            $idNota = DB::connection('gestion_notas_mysql')->table('eventos')->insertGetId([
+                'responsable' => $responsable,
+                'nronota_ev' => $nota,
+                'origen' => $origen,
+                'evento' => $evento,
+                'fecha_nota_recep' => null,
+                'tipo_evento' => $tipoEvento,
+                'fecha_evento' => $fechaInicio,
+                'fecha_finalizacion' => $fechaFinalizacion,
+                'estado_fecha' => null,
+                'fecha_referencia_evento' => $fechaReferencia,
+                'mes_referencia_evento' => null,
+                'anio' => null,
+                'adjunto_pautas' => isset($pathsGuardados['adjuntoPautas']) ? $pathsGuardados['adjuntoPautas'] : null,
+                'adjunto_diseño' => isset($pathsGuardados['adjuntoDisenio']) ? $pathsGuardados['adjuntoDisenio'] : null,
+                'adjunto_basesycond' => isset($pathsGuardados['basesyCondiciones']) ? $pathsGuardados['basesyCondiciones'] : null,
+                'adjunto_inf_tecnico' => null,
+                'idestado' => $idEstado,
+                'idest_seg' => null,
+                'observaciones' => null,
+                'obs_seguim' => null,
+                'fecha_orden' => null,
+                'material_entrega' => null,
+                'fecha_hora_reg' => null,
+                'fecha_hora_modif' => null,
+                'notas_relacionadas' => null,
+                'idcategoria' => $categoria,
+                'dircarpeta' => null
+            ]);
+            //cargo los juegos relacionados a cada nota
+            $juegosNota = $request->input('juegosSeleccionados');
+            if (!empty($juegosNota)) {
+                $registros = [];
+                foreach ($juegosNota as $juego) {
+                    $registros[] = [
+                        'idnota' => $idNota,
+                        'id_juego' => $juego
+                    ];
+                }
+
+                DB::connection('gestion_notas_mysql')->table('juegos_nota')->insert($registros);
+            }
+
+            return response()->json(['success' => true], 200);
         } catch (Exception $e) {
-        Log::error($e);
-        return response()->json(['success' => false, 'error' => $e->getMessage()],500);
+            Log::error($e);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function modificarNota(Request $request){
-        $validator = Validator::make($request->all(),[
+    public function modificarNota(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'idNota' => 'required|integer',
             'nroNota' => 'nullable|string',
             'tipoNota' => 'nullable|integer',
@@ -256,7 +264,7 @@ class NotasCasinoController extends Controller
             'juegosSeleccionados' => 'nullable|array|min:1',
             'juegosSeleccionados.*' => 'integer',
         ]);
-        if($validator->fails()) {
+        if ($validator->fails()) {
             Log::error('Validación fallida', $validator->errors()->toArray());
             return response()->json($validator->errors(), 422);
         }
@@ -288,15 +296,15 @@ class NotasCasinoController extends Controller
             is_null($fechaFinalizacion) &&
             is_null($fechaReferencia) &&
             is_null($juegosSeleccionados)
-            ) {
+        ) {
             Log::error("No hay datos para actualizar");
             return response()->json(['success' => false, 'message' => 'No hay datos para actualizar'], 400);
         }
 
         $nota = null;
-        if($nroNota && $tipoNota && $anioNota){
+        if ($nroNota && $tipoNota && $anioNota) {
             $resto = $anioNota % 1000;
-        
+
             $formatos = [
                 1 => "{$nroNota}-{$resto}",
                 2 => "{$nroNota}-{$resto} Bis",
@@ -307,11 +315,16 @@ class NotasCasinoController extends Controller
         }
 
         $camposUpdate = [];
-        if (!is_null($nota)) $camposUpdate['nronota_ev'] = $nota;
-        if (!is_null($nombreEvento)) $camposUpdate['evento'] = $nombreEvento;
-        if (!is_null($tipoEvento)) $camposUpdate['tipo_evento'] = $tipoEvento;
-        if (!is_null($categoria)) $camposUpdate['idcategoria'] = $categoria;
-        if (!is_null($fechaReferencia)) $camposUpdate['fecha_referencia_evento'] = $fechaReferencia;
+        if (!is_null($nota))
+            $camposUpdate['nronota_ev'] = $nota;
+        if (!is_null($nombreEvento))
+            $camposUpdate['evento'] = $nombreEvento;
+        if (!is_null($tipoEvento))
+            $camposUpdate['tipo_evento'] = $tipoEvento;
+        if (!is_null($categoria))
+            $camposUpdate['idcategoria'] = $categoria;
+        if (!is_null($fechaReferencia))
+            $camposUpdate['fecha_referencia_evento'] = $fechaReferencia;
         if (!is_null($fechaInicio) && !is_null($fechaFinalizacion)) {
             $camposUpdate['fecha_evento'] = $fechaInicio;
             $camposUpdate['fecha_finalizacion'] = $fechaFinalizacion;
@@ -350,22 +363,23 @@ class NotasCasinoController extends Controller
         if (isset($pathsGuardados['basesyCondiciones'])) {
             $camposUpdate['adjunto_basesycond'] = $pathsGuardados['basesyCondiciones'];
         }
-        
+
         try {
-            if($nota){
+            $casino = $this->USER->plataformas()->first();
+            $origen = $this->obtenerCasino($casino);
+            if ($nota) {
+
                 $existeNota = DB::connection('gestion_notas_mysql')->table('eventos')
-                                    ->where('nronota_ev', $nota)
-                                    ->exists();
-                if($existeNota) {
+                    ->where(['nronota_ev' => $nota, 'origen' => $origen])
+                    ->exists();
+                if ($existeNota) {
                     Log::error("La nota ya existe");
                     return response()->json(['success' => false, 'error' => 'El número de nota ya existe'], 422);
                 }
             }
-            $casino = $this->USER->plataformas()->first();
-            $origen = $this->obtenerCasino($casino);
 
             $responsable = null;
-            switch($origen){
+            switch ($origen) {
                 case 4://CCOL
                     $responsable = 27;//rosario
                     break;
@@ -386,7 +400,7 @@ class NotasCasinoController extends Controller
                 ->where('idevento', $idNota)
                 ->update($camposUpdate);
 
-            if(!is_null($juegosSeleccionados)){
+            if (!is_null($juegosSeleccionados)) {
                 //elimino los juegos actuales
                 DB::connection('gestion_notas_mysql')->table('juegos_nota')->where('idnota', $idNota)->delete();
                 foreach ($juegosSeleccionados as $juego) {
@@ -398,7 +412,7 @@ class NotasCasinoController extends Controller
             }
 
             return response()->json(['success' => true, 'message' => 'Nota modificada correctamente']);
-            
+
         } catch (Exception $e) {
             Log::error("Error al actualizar evento: {$e->getMessage()}");
 
@@ -409,9 +423,9 @@ class NotasCasinoController extends Controller
         }
     }
 
-    public function paginarNotas (Request $request){
-        //me faltaria agregar los filtros para el order by
-        $validator = Validator::make($request->all(),[
+    public function paginarNotas(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'page' => 'nullable|integer|min:1',
             'perPage' => 'nullable|integer|min:5|max:50',
             'nroNota' => 'nullable|string|max:50',
@@ -419,13 +433,13 @@ class NotasCasinoController extends Controller
             'fechaInicio' => 'nullable|date',
             'fechaFin' => 'nullable|date',
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             Log::info($validator->errors());
-            return response()->json(['success' => false, 'error' => $validator->errors()],400);
+            return response()->json(['success' => false, 'error' => $validator->errors()], 400);
         }
-        
-        $pagina = $request->input('page',1);
-        $porPagina = $request->input('perPage',5);
+
+        $pagina = $request->input('page', 1);
+        $porPagina = $request->input('perPage', 5);
         $nroNota = $request->input('nroNota');
         $nombreEvento = $request->input('nombreEvento');
         $fechaInicio = $request->input('fechaInicio');
@@ -434,28 +448,28 @@ class NotasCasinoController extends Controller
         $origen = $this->obtenerCasino($casino);
         try {
             $query = DB::connection('gestion_notas_mysql')
-            ->table('eventos')
-            ->join('estados', 'eventos.idestado', '=', 'estados.idestado')
-            ->select(
-                'eventos.idevento',
-                'eventos.nronota_ev',
-                'eventos.evento',
-                'eventos.adjunto_pautas',
-                'eventos.adjunto_diseño',
-                'eventos.adjunto_basesycond',
-                'eventos.adjunto_inf_tecnico',
-                'eventos.fecha_evento',
-                'eventos.fecha_finalizacion',
-                'estados.estado',
-                'eventos.notas_relacionadas'
-            )
-            ->where('eventos.origen', $origen);
+                ->table('eventos')
+                ->join('estados', 'eventos.idestado', '=', 'estados.idestado')
+                ->select(
+                    'eventos.idevento',
+                    'eventos.nronota_ev',
+                    'eventos.evento',
+                    'eventos.adjunto_pautas',
+                    'eventos.adjunto_diseño',
+                    'eventos.adjunto_basesycond',
+                    'eventos.adjunto_inf_tecnico',
+                    'eventos.fecha_evento',
+                    'eventos.fecha_finalizacion',
+                    'estados.estado',
+                    'eventos.notas_relacionadas'
+                )
+                ->where('eventos.origen', $origen);
 
-            if($nroNota) {
+            if ($nroNota) {
                 $query->where('eventos.nronota_ev', 'like', "%$nroNota%");
             }
 
-            if($nombreEvento) {
+            if ($nombreEvento) {
                 $query->where('eventos.evento', 'like', "%$nombreEvento%");
             }
 
@@ -468,8 +482,8 @@ class NotasCasinoController extends Controller
             }
 
             $notasActuales = $query
-            ->orderBy('eventos.idevento', 'desc')
-            ->paginate($porPagina, ['*'], 'page', $pagina);
+                ->orderBy('eventos.idevento', 'desc')
+                ->paginate($porPagina, ['*'], 'page', $pagina);
 
             //encrypto
             $data = collect($notasActuales->items())->map(function ($nota) {
@@ -486,12 +500,13 @@ class NotasCasinoController extends Controller
             ]);
         } catch (Exception $e) {
             Log::error($e);
-            return response()->json(['success' => false, 'error' => $e->getMessage()],500);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function descargarArchivo ($id, $tipo){
-         try {
+    public function descargarArchivo($id, $tipo)
+    {
+        try {
             $idReal = Crypt::decryptString($id);
         } catch (Exception $e) {
             Log::error($e);
@@ -523,15 +538,15 @@ class NotasCasinoController extends Controller
             $nombreArchivo = null;
             switch ($tipo) {
                 case 'pautas':
-                    $rutaArchivo = 'Eventos_Pautas/'.$nota->adjunto_pautas;
+                    $rutaArchivo = 'Eventos_Pautas/' . $nota->adjunto_pautas;
                     $nombreArchivo = $nota->adjunto_pautas;
                     break;
                 case 'disenio':
-                    $rutaArchivo = 'Eventos_Diseño/'.$nota->adjunto_diseño;
+                    $rutaArchivo = 'Eventos_Diseño/' . $nota->adjunto_diseño;
                     $nombreArchivo = $nota->adjunto_diseño;
                     break;
                 case 'basesycond':
-                    $rutaArchivo =  'Eventos_byc/'.$nota->adjunto_basesycond;
+                    $rutaArchivo = 'Eventos_byc/' . $nota->adjunto_basesycond;
                     $nombreArchivo = $nota->adjunto_basesycond;
                     break;
                 default:
@@ -542,27 +557,28 @@ class NotasCasinoController extends Controller
                 abort(404, 'El archivo no está cargado.');
             }
 
-            if(!Storage::disk('notas_casinos')->exists($rutaArchivo)) {
-            abort(404);
+            if (!Storage::disk('notas_casinos')->exists($rutaArchivo)) {
+                abort(404);
             }
 
             $rutaCompleta = Storage::disk('notas_casinos')->path($rutaArchivo);
             $mime = mime_content_type($rutaCompleta);
-        
+
             if ($mime === 'application/pdf') {
                 return response()->file($rutaCompleta, [
                     'Content-Type' => $mime,
-                    'Content-Disposition' => 'inline; filename="'.$nombreArchivo.'"'
+                    'Content-Disposition' => 'inline; filename="' . $nombreArchivo . '"'
                 ]);
             } else {
                 return response()->download($rutaCompleta, $nombreArchivo);
-            } 
+            }
         } catch (Exception $th) {
             abort(404);
         }
     }
 
-    public function juegosSeleccionadosById($id){
+    public function juegosSeleccionadosById($id)
+    {
         $validator = Validator::make([
             'id' => $id
         ], [
@@ -579,7 +595,7 @@ class NotasCasinoController extends Controller
                 ->join('juegos_nota', 'eventos.idevento', '=', 'juegos_nota.idnota')
                 ->join('juego', 'juegos_nota.id_juego', '=', 'juego.id_juego')
                 ->where('eventos.idevento', $id)
-                ->select('juego.id_juego', 'juego.nombre_juego','juego.porcentaje_devolucion','juego.movil','juego.escritorio','juego.cod_juego')
+                ->select('juego.id_juego', 'juego.nombre_juego', 'juego.porcentaje_devolucion', 'juego.movil', 'juego.escritorio', 'juego.cod_juego')
                 ->get();
 
             return response()->json(['success' => true, 'juegosSeleccionados' => $juegosSeleccionados]);
@@ -589,8 +605,9 @@ class NotasCasinoController extends Controller
         }
     }
 
-    public function buscarJuegos(Request $request){
-        $validator = Validator::make($request->all(),[
+    public function buscarJuegos(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'query' => 'nullable|string|max:255'
         ]);
 
@@ -600,35 +617,38 @@ class NotasCasinoController extends Controller
 
         $query = $request->get('query');
 
-       try {
-            if($query){
+        try {
+            if ($query) {
                 $juegos = DB::connection('mysql')
                     ->table('juego')
                     ->where(function ($q) use ($query) {
                         $q->where('nombre_juego', 'LIKE', "%{$query}%")
-                        ->orWhere('cod_juego', 'LIKE', "%{$query}%");
+                            ->orWhere('cod_juego', 'LIKE', "%{$query}%");
                     })
-                    ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
+                    ->select('id_juego', 'nombre_juego', 'porcentaje_devolucion', 'movil', 'escritorio', 'cod_juego')
+                    ->limit(20)
                     ->get();
                 return response()->json(['success' => true, 'juegos' => $juegos]);
             }
             $juegos = DB::connection('mysql')
                 ->table('juego')
-                ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
+                ->select('id_juego', 'nombre_juego', 'porcentaje_devolucion', 'movil', 'escritorio', 'cod_juego')
+                ->limit(20)
                 ->get();
-       } catch (Exception $e) {
-           Log::error("Error al buscar juegos: " . $e->getMessage());
-           return response()->json(['success' => false, 'message' => 'Error al buscar juegos'], 500);
-       }
+        } catch (Exception $e) {
+            Log::error("Error al buscar juegos: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al buscar juegos'], 500);
+        }
 
         return response()->json(['success' => true, 'juegos' => $juegos]);
     }
 
-    public function buscarJuegoPorId($id){
+    public function buscarJuegoPorId($id)
+    {
         $juego = DB::connection('mysql')
             ->table('juego')
             ->where('id_juego', $id)
-            ->select('id_juego', 'nombre_juego','porcentaje_devolucion','movil','escritorio','cod_juego')
+            ->select('id_juego', 'nombre_juego', 'porcentaje_devolucion', 'movil', 'escritorio', 'cod_juego')
             ->first();
 
         if (!$juego) {
@@ -638,11 +658,16 @@ class NotasCasinoController extends Controller
         return response()->json(['success' => true, 'juego' => $juego]);
     }
 
-    private function obtenerCasino ($casino) {
-        $idCasinos = [ 'CCO' => 4, 'BPLAY' => 5,];
-        $id = null; 
-        if($casino->id_plataforma == 1){ $id = $idCasinos['CCO']; } 
-        if($casino->id_plataforma == 2){ $id = $idCasinos['BPLAY']; } 
+    private function obtenerCasino($casino)
+    {
+        $idCasinos = ['CCO' => 4, 'BPLAY' => 5,];
+        $id = null;
+        if ($casino->id_plataforma == 1) {
+            $id = $idCasinos['CCO'];
+        }
+        if ($casino->id_plataforma == 2) {
+            $id = $idCasinos['BPLAY'];
+        }
         return $id;
     }
 }

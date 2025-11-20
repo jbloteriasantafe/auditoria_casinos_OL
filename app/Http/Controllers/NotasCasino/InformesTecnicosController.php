@@ -17,68 +17,69 @@ use Carbon\Carbon;
 class InformesTecnicosController extends Controller
 {
     public function index()
-    {   
+    {
         $casinos = [['id_casino' => 4, 'casino' => 'CITY CENTER ONLINE'], ['id_casino' => 5, 'casino' => 'BPLAY'],];
 
-        return view('NotasCasino.indexInformesTecnicos',compact('casinos'));
+        return view('NotasCasino.indexInformesTecnicos', compact('casinos'));
     }
 
-    public function paginarNotas (Request $request){
+    public function paginarNotas(Request $request)
+    {
         //me faltaria agregar los filtros para el order by
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'page' => 'nullable|integer|min:1',
             'perPage' => 'nullable|integer|min:5|max:50',
             'nroNota' => 'nullable|string|max:50',
             'nombreEvento' => 'nullable|string|max:1000',
             'idCasino' => 'nullable|integer',
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             Log::info($validator->errors());
-            return response()->json(['success' => false, 'error' => $validator->errors()],400);
+            return response()->json(['success' => false, 'error' => $validator->errors()], 400);
         }
-        
-        $pagina = $request->input('page',1);
-        $porPagina = $request->input('perPage',5);
+
+        $pagina = $request->input('page', 1);
+        $porPagina = $request->input('perPage', 5);
         $nroNota = $request->input('nroNota');
         $nombreEvento = $request->input('nombreEvento');
         $origen = $request->input('idCasino');
         try {
             $query = DB::connection('gestion_notas_mysql')
-            ->table('eventos')
-            ->join('estados', 'eventos.idestado', '=', 'estados.idestado')
-            ->select(
-                'eventos.idevento',
-                'eventos.nronota_ev',
-                'eventos.evento',
-                'eventos.adjunto_pautas',
-                'eventos.adjunto_diseño',
-                'eventos.adjunto_basesycond',
-                'eventos.adjunto_inf_tecnico',
-                'eventos.fecha_evento',
-                'eventos.fecha_finalizacion',
-                'estados.estado',
-                'eventos.notas_relacionadas'
-            )
-            ->whereIn('eventos.idestado',[1,9]);
-            if(!$origen){
+                ->table('eventos')
+                ->join('estados', 'eventos.idestado', '=', 'estados.idestado')
+                ->select(
+                    'eventos.idevento',
+                    'eventos.nronota_ev',
+                    'eventos.evento',
+                    'eventos.adjunto_pautas',
+                    'eventos.adjunto_diseño',
+                    'eventos.adjunto_basesycond',
+                    'eventos.adjunto_inf_tecnico',
+                    'eventos.fecha_evento',
+                    'eventos.fecha_finalizacion',
+                    'estados.estado',
+                    'eventos.notas_relacionadas'
+                )
+                ->whereIn('eventos.idestado', [1, 9]);
+            if (!$origen) {
                 $query->whereIn('eventos.origen', [4, 5]);
             }
-            
-            if($origen){
+
+            if ($origen) {
                 $query->where('eventos.origen', $origen);
             }
 
-            if($nroNota) {
+            if ($nroNota) {
                 $query->where('eventos.nronota_ev', 'like', "%$nroNota%");
             }
 
-            if($nombreEvento) {
+            if ($nombreEvento) {
                 $query->where('eventos.evento', 'like', "%$nombreEvento%");
             }
 
             $notasActuales = $query
-            ->orderBy('eventos.idevento', 'desc')
-            ->paginate($porPagina, ['*'], 'page', $pagina);
+                ->orderBy('eventos.idevento', 'desc')
+                ->paginate($porPagina, ['*'], 'page', $pagina);
 
             //encrypto
             $data = collect($notasActuales->items())->map(function ($nota) {
@@ -95,11 +96,12 @@ class InformesTecnicosController extends Controller
             ]);
         } catch (Exception $e) {
             Log::error($e);
-            return response()->json(['success' => false, 'error' => $e->getMessage()],500);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function descargarArchivo ($id,$tipo){
+    public function descargarArchivo($id, $tipo)
+    {
         try {
             $idReal = Crypt::decryptString($id);
         } catch (Exception $e) {
@@ -133,19 +135,19 @@ class InformesTecnicosController extends Controller
             $nombreArchivo = null;
             switch ($tipo) {
                 case 'pautas':
-                    $rutaArchivo = 'Eventos_Pautas/'.$nota->adjunto_pautas;
+                    $rutaArchivo = 'Eventos_Pautas/' . $nota->adjunto_pautas;
                     $nombreArchivo = $nota->adjunto_pautas;
                     break;
                 case 'disenio':
-                    $rutaArchivo = 'Eventos_Diseño/'.$nota->adjunto_diseño;
+                    $rutaArchivo = 'Eventos_Diseño/' . $nota->adjunto_diseño;
                     $nombreArchivo = $nota->adjunto_diseño;
                     break;
                 case 'basesycond':
-                    $rutaArchivo =  'Eventos_byc/'.$nota->adjunto_basesycond;
+                    $rutaArchivo = 'Eventos_byc/' . $nota->adjunto_basesycond;
                     $nombreArchivo = $nota->adjunto_basesycond;
                     break;
                 case 'inf_tecnico':
-                    $rutaArchivo = 'Eventos_inftec/'.$nota->adjunto_inf_tecnico;
+                    $rutaArchivo = 'Eventos_inftec/' . $nota->adjunto_inf_tecnico;
                     $nombreArchivo = $nota->adjunto_inf_tecnico;
                     break;
                 default:
@@ -157,34 +159,35 @@ class InformesTecnicosController extends Controller
                 abort(404, 'El archivo no está cargado.');
             }
 
-            if(!Storage::disk('notas_casinos')->exists($rutaArchivo)) {
+            if (!Storage::disk('notas_casinos')->exists($rutaArchivo)) {
                 Log::error("No existe el archivo: " . $rutaArchivo);
                 abort(404);
             }
 
             $rutaCompleta = Storage::disk('notas_casinos')->path($rutaArchivo);
             $mime = mime_content_type($rutaCompleta);
-        
+
             if ($mime === 'application/pdf') {
                 return response()->file($rutaCompleta, [
                     'Content-Type' => $mime,
-                    'Content-Disposition' => 'inline; filename="'.$nombreArchivo.'"'
+                    'Content-Disposition' => 'inline; filename="' . $nombreArchivo . '"'
                 ]);
             } else {
                 return response()->download($rutaCompleta, $nombreArchivo);
-            } 
+            }
         } catch (Exception $th) {
-            Log::info("ha ocurrido un error".$th->getMessage());
-            abort(404,$th->getMessage());
+            Log::info("ha ocurrido un error" . $th->getMessage());
+            abort(404, $th->getMessage());
         }
     }
 
-    public function guardarInformeTecnico (Request $request){
-        $validator = Validator::make($request->all(),[
+    public function guardarInformeTecnico(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
             'adjuntoInformeTecnico' => 'required|file|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/octet-stream|max:153600',
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             Log::error("Error de validación al guardar informe técnico: " . json_encode($validator->errors()));
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
@@ -200,19 +203,20 @@ class InformesTecnicosController extends Controller
         );
         $id = $request->input('id');
         $pathGuardado = basename($rutaGuardada);
-        try{
+        try {
             DB::connection('gestion_notas_mysql')
                 ->table('eventos')
                 ->where('idevento', $id)
                 ->update(['adjunto_inf_tecnico' => $pathGuardado]);
             return response()->json(['success' => true]);
-        }catch (Exception $e){
+        } catch (Exception $e) {
             Log::error("Error al guardar el archivo: " . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Error al guardar el archivo.'], 500);
         }
     }
 
-    public function previsualizarInformeTecnico ($id){
+    public function previsualizarInformeTecnico($id)
+    {
         $validator = Validator::make(['id' => $id], [
             'id' => 'required|string'
         ]);
@@ -243,9 +247,9 @@ class InformesTecnicosController extends Controller
                 )
                 ->get()
                 ->map(function ($juego) {
-                    return (object)[
+                    return (object) [
                         'desktop_id' => $juego->escritorio ? $juego->cod_juego : '-',
-                        'mobile_id'  => $juego->movil ? $juego->cod_juego : '-',
+                        'mobile_id' => $juego->movil ? $juego->cod_juego : '-',
                         'nombre_juego' => $juego->nombre_juego,
                     ];
                 });
@@ -289,7 +293,7 @@ class InformesTecnicosController extends Controller
             setlocale(LC_TIME, 'es_ES.UTF-8');
             $fecha_texto = Carbon::now()->formatLocalized('%d de %B de %Y');
             $fecha_hoy = Carbon::now()->format('d/m/Y');
-            
+
             $pdf = PDF::loadView('NotasCasino.previewInfTecnico', compact(
                 'juegos',
                 'numero_nota',
@@ -313,7 +317,8 @@ class InformesTecnicosController extends Controller
             return response()->json(['success' => false, 'message' => 'Error al previsualizar el informe técnico.'], 500);
         }
     }
-    public function generarInformeTecnico ($id){
+    public function generarInformeTecnico($id)
+    {
         $validator = Validator::make(['id' => $id], [
             'id' => 'required|string'
         ]);
@@ -345,9 +350,9 @@ class InformesTecnicosController extends Controller
                 )
                 ->get()
                 ->map(function ($juego) {
-                    return (object)[
+                    return (object) [
                         'desktop_id' => $juego->escritorio ? $juego->cod_juego : '-',
-                        'mobile_id'  => $juego->movil ? $juego->cod_juego : '-',
+                        'mobile_id' => $juego->movil ? $juego->cod_juego : '-',
                         'nombre_juego' => $juego->nombre_juego,
                     ];
                 });
@@ -413,9 +418,9 @@ class InformesTecnicosController extends Controller
                 $template->setValue("nombre_juego#{$i}", $juego->nombre_juego);
             }
 
-            $tempPath = storage_path('app/templates/temp_informe_'.$numero_nota.'.docx');
+            $tempPath = storage_path('app/templates/temp_informe_' . $numero_nota . '.docx');
             $template->saveAs($tempPath);
-            $fileName = 'Informe_Tecnico_'.$casino.'_'.$numero_nota.'.docx';
+            $fileName = 'Informe_Tecnico_' . $casino . '_' . $numero_nota . '.docx';
             $subCarpeta = 'Eventos_inftec';
 
             $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
@@ -431,8 +436,8 @@ class InformesTecnicosController extends Controller
             DB::connection('gestion_notas_mysql')
                 ->table('eventos')
                 ->where('idevento', $id)
-                ->update(['adjunto_inf_tecnico' => $pathGuardado]);
-                
+                ->update(['adjunto_inf_tecnico' => $pathGuardado, 'idestado' => 1]);
+
             return response()->json(['success' => true]);
         } catch (Exception $e) {
             Log::error("Error al generar el informe técnico: " . $e->getMessage());
