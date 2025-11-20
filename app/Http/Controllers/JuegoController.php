@@ -106,8 +106,7 @@ class JuegoController extends Controller
   {
     $juego = $id_juego !== null ? Juego::find($id_juego) : (new Juego);
     $log = new LogJuego;
-
-    foreach ([
+    $attrs = [
       'nombre_juego',
       'cod_juego',
       'denominacion_juego',
@@ -118,7 +117,8 @@ class JuegoController extends Controller
       'proveedor',
       'id_tipo_moneda',
       'id_categoria_juego'
-    ] as $attr) {
+    ];
+    foreach ($attrs as $attr) {
       $juego->{$attr} = $params[$attr];
       $log->{$attr} = $params[$attr];//Se guarda todo lo que mando en un log nuevo siempre
     }
@@ -157,9 +157,19 @@ class JuegoController extends Controller
     }
 
     $juego->save();
-    $juegoSecundario = $juego->replicate();
-    $juegoSecundario->setConnection('gestion_notas_mysql');
-    $juegoSecundario->id_juego = $juego->id_juego;
+    $juegoSecundario = Juego::on('gestion_notas_mysql')->find($juego->id_juego);
+    if($juegoSecundario === null){
+      $juegoSecundario = new Juego;
+      $juegoSecundario->setConnection('gestion_notas_mysql');
+    }
+    
+    foreach($attrs as $attr){
+      $juegoSecundario->{$attr} = $params[$attr];
+    }
+    $juegoSecundario->id_juego   = $juego->id_juego;
+    $juegoSecundario->created_at = $juego->created_at;
+    $juegoSecundario->updated_at = $juego->updated_at;
+    $juegoSecundario->deleted_at = $juego->deleted_at;
     $juegoSecundario->save();
     $log->save();
 
