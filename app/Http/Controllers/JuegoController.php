@@ -159,14 +159,16 @@ class JuegoController extends Controller
     $juego->save();
     $juegoSecundario = Juego::on('gestion_notas_mysql')->find($juego->id_juego);
     if($juegoSecundario === null){
-      $juegoSecundario = $juego->replicate();
-      $juegoSecundario->id_juego = $juego->id_juego;
+      $juegoSecundario = new Juego;
     }
-    else {
-      foreach($attrs as $attr){
-        $juegoSecundario->{$attr} = $params[$attr];
-      }
+    
+    foreach($attrs as $attr){
+      $juegoSecundario->{$attr} = $params[$attr];
     }
+    $juegoSecundario->id_juego   = $juego->id_juego;
+    $juegoSecundario->created_at = $juego->created_at;
+    $juegoSecundario->updated_at = $juego->updated_at;
+    $juegoSecundario->deleted_at = $juego->deleted_at;
     $juegoSecundario->save();
     $log->save();
 
