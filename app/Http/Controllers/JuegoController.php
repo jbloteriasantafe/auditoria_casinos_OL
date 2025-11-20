@@ -167,7 +167,6 @@ class JuegoController extends Controller
         $juegoSecundario->{$attr} = $params[$attr];
       }
     }
-    $juegoSecundario->touch();
     $juegoSecundario->save();
     $log->save();
 
