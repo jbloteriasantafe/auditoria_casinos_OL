@@ -94,6 +94,37 @@ class NotasCasinoController extends Controller
 
     public function subirNota(Request $request)
     {
+        $mensajes = [
+            'required' => 'El campo :attribute es obligatorio.',
+            'integer' => 'El campo :attribute debe ser un número entero.',
+            'string' => 'El campo :attribute debe ser texto.',
+            'date' => 'El campo :attribute no es una fecha válida.',
+            'max' => 'El campo :attribute es demasiado grande.',
+            'array' => 'El campo :attribute tiene un formato inválido.',
+
+            // Archivos específicos
+            'adjuntoPautas.mimes' => 'El archivo de Pautas debe ser .pdf o .zip',
+            'adjuntoPautas.max' => 'El archivo de Pautas supera el tamaño máximo (150MB).',
+
+            'adjuntoDisenio.mimes' => 'El archivo de Diseño debe ser .pdf o .zip',
+            'adjuntoDisenio.max' => 'El archivo de Diseño supera el tamaño máximo (150MB).',
+
+            'basesyCondiciones.mimes' => 'Bases y Condiciones debe ser .pdf, .zip, .doc o .docx',
+            'basesyCondiciones.max' => 'Bases y Condiciones supera el tamaño máximo (150MB).',
+        ];
+
+        $atributos = [
+            'nroNota' => 'Número de Nota',
+            'tipoNota' => 'Tipo de Nota',
+            'anioNota' => 'Año',
+            'nombreEvento' => 'Nombre del Evento',
+            'tipoEvento' => 'Tipo de Evento',
+            'categoria' => 'Categoría',
+            'fechaInicio' => 'Fecha de Inicio',
+            'fechaFinalizacion' => 'Fecha de Finalización',
+            'fechaReferencia' => 'Fecha de Referencia',
+            'juegosSeleccionados' => 'Juegos Seleccionados',
+        ];
 
         $validator = Validator::make($request->all(), [
             'nroNota' => 'required|integer',
@@ -110,7 +141,7 @@ class NotasCasinoController extends Controller
             'fechaReferencia' => 'nullable|string|max:500',
             'juegosSeleccionados' => 'nullable|array|min:1',
             'juegosSeleccionados.*' => 'integer',
-        ]);
+        ], $mensajes, $atributos);
 
         if ($validator->fails()) {
             Log::info('Validación fallida', $validator->errors()->toArray());
@@ -247,6 +278,46 @@ class NotasCasinoController extends Controller
 
     public function modificarNota(Request $request)
     {
+        $mensajes = [
+            'required' => 'El campo :attribute es obligatorio.',
+            'integer' => 'El campo :attribute debe ser un número entero.',
+            'string' => 'El campo :attribute debe ser texto.',
+            'date' => 'El campo :attribute no es una fecha válida.',
+            'max' => 'El campo :attribute supera la longitud máxima permitida.',
+            'array' => 'El campo :attribute tiene un formato inválido.',
+            'min' => 'Debe seleccionar al menos un :attribute.',
+
+            // Archivos específicos (Especificando tipo y tamaño)
+            'adjuntoPautas.mimes' => 'El archivo de Pautas debe ser formato .pdf o .zip',
+            'adjuntoPautas.max' => 'El archivo de Pautas no puede pesar más de 150MB.',
+
+            'adjuntoDisenio.mimes' => 'El archivo de Diseño debe ser formato .pdf o .zip',
+            'adjuntoDisenio.max' => 'El archivo de Diseño no puede pesar más de 150MB.',
+
+            'basesyCondiciones.mimes' => 'El archivo de Bases y Condiciones debe ser .pdf, .zip, .doc o .docx',
+            'basesyCondiciones.max' => 'El archivo de Bases y Condiciones no puede pesar más de 150MB.',
+
+            // Para los juegos seleccionados
+            'juegosSeleccionados.*.integer' => 'Uno de los juegos seleccionados no es válido.',
+        ];
+
+        $atributos = [
+            'idNota' => 'Identificador de la nota',
+            'nroNota' => 'Número de Nota',
+            'tipoNota' => 'Tipo de Nota',
+            'anioNota' => 'Año de la Nota',
+            'nombreEvento' => 'Nombre del Evento',
+            'tipoEvento' => 'Tipo de Evento',
+            'categoria' => 'Categoría',
+            'fechaInicio' => 'Fecha de Inicio',
+            'fechaFinalizacion' => 'Fecha de Finalización',
+            'fechaReferencia' => 'Fecha de Referencia',
+            'adjuntoPautas' => 'Archivo de Pautas',
+            'adjuntoDisenio' => 'Archivo de Diseño',
+            'basesyCondiciones' => 'Archivo de Bases y Condiciones',
+            'juegosSeleccionados' => 'Juegos Relacionados',
+        ];
+
         $validator = Validator::make($request->all(), [
             'idNota' => 'required|integer',
             'nroNota' => 'nullable|string',
@@ -263,9 +334,10 @@ class NotasCasinoController extends Controller
             'fechaReferencia' => 'nullable|string|max:500',
             'juegosSeleccionados' => 'nullable|array|min:1',
             'juegosSeleccionados.*' => 'integer',
-        ]);
+        ], $mensajes, $atributos);
+
         if ($validator->fails()) {
-            Log::error('Validación fallida', $validator->errors()->toArray());
+            Log::error('Validación fallida al modificar', $validator->errors()->toArray());
             return response()->json($validator->errors(), 422);
         }
 

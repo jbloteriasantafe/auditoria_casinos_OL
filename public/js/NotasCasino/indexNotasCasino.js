@@ -17,6 +17,48 @@ $("#fechaFinalizacion").attr("min", hoy);
 $("#fechaFinalizacionEditar").attr("min", hoy);
 
 //!FUNCIONES AUXILIARES
+
+function mostrarErroresBackend(xhr) {
+  // Limpiamos el contenedor de mensajes
+  $("#mensajeError .textoMensaje").empty();
+
+  // Título del error
+  let contenidoError = $("<h3></h3>").text("Error de validación:");
+  let listaErrores = $("<ul></ul>").css({
+    "text-align": "left",
+    "margin-top": "10px",
+  });
+
+  // Si es error 422 (Validación de Laravel)
+  if (xhr.status === 422) {
+    let errores = xhr.responseJSON;
+
+    // Iteramos sobre las claves (ej: 'nroNota', 'adjuntoPautas')
+    $.each(errores, function (key, mensajes) {
+      // Cada clave tiene un array de mensajes
+      $.each(mensajes, function (i, mensaje) {
+        listaErrores.append($("<li></li>").text(mensaje));
+      });
+    });
+
+    contenidoError.append(listaErrores);
+  } else {
+    // Si es otro error (500, 404, etc) mostramos mensaje genérico
+    contenidoError.text(
+      "Ocurrió un error inesperado en el servidor. Intente nuevamente."
+    );
+  }
+
+  // Agregamos el contenido al div
+  $("#mensajeError .textoMensaje").append(contenidoError);
+
+  // Animación de mostrar/ocultar
+  $("#mensajeError").hide();
+  setTimeout(function () {
+    $("#mensajeError").show();
+  }, 250);
+}
+
 function colorBoton(boton) {
   $(boton).removeClass();
   $(boton).addClass("btn").addClass("btn-successAceptar");
@@ -754,19 +796,10 @@ $("#btn-guardar-nota").on("click", function (e) {
         cargarNotas();
       }
     },
-    error: function (error) {
+    error: function (xhr) {
       $("#btn-guardar-nota").prop("disabled", false).text("Subir Nota");
 
-      $("#mensajeError .textoMensaje").empty();
-      $("#mensajeError .textoMensaje").append(
-        $("<h3></h3>").text(
-          "Ocurrio un error al guardar la nota o ese número de nota ya existe, por favor intenta nuevamente."
-        )
-      );
-      $("#mensajeError").hide();
-      setTimeout(function () {
-        $("#mensajeError").show();
-      }, 250);
+      mostrarErroresBackend(xhr);
     },
   });
 });
@@ -1610,19 +1643,10 @@ $("#btn-guardar-nota-editar").on("click", function (e) {
         cargarNotas();
       }
     },
-    error: function (error) {
+    error: function (xhr) {
       $("#btn-guardar-nota-editar").prop("disabled", false).text("Editar Nota");
 
-      $("#mensajeError .textoMensaje").empty();
-      $("#mensajeError .textoMensaje").append(
-        $("<h3></h3>").text(
-          "Ocurrio un error al guardar la nota, por favor intenta nuevamente."
-        )
-      );
-      $("#mensajeError").hide();
-      setTimeout(function () {
-        $("#mensajeError").show();
-      }, 250);
+      mostrarErroresBackend(xhr);
     },
   });
 });
