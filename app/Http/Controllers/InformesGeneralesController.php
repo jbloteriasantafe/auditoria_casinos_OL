@@ -379,11 +379,19 @@ class InformesGeneralesController extends Controller
         }
       }
 
+      if (strpos($plat, 'CityCenter') !== false) {
+        $colorHex = '#5855d6';
+        $fillColor = 'rgba(88, 85, 214, 0.4)';
+      } else {
+        $colorHex = '#2cbaff';
+        $fillColor = 'rgba(44, 186, 255, 0.4)';
+      }
+
       $series[] = [
         'name' => $plat,
         'data' => $data,
-        'fillColor' => ($plat == 'CityCenterOnline.bet.ar') ? '#e6f0ff' : '#f0f0f0',
-        'color' => ($plat == 'CityCenterOnline.bet.ar') ? '#0d6efd' : '#6c757d',
+        'fillColor' => $colorHex,
+        'color' => $fillColor
       ];
     }
 
