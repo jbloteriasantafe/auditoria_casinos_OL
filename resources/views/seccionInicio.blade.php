@@ -252,6 +252,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
 @section('scripts')
     <script src="js/highcharts_11_3_0/highcharts.js"></script>
+    <script src="js/highcharts_11_3_0/highcharts-more.js"></script>
     <script src="js/highcharts_11_3_0/highcharts-3d.js"></script>
     <script src="js/highcharts_11_3_0/exporting.js"></script>
     <script src="js/highcharts_11_3_0/export-data.js"></script>
