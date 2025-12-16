@@ -312,6 +312,7 @@ Route::group(['prefix' => 'informesJuegos'], function () {
 Route::group(['prefix' => 'informesGenerales'], function () {
   Route::get('/beneficiosMensuales', 'InformesGeneralesController@beneficiosMensuales');
   Route::get('/beneficiosAnuales', 'InformesGeneralesController@beneficiosAnuales');
+  Route::get('/pdevAnualBoxplot', 'InformesGeneralesController@pdevAnualBoxplot');
   Route::get('/jugadoresMensuales', 'InformesGeneralesController@jugadoresMensuales');
   Route::get('/jugadoresAnuales', 'InformesGeneralesController@jugadoresAnuales');
   Route::get('/estadosDias', 'InformesGeneralesController@estadosDias');
