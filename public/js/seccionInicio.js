@@ -123,9 +123,9 @@ $(document).ready(function () {
         return año_mes(p[0], parseInt(p[1]));
       });
 
-      generarGraficoCajaBigotes(
+      generarGraficoCajaAdaptado(
         "#divPdevAUnAnio",
-        "EVOLUCIÓN DE PORCENTAJES DE DEVOLUCIÓN - ÚLTIMO AÑO",
+        "EVOLUCIÓN PORCENTAJE DE DEVOLUCIÓN - ÚLTIMO AÑO",
         categorias_fmt,
         data.series
       );
@@ -613,7 +613,7 @@ function generarGraficoBarrasComparativas(div, titulo, axis, data) {
   });
 }
 
-function generarGraficoCajaBigotes(div, titulo, categorias, series_data) {
+function generarGraficoCajaAdaptado(div, titulo, categorias, series_data) {
   const grafico = $("<div>").addClass("grafico col-md-12");
   $(div).append(grafico);
 
@@ -632,22 +632,21 @@ function generarGraficoCajaBigotes(div, titulo, categorias, series_data) {
     },
     xAxis: {
       categories: categorias,
-      title: { text: "Mes" },
+      title: { text: "Período" },
     },
     yAxis: {
       title: { text: "Porcentaje Devolución" },
       labels: {
         formatter: function () {
-          return this.value + " %";
+          return formatPje(this.value);
         },
       },
       plotLines: [
         {
-          value: 95,
-          color: "red",
+          value: 95.0,
+          color: "gray",
           width: 1,
-          zIndex: 5,
-          dashStyle: "shortdash",
+          dashStyle: "LongDash",
           label: { text: "Ref 95%", align: "right", style: { color: "gray" } },
         },
       ],
@@ -656,39 +655,77 @@ function generarGraficoCajaBigotes(div, titulo, categorias, series_data) {
       useHTML: true,
       formatter: function () {
         const p = this.point;
-        let html = `<b>${this.series.name} - ${this.key}</b><br/>`;
-
+        let html = "";
         if (p.high !== undefined) {
+          html += `<b>${this.series.name} - ${this.key}</b>`;
           html += "<br>Máximo: " + formatPje(p.high);
           html += "<br>Q3: " + formatPje(p.q3);
           html += "<br>Mediana: " + formatPje(p.median);
           html += "<br>Q1: " + formatPje(p.q1);
           html += "<br>Mínimo: " + formatPje(p.low);
         } else {
-          html += "<br>Valor: " + formatPje(p.y);
+          html += `<b>${this.series.name} - ${this.key}</b>`;
+          html += "<br>Porcentaje Devolución: " + formatPje(p.y);
         }
         return html;
       },
     },
     plotOptions: {
       boxplot: {
-        fillColor: "#F0F0E0",
-        lineWidth: 2,
-        medianColor: "#303030",
+        fillColor: "#ffffff",
+        lineWidth: 1,
+        medianColor: "#000000",
         medianWidth: 2,
         stemColor: "#A63400",
-        stemDashStyle: "dot",
+        stemDashStyle: "solid",
         stemWidth: 1,
         whiskerColor: "#3D9200",
         whiskerLength: "20%",
-        whiskerWidth: 3,
+        whiskerWidth: 2,
       },
     },
     series: series_data,
   });
 }
 
-function formatPje(n) {
-  if (n === null || n === undefined) return "-";
-  return parseFloat(n).toFixed(2).replace(".", ",") + " %";
+function formatEsp(n) {
+  n = n + "";
+  const negativo = n?.[0] == "-" ? "-" : "";
+  n = negativo.length ? n.substr(1) : n;
+  const partes = n.split(".");
+  let entero = partes?.[0] ?? "";
+  entero = entero
+    .split("")
+    .reverse()
+    .join("")
+    .match(/(.{1,3}|^$)/g)
+    .map((s) => s.split("").reverse().join(""))
+    .reverse()
+    .join(".");
+  let decimal = (partes?.[1] ?? "").replaceAll(/0+$/g, "");
+  if (decimal.length) decimal = "," + decimal;
+  return negativo + entero + decimal;
+}
+
+function formatPje(f) {
+  if (f === null || f === undefined) return "-";
+  return formatEsp(parseFloat(f).toFixed(2)) + " %";
+}
+
+function año_mes(año, mes) {
+  const meses = [
+    "ENE",
+    "FEB",
+    "MAR",
+    "ABR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AGO",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DEC",
+  ];
+  return meses[mes - 1] + " " + año;
 }

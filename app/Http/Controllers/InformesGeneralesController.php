@@ -323,12 +323,7 @@ class InformesGeneralesController extends Controller
 
     $datos = DB::table('producido as p')
       ->join('plataforma as pl', 'pl.id_plataforma', '=', 'p.id_plataforma')
-      ->selectRaw('
-            pl.nombre as plataforma, 
-            p.fecha,
-            p.premio, 
-            p.apuesta
-        ')
+      ->selectRaw('pl.nombre as plataforma, p.fecha, p.premio, p.apuesta')
       ->where('p.fecha', '>=', $fecha_limite)
       ->where('p.apuesta', '>', 0)
       ->orderBy('p.fecha', 'asc')
@@ -338,71 +333,57 @@ class InformesGeneralesController extends Controller
     $categorias = [];
 
     foreach ($datos as $d) {
-      $mes_anio = date('Y-m', strtotime($d->fecha));
-
+      $mes = date('Y-m', strtotime($d->fecha));
       $pdev_dia = ($d->premio / $d->apuesta) * 100;
 
-      if (!isset($agrupado[$d->plataforma])) {
-        $agrupado[$d->plataforma] = [];
-      }
-      if (!isset($agrupado[$d->plataforma][$mes_anio])) {
-        $agrupado[$d->plataforma][$mes_anio] = [];
-      }
+      $agrupado[$d->plataforma][$mes][] = $pdev_dia;
 
-      $agrupado[$d->plataforma][$mes_anio][] = $pdev_dia;
-
-      if (!in_array($mes_anio, $categorias)) {
-        $categorias[] = $mes_anio;
-      }
+      if (!in_array($mes, $categorias))
+        $categorias[] = $mes;
     }
-
     sort($categorias);
 
-    $calcular_stats = function ($array) {
-      if (empty($array))
+    $calcular_caja = function ($valores) {
+      if (empty($valores))
         return [null, null, null, null, null];
-      sort($array);
-      $count = count($array);
+      sort($valores);
+      $count = count($valores);
 
-      $min = $array[0];
-      $max = $array[$count - 1];
-
-      $percentile = function ($p) use ($array, $count) {
+      $percentil = function ($p) use ($valores, $count) {
         $pos = ($count - 1) * $p;
         $base = floor($pos);
         $rest = $pos - $base;
-        if (isset($array[$base + 1])) {
-          return $array[$base] + $rest * ($array[$base + 1] - $array[$base]);
+        if (isset($valores[$base + 1])) {
+          return $valores[$base] + $rest * ($valores[$base + 1] - $valores[$base]);
         }
-        return $array[$base];
+        return $valores[$base];
       };
 
       return [
-        round($min, 2),
-        round($percentile(0.25), 2),
-        round($percentile(0.50), 2),
-        round($percentile(0.75), 2),
-        round($max, 2)
+        round($valores[0], 2),           // Min (Low)
+        round($percentil(0.25), 2),      // Q1
+        round($percentil(0.50), 2),      // Mediana
+        round($percentil(0.75), 2),      // Q3
+        round($valores[$count - 1], 2)   // Max (High)
       ];
     };
 
     $series = [];
     foreach ($agrupado as $plat => $meses) {
-      $data_serie = [];
+      $data = [];
       foreach ($categorias as $cat) {
         if (isset($meses[$cat])) {
-          $stats = $calcular_stats($meses[$cat]);
-          $data_serie[] = $stats;
+          $data[] = $calcular_caja($meses[$cat]);
         } else {
-          $data_serie[] = [null, null, null, null, null];
+          $data[] = [null, null, null, null, null];
         }
       }
 
       $series[] = [
         'name' => $plat,
-        'data' => $data_serie,
-        'color' => ($plat == 'CityCenterOnline.bet.ar') ? '#7cb5ec' : '#434348',
-        'fillColor' => ($plat == 'CityCenterOnline.bet.ar') ? '#dbeaff' : '#e8e8e8',
+        'data' => $data,
+        'fillColor' => ($plat == 'CityCenterOnline.bet.ar') ? '#e6f0ff' : '#f0f0f0',
+        'color' => ($plat == 'CityCenterOnline.bet.ar') ? '#0d6efd' : '#6c757d',
       ];
     }
 
