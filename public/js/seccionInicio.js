@@ -129,6 +129,26 @@ $(document).ready(function () {
         categorias_fmt,
         data.series
       );
+
+      generarGraficoHold(
+        "#divHoldAUnAnio",
+        "ESTABILIDAD DE MARGEN DE RETENCIÓN (HOLD %) - ÚLTIMO AÑO",
+        categorias_fmt,
+        data.series
+      );
+    }
+  );
+
+  GET(
+    $("#divARPU"),
+    "informesGenerales/arpuMensual",
+    function (data) {
+        generarGraficoARPU(
+            "#divARPU",
+            "EVOLUCIÓN DE APUESTA PROMEDIO DIARIA (ARPU) - ÚLTIMO AÑO",
+            data.categorias,
+            data.series
+        );
     }
   );
 
@@ -728,4 +748,163 @@ function año_mes(año, mes) {
     "DEC",
   ];
   return meses[mes - 1] + " " + año;
+}
+
+function generarGraficoHold(div, titulo, categorias, series_boxplot) {
+  const series_linea = [];
+
+  series_boxplot.forEach(function (serie) {
+    const data_hold = serie.data.map(function (punto) {
+      if (punto === null || punto[2] === null) return null; // [min, q1, median, q3, max]
+      return parseFloat((100 - punto[2]).toFixed(2));
+    });
+
+    // Calcular promedio (ignorando nulos) para la linea punteada
+    const validos = data_hold.filter((v) => v !== null);
+    const promedio =
+      validos.length > 0
+        ? validos.reduce((a, b) => a + b, 0) / validos.length
+        : 0;
+    const data_promedio = data_hold.map((v) => (v !== null ? promedio : null));
+
+    // Calcular Margen Neto (Hold - 15%) => Hold * 0.85
+    const data_neto = data_hold.map(function(val) {
+        if(val === null) return null;
+        return parseFloat((val * 0.85).toFixed(2));
+    });
+
+    // Linea solida (Margen Bruto)
+    series_linea.push({
+      name: serie.name + " (M. Bruto)",
+      data: data_hold,
+      color: serie.fillColor,
+      type: "line",
+      marker: { enabled: true, radius: 4 },
+      tooltip: {
+        valueSuffix: " %",
+      },
+    });
+
+    // Linea solida (Margen Neto)
+    series_linea.push({
+      name: serie.name + " (M. Neto)",
+      data: data_neto,
+      color: serie.fillColor, // Mismo color pero quizas se vea encimado, Highcharts maneja multiples lineas mismo color bien.
+      type: "line",
+      dashStyle: 'Solid', 
+      marker: { enabled: true, symbol: 'diamond', radius: 4 }, // Diferente marker para distinguir
+      tooltip: {
+        valueSuffix: " %",
+      },
+    });
+
+    // Linea punteada (Promedio Bruto)
+    series_linea.push({
+      name: serie.name + " (Promedio)",
+      data: data_promedio,
+      color: serie.fillColor,
+      type: "line",
+      dashStyle: "ShortDot",
+      marker: { enabled: false },
+      enableMouseTracking: false,
+      showInLegend: false,
+    });
+  });
+
+  const grafico = $("<div>").addClass("grafico col-md-12");
+  $(div).append(grafico);
+
+  Highcharts.chart(grafico[0], {
+    chart: {
+      height: 450,
+      backgroundColor: "#fff",
+      type: "line",
+    },
+    title: {
+      text: titulo,
+      style: { fontWeight: "bold" },
+    },
+    xAxis: {
+      categories: categorias,
+      title: { text: "Período" },
+    },
+    yAxis: {
+      title: { text: "Hold %" },
+      labels: {
+        formatter: function () {
+          return this.value + " %";
+        },
+      },
+    },
+    tooltip: {
+      shared: false,
+      valueDecimals: 2,
+      valueSuffix: " %",
+    },
+    credits: {
+      enabled: false,
+    },
+    plotOptions: {
+      line: {
+        dataLabels: {
+          enabled: true,
+          formatter: function () {
+             // Solo mostrar label si es Bruto (no dash, no neto diamond si queremos limpiar)
+             // Mostramos todo por ahora
+             if(this.series.options.dashStyle == 'ShortDot') return "";
+             return formatPje(this.y);
+          },
+        },
+        enableMouseTracking: true,
+      },
+    },
+    series: series_linea,
+  });
+}
+
+function generarGraficoARPU(div, titulo, categorias, series_data) {
+  const grafico = $("<div>").addClass("grafico col-md-12");
+  $(div).append(grafico);
+
+  Highcharts.chart(grafico[0], {
+    chart: {
+      height: 450,
+      backgroundColor: "#fff",
+    },
+    title: {
+      text: titulo,
+      style: { fontWeight: "bold" },
+    },
+    xAxis: {
+      categories: categorias,
+      title: { text: "Período" },
+    },
+    yAxis: {
+      title: { text: "ARPU ($)" },
+      labels: {
+        formatter: function () {
+            return "$ " + this.value;
+        },
+      },
+    },
+    tooltip: {
+      shared: true,
+      valueDecimals: 2,
+      valuePrefix: "$ ",
+    },
+    credits: {
+      enabled: false,
+    },
+    plotOptions: {
+      column: {
+        dataLabels: {
+          enabled: true,
+          formatter: function() {
+              return "$ " + this.y;
+          }
+        }
+      }
+    },
+    series: series_data,
+  });
 }

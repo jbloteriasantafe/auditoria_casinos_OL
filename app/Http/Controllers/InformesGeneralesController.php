@@ -379,7 +379,7 @@ class InformesGeneralesController extends Controller
         }
       }
 
-      if (strpos($plat, 'CityCenter') !== false) {
+      if (stripos($plat, 'CityCenter') !== false) {
         $colorHex = '#5855d6';
         $fillColor = 'rgba(88, 85, 214, 0.4)';
       } else {
@@ -393,6 +393,127 @@ class InformesGeneralesController extends Controller
         'fillColor' => $colorHex,
         'color' => $fillColor
       ];
+    }
+
+    return response()->json([
+      'categorias' => $categorias,
+      'series' => $series
+    ]);
+  }
+
+  public function arpuMensual()
+  {
+    $fecha_limite = date('Y-m-d', strtotime('-1 year'));
+
+    // 1. Obtener Beneficio (Producido) mensual
+    $producidos = DB::table('producido as p')
+      ->join('plataforma as pl', 'pl.id_plataforma', '=', 'p.id_plataforma')
+      ->selectRaw('pl.nombre as plataforma, YEAR(p.fecha) as anio, MONTH(p.fecha) as mes, SUM(p.apuesta - p.premio) as beneficio')
+      ->where('p.fecha', '>=', $fecha_limite)
+      ->groupBy('pl.nombre', 'anio', 'mes')
+      ->orderBy('anio', 'asc')
+      ->orderBy('mes', 'asc')
+      ->get();
+
+    // 2. Obtener Jugadores mensuales (Reutilizamos logica de jugadoresMensuales pero sin cache para simplicidad o llamamos a la funcion si fuese public static, pero aqui repetimos query optima)
+    $jugadores = DB::table('plataforma as p')
+      ->selectRaw('p.nombre as plataforma, rmpj.aniomes as aniomes, COUNT(distinct rmpj.jugador) as jugadores')
+      ->join('resumen_mensual_producido_jugadores as rmpj', 'rmpj.id_plataforma', '=', 'p.id_plataforma')
+      ->whereRaw('TIMESTAMPDIFF(MONTH,rmpj.aniomes,CURRENT_DATE()) <= 12')
+      ->groupBy(DB::raw('p.id_plataforma,rmpj.aniomes'))
+      ->get();
+    
+    // Organizar jugadores por plataforma-anio-mes
+    $jugadoresMap = [];
+    foreach($jugadores as $j) {
+        $parts = explode('-', $j->aniomes);
+        $key = $j->plataforma . '-' . (int)$parts[0] . '-' . (int)$parts[1]; // anio-mes int
+        $jugadoresMap[$key] = $j->jugadores;
+    }
+
+    $data = [];
+    $categorias = [];
+
+    // 3. Calcular ARPU
+    foreach($producidos as $p) {
+        $key = $p->plataforma . '-' . $p->anio . '-' . $p->mes;
+        $cant_jugadores = $jugadoresMap[$key] ?? 0;
+        
+        $arpu = $cant_jugadores > 0 ? ($p->beneficio / $cant_jugadores) : 0;
+        $arpu = round($arpu, 2);
+
+        $mes_fmt = date('Y-m', strtotime($p->anio.'-'.$p->mes.'-01'));
+        
+        $data[$p->plataforma][$mes_fmt] = $arpu;
+
+        if(!in_array($mes_fmt, $categorias)) $categorias[] = $mes_fmt;
+    }
+    sort($categorias);
+
+    $series = [];
+    foreach($data as $plat => $meses) {
+        $valores = [];
+        $x_values = []; // Para calculo de tendencia (0, 1, 2...)
+        $y_values = []; // Para calculo de tendencia
+        
+        $i = 0;
+        foreach($categorias as $cat) {
+            $val = $meses[$cat] ?? 0;
+            $valores[] = $val;
+            
+            // Solo agregamos puntos validos (>0) para la tendencia? O todos? Usamos todos para continuidad temporal.
+            $x_values[] = $i;
+            $y_values[] = $val;
+            $i++;
+        }
+
+        // Color logic
+        if (stripos($plat, 'CityCenter') !== false) {
+            $color = '#5855d6';
+        } else {
+            $color = '#2cbaff';
+        }
+
+        // Series Columna (Histograma)
+        $series[] = [
+            'type' => 'column',
+            'name' => $plat,
+            'data' => $valores,
+            'color' => $color
+        ];
+
+        // Calculo Tendencia Lineal (Minimos Cuadrados)
+        $n = count($x_values);
+        if ($n > 1) {
+            $sumX = array_sum($x_values);
+            $sumY = array_sum($y_values);
+            $sumXY = 0;
+            $sumXX = 0;
+            for($j=0; $j<$n; $j++) {
+                $sumXY += $x_values[$j] * $y_values[$j];
+                $sumXX += $x_values[$j] * $x_values[$j];
+            }
+            
+            $slope = ($n * $sumXY - $sumX * $sumY) / ($n * $sumXX - $sumX * $sumX);
+            $intercept = ($sumY - $slope * $sumX) / $n;
+
+            $tendencia_data = [];
+            for($j=0; $j<$n; $j++) {
+                $tendencia_data[] = round($slope * $j + $intercept, 2);
+            }
+
+            // Series Tendencia
+            $series[] = [
+                'type' => 'spline', // o line
+                'name' => $plat . ' (Tendencia)',
+                'data' => $tendencia_data,
+                'color' => $color,
+                'dashStyle' => 'ShortDot',
+                'marker' => ['enabled' => false],
+                'enableMouseTracking' => false,
+                'showInLegend' => false
+            ];
+        }
     }
 
     return response()->json([

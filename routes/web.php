@@ -318,6 +318,7 @@ Route::group(['prefix' => 'informesGenerales'], function () {
   Route::get('/estadosDias', 'InformesGeneralesController@estadosDias');
   Route::get('/infoAuditoria/{dia}', 'InformesGeneralesController@infoAuditoria');
   Route::get('/distribucionJugadores', 'InformesGeneralesController@distribucionJugadores');
+  Route::get('/arpuMensual', 'InformesGeneralesController@arpuMensual');
 });
 
 /*calendario*/

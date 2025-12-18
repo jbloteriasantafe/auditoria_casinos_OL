@@ -197,9 +197,25 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </div>
                 @yield('finpanel')
 
+                @yield('finpanel')
+
                 @yield('iniciopanel')
                 <div class="row">
                     <div id="divPdevAUnAnio">
+                    </div>
+                </div>
+                @yield('finpanel')
+
+                @yield('iniciopanel')
+                <div class="row">
+                    <div id="divHoldAUnAnio">
+                    </div>
+                </div>
+                @yield('finpanel')
+
+                @yield('iniciopanel')
+                <div class="row">
+                    <div id="divARPU">
                     </div>
                 </div>
                 @yield('finpanel')
