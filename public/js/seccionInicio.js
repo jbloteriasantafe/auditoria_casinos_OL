@@ -129,11 +129,17 @@ $(document).ready(function () {
         categorias_fmt,
         data.series
       );
+    }
+  );
 
+  GET(
+    $("#divHoldAUnAnio"),
+    "informesGenerales/holdMensual",
+    function (data) {
       generarGraficoHold(
         "#divHoldAUnAnio",
         "ESTABILIDAD DE MARGEN DE RETENCIÓN (HOLD %) - ÚLTIMO AÑO",
-        categorias_fmt,
+        data.categorias,
         data.series
       );
     }
@@ -750,26 +756,23 @@ function año_mes(año, mes) {
   return meses[mes - 1] + " " + año;
 }
 
-function generarGraficoHold(div, titulo, categorias, series_boxplot) {
+function generarGraficoHold(div, titulo, categorias, series_raw) {
   const series_linea = [];
 
-  series_boxplot.forEach(function (serie) {
-    const data_hold = serie.data.map(function (punto) {
-      if (punto === null || punto[2] === null) return null; // [min, q1, median, q3, max]
-      return parseFloat((100 - punto[2]).toFixed(2));
-    });
+  series_raw.forEach(function (serie) {
+    const data_hold = serie.data; // Ya viene como array de floats o nulls
 
     // Calcular promedio (ignorando nulos) para la linea punteada
-    const validos = data_hold.filter((v) => v !== null);
+    const validos = data_hold.filter((v) => v !== null && v !== undefined);
     const promedio =
       validos.length > 0
-        ? validos.reduce((a, b) => a + b, 0) / validos.length
+        ? validos.reduce((a, b) => a + parseFloat(b), 0) / validos.length
         : 0;
-    const data_promedio = data_hold.map((v) => (v !== null ? promedio : null));
+    const data_promedio = data_hold.map((v) => (v !== null && v !== undefined ? promedio : null));
 
     // Calcular Margen Neto (Hold - 15%) => Hold * 0.85
     const data_neto = data_hold.map(function(val) {
-        if(val === null) return null;
+        if(val === null || val === undefined) return null;
         return parseFloat((val * 0.85).toFixed(2));
     });
 
@@ -789,10 +792,10 @@ function generarGraficoHold(div, titulo, categorias, series_boxplot) {
     series_linea.push({
       name: serie.name + " (M. Neto)",
       data: data_neto,
-      color: serie.fillColor, // Mismo color pero quizas se vea encimado, Highcharts maneja multiples lineas mismo color bien.
+      color: serie.fillColor, 
       type: "line",
       dashStyle: 'Solid', 
-      marker: { enabled: true, symbol: 'diamond', radius: 4 }, // Diferente marker para distinguir
+      marker: { enabled: true, symbol: 'diamond', radius: 4 }, 
       tooltip: {
         valueSuffix: " %",
       },
@@ -849,8 +852,6 @@ function generarGraficoHold(div, titulo, categorias, series_boxplot) {
         dataLabels: {
           enabled: true,
           formatter: function () {
-             // Solo mostrar label si es Bruto (no dash, no neto diamond si queremos limpiar)
-             // Mostramos todo por ahora
              if(this.series.options.dashStyle == 'ShortDot') return "";
              return formatPje(this.y);
           },
