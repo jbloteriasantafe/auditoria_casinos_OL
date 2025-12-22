@@ -138,7 +138,14 @@ $(document).ready(function () {
     function (data) {
       generarGraficoHold(
         "#divHoldAUnAnio",
-        "ESTABILIDAD DE MARGEN DE RETENCIÓN (HOLD %) - ÚLTIMO AÑO",
+        "ESTABILIDAD DE MARGEN DE RETENCIÓN BRUTO (HOLD) - ÚLTIMO AÑO",
+        data.categorias,
+        data.series
+      );
+
+      generarGraficoHoldNeto(
+        "#divHoldNeto",
+        "ESTABILIDAD DE MARGEN DE RETENCIÓN NETO (HOLD - CANON) - ÚLTIMO AÑO",
         data.categorias,
         data.series
       );
@@ -759,7 +766,7 @@ function año_mes(año, mes) {
 function generarGraficoHold(div, titulo, categorias, series_raw) {
   const series_linea = [];
 
-  series_raw.forEach(function (serie) {
+  series_raw.forEach(function (serie, index) {
     const data_hold = serie.data; // Ya viene como array de floats o nulls
 
     // Calcular promedio (ignorando nulos) para la linea punteada
@@ -770,14 +777,11 @@ function generarGraficoHold(div, titulo, categorias, series_raw) {
         : 0;
     const data_promedio = data_hold.map((v) => (v !== null && v !== undefined ? promedio : null));
 
-    // Calcular Margen Neto (Hold - 15%) => Hold * 0.85
-    const data_neto = data_hold.map(function(val) {
-        if(val === null || val === undefined) return null;
-        return parseFloat((val * 0.85).toFixed(2));
-    });
+    const serieId = 'main_serie_' + index;
 
     // Linea solida (Margen Bruto)
     series_linea.push({
+      id: serieId,
       name: serie.name + " (M. Bruto)",
       data: data_hold,
       color: serie.fillColor,
@@ -788,21 +792,9 @@ function generarGraficoHold(div, titulo, categorias, series_raw) {
       },
     });
 
-    // Linea solida (Margen Neto)
-    series_linea.push({
-      name: serie.name + " (M. Neto)",
-      data: data_neto,
-      color: serie.fillColor, 
-      type: "line",
-      dashStyle: 'Solid', 
-      marker: { enabled: true, symbol: 'diamond', radius: 4 }, 
-      tooltip: {
-        valueSuffix: " %",
-      },
-    });
-
     // Linea punteada (Promedio Bruto)
     series_linea.push({
+      linkedTo: serieId, // Se oculta/muestra junto con la principal
       name: serie.name + " (Promedio)",
       data: data_promedio,
       color: serie.fillColor,
@@ -833,6 +825,93 @@ function generarGraficoHold(div, titulo, categorias, series_raw) {
     },
     yAxis: {
       title: { text: "Hold %" },
+      min: 0,
+      max: 16,
+      labels: {
+        formatter: function () {
+          return this.value + " %";
+        },
+      },
+      plotBands: [{
+        from: 15,
+        to: 16,
+        color: 'rgba(68, 68, 68, 0.2)', // Gris oscuro semitransparente
+        label: {
+            text: 'Zona Prohibida',
+            style: {
+                color: '#606060'
+            }
+        }
+      }]
+    },
+    tooltip: {
+      shared: false,
+      valueDecimals: 2,
+      valueSuffix: " %",
+    },
+    credits: {
+      enabled: false,
+    },
+    plotOptions: {
+      line: {
+        dataLabels: {
+          enabled: true,
+          formatter: function () {
+             if(this.series.options.dashStyle == 'ShortDot') return "";
+             return formatPje(this.y);
+          },
+        },
+        enableMouseTracking: true,
+      },
+    },
+    series: series_linea,
+  });
+}
+
+function generarGraficoHoldNeto(div, titulo, categorias, series_raw) {
+  const series_linea = [];
+
+  series_raw.forEach(function (serie) {
+    const data_hold = serie.data; 
+
+    // Calcular Margen Neto (Hold - 15%) => Hold * 0.85
+    const data_neto = data_hold.map(function(val) {
+        if(val === null || val === undefined) return null;
+        return parseFloat((val * 0.85).toFixed(2));
+    });
+
+    // Linea solida (Margen Neto)
+    series_linea.push({
+      name: serie.name + " (M. Neto)",
+      data: data_neto,
+      color: serie.fillColor, 
+      type: "line",
+      marker: { enabled: true, symbol: 'diamond', radius: 4 }, 
+      tooltip: {
+        valueSuffix: " %",
+      },
+    });
+  });
+
+  const grafico = $("<div>").addClass("grafico col-md-12");
+  $(div).append(grafico);
+
+  Highcharts.chart(grafico[0], {
+    chart: {
+      height: 450,
+      backgroundColor: "#fff",
+      type: "line",
+    },
+    title: {
+      text: titulo,
+      style: { fontWeight: "bold" },
+    },
+    xAxis: {
+      categories: categorias,
+      title: { text: "Período" },
+    },
+    yAxis: {
+      title: { text: "Hold Neto %" },
       labels: {
         formatter: function () {
           return this.value + " %";
@@ -852,7 +931,6 @@ function generarGraficoHold(div, titulo, categorias, series_raw) {
         dataLabels: {
           enabled: true,
           formatter: function () {
-             if(this.series.options.dashStyle == 'ShortDot') return "";
              return formatPje(this.y);
           },
         },
@@ -900,6 +978,15 @@ function generarGraficoARPU(div, titulo, categorias, series_data) {
       column: {
         dataLabels: {
           enabled: true,
+          inside: false,
+          color: 'black',
+          crop: false,
+          overflow: "none",
+          verticalAlign: "bottom",
+          y: -5,
+          style: {
+             textOutline: "none"
+          },
           formatter: function() {
               return "$ " + this.y;
           }

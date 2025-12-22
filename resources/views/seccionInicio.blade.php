@@ -211,6 +211,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                     <div id="divHoldAUnAnio">
                     </div>
                 </div>
+                <div class="row">
+                    <div id="divHoldNeto">
+                    </div>
+                </div>
                 @yield('finpanel')
 
                 @yield('iniciopanel')

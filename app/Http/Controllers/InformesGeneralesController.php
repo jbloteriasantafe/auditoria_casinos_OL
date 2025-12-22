@@ -407,13 +407,18 @@ class InformesGeneralesController extends Controller
 
     $datos = DB::table('beneficio_mensual as bm')
       ->selectRaw('pl.nombre as plataforma, YEAR(bm.fecha) as anio, MONTH(bm.fecha) as mes, 
-                   SUM(b.beneficio) as beneficio, SUM(p.apuesta) as apuesta')
+                   SUM(b.beneficio * IFNULL(c.valor, 1)) as beneficio, 
+                   SUM(p.apuesta * IFNULL(c.valor, 1)) as apuesta')
       ->join('plataforma as pl', 'pl.id_plataforma', '=', 'bm.id_plataforma')
       ->join('beneficio as b', 'b.id_beneficio_mensual', '=', 'bm.id_beneficio_mensual')
       ->join('producido as p', function ($join) {
         $join->on('p.fecha', '=', 'b.fecha')
              ->on('p.id_plataforma', '=', 'bm.id_plataforma')
              ->on('p.id_tipo_moneda', '=', 'bm.id_tipo_moneda');
+      })
+      ->leftJoin('cotizacion as c', function ($join) {
+        $join->on('c.fecha', '=', 'b.fecha')
+             ->on('c.id_tipo_moneda', '=', 'bm.id_tipo_moneda');
       })
       ->where('bm.fecha', '>=', $fecha_limite)
       ->groupBy('pl.nombre', 'anio', 'mes')
@@ -435,11 +440,19 @@ class InformesGeneralesController extends Controller
     }
     sort($categorias);
 
+    // Ordenar Data: Bplay primero, luego CityCenter
+    uksort($data, function($a, $b) {
+        // Si a contiene 'bplay', va antes (-1)
+        if (stripos($a, 'bplay') !== false) return -1;
+        if (stripos($b, 'bplay') !== false) return 1;
+        return strcmp($a, $b);
+    });
+
     $series = [];
     foreach($data as $plat => $meses) {
         $valores = [];
         foreach($categorias as $cat) {
-            $valores[] = $meses[$cat] ?? null; // null si no hay datos para ese mes
+            $valores[] = $meses[$cat] ?? null; 
         }
 
         if (stripos($plat, 'CityCenter') !== false) {
@@ -450,9 +463,9 @@ class InformesGeneralesController extends Controller
 
         $series[] = [
             'name' => $plat,
-            'data' => $valores, // Arreglo simple de valores
+            'data' => $valores, 
             'color' => $color,
-            'fillColor' => $color // Para mantener compatibilidad con JS que espera fillColor
+            'fillColor' => $color 
         ];
     }
 
@@ -468,13 +481,17 @@ class InformesGeneralesController extends Controller
 
     $datos = DB::table('beneficio_mensual as bm')
       ->selectRaw('pl.nombre as plataforma, YEAR(bm.fecha) as anio, MONTH(bm.fecha) as mes, 
-                   SUM(p.apuesta) as apuesta, SUM(b.jugadores) as jugadores')
+                   SUM(p.apuesta * IFNULL(c.valor, 1)) as apuesta, SUM(b.jugadores) as jugadores')
       ->join('plataforma as pl', 'pl.id_plataforma', '=', 'bm.id_plataforma')
       ->join('beneficio as b', 'b.id_beneficio_mensual', '=', 'bm.id_beneficio_mensual')
       ->join('producido as p', function ($join) {
         $join->on('p.fecha', '=', 'b.fecha')
              ->on('p.id_plataforma', '=', 'bm.id_plataforma')
              ->on('p.id_tipo_moneda', '=', 'bm.id_tipo_moneda');
+      })
+      ->leftJoin('cotizacion as c', function ($join) {
+        $join->on('c.fecha', '=', 'b.fecha')
+             ->on('c.id_tipo_moneda', '=', 'bm.id_tipo_moneda');
       })
       ->where('bm.fecha', '>=', $fecha_limite)
       ->groupBy('pl.nombre', 'anio', 'mes')
@@ -495,6 +512,14 @@ class InformesGeneralesController extends Controller
         if(!in_array($mes_fmt, $categorias)) $categorias[] = $mes_fmt;
     }
     sort($categorias);
+
+    // Ordenar Data: Bplay primero, luego CityCenter
+    uksort($data, function($a, $b) {
+        // Si a contiene 'bplay', va antes (-1)
+        if (stripos($a, 'bplay') !== false) return -1;
+        if (stripos($b, 'bplay') !== false) return 1;
+        return strcmp($a, $b);
+    });
 
     $series = [];
     foreach($data as $plat => $meses) {
