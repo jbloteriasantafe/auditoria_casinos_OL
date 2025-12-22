@@ -827,6 +827,8 @@ function generarGraficoHold(div, titulo, categorias, series_raw) {
       title: { text: "Hold %" },
       min: 0,
       max: 16,
+      endOnTick: false,
+      tickInterval: 2,
       labels: {
         formatter: function () {
           return this.value + " %";
