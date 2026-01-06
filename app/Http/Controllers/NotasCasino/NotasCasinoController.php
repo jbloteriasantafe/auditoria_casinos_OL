@@ -128,7 +128,7 @@ class NotasCasinoController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nroNota' => 'required|integer',
-            'tipoNota' => 'required|integer',
+            'nroNota' => 'required|string|regex:/^[0-9]+$/',
             'anioNota' => 'required|integer',
             'nombreEvento' => 'required|string|max:1000',
             'tipoEvento' => 'required|integer',
