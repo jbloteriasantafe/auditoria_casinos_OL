@@ -2,8 +2,16 @@
 /* Secuencia Random de Imagen Index*/
 $ruta = 'imgIndex';
 $varImg= rand(1,2);
-$rutaImagen = $ruta.$varImg;
 
+//Mantener el background constante si esta recuperando la contraseña
+$rutaImagen = session()->get('olvideMiContrasena_rutaImagen',$ruta.$varImg);
+session()->put('olvideMiContrasena_rutaImagen',$rutaImagen);
+
+$error = $error ?? '';
+$CAS_ENDPOINT = $CAS_ENDPOINT ?? null;
+$usuarios = $usuarios ?? null;
+$form = $form ?? 'login';
+$mensaje = $mensaje ?? null;
  ?>
 <!DOCTYPE html>
 <html>
@@ -51,14 +59,13 @@ $rutaImagen = $ruta.$varImg;
             <div id="boxLog" class="col-lg-4 col-lg-offset-4 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-10 col-xs-offset-1">
 
               <div id="contenedorFormulario" style="background-color: #fff; padding: 30px 15px; margin: 10px;">
-                  <!-- /.login-logo -->
                     <div class="login-logo">
                       <center><img src="img/logos/logo_2024_loteria.png" width="90%;"></center> <!-- VER -->
                       <br>
                     </div>
-                    <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
-
-                    <!-- <form action="" method="post"> -->
+                    @if(empty($router) && $form == 'login')
+                      <?php session()->forget('olvideMiContrasena_rutaImagen');//Forget para que se refresque el background en el proximo refresh ?>
+                      <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
                       <div class="form-group has-feedback">
                         <input id="user_name" type="text" class="form-control" placeholder="Usuario">
                         <span class="glyphicon glyphicon-user form-control-feedback"></span>
@@ -75,21 +82,133 @@ $rutaImagen = $ruta.$varImg;
                             </label>
                           </div>
                         </div>
-                        <!-- /.col -->
                         <div class="col-xs-4">
                           <button id="btnIngresar" type="submit" class="btn btn-primary btn-block">Entrar</button>
                         </div>
-                        <!-- /.col -->
                       </div>
-                    <!-- </form> -->
-                    <br>
-                    <!-- /.social-auth-links -->
-                    <legend></legend>
-                    <div class="alert alert-danger" hidden role="alert" id="alertaLogin"><span></span></div>
-                    <center><a href="" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
-
-
-    <!-- /.login-box -->
+                      <br>
+                      <legend></legend>
+                      <div class="alert alert-danger" {{ empty($error)? 'hidden' : '' }}  role="alert" id="alertaLogin"><span>{!! $error ?? '' !!}</span></div>
+                      @if(!empty($mensaje))
+                      <div class="alert alert-success"><span>{!! $mensaje !!}</span></div>
+                      @endif
+                      <?php $q = http_build_query([
+                        'router' => 'olvideMiContrasena',
+                        'accion' => 'ingresarUser'
+                      ]); ?>
+                      <center><a href="/login?{!! $q !!}" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
+                      <br>
+                      @if($CAS_ENDPOINT)
+                      <div class="row">
+                        <div class="col-xs-12">
+                          <?php //Al API de CAS/login le mandamos la dirección de retorno cuando se logee
+                          //renew marca si tiene que pedir User y Password a pesar de ya estar logeado
+                          //(es mas seguro que _SI_ por si alguien le toca la PC a otra persona con el usuario logeado)
+                          $q = http_build_query([
+                            'service' => $CAS_service
+                          ]); 
+                          ?>
+                          <a role="button" href="{{$CAS_ENDPOINT}}/login?{!! $q !!}{{$CAS_renew? '&renew' : ''}}" class="btn btn-block" style="background: #FD7400;color: white;border-color: border-color: #a42e2e;">Ingresar con UID</a>
+                        </div>
+                      </div>
+                      @endif
+                    @elseif($router == 'olvideMiContrasena')
+                      <style>
+                        .data-css-hover:hover {
+                          background: rgba(0,0,0,0.1);
+                          box-shadow: 0 0 2px black;
+                          padding: 0.1em;
+                        }
+                        .data-css-hover:not(:hover) {
+                          box-shadow: 0 0 2px white;
+                          padding: 0.1em;
+                        }
+                      </style>
+                      <form action="/login" method="GET">
+                        <input name="router" value="olvideMiContrasena" hidden readonly>
+                      @if($form == 'ingresarUser')
+                        <input name="accion" value="enviarCodigo" hidden readonly>
+                        <div class="form-group has-feedback">
+                          <input name="email" type="email" class="form-control" placeholder="Correo Electrónico">
+                          <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Enviar código</button>
+                      @elseif($form == 'ingresarCodigo')
+                        <input name="accion" value="verificarCodigo" hidden readonly>
+                        <div class="form-group has-feedback">
+                          <input value="{{$email}}" name="email" type="email" class="form-control" placeholder="Correo Electrónico" readonly>
+                          <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                        </div>
+                        <?php
+                          $url_reenviar = url('login').'?'.http_build_query([
+                            'router' => 'olvideMiContrasena',
+                            'accion' => 'enviarCodigo',
+                            'email' => $email
+                          ]);//Ya esta urlencoded asi que lo envio sin escapar
+                        ?>
+                        <a href="{!! $url_reenviar !!}" class="btn btn-warning" style="width: 100%;" role="button">Reenviar</a>
+                        <div style="width: 100%;">&nbsp;</div>
+                        <div class="form-group has-feedback">
+                          <input name="codigo" type="text" class="form-control" placeholder="Código recibido">
+                          <span class="glyphicon form-control-feedback"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Verificar</button>
+                      @elseif($form == 'seleccionarUsuarios')
+                        <input name="accion" value="verificarSeleccionUsuarios" hidden readonly>
+                        @foreach($usuarios as $uidx => $u)
+                        <div class="checkbox icheck data-css-hover" style="width: 100%;">
+                          <label style="width: 100%;">
+                            <?php $checked = !empty($u->preferencial) || (count($usuarios) == 1);?>
+                            <input type="checkbox" name="usuarios[{{$uidx}}]" value="{{$u->id_usuario}}" {{$checked? 'checked' : ''}}>
+                            {{$u->user_name}} ({{$u->email}}) 
+                            <br>
+                            {{$u->roles->pluck('descripcion')->implode(' - ')}}
+                          </label>
+                        </div>
+                        @endforeach
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Seleccionar</button>
+                      @elseif($form == 'ingresarPassword')
+                        <input name="accion" value="resetearPasswords" hidden readonly>
+                        <div class="form-group has-feedback">
+                          <input name="password" type="password" class="form-control" placeholder="Contraseña" autocomplete="off">
+                          <span class="glyphicon form-control-feedback"></span>
+                        </div>
+                        <div class="form-group has-feedback">
+                          <input name="password_confirmation" type="password" class="form-control" placeholder="Repetirla" autocomplete="off">
+                          <span class="glyphicon form-control-feedback"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Resetear</button>
+                      @endif
+                        <legend></legend>
+                        <div class="alert alert-danger" {{ empty($error)? 'hidden' : '' }} role="alert" id="alertaLogin"><span>{!! $error ?? '' !!}</span></div>
+                      </form>
+                    @elseif($router == 'CAS')
+                      <?php session()->forget('olvideMiContrasena_rutaImagen'); ?>
+                      @if($form == 'seleccionarUsuario')
+                      @if(!empty($usuarios))
+                      <center><p class="login-box-msg">Seleccioná un usuario</p></center>
+                      @else
+                      <center><p class="login-box-msg">No existe usuario asociado a su DNI o Correo</p></center>
+                      @endif
+                      <div class="row" style="display: flex;flex-direction: column;gap: 1em;padding: 1em;">
+                        @foreach(($usuarios ?? []) as $u)
+                        <?php
+                          $url_logear_usuario = url('login').'?'.http_build_query([
+                            'router' => 'CAS',
+                            'accion' => 'logearUsuario',
+                            'user_name' => $u->user_name
+                          ]);//Ya esta urlencoded asi que lo envio sin escapar
+                        ?>
+                        <a role="button" href="{!! $url_logear_usuario !!}" class="btn" style="background: #FD7400;border-color: border-color: #a42e2e">
+                          <span style="color: white;font-weight: bolder;">{{$u->user_name}}</span>
+                          <br>
+                          <span style="color: white;font-size: 0.8em;">{{$u->roles->pluck('descripcion')->implode(' - ')}}</span>
+                        </a>
+                        @endforeach
+                        <a role="button" href="/login" class="btn btn-primary" style="width: 5em;">Volver</a>
+                      </div>
+                    @endif
+                  @endif
               </div> <!-- contenedorFormulario -->
             </div> <!-- boxLogo -->
           </div> <!-- row -->

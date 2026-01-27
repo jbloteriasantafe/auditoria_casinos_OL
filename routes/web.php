@@ -12,18 +12,133 @@ Route::get('/marcarComoLeidaNotif', function () {
 /***********
 Index
 ***********/
+
 Route::get('/', function () {
-  return redirect('/inicio');
-});
-Route::get('login', function () {
-  return view('index');
-});
-Route::get('inicio', function () {
   $datos_inf = ['estado_dia' => (new InformesGeneralesController)->estadosDias()];
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $datos_inf['ultimas_visitadas'] = $usuario->secciones_recientes;
   $datos_inf['plataformas'] = \App\Plataforma::all();
   return view('seccionInicio', $datos_inf);
+});
+
+function Route_olvideMiContrasena(Request $request,string $accion,array $Vattrs){
+  $AC = App\Http\Controllers\OlvideMiContrasenaController::getInstancia();
+  $accion_form = [
+    //accion => form_success,form_fail
+    'ingresarUser' => ['ingresarUser','login'],
+    'enviarCodigo' => ['ingresarCodigo','ingresarUser'],
+    'verificarCodigo' => ['seleccionarUsuarios','ingresarCodigo'],
+    'verificarSeleccionUsuarios' => ['ingresarPassword','seleccionarUsuarios'],
+    'resetearPasswords' => ['login','ingresarPassword'],
+  ];
+  if(method_exists($AC,$accion) && ($accion_form[$accion] ?? null) !== null){
+    $response = $AC->{$accion}($request);
+    if($response['success']){
+      $Vattrs['form']  = $accion_form[$accion][0];
+      $Vattrs['mensaje'] = $response['mensaje'] ?? null;
+    }
+    else{
+      $Vattrs['form']  = $accion_form[$accion][1];
+      $Vattrs['error'] = $response['error'] ?? 'Error general';
+    }
+    $Vattrs['email']    = $request->email ?? null;
+    $Vattrs['code']     = $request->code ?? null;
+    $Vattrs['usuarios'] = $response['usuarios'] ?? null;
+    $Vattrs['router'] = $Vattrs['form'] != 'login'? 'olvideMiContrasena' : null;
+  }
+  else{
+    $Vattrs['form'] = 'login';
+    $Vattrs['router'] = null;
+  }
+  
+  return view('index',$Vattrs);
+}
+
+function Route_CAS(Request $request,string $accion,array $Vattrs){
+  if($accion == 'logearUsuario'){
+    if(!empty($request->user_name)){
+      $response = App\Http\Controllers\AuthenticationController::getInstancia()
+      ->loginUserName($request->user_name);//Solo puede logear con el usuario si tiene el token de sesión correcto
+      if($response['success']){
+        return redirect('/');
+      }
+      else{
+        $Vattrs['router'] = null;
+        $Vattrs['form']   = 'login';
+        $Vattrs['error']  = $response['error'] ?? 'Error al logear';
+        return view('index',$Vattrs);
+      }
+    }
+  }
+  else if($accion == 'seleccionarUsuario'){
+    if(!empty($request->ticket) && !empty($Vattrs['CAS_ENDPOINT'])){//Setea tokens de sesión para todos los usuarios posibles
+      $response = App\Http\Controllers\AuthenticationController::getInstancia()
+      ->loginCASTicket(
+        $Vattrs['CAS_ENDPOINT'],
+        $Vattrs['CAS_service'],
+        $request->ticket,
+        $Vattrs['CAS_renew']
+      );
+      if($response['success']){
+        if(count($response['usuarios'] ?? []) == 1){//Reentra y se maneja en la parte de arriba
+          $u = $response['usuarios'][array_keys($response['usuarios'])[0]];
+          $q = http_build_query([
+            'router' => 'CAS',
+            'accion' => 'logearUsuario',
+            'user_name' => $u->user_name
+          ]);
+          return redirect('login?'.$q);
+        }
+        $Vattrs['router']   = 'CAS';
+        $Vattrs['form']     = 'seleccionarUsuario';
+        $Vattrs['usuarios'] = $response['usuarios'] ?? [];
+        return view('index',$Vattrs);
+      }
+      else{
+        $Vattrs['router'] = null;
+        $Vattrs['form']   = 'login';
+        $Vattrs['error']  = $response['error'] ?? 'Error al logear';
+        return view('index',$Vattrs);
+      }
+    }
+  }
+  return view('index',$Vattrs);
+}
+
+Route::get('login', function (Request $request) {
+  $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+  if($usuario !== null){
+    return redirect('/');
+  }
+  
+  $Vattrs = [
+    'router' => null,
+    'form' => 'login',
+    'usuarios' => null,
+    'error' => null,
+    'CAS_ENDPOINT' => env('CAS_ENDPOINT') ?? Cookie::get('CAS_ENDPOINT_TOREMOVE') ?? null,
+    //A donde nos retorna CAS una vez logeado... deberia ser consistente 
+    //para la validación por eso uso una variable común
+    'CAS_service' => url('login').'?'.http_build_query([
+      'router' => 'CAS',
+      'accion' => 'seleccionarUsuario'
+    ]),
+    //El renew va separado porque cuando valida tengo que ponerlo separado del service
+    'CAS_renew' => true
+  ];
+    
+  $router = $request->router ?? null;
+  if($router == 'olvideMiContrasena'){
+    return Route_olvideMiContrasena($request,$request->accion ?? null,$Vattrs);
+  }
+  elseif($router == 'CAS'){
+    return Route_CAS($request,$request->accion ?? null,$Vattrs);
+  }
+  return view('index',$Vattrs);
+});
+
+Route::get('inicio', function () {
+  return redirect('/');
 });
 
 Route::get('configCuenta', 'UsuarioController@configUsuario');

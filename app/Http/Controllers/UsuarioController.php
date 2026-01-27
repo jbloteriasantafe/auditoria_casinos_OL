@@ -215,7 +215,9 @@ class UsuarioController extends Controller
 
   //sin la session iniciada usa esta funcion ----
   public function buscarUsuario($id_usuario){
-    $usuario=Usuario::find($id_usuario);//TODO SACAR PASSWD
+    //@BUG si id_usuario = 0
+    if(empty($id_usuario) && $id_usuario !== 0) return ['usuario' => null, 'roles' => null, 'plataformas' => null];
+    $usuario = Usuario::find($id_usuario);
     return ['usuario' => $usuario, 'roles' => $usuario->roles , 'plataformas' => $usuario->plataformas];
   }
 
@@ -296,7 +298,8 @@ class UsuarioController extends Controller
   }
 
   public function quienSoy(){
-    $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
+    $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
+    $usuario = $this->buscarUsuario($id_usuario)['usuario'];
     return ['usuario' => $usuario];
   }
 }
