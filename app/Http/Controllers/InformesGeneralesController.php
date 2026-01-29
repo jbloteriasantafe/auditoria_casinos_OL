@@ -216,9 +216,11 @@ class InformesGeneralesController extends Controller
       ];
       $estadosDias[$fstr]->detalle = json_decode($estadosDias[$fstr]->detalle ?? '[]',true);
       $edd_aggr = [];
+      foreach($tbls as $k){
+        $edd_aggr[$k] = [];
+      }
       foreach($estadosDias[$fstr]->detalle as $edd){
         foreach($edd as $k => $v){
-          $edd_aggr[$k] = $edd_aggr[$k] ?? [];
           $edd_aggr[$k][] = $v;
         }
       }
