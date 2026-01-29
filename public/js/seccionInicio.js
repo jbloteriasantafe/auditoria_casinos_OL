@@ -284,7 +284,8 @@ function setearCeldaCalendario(dia,celda) {
     .css("background-color", "rgb(" + color.join(",") + ")")
     .attr("title", toPje(estado))
     .attr('data-porcentaje',estado)
-    .attr('data-detalle',op.attr('data-detalle'));
+    .attr('data-detalle',op.attr('data-detalle'))
+    .addClass('data-css-hover-clickeable');
   if (estado == 1.0) celda.css("font-weight", "bold");
   const tbls = JSON.parse($('#estadosDias').attr('data-tbls'));
   celda.click(function () {

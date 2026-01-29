@@ -239,7 +239,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                     </div>
                 </div>
                 @yield('finpanel')
-
+                <style>
+                  .data-css-hover-clickeable:hover {
+                    background: darkblue !important;
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                  }
+                </style>
                 <div id="moldeMes" style="width: 25%;border-top: 1px solid #ddd;border-right: 1px solid #ddd;" hidden>
                     <div class="mesTitulo texto_ala_celda celda" style="width: 100%;">
                         MES AÑO
