@@ -268,7 +268,7 @@ function celdaPopover(celda,tbls) {
     html: true,
     content: formatPopoverCelda(data,tbls),
   }).popover("show");
-  celda.attr("title", toPje(data.total));
+  celda.attr("title", toPje(celda.attr('data-porcentaje')));
   celda.off("click").click(function () {
     celdaPopover(celda,tbls);
   });
