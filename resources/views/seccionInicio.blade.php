@@ -245,10 +245,21 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                         MES AÑO
                     </div>
                 </div>
-                <datalist id="estadoDia">
-                    @foreach ($estado_dia as $d => $e)
-                        <option fecha="{{ $d }}">{{ $e }}</option>
-                    @endforeach
+                <datalist 
+                  id="estadosDias"
+                  data-fecha-minima="{{ $estadosDias['fecha_minima']->format('Y-m-d') }}"
+                  data-fecha-maxima="{{ $estadosDias['fecha_maxima']->format('Y-m-d') }}"
+                  data-tbls="{{ json_encode($estadosDias['tbls']) }}"
+                >
+                  @foreach ($estadosDias['estadosDias'] as $d => $e)
+                  <option 
+                    data-fecha="{{ $d }}" 
+                    data-detalle="{{ json_encode($e->detalle) }}" 
+                    data-porcentaje="{{ $e->porcentaje }}"
+                  >
+                    {{ $e->importados }}/{{ $e->posibles }}
+                  </option>
+                  @endforeach
                 </datalist>
             @endif
         </div>
@@ -277,5 +288,5 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <script src="js/highcharts_11_3_0/exporting.js"></script>
     <script src="js/highcharts_11_3_0/export-data.js"></script>
     <script src="js/highcharts_11_3_0/accessibility.js"></script>
-    <script src="js/seccionInicio.js?7"></script>
+    <script src="js/seccionInicio.js?8"></script>
 @endsection

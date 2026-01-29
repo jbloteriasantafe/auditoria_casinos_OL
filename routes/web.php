@@ -14,7 +14,7 @@ Index
 ***********/
 
 Route::get('/', function () {
-  $datos_inf = ['estado_dia' => (new InformesGeneralesController)->estadosDias()];
+  $datos_inf = ['estadosDias' => (new InformesGeneralesController)->estadosDias()];
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $datos_inf['ultimas_visitadas'] = $usuario->secciones_recientes;
   $datos_inf['plataformas'] = \App\Plataforma::all();
@@ -430,8 +430,6 @@ Route::group(['prefix' => 'informesGenerales'], function () {
   Route::get('/pdevAnualBoxplot', 'InformesGeneralesController@pdevAnualBoxplot');
   Route::get('/jugadoresMensuales', 'InformesGeneralesController@jugadoresMensuales');
   Route::get('/jugadoresAnuales', 'InformesGeneralesController@jugadoresAnuales');
-  Route::get('/estadosDias', 'InformesGeneralesController@estadosDias');
-  Route::get('/infoAuditoria/{dia}', 'InformesGeneralesController@infoAuditoria');
   Route::get('/distribucionJugadores', 'InformesGeneralesController@distribucionJugadores');
   Route::get('/arpuMensual', 'InformesGeneralesController@arpuMensual');
   Route::get('/holdMensual', 'InformesGeneralesController@holdMensual');

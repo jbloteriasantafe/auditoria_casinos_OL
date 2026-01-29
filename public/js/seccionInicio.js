@@ -168,8 +168,8 @@ $(document).ready(function () {
   generarCalendario(
     "#divCalendarioActividadesCompletadas",
     "ESTADO AUDITORIA DIARIO",
-    $("#estadoDia option").first().attr("fecha"),
-    $("#estadoDia option").last().attr("fecha"),
+    $("#estadosDias").attr("data-fecha-minima"),
+    $("#estadosDias").attr("data-fecha-maxima"),
     generarLeyendaCalendario,
     setearCeldaCalendario
   );
@@ -251,44 +251,44 @@ function formatPopoverCelda(data) {
   return div[0].outerHTML;
 }
 
-function celdaPopover(dia, celda) {
+function celdaPopover(celda) {
   //@WARNING: CALLBACK HELL
   //Clickeo en la celda con el popover ya desplegado
   //Lo destruyo, le saco el evento y lo asigno de vuelta para que lo pueda regenerar
   if (typeof celda.attr("aria-describedby") !== "undefined") {
     celda.popover("destroy");
     celda.off("click").click(function () {
-      celdaPopover(dia, celda);
+      celdaPopover(celda);
     });
     return;
   }
   //Clickeo en otra celda, destruyo todos los popovers y le creo el evento
   $(".celda").popover("destroy");
-  $.get("/informesGenerales/infoAuditoria/" + dateToIso(dia), function (data) {
-    celda
-      .popover({
-        html: true,
-        content: formatPopoverCelda(data),
-      })
-      .popover("show");
-    celda.attr("title", toPje(data.total));
-    celda.off("click").click(function () {
-      celdaPopover(dia, celda);
-    });
+  const data = JSON.parse(celda.attr('data-detalle'));
+  celda.popover({
+    html: true,
+    content: formatPopoverCelda(data),
+  }).popover("show");
+  celda.attr("title", toPje(data.total));
+  celda.off("click").click(function () {
+    celdaPopover(celda);
   });
 }
 
-function setearCeldaCalendario(dia, celda) {
-  const op = $(`#estadoDia option[fecha="${dateToIso(dia)}"]`);
+function setearCeldaCalendario(dia,celda) {
+  const op = $(`#estadosDias option[data-fecha="${dateToIso(dia)}"]`);
+  
   if (op.length == 0) return celda;
-  const estado = parseFloat(op.text());
+  const estado = parseFloat(op.attr('data-porcentaje'));
   const color = color_func(estado);
   celda
     .css("background-color", "rgb(" + color.join(",") + ")")
-    .attr("title", toPje(estado));
+    .attr("title", toPje(estado))
+    .attr('data-porcentaje',estado)
+    .attr('data-detalle',op.attr('data-detalle'));
   if (estado == 1.0) celda.css("font-weight", "bold");
   celda.click(function () {
-    celdaPopover(dia, celda);
+    celdaPopover(celda);
   });
   return celda;
 }
@@ -553,6 +553,7 @@ function generarCalendario(
       $(div).find(`[data-año][data-año!="${año}"]`).hide();
       $(div).find(`[data-año][data-año="${año}"]`).show();
     })
+    .val($(div).find(`[data-año]:last-child`).attr('data-año'))
     .change();
 }
 

@@ -82,103 +82,154 @@ class InformesGeneralesController extends Controller
     $cc->agregar($codigo, $subcodigo, json_encode($ret), ['producido_jugadores', 'detalle_producido_jugadores', 'plataforma']);
     return $ret;
   }
-
+    
   public function estadosDias()
   {
-    $estado_dia = []; {
-      $fecha_mas_vieja_b = DB::table('beneficio')->select('fecha')->orderBy('fecha', 'asc')->take(1)->pluck('fecha')->first();
-      $fecha_mas_vieja_p = DB::table('producido')->select('fecha')->orderBy('fecha', 'asc')->take(1)->pluck('fecha')->first();
-      $fecha_mas_vieja_pj = DB::table('producido_jugadores')->select('fecha')->orderBy('fecha', 'asc')->take(1)->pluck('fecha')->first();
-      $f = min($fecha_mas_vieja_b ?: date('Y-m-d'), $fecha_mas_vieja_p ?: date('Y-m-d'), $fecha_mas_vieja_pj ?: date('Y-m-d'));
-      $fecha_actual = date('Y-m-d');
-      while ($f != $fecha_actual) {
-        $estado_dia[$f] = $this->estado_dia($f)['porcentaje'];
-        $f = date('Y-m-d', strtotime($f . ' +1 day'));
+    DB::statement("DROP TEMPORARY TABLE IF EXISTS temp_estados_dias");
+    
+    DB::statement("CREATE TEMPORARY TABLE temp_estados_dias AS
+    SELECT  tmv.descripcion as moneda,
+            fv.fecha,
+            tv.tbl,
+            pv.codigo as plataforma,
+            i.tbl IS NOT NULL as importado
+    FROM plataforma as pv
+    CROSS JOIN (
+      SELECT * FROM tipo_moneda
+      WHERE descripcion IN ('ARS')
+    ) as tmv
+    CROSS JOIN  (
+        SELECT * 
+        FROM (
+          SELECT fecha
+          FROM producido
+          
+          UNION SELECT fecha
+          FROM producido_jugadores
+          
+          UNION SELECT fecha
+          FROM beneficio
+          
+          UNION SELECT fecha
+          FROM beneficio_poker
+          
+          UNION SELECT fecha_importacion as fecha
+          FROM importacion_estado_jugador
+          
+          UNION SELECT fecha_importacion as fecha
+          FROM importacion_estado_juego
+        ) aux
+        ORDER BY aux.fecha ASC
+    ) as fv
+    CROSS JOIN (
+      SELECT 'producido' as tbl UNION ALL
+      SELECT 'producido_jugadores' UNION ALL
+      SELECT 'beneficio' UNION ALL
+      SELECT 'beneficio_poker' UNION ALL
+      SELECT 'estado_jugadores' UNION ALL
+      SELECT 'estado_juegos'
+    ) as tv
+      LEFT JOIN (
+        SELECT 'producido' as tbl, fecha, id_tipo_moneda, id_plataforma
+        FROM producido
+        
+        UNION ALL
+        SELECT 'producido_jugadores' as tbl, fecha, id_tipo_moneda, id_plataforma
+        FROM producido_jugadores
+        
+        UNION ALL
+        SELECT 'beneficio' as tbl, b.fecha, bm.id_tipo_moneda, bm.id_plataforma
+        FROM beneficio as b
+        JOIN beneficio_mensual as bm ON bm.id_beneficio_mensual = b.id_beneficio_mensual
+        
+        UNION ALL
+        SELECT 'beneficio_poker' as tbl, b.fecha, bm.id_tipo_moneda, bm.id_plataforma
+        FROM beneficio_poker as b
+        JOIN beneficio_mensual_poker as bm ON bm.id_beneficio_mensual_poker = b.id_beneficio_mensual_poker
+        
+        UNION ALL
+        SELECT 'estado_jugadores' as tbl, iej.fecha_importacion as fecha, tm.id_tipo_moneda, iej.id_plataforma
+        FROM importacion_estado_jugador as iej, tipo_moneda as tm
+        
+        UNION ALL
+        SELECT 'estado_juegos' as tbl, iej.fecha_importacion as fecha, tm.id_tipo_moneda, iej.id_plataforma
+        FROM importacion_estado_juego as iej, tipo_moneda as tm
+    ) as i 
+        ON  i.id_plataforma = pv.id_plataforma
+        AND i.id_tipo_moneda = tmv.id_tipo_moneda
+        AND i.fecha = fv.fecha
+        AND i.tbl = tv.tbl
+    WHERE fv.fecha IS NOT NULL
+    ");
+    
+    $fecha_actual = new \DateTimeImmutable();
+    $fecha_minima = DB::select("
+      SELECT MIN(fecha) as fecha
+      FROM temp_estados_dias
+      GROUP BY 'constant'
+    ");
+    $fecha_minima = count($fecha_minima)? new \DateTimeImmutable($fecha_minima[0]->fecha) : $fecha_actual;
+    
+    $estadosDias = collect(DB::select("
+      SELECT moneda, fecha, 
+        COUNT(*) as posibles, 
+        SUM(importado) as importados, 
+        SUM(importado)/COUNT(*) as porcentaje,
+        CONCAT('[',GROUP_CONCAT(
+          IF(importado,JSON_OBJECT(tbl,plataforma),NULL)
+          SEPARATOR ','
+        ),']') as detalle
+      FROM temp_estados_dias
+      GROUP BY moneda, fecha
+    "))->groupBy('moneda')->map(function($edm){
+      return $edm->keyBy('fecha');
+    })['ARS'];//Solo usamos ARS, lo dejo asi por si se agregan dólares... el código queda mas generitoc
+    
+    //Saco la lista de posibles keys de la tabla... para evitar otro lugar para modificar
+    $tbls = collect(DB::select("
+      SELECT  moneda,
+              CONCAT('[',GROUP_CONCAT(
+                DISTINCT
+                JSON_QUOTE(tbl)
+                SEPARATOR ','
+              ),']') as tbls
+      FROM temp_estados_dias
+      GROUP BY moneda        
+    "))->keyBy('moneda')['ARS'];//idem arriba
+    
+    $tbls = json_decode($tbls->tbls,true);
+    
+    $posibles = null;//Los posibles son constantes para todos... tal vez hay una optimización aca
+    foreach($estadosDias as $ed){
+      $posibles = $posibles ?? $ed->posibles;
+      if($posibles !== null) break;
+    }
+    
+    $interval_1dia = new \DateInterval('P1D');
+    for($f = $fecha_minima;$f <= $fecha_actual;$f = $f->add($interval_1dia)){
+      $fstr = $f->format('Y-m-d');
+      $estadosDias[$fstr] = $estadosDias[$fstr] ?? (object)[
+        'posibles' => $posibles,
+        'importados' => 0,
+        'porcentaje' => 0,
+        'detalle' => '[]'
+      ];
+      $estadosDias[$fstr]->detalle = json_decode($estadosDias[$fstr]->detalle ?? '[]',true);
+      $edd_aggr = [];
+      foreach($estadosDias[$fstr]->detalle as $edd){
+        foreach($edd as $k => $v){
+          $edd_aggr[$k] = $edd_aggr[$k] ?? [];
+          $edd_aggr[$k][] = $v;
+        }
       }
-      $estado_dia[$f] = $this->estado_dia($f)['porcentaje'];
+      $estadosDias[$fstr]->detalle = $edd_aggr;
     }
-    return array_reverse($estado_dia);
-  }
-
-  public function infoAuditoria($dia)
-  {
-    $aux = $this->estado_dia($dia);
-
-    foreach ($aux['queryes'] as $tipo => $q) {
-      $aux['queryes'][$tipo] = $q->get()->pluck('codigo');
-    }
-
-    return array_merge(['total' => $aux['porcentaje']], $aux['queryes']);
-  }
-
-  private function estado_dia($f)
-  {
-    $MA = [1];//@HACK: sacar dolares de la BD si no se usa?
-    $PA = DB::table('plataforma')->get()->pluck('id_plataforma');
-
-    $importaciones = $this->importaciones($f, $MA, $PA);
-    $queryes = $importaciones['queryes'];
-
-    $cantidad = array_reduce(
-      $queryes,
-      function ($carry, $q) {
-        return $carry + (clone $q)->count();
-      },//clono pq ->count modifica la query
-      0
-    );
-
-    $porcentaje = $cantidad / $importaciones['maximas_posibles'];
-    return compact('queryes', 'porcentaje');
-  }
-
-  private function importaciones($dia, $monedas_habilitadas, $plataformas_habilitadas)
-  {
-    $queryes = [];
-    $maximas_posibles = 0;
-
-    $queryes['producido'] = DB::table('producido')
-      ->join('plataforma as plat', 'plat.id_plataforma', '=', 'producido.id_plataforma')
-      ->where('fecha', date('Y-m-d', strtotime($dia)))
-      ->whereIn('id_tipo_moneda', $monedas_habilitadas)
-      ->whereIn('plat.id_plataforma', $plataformas_habilitadas);
-    $maximas_posibles += count($monedas_habilitadas) * count($plataformas_habilitadas);
-
-    $queryes['producido_jugadores'] = DB::table('producido_jugadores')
-      ->join('plataforma as plat', 'plat.id_plataforma', '=', 'producido_jugadores.id_plataforma')
-      ->where('fecha', date('Y-m-d', strtotime($dia)))
-      ->whereIn('id_tipo_moneda', $monedas_habilitadas)
-      ->whereIn('plat.id_plataforma', $plataformas_habilitadas);
-    $maximas_posibles += count($monedas_habilitadas) * count($plataformas_habilitadas);
-
-    $queryes['beneficio'] = DB::table('beneficio as b')
-      ->join('beneficio_mensual as bm', 'bm.id_beneficio_mensual', '=', 'b.id_beneficio_mensual')
-      ->join('plataforma as plat', 'plat.id_plataforma', '=', 'bm.id_plataforma')
-      ->where('b.fecha', date('Y-m-d', strtotime($dia)))
-      ->whereIn('id_tipo_moneda', $monedas_habilitadas)
-      ->whereIn('plat.id_plataforma', $plataformas_habilitadas);
-    $maximas_posibles += count($monedas_habilitadas) * count($plataformas_habilitadas);
-
-    $queryes['beneficio_poker'] = DB::table('beneficio_poker as b')
-      ->join('beneficio_mensual_poker as bm', 'bm.id_beneficio_mensual_poker', '=', 'b.id_beneficio_mensual_poker')
-      ->join('plataforma as plat', 'plat.id_plataforma', '=', 'bm.id_plataforma')
-      ->where('b.fecha', date('Y-m-d', strtotime($dia)))
-      ->whereIn('id_tipo_moneda', $monedas_habilitadas)
-      ->whereIn('plat.id_plataforma', $plataformas_habilitadas);
-    $maximas_posibles += count($monedas_habilitadas) * count($plataformas_habilitadas);
-
-    $queryes['estado_jugadores'] = DB::table('importacion_estado_jugador as iej')
-      ->join('plataforma as plat', 'plat.id_plataforma', '=', 'iej.id_plataforma')
-      ->where('iej.fecha_importacion', date('Y-m-d', strtotime($dia)))
-      ->whereIn('plat.id_plataforma', $plataformas_habilitadas);
-    $maximas_posibles += count($plataformas_habilitadas);
-
-    $queryes['estado_juegos'] = DB::table('importacion_estado_juego as iej')
-      ->join('plataforma as plat', 'plat.id_plataforma', '=', 'iej.id_plataforma')
-      ->where('iej.fecha_importacion', date('Y-m-d', strtotime($dia)))
-      ->whereIn('plat.id_plataforma', $plataformas_habilitadas);
-    $maximas_posibles += count($plataformas_habilitadas);
-
-    return compact('queryes', 'maximas_posibles');
+    return [
+      'tbls' => $tbls,
+      'fecha_minima' => $fecha_minima,
+      'fecha_maxima' => $fecha_actual,
+      'estadosDias' => $estadosDias
+    ];
   }
 
   private function similarity($s1, $s2)
