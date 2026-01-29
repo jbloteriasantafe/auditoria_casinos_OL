@@ -218,7 +218,7 @@ function color_func(t) {
     lerpColor(t, lowColor, controlPoint),
     lerpColor(t, controlPoint, highColor)
   );
-  return [256 * rgb[0], 256 * rgb[1], 256 * rgb[2]];
+  return [255 * rgb[0], 255 * rgb[1], 255 * rgb[2]];
 }
 
 function formatPopoverCelda(data,keys) {
