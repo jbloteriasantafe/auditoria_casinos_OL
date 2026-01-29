@@ -288,5 +288,5 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <script src="js/highcharts_11_3_0/exporting.js"></script>
     <script src="js/highcharts_11_3_0/export-data.js"></script>
     <script src="js/highcharts_11_3_0/accessibility.js"></script>
-    <script src="js/seccionInicio.js?8"></script>
+    <script src="js/seccionInicio.js?9"></script>
 @endsection

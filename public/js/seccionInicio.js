@@ -221,7 +221,7 @@ function color_func(t) {
   return [256 * rgb[0], 256 * rgb[1], 256 * rgb[2]];
 }
 
-function formatPopoverCelda(data) {
+function formatPopoverCelda(data,keys) {
   const text = [];
   function formatRow(key, value) {
     const k = $("<div>")
@@ -242,8 +242,7 @@ function formatPopoverCelda(data) {
       .css("border-bottom", "1px solid #ddd");
   }
   const div = $("<div>");
-  for (const tipo in data) {
-    if (tipo == "total") continue;
+  for (const tipo of keys) {
     const plataformas = data[tipo] ? data[tipo] : [];
     const tipo_formateado = tipo.toUpperCase().replace("_", " ");
     div.append(formatRow(tipo_formateado + ": ", plataformas.join(", ")));
@@ -251,14 +250,14 @@ function formatPopoverCelda(data) {
   return div[0].outerHTML;
 }
 
-function celdaPopover(celda) {
+function celdaPopover(celda,tbls) {
   //@WARNING: CALLBACK HELL
   //Clickeo en la celda con el popover ya desplegado
   //Lo destruyo, le saco el evento y lo asigno de vuelta para que lo pueda regenerar
   if (typeof celda.attr("aria-describedby") !== "undefined") {
     celda.popover("destroy");
     celda.off("click").click(function () {
-      celdaPopover(celda);
+      celdaPopover(celda,tbls);
     });
     return;
   }
@@ -267,11 +266,11 @@ function celdaPopover(celda) {
   const data = JSON.parse(celda.attr('data-detalle'));
   celda.popover({
     html: true,
-    content: formatPopoverCelda(data),
+    content: formatPopoverCelda(data,tbls),
   }).popover("show");
   celda.attr("title", toPje(data.total));
   celda.off("click").click(function () {
-    celdaPopover(celda);
+    celdaPopover(celda,tbls);
   });
 }
 
@@ -287,8 +286,9 @@ function setearCeldaCalendario(dia,celda) {
     .attr('data-porcentaje',estado)
     .attr('data-detalle',op.attr('data-detalle'));
   if (estado == 1.0) celda.css("font-weight", "bold");
+  const tbls = JSON.parse($('#estadosDias').attr('data-tbls'));
   celda.click(function () {
-    celdaPopover(celda);
+    celdaPopover(celda,tbls);
   });
   return celda;
 }

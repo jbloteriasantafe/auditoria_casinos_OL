@@ -94,10 +94,7 @@ class InformesGeneralesController extends Controller
             pv.codigo as plataforma,
             i.tbl IS NOT NULL as importado
     FROM plataforma as pv
-    CROSS JOIN (
-      SELECT * FROM tipo_moneda
-      WHERE descripcion IN ('ARS')
-    ) as tmv
+    CROSS JOIN tipo_moneda as tmv
     CROSS JOIN  (
         SELECT * 
         FROM (
@@ -119,6 +116,7 @@ class InformesGeneralesController extends Controller
           UNION SELECT fecha_importacion as fecha
           FROM importacion_estado_juego
         ) aux
+        WHERE aux.fecha IS NOT NULL
         ORDER BY aux.fecha ASC
     ) as fv
     CROSS JOIN (
@@ -129,38 +127,36 @@ class InformesGeneralesController extends Controller
       SELECT 'estado_jugadores' UNION ALL
       SELECT 'estado_juegos'
     ) as tv
-      LEFT JOIN (
-        SELECT 'producido' as tbl, fecha, id_tipo_moneda, id_plataforma
-        FROM producido
-        
-        UNION ALL
-        SELECT 'producido_jugadores' as tbl, fecha, id_tipo_moneda, id_plataforma
-        FROM producido_jugadores
-        
-        UNION ALL
-        SELECT 'beneficio' as tbl, b.fecha, bm.id_tipo_moneda, bm.id_plataforma
-        FROM beneficio as b
-        JOIN beneficio_mensual as bm ON bm.id_beneficio_mensual = b.id_beneficio_mensual
-        
-        UNION ALL
-        SELECT 'beneficio_poker' as tbl, b.fecha, bm.id_tipo_moneda, bm.id_plataforma
-        FROM beneficio_poker as b
-        JOIN beneficio_mensual_poker as bm ON bm.id_beneficio_mensual_poker = b.id_beneficio_mensual_poker
-        
-        UNION ALL
-        SELECT 'estado_jugadores' as tbl, iej.fecha_importacion as fecha, tm.id_tipo_moneda, iej.id_plataforma
-        FROM importacion_estado_jugador as iej, tipo_moneda as tm
-        
-        UNION ALL
-        SELECT 'estado_juegos' as tbl, iej.fecha_importacion as fecha, tm.id_tipo_moneda, iej.id_plataforma
-        FROM importacion_estado_juego as iej, tipo_moneda as tm
+    LEFT JOIN (
+      SELECT 'producido' as tbl, fecha, id_tipo_moneda, id_plataforma
+      FROM producido
+      
+      UNION ALL
+      SELECT 'producido_jugadores' as tbl, fecha, id_tipo_moneda, id_plataforma
+      FROM producido_jugadores
+      
+      UNION ALL
+      SELECT 'beneficio' as tbl, b.fecha, bm.id_tipo_moneda, bm.id_plataforma
+      FROM beneficio as b
+      JOIN beneficio_mensual as bm ON bm.id_beneficio_mensual = b.id_beneficio_mensual
+      
+      UNION ALL
+      SELECT 'beneficio_poker' as tbl, b.fecha, bm.id_tipo_moneda, bm.id_plataforma
+      FROM beneficio_poker as b
+      JOIN beneficio_mensual_poker as bm ON bm.id_beneficio_mensual_poker = b.id_beneficio_mensual_poker
+      
+      UNION ALL
+      SELECT 'estado_jugadores' as tbl, iej.fecha_importacion as fecha, tm.id_tipo_moneda, iej.id_plataforma
+      FROM importacion_estado_jugador as iej, tipo_moneda as tm
+      
+      UNION ALL
+      SELECT 'estado_juegos' as tbl, iej.fecha_importacion as fecha, tm.id_tipo_moneda, iej.id_plataforma
+      FROM importacion_estado_juego as iej, tipo_moneda as tm
     ) as i 
-        ON  i.id_plataforma = pv.id_plataforma
-        AND i.id_tipo_moneda = tmv.id_tipo_moneda
-        AND i.fecha = fv.fecha
-        AND i.tbl = tv.tbl
-    WHERE fv.fecha IS NOT NULL
-    ");
+      ON  i.id_plataforma = pv.id_plataforma
+      AND i.id_tipo_moneda = tmv.id_tipo_moneda
+      AND i.fecha = fv.fecha
+      AND i.tbl = tv.tbl");
     
     $fecha_actual = new \DateTimeImmutable();
     $fecha_minima = DB::select("
@@ -183,7 +179,7 @@ class InformesGeneralesController extends Controller
       GROUP BY moneda, fecha
     "))->groupBy('moneda')->map(function($edm){
       return $edm->keyBy('fecha');
-    })['ARS'];//Solo usamos ARS, lo dejo asi por si se agregan dólares... el código queda mas generitoc
+    });
     
     //Saco la lista de posibles keys de la tabla... para evitar otro lugar para modificar
     $tbls = collect(DB::select("
@@ -192,46 +188,56 @@ class InformesGeneralesController extends Controller
                 DISTINCT
                 JSON_QUOTE(tbl)
                 SEPARATOR ','
-              ),']') as tbls
+              ),']') as tblsm
       FROM temp_estados_dias
       GROUP BY moneda        
-    "))->keyBy('moneda')['ARS'];//idem arriba
+    "))->keyBy('moneda');
     
-    $tbls = json_decode($tbls->tbls,true);
+    $tbls = $tbls->map(function($tblsm){
+      return json_decode($tblsm->tblsm,true);
+    });
     
-    $posibles = null;//Los posibles son constantes para todos... tal vez hay una optimización aca
-    foreach($estadosDias as $ed){
-      $posibles = $posibles ?? $ed->posibles;
-      if($posibles !== null) break;
-    }
-    
+    $ret = [];
     $interval_1dia = new \DateInterval('P1D');
+    $fechas = [];
     for($f = $fecha_minima;$f <= $fecha_actual;$f = $f->add($interval_1dia)){
-      $fstr = $f->format('Y-m-d');
-      $estadosDias[$fstr] = $estadosDias[$fstr] ?? (object)[
-        'posibles' => $posibles,
-        'importados' => 0,
-        'porcentaje' => 0,
-        'detalle' => '[]'
-      ];
-      $estadosDias[$fstr]->detalle = json_decode($estadosDias[$fstr]->detalle ?? '[]',true);
-      $edd_aggr = [];
-      foreach($tbls as $k){
-        $edd_aggr[$k] = [];
-      }
-      foreach($estadosDias[$fstr]->detalle as $edd){
-        foreach($edd as $k => $v){
-          $edd_aggr[$k][] = $v;
-        }
-      }
-      $estadosDias[$fstr]->detalle = $edd_aggr;
+      $fechas[] = $f;
     }
-    return [
-      'tbls' => $tbls,
-      'fecha_minima' => $fecha_minima,
-      'fecha_maxima' => $fecha_actual,
-      'estadosDias' => $estadosDias
-    ];
+    
+    foreach($tbls as $moneda => $tblsm){
+      $posibles = count($tblsm);
+      
+      $retm = [
+        'tbls' => $tblsm,
+        'fecha_minima' => $fecha_minima,
+        'fecha_maxima' => $fecha_actual,
+        'estadosDias' => []
+      ];
+      
+      $eDm = [];
+      foreach($fechas as $f){
+        $fstr = $f->format('Y-m-d');
+        $eDm[$fstr] = $estadosDias[$moneda][$fstr] ?? (object)[
+          'posibles' => $posibles,
+          'importados' => 0,
+          'porcentaje' => 0,
+          'detalle' => '[]'
+        ];
+        $eDm[$fstr]->detalle = json_decode($eDm[$fstr]->detalle ?? '[]',true);
+        $eDm_fstr_detalle = [];
+        foreach($eDm[$fstr]->detalle as $d){
+          foreach($d as $k => $v){
+            $eDm_fstr_detalle[$k] = $eDm_fstr_detalle[$k] ?? [];
+            $eDm_fstr_detalle[$k][] = $v;
+          }
+        }
+        $eDm[$fstr]->detalle = $eDm_fstr_detalle;
+      }
+      $retm['estadosDias'] = $eDm;
+      
+      $ret[$moneda] = $retm;
+    }
+    return $ret;
   }
 
   private function similarity($s1, $s2)

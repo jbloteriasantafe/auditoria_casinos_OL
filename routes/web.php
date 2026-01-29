@@ -14,7 +14,7 @@ Index
 ***********/
 
 Route::get('/', function () {
-  $datos_inf = ['estadosDias' => (new InformesGeneralesController)->estadosDias()];
+  $datos_inf = ['estadosDias' => (new InformesGeneralesController)->estadosDias()['ARS']];
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $datos_inf['ultimas_visitadas'] = $usuario->secciones_recientes;
   $datos_inf['plataformas'] = \App\Plataforma::all();
