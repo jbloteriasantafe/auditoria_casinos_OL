@@ -246,52 +246,104 @@ class EstadoController extends Controller
   public function eliminarEstadoJugadores($id){
     return DB::transaction(function() use ($id){
       $imp = ImportacionEstadoJugador::find($id);
+      
+      $prev_imp = ImportacionEstadoJugador::where([
+        ['id_plataforma','=',$imp->id_plataforma],
+        ['fecha_importacion','<',$imp->fecha_importacion]
+      ])->orderBy('fecha_importacion','desc')->first();
+      $prev_imp = $prev_imp? $prev_imp->fecha_importacion : null;
+      
       $prox_imp = ImportacionEstadoJugador::where([
         ['id_plataforma','=',$imp->id_plataforma],
         ['fecha_importacion','>',$imp->fecha_importacion]
       ])->orderBy('fecha_importacion','asc')->first();
       $prox_imp = $prox_imp? $prox_imp->fecha_importacion : null;
       
-      $query_prox = LectorCSVController::getInstancia()->query_jugProximos($imp->id_plataforma,$imp->fecha_importacion);
-      $pdo = DB::connection('mysql')->getPdo();
-      
-      //Re-valido los invalidados por que se elimnaron en la importacion
-      $pdo->prepare("UPDATE jugador j_ant
-      LEFT JOIN ${query_prox['sql']} j_prox 
-        ON (j_ant.id_plataforma = j_prox.id_plataforma
-        AND j_ant.codigo = j_prox.codigo)
-      SET j_ant.valido_hasta = DATE_SUB(
-        LEAST(COALESCE(j_prox.fecha_importacion,:prox_imp1),COALESCE(:prox_imp2,j_prox.fecha_importacion)),
-        INTERVAL 1 DAY
-      )
-      WHERE j_ant.id_plataforma = :id_plataforma AND j_ant.valido_hasta = DATE_SUB(:fecha_importacion1,INTERVAL 1 DAY)
-      AND j_ant.fecha_importacion < :fecha_importacion2")->execute(array_merge([
-        'prox_imp1' => $prox_imp,
-        'prox_imp2' => $prox_imp,
+      //Busco los jugadores anteriores que fueron invalidados
+      //por la importación y los seteo validos hasta la proxima importación
+      //si no hay proxima fecha de importacion setea null DATE_SUB(NULL, INTERVAL 1 DAY) = NULL
+      DB::statement("UPDATE jugador j_prev
+      SET j_prev.valido_hasta = DATE_SUB(:prox_imp, INTERVAL 1 DAY)
+      WHERE 
+          j_prev.id_plataforma = :id_plataforma 
+      AND j_prev.fecha_importacion < :fecha_importacion1
+      AND j_prev.valido_hasta = DATE_SUB(:fecha_importacion2,INTERVAL 1 DAY)",[
+        'prox_imp' => $prox_imp,
         'id_plataforma' => $imp->id_plataforma,
-        'fecha_importacion1' => $imp->fecha_importacion,
-        'fecha_importacion2' => $imp->fecha_importacion,
-      ],$query_prox['params']));
+        'fecha_importacion1' =>$imp->fecha_importacion,
+        'fecha_importacion2' => $imp->fecha_importacion
+      ]);
       
       //Si la proxima importacion depende de un jugador importado
       //lo muevo a esa importacion
-      if(!is_null($prox_imp)){
-        $pdo->prepare('UPDATE jugador j
-        SET j.fecha_importacion = :prox_imp1
-        WHERE j.id_plataforma = :id_plataforma AND j.fecha_importacion = :fecha_importacion
-        AND (j.valido_hasta IS NULL OR j.valido_hasta >= :prox_imp2)')->execute([
-          'prox_imp1' => $prox_imp,
-          'id_plataforma' => $imp->id_plataforma,
-          'fecha_importacion' => $imp->fecha_importacion,
-          'prox_imp2' => $prox_imp,
+      //- Si no hay proxima importacion j.valido_hasta >= NULL es NULL
+      //  (es falso y no hace nada, se elimina en el proximo paso)
+      //- Si habia una importación de un jugador siempre-valida (valido_hasta es NULL)
+      //  Queremos moverlo asi que hacemos un COALESCE para que sea veradero
+      //  Notese que sigue dando falso si no hay proxima importación
+      //  (si habia una siempre valida en la importación y hay proxima importación
+      //   quiere decir que siguio vigente en la proxima importación, por eso hay que moverlo)
+      DB::statement('UPDATE jugador j
+      SET j.fecha_importacion = :prox_imp1
+      WHERE j.id_plataforma = :id_plataforma 
+      AND j.fecha_importacion = :fecha_importacion
+      AND COALESCE(j.valido_hasta,:prox_imp2) >= :prox_imp3',[
+        'prox_imp1' => $prox_imp,
+        'id_plataforma' => $imp->id_plataforma,
+        'fecha_importacion' => $imp->fecha_importacion,
+        'prox_imp2' => $prox_imp,
+        'prox_imp3' => $prox_imp
+      ]);
+      
+      //Borro los que quedaron porque quiere decir que no son importantes
+      //para la proxima importación
+      DB::statement('DELETE FROM jugador 
+        WHERE id_plataforma = :id_plataforma 
+        AND fecha_importacion = :fecha_importacion',[
+        'id_plataforma' => $imp->id_plataforma,
+        'fecha_importacion' => $imp->fecha_importacion
+      ]);
+      
+      //Me fijo si puedo mergear jugadores que quedaron iguales (en estados a -> b -> a y se elimina b, queria a -> a, queremos que quede solo a)
+      if ($prev_imp && $prox_imp) {
+        // 1. Extendemos el 'valido_hasta' de los registros anteriores que coinciden con los nuevos
+        $j_prev_igual_j_prox = LectorCSVController::getInstancia()->jugador_comp_attrs('j_prev.','=','j_prox.','AND');
+        DB::statement("UPDATE jugador j_prev
+        JOIN jugador j_prox ON 
+            j_prox.codigo = j_prev.codigo AND 
+            j_prox.id_plataforma = j_prev.id_plataforma AND
+            j_prox.fecha_importacion > j_prev.fecha_importacion
+        
+        SET j_prev.valido_hasta = j_prox.valido_hasta
+        
+        WHERE 
+            j_prev.id_plataforma = :id_plataforma
+        AND j_prev.fecha_importacion < :prox_imp1
+        AND j_prev.valido_hasta = DATE_SUB(:prox_imp2, INTERVAL 1 DAY)
+        AND j_prox.fecha_importacion = :prox_imp3
+        AND( ".$j_prev_igual_j_prox." )", [
+            'id_plataforma' => $imp->id_plataforma,
+            'prox_imp1' => $prox_imp,
+            'prox_imp2' => $prox_imp,
+            'prox_imp3' => $prox_imp
+        ]);
+
+        // 2. Borramos los registros de la 'prox_imp' que ahora están cubiertos por la 'prev_imp'
+        DB::statement("DELETE j_prox FROM jugador j_prox
+        JOIN jugador j_prev ON 
+          j_prev.codigo = j_prox.codigo AND 
+          j_prev.id_plataforma = j_prox.id_plataforma AND
+          j_prev.fecha_importacion < j_prox.fecha_importacion AND
+          (
+            (j_prev.valido_hasta >= j_prox.valido_hasta)
+            OR (j_prev.valido_hasta IS NULL AND j_prox.valido_hasta IS NULL)
+          )
+        WHERE j_prox.id_plataforma = :id_plataforma
+        AND   j_prox.fecha_importacion = :prox_imp", [
+            'id_plataforma' => $imp->id_plataforma,
+            'prox_imp' => $prox_imp
         ]);
       }
-      
-      //Borro los que quedaron con fecha_importacion porque no se usan por la importacion posterior
-      $pdo->prepare('DELETE FROM jugador 
-        WHERE id_plataforma = :id_plataforma AND fecha_importacion = :fecha_importacion')->execute([
-        'id_plataforma' => $imp->id_plataforma,'fecha_importacion' => $imp->fecha_importacion
-      ]);
     
       //Borro la importacion
       $imp->delete();

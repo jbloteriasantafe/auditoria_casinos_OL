@@ -407,6 +407,7 @@ $botones_filas_de = 3;
               <p>Solo se aceptan archivos con extensión .csv o .txt</p>
             </div>
           </div>
+          <h5 id="mensajeCarga" style="text-align: center;"></div>
           <div id="iconoCarga" class="sk-folding-cube">
             <div class="sk-cube1 sk-cube"></div>
             <div class="sk-cube2 sk-cube"></div>
@@ -446,6 +447,7 @@ $botones_filas_de = 3;
 @section('scripts')
 <!-- JavaScript personalizado -->
 <script src="/js/seccionImportaciones.js?12" charset="utf-8"></script>
+<script src="/js/lib/jszip.min.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?2" charset="utf-8"></script>
 

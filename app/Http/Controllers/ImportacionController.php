@@ -126,7 +126,7 @@ class ImportacionController extends Controller
       ->orderBy('j.codigo','asc')
       ->skip($request->page*$request->size)->take($request->size)->get();
           
-      $cant_detalles = DB::table(DB::raw('jugador as j FORCE INDEX(unq_jugador_importacion_hasta)'))
+      $cant_detalles = DB::table(DB::raw('jugador as j'))
       ->selectRaw('COUNT(distinct j.codigo) as total')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
@@ -285,20 +285,7 @@ class ImportacionController extends Controller
     return ['arreglo' => $arreglo];
   }
   
-  private function cambiarEstado($tipo,$fecha,$id_plataforma,$id_tipo_moneda,array $contenido,$estado = 'CERRADO'){
-    $tags_api;
-    {
-      $tags_api = [
-        'importacion', $tipo, Plataforma::find($id_plataforma)->codigo
-      ];
-      
-      if(!is_null($id_tipo_moneda)){
-        $tags_api[] = TipoMoneda::find($id_tipo_moneda)->descripcion;
-      }
-      
-      $tags_api = implode('_',$tags_api);
-    }
-    
+  private function presentar(array $contenido){   
     $arr_to_presentable_text = function($arr,$sep="\r\n"){
       $ret = [];
       foreach($arr as $k => $val){
@@ -312,15 +299,8 @@ class ImportacionController extends Controller
       }
       return implode($sep,$ret);
     };
-    
-    $ret = ['code' => 200];
-    if(env('ACTIVIDADES_ENVIAR_IMPORTACIONES',false))
-      $ret = ActividadesController::cambiarEstado($fecha,$tags_api,$estado,$arr_to_presentable_text($contenido));
-     
+         
     $contenido = $arr_to_presentable_text($contenido,'<br>');
-    if($ret['code'] != 200){
-      return $contenido.'<br>'.$arr_to_presentable_text($ret['result'],'<br>');
-    }
     return $contenido;
   }
 
@@ -336,7 +316,7 @@ class ImportacionController extends Controller
       Producido::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
       $ret = LectorCSVController::getInstancia()->importarProducido($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
       CacheController::getInstancia()->invalidarDependientes(['producido']);
-      return $this->cambiarEstado('producido',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
+      return $this->presentar($ret);
     });
   }
 
@@ -358,86 +338,190 @@ class ImportacionController extends Controller
         $request->id_tipo_moneda,
         $request->fecha
       );
-      return $this->cambiarEstado('producidoJugadores',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
+      return $this->presentar($ret);
     });
     return $ret;
   }
+  
+  private function validatorHandleArchivoZip(&$validator){
+    $data = $validator->getData();
+    $archivo = $data['archivo'] ?? false;
+    if($archivo === false) return null;
+    
+    $ext = $archivo->getClientOriginalExtension();
+    $mime = $archivo->getMimeType();
+    
+    if(in_array($ext,['csv','txt']) && in_array($mime,['text/csv','text/plain'])){
+      return $archivo;
+    }
+    if(!in_array($ext,['zip']) || !in_array($mime,['application/zip'])){
+      $validator->errors()->add('archivo','Extensión invalida: '.$ext.' '.$mime);
+      return false;
+    }
+    
+    $zip = new \ZipArchive;
+    $res = $zip->open($archivo->getRealPath());
+    
+    if($res !== true){
+      $validator->errors()->add('archivo','Error al abrir el .zip: '.$res);
+      return false;
+    }
+    if($zip->numFiles != 1){
+      $validator->errors()->add('archivo','Solo tiene que haber 1 archivo en el zip');
+      return false;
+    }
+    $stat = $zip->statIndex(0);
+    $filename = $stat['name'];
+    $ext = strlen($filename) >= 4? substr($filename,strlen($filename)-4) : $filename;
+    if(!in_array($ext,['.csv','.txt'])){
+      $validator->errors()->add('archivo','Extensión invalida dentro del .zip: '.$ext);
+      return false;
+    }
+    
+    $fhandler = $zip->getStream($filename);
+    $tmphandler = tmpfile();
+    try {
+      stream_copy_to_stream($fhandler, $tmphandler);
+      rewind($tmphandler);
+      fclose($fhandler);
+    }
+    catch(\Exception $e){
+      if(is_resource($fhandler)){
+        fclose($fhandler);
+      }
+      if(is_resource($tmphandler)){
+        fclose($tmphandler);
+      }
+      throw $e;
+    }
+    //No se fclosea tmphandler para que no desaparezca el archivo
+    $archivo_nuevo = new \Illuminate\Http\UploadedFile(
+        stream_get_meta_data($tmphandler)['uri'], //abs path
+        $filename, //filename
+        $ext == '.csv'? 'text/csv' : 'text/plain',  //mime
+        null, //constante de error
+        false //modo test
+    );
+    //por las dudas seteo el handler asi se mantiene la referencia y el GC no lo borra
+    $archivo_nuevo->NODELETE_tmphandler = $tmphandler;
+    return $archivo_nuevo;
+  }
 
   public function importarProducidoPoker(Request $request){
+    $archivo = null;
     Validator::make($request->all(),[
-        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
-        'fecha' => 'nullable|date',
-        'archivo' => 'required|mimes:csv,txt',
+        'id_plataforma' => 'required|exists:plataforma,id_plataforma',
+        'fecha' => 'required|date',
+        'archivo' => 'required|mimes:csv,txt,zip',
+        'md5' => 'required|string|max:32',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
-    ], array(), self::$atributos)->after(function($validator){})->validate();
+    ], self::$errores, self::$atributos)->after(function($validator) use (&$archivo){
+      if($validator->errors()->any()) return;
+      $archivo = $this->validatorHandleArchivoZip($validator);
+      if($validator->errors()->any() || $archivo === false || $archivo === null){
+        return;
+      }
+    })->validate();
+    $request->merge(['archivo_unzip' => ($archivo ?? $request->archivo ?? null)]);
 
     $ret = null;
     DB::transaction(function() use ($request,&$ret){
       ProducidoPoker::where([['fecha','=',$request->fecha],['id_plataforma','=',$request->id_plataforma],['id_tipo_moneda','=',$request->id_tipo_moneda]])->get();
-      $ret = LectorCSVController::getInstancia()->importarProducidoPoker($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      $ret = LectorCSVController::getInstancia()->importarProducidoPoker($request->archivo_unzip,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
       CacheController::getInstancia()->invalidarDependientes(['producido_poker']);      
-      return $this->cambiarEstado('producidoPoker',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
+      return $this->presentar($ret);
     });
     return $ret;
   }
 
-
   public function importarBeneficio(Request $request){
+    $archivo = null;
     Validator::make($request->all(),[
-        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
-        'fecha' => 'nullable|date',
-        'archivo' => 'required|mimes:csv,txt',
+        'id_plataforma' => 'required|exists:plataforma,id_plataforma',
+        'fecha' => 'required|date',
+        'archivo' => 'required|mimes:csv,txt,zip',
+        'md5' => 'required|string|max:32',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
-    ], array(), self::$atributos)->after(function($validator){
+    ], self::$errores, self::$atributos)->after(function($validator) use (&$archivo){
+      if($validator->errors()->any()) return;
+      $archivo = $this->validatorHandleArchivoZip($validator);
+      if($validator->errors()->any() || $archivo === false || $archivo === null){
+        return;
+      }
     })->validate();
+    $request->merge(['archivo_unzip' => ($archivo ?? $request->archivo ?? null)]);
 
     return DB::transaction(function() use ($request,&$ret){
-      $ret = LectorCSVController::getInstancia()->importarBeneficio($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      return $this->cambiarEstado('beneficio',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
+      $ret = LectorCSVController::getInstancia()->importarBeneficio($request->archivo_unzip,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      return $this->presentar($ret);
     });
   }
 
   public function importarBeneficioPoker(Request $request){
+    $archivo = null;
     Validator::make($request->all(),[
-        'id_plataforma' => 'required|integer|exists:plataforma,id_plataforma',
-        'fecha' => 'nullable|date',
-        'archivo' => 'required|mimes:csv,txt',
+        'id_plataforma' => 'required|exists:plataforma,id_plataforma',
+        'fecha' => 'required|date',
+        'archivo' => 'required|mimes:csv,txt,zip',
+        'md5' => 'required|string|max:32',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
-    ], array(), self::$atributos)->after(function($validator){
+    ], self::$errores, self::$atributos)->after(function($validator) use (&$archivo){
+      if($validator->errors()->any()) return;
+      $archivo = $this->validatorHandleArchivoZip($validator);
+      if($validator->errors()->any() || $archivo === false || $archivo === null){
+        return;
+      }
     })->validate();
+    $request->merge(['archivo_unzip' => ($archivo ?? $request->archivo ?? null)]);
 
     return DB::transaction(function() use ($request,&$ret){
-      $ret = LectorCSVController::getInstancia()->importarBeneficioPoker($request->archivo,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
-      return $this->cambiarEstado('beneficioPoker',$request->fecha,$request->id_plataforma,$request->id_tipo_moneda,$ret);
+      $ret = LectorCSVController::getInstancia()->importarBeneficioPoker($request->archivo_unzip,$request->fecha,$request->id_plataforma,$request->id_tipo_moneda);
+      return $this->presentar($ret);
     });
   }
 
   public function importarJugadores(Request $request){
+    $archivo = null;
     Validator::make($request->all(),[
         'id_plataforma' => 'required|exists:plataforma,id_plataforma',
         'fecha' => 'required|date',
-        'archivo' => 'required|mimes:csv,txt',
+        'archivo' => 'required|mimes:csv,txt,zip',
         'md5' => 'required|string|max:32',
-    ], self::$errores, self::$atributos)->after(function($validator){})->validate();
-
+    ], self::$errores, self::$atributos)->after(function($validator) use (&$archivo){
+      if($validator->errors()->any()) return;
+      $archivo = $this->validatorHandleArchivoZip($validator);
+      if($validator->errors()->any() || $archivo === false || $archivo === null){
+        return;
+      }
+    })->validate();
+    $request->merge(['archivo_unzip' => ($archivo ?? $request->archivo ?? null)]);
+    
     return DB::transaction(function() use ($request){
       $importaciones = ImportacionEstadoJugador::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
       foreach($importaciones as $i){
         (new EstadoController)->eliminarEstadoJugadores($i->id_importacion_estado_jugador);
       }
-      $ret = LectorCSVController::getInstancia()->importarJugadores($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
+      $ret = LectorCSVController::getInstancia()->importarJugadores($request->archivo_unzip,$request->md5,$request->fecha,$request->id_plataforma);
       CacheController::getInstancia()->invalidarDependientes(['estado_jugadores']);
-      return $this->cambiarEstado('estadoJugadores',$request->fecha,$request->id_plataforma,null,$ret);
+      return $this->presentar($ret);
     });
   }
 
   public function importarEstadosJuegos(Request $request){
+    $archivo = null;
     Validator::make($request->all(),[
         'id_plataforma' => 'required|exists:plataforma,id_plataforma',
         'fecha' => 'required|date',
-        'archivo' => 'required|mimes:csv,txt',
+        'archivo' => 'required|mimes:csv,txt,zip',
         'md5' => 'required|string|max:32',
-    ], self::$errores, self::$atributos)->after(function($validator){})->validate();
+    ], self::$errores, self::$atributos)->after(function($validator) use (&$archivo){
+      if($validator->errors()->any()) return;
+      $archivo = $this->validatorHandleArchivoZip($validator);
+      if($validator->errors()->any() || $archivo === false || $archivo === null){
+        return;
+      }
+    })->validate();
+    $request->merge(['archivo_unzip' => ($archivo ?? $request->archivo ?? null)]);
 
     return DB::transaction(function() use ($request){
       $importaciones = ImportacionEstadoJuego::where([['fecha_importacion','=',$request->fecha],['id_plataforma','=',$request->id_plataforma]])->get();
@@ -445,8 +529,8 @@ class ImportacionController extends Controller
         (new EstadoController)->eliminarEstadoJuegos($i->id_importacion_estado_juego);
       }
       
-      $ret = LectorCSVController::getInstancia()->importarEstadosJuegos($request->archivo,$request->md5,$request->fecha,$request->id_plataforma);
-      return $this->cambiarEstado('estadoJuegos',$request->fecha,$request->id_plataforma,null,$ret);
+      $ret = LectorCSVController::getInstancia()->importarEstadosJuegos($request->archivo_unzip,$request->md5,$request->fecha,$request->id_plataforma);
+      return $this->presentar($ret);
     });
   }
 

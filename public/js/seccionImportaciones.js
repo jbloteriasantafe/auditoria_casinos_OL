@@ -226,6 +226,7 @@ function procesarDatos(e){
     $('#modalImportacion #mensajeInvalido p').text('El archivo no es correcto');
     $('#modalImportacion #mensajeInvalido').show();
     $('#modalImportacion #iconoCarga').hide();
+    $('#modalImportacion #mensajeCarga').hide();
     //Ocultar botón de subida
     $('#btn-guardarImportacion').hide();
   };
@@ -327,6 +328,7 @@ function reiniciarModalImportar(modo){
   $('#modalImportacion #mensajeInvalido').hide();
   $('#modalImportacion #datosImportacion').hide();
   $('#modalImportacion #iconoCarga').hide();
+  $('#modalImportacion #mensajeCarga').hide();
   $('#modalImportacion #archivo')[0].files[0] = null;
   $('#modalImportacion #archivo').attr('data-borrado','false');
   $("#modalImportacion #archivo").fileinput('destroy').fileinput({
@@ -380,7 +382,43 @@ $('#btn-reintentarImportacion').click(function(e) {
   reiniciarModalImportar($('#modalImportacion').data('modo'));
 });
 
-$('#btn-guardarImportacion').on('click',function(e){
+async function read_file(file){
+  return new Promise((resolve,reject) => {
+    const fileReader = new FileReader();
+
+    fileReader.onload = function (e) {
+      const arrayBuffer = e?.target?.result ?? null;
+      if(arrayBuffer !== null){
+        resolve(arrayBuffer);
+      }
+      else{
+        reject(e);
+      }
+    };
+
+    fileReader.onerror = function (error) {
+      reject(error);
+    };
+
+    fileReader.readAsArrayBuffer(file);
+  });
+}
+
+async function zip_file(file){
+  const zip = new JSZip();
+  const arrayBuffer = await read_file(file);
+  zip.file(file.name,arrayBuffer);
+  const blob = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: {
+      level: 6
+    }
+  });
+  return new File([blob],file.name+'.zip',{type: "application/zip"});
+}
+
+$('#btn-guardarImportacion').on('click',async function(e){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
@@ -401,10 +439,26 @@ $('#btn-guardarImportacion').on('click',function(e){
   const date = $('#fechaImportacion').data('datetimepicker').getDate();
   $('#mesInfoImportacion').data('datetimepicker').setDate(date);
   $('#plataformaInfoImportacion').change();
-
+  
+  const modalCargando = function(cargando,mensaje=''){
+    $('#modalImportacion').find('.modal-footer').children().toggle(!cargando);
+    $('#modalImportacion').find('.modal-body').children().not('#iconoCarga,#mensajeCarga').toggle(!cargando);
+    $('#modalImportacion #iconoCarga,#mensajeCarga').toggle(cargando);
+    $('#modalImportacion #mensajeCarga').text(mensaje ?? '');
+  };
+  
   //Si subió archivo lo guarda
   if($('#modalImportacion #archivo').attr('data-borrado') == 'false' && $('#modalImportacion #archivo')[0].files[0] != null){
-    formData.append('archivo' , $('#modalImportacion #archivo')[0].files[0]);
+    const f = $('#modalImportacion #archivo')[0].files[0];
+    if((f.size/1024/1024) > 10){
+      modalCargando(true,'Comprimiendo...');
+      const zf = await zip_file(f);
+      modalCargando(false);
+      formData.append('archivo' , zf);
+    }
+    else{
+      formData.append('archivo' , f);
+    }
   }
 
   const urls = {
@@ -427,13 +481,10 @@ $('#btn-guardarImportacion').on('click',function(e){
     contentType:false,
     cache:false,
     beforeSend: function(data){
-      console.log('Empezó');
-      $('#modalImportacion').find('.modal-footer').children().hide();
-      $('#modalImportacion').find('.modal-body').children().hide();
-      $('#modalImportacion').find('.modal-body').children('#iconoCarga').show();
+      modalCargando(true,'Cargando...');
     },
     complete: function(data){
-      console.log('Terminó');
+      modalCargando(false);
     },
     success: function (data) {
       $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
@@ -444,14 +495,27 @@ $('#btn-guardarImportacion').on('click',function(e){
       $('#mensajeExito').show();
     },
     error: function (data) {
-      //Mostrar: mensajeError
-      $('#modalImportacion #mensajeError').show();
-      //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
-      $('#modalImportacion #rowArchivo').hide();
-      $('#modalImportacion #datosBeneficio').hide();
-      $('#modalImportacion #mensajeInvalido').hide();
-      $('#modalImportacion #iconoCarga').hide();
-      console.log('ERROR!');
+      const errors = data.responseJSON ?? {};
+      
+      if('id_plataforma' in errors){
+        mostrarErrorValidacion($('#plataformaImportacion'),errors.id_plataforma.join(', '),true);
+      }
+      if('id_tipo_moneda' in errors){
+        mostrarErrorValidacion($('#monedaImportacion'),errors.id_tipo_moneda.join(', '),true);
+      }
+      if('md5' in errors){
+        mostrarErrorValidacion($('#modalImportacion .hashCalculado'),errors.md5.join(', '),true);
+      }
+      if('fecha' in errors){
+        mostrarErrorValidacion($('#fechaImportacion input'),errors.fecha.join(', '),true);
+      }
+      if('archivo' in errors){
+        $('#modalImportacion #mensajeInvalido p').text(errors.archivo.join(', '));
+        $('#modalImportacion #mensajeInvalido').show();
+      }
+      else{
+        $('#modalImportacion #mensajeInvalido').hide();
+      }
       console.log(data);
     }
   });
