@@ -157,20 +157,30 @@ class JuegoController extends Controller
     }
 
     $juego->save();
-    $juegoSecundario = Juego::on('gestion_notas_mysql')->find($juego->id_juego);
-    if($juegoSecundario === null){
-      $juegoSecundario = new Juego;
-      $juegoSecundario->setConnection('gestion_notas_mysql');
+    
+    try {
+      $juegoSecundario = Juego::on('gestion_notas_mysql')->find($juego->id_juego);
+      if($juegoSecundario === null){
+        $juegoSecundario = new Juego;
+        $juegoSecundario->setConnection('gestion_notas_mysql');
+      }
+      foreach($attrs as $attr){
+        $juegoSecundario->{$attr} = $params[$attr];
+      }
+      $juegoSecundario->id_juego   = $juego->id_juego;
+      $juegoSecundario->created_at = $juego->created_at;
+      $juegoSecundario->updated_at = $juego->updated_at;
+      $juegoSecundario->deleted_at = $juego->deleted_at;
+      $juegoSecundario->save();
+    }
+    //@NOTA:gestion_notas_mysql
+    //No se usa mas la BD de gestion de notas sino que se usa un 
+    //modulo integrado en el Físico
+    //Lo dejo si se da vuelta para atras
+    catch(\Exception $e){
+      //NOP
     }
     
-    foreach($attrs as $attr){
-      $juegoSecundario->{$attr} = $params[$attr];
-    }
-    $juegoSecundario->id_juego   = $juego->id_juego;
-    $juegoSecundario->created_at = $juego->created_at;
-    $juegoSecundario->updated_at = $juego->updated_at;
-    $juegoSecundario->deleted_at = $juego->deleted_at;
-    $juegoSecundario->save();
     $log->save();
 
     CacheController::getInstancia()->invalidarDependientes(['juego']);
@@ -327,13 +337,25 @@ class JuegoController extends Controller
       return ['juego' => null];
     $juego->delete();
 
-    $juegoSecundario = $juego->replicate();
-    $juegoSecundario->setConnection('gestion_notas_mysql');
-
-    $juegoSecundario = Juego::on('gestion_notas_mysql')->find($id);
-    if ($juegoSecundario) {
-      $juegoSecundario->delete();
+    try {
+      $juegoSecundario = $juego->replicate();
+      $juegoSecundario->setConnection('gestion_notas_mysql');
+      //$juegoSecundario = Juego::on('gestion_notas_mysql')->find($id);
+      $juegoSecundario = Juego::on('gestion_notas_mysql')
+      ->where('cod_juego','=',$juego->cod_juego)
+      ->first();
+      if ($juegoSecundario) {
+        $juegoSecundario->delete();
+      }
     }
+    //@NOTA:gestion_notas_mysql
+    //No se usa mas la BD de gestion de notas sino que se usa un 
+    //modulo integrado en el Físico
+    //Lo dejo si se da vuelta para atras
+    catch(\Exception $e){
+      //NOP
+    }
+    
     return ['juego' => $juego];
   }
 

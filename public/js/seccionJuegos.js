@@ -216,7 +216,7 @@ $('#btn-eliminarModal').click(function (e) {
 });
 
 function parseError(response){
-  errors = {
+  const errors = {
     'validation.unique'       :'El valor tiene que ser único y ya existe el mismo.',
     'validation.required'     :'El campo es obligatorio.',
     'validation.max.string'   :'El valor es muy largo.',
