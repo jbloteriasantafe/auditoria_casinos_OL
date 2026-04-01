@@ -32,25 +32,27 @@ class VerificarPermisoObtenerBruto {
   }
 };
 
-Route::get('auditoria/plataformasYJuegos',function(){
-  $plataformas = DB::table('plataforma')
-  ->select('id_plataforma','nombre','codigo')
-  ->get();
-
-  foreach($plataformas as $plataforma){
-    $plataforma->juegos = DB::table('juego as j')
-    ->select('j.id_juego','j.nombre_juego','j.cod_juego','j.porcentaje_devolucion',
-             'j.escritorio','j.movil','cj.nombre as categoria')
-    ->join('plataforma_tiene_juego as ptj','ptj.id_juego','=','j.id_juego')
-    ->leftJoin('estado_juego as ej','ej.id_estado_juego','=','ptj.id_estado_juego')
-    ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
-    ->where('ptj.id_plataforma',$plataforma->id_plataforma)
-    ->where(function($q){ $q->where('ej.nombre','Activo')->orWhereNull('ptj.id_estado_juego'); })
-    ->whereNull('j.deleted_at')
+Route::group(['prefix' => 'auditoria', 'middleware' => ['check_API_token']],function(){
+  Route::get('plataformasYJuegos',function(){
+    $plataformas = DB::table('plataforma')
+    ->select('id_plataforma','nombre','codigo')
     ->get();
-  }
 
-  return response()->json($plataformas);
+    foreach($plataformas as $plataforma){
+      $plataforma->juegos = DB::table('juego as j')
+      ->select('j.id_juego','j.nombre_juego','j.cod_juego','j.porcentaje_devolucion',
+               'j.escritorio','j.movil','cj.nombre as categoria')
+      ->join('plataforma_tiene_juego as ptj','ptj.id_juego','=','j.id_juego')
+      ->leftJoin('estado_juego as ej','ej.id_estado_juego','=','ptj.id_estado_juego')
+      ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+      ->where('ptj.id_plataforma',$plataforma->id_plataforma)
+      ->where(function($q){ $q->where('ej.nombre','Activo')->orWhereNull('ptj.id_estado_juego'); })
+      ->whereNull('j.deleted_at')
+      ->get();
+    }
+
+    return response()->json($plataformas);
+  });
 });
 
 Route::group(['middleware' => ['check_API_token',VerificarPermisoObtenerBruto::class]],function(){
