@@ -32,6 +32,38 @@ class VerificarPermisoObtenerBruto {
   }
 };
 
+Route::prefix('auditoria')->group(function(){
+  Route::get('plataformas',function(){
+    $plataformas = DB::table('plataforma')
+    ->select('id_plataforma','nombre','codigo')
+    ->get();
+    return response()->json($plataformas);
+  });
+
+  Route::get('juegos',function(Request $request){
+    if(empty($request->plataforma)) return response()->json(['plataforma' => 'Falta'],422);
+
+    $query = DB::table('juego as j')
+    ->select('j.id_juego','j.nombre_juego','j.cod_juego','j.porcentaje_devolucion',
+             'j.escritorio','j.movil','cj.nombre as categoria')
+    ->join('plataforma_tiene_juego as ptj','ptj.id_juego','=','j.id_juego')
+    ->leftJoin('estado_juego as ej','ej.id_estado_juego','=','ptj.id_estado_juego')
+    ->leftJoin('categoria_juego as cj','cj.id_categoria_juego','=','j.id_categoria_juego')
+    ->where('ptj.id_plataforma',$request->plataforma)
+    ->where(function($q){ $q->where('ej.nombre','Activo')->orWhereNull('ptj.id_estado_juego'); })
+    ->whereNull('j.deleted_at');
+
+    if(!empty($request->busqueda)){
+      $query->where(function($q) use ($request){
+        $q->where('j.nombre_juego','LIKE','%'.$request->busqueda.'%')
+          ->orWhere('j.cod_juego','LIKE','%'.$request->busqueda.'%');
+      });
+    }
+
+    return response()->json($query->limit(20)->get());
+  });
+});
+
 Route::group(['middleware' => ['check_API_token',VerificarPermisoObtenerBruto::class]],function(){
   Route::post('bruto',function(Request $request){
     if(empty($request->año_mes)) return response()->json(['año_mes' => 'Falta'],423);
