@@ -33,19 +33,38 @@ class InformeContableController extends Controller
 
   public function obtenerJugadorPlataforma($id_plataforma,$jugador=""){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $plats = [];
-    foreach($usuario->plataformas as $p) $plats[] = $p->id_plataforma;
+    if(!in_array($id_plataforma,$usuario->plataformas->pluck('id_plataforma')->toArray())){
+      return ['busqueda' => []];
+    }
+    
+    if(!ctype_digit($id_plataforma)){
+      return ['busqueda' => []];
+    }
+       
+    $codigos = [];
+    
+    DB::table('producido_jugadores as p')
+    ->select('p.id_producido_jugadores')
+    ->where('p.id_plataforma',$id_plataforma)
+    ->chunkById(1000,function($ids_producidos_jugadores) use (&$codigos){
+      $chunk_codigos = DB::table('detalle_producido_jugadores as dp')
+      ->selectRaw("dp.jugador")->distinct()
+      ->whereIn('dp.id_producido_jugadores',$ids_producidos_jugadores->pluck('id_producido_jugadores'))
+      ->orderBy('dp.jugador','asc')
+      ->get();
+      
+      foreach($chunk_codigos as $ck){
+        $codigos[$ck->jugador] = true;
+      }
+    },'id_producido_jugadores');
+    
+    ksort($codigos);
+    $codigos = array_keys($codigos);
+    $codigos = array_map(function($c) use ($id_plataforma){
+      return ['plataforma_codigo' => ($id_plataforma.'|'.$c),'codigo' => $c];
+    },$codigos);
 
-    $jugadores = DB::table('producido_jugadores as p')
-    ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
-    ->selectRaw('CONCAT(p.id_plataforma,"|",dp.jugador) as plataforma_codigo,dp.jugador as codigo')->distinct()
-    ->whereIn('p.id_plataforma',$plats)
-    ->where('dp.jugador','LIKE',$jugador.'%')
-    ->orderBy('codigo','asc');
-
-    if($id_plataforma != "0") $jugadores = $jugadores->where('p.id_plataforma',$id_plataforma);
-
-    return ['busqueda' => $jugadores->get()];
+    return ['busqueda' => $codigos];
   }
 
   public function obtenerJuegoPlataforma($id_plataforma,$cod_juego=""){
