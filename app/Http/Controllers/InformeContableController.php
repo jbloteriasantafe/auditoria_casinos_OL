@@ -8,26 +8,24 @@ use App\Juego;
 
 class InformeContableController extends Controller
 {
-  public function informeContableJuego($id_plataforma = null,$modo = null,$codigo = null){
+  public function informeContableJuego($id_plataforma = null,$tipo = null,$codigo = null){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Contable Juegos/Jugadores' , 'informeContableJuego');
 
     $mostrar = null;
-    if(!is_null($id_plataforma) && !is_null($modo) && !is_null($codigo)){
+    if(!is_null($id_plataforma) && !is_null($tipo) && !is_null($codigo)){
       $busqueda = [];
-      if($modo == 'juego'){
+      if($tipo == 'juego'){
         $busqueda = $this->obtenerJuegoPlataforma($id_plataforma,$codigo)['busqueda'];
       }
-      else if($modo == 'jugador'){
+      else if($tipo == 'jugador'){
         $busqueda = $this->obtenerJugadorPlataforma($id_plataforma,$codigo)['busqueda'];
       }
       $plataforma = Plataforma::find($id_plataforma);
       if(count($busqueda) > 0 && $busqueda[0]->codigo == $codigo && !is_null($plataforma)){
         $mostrar['id_plataforma'] = $id_plataforma;
-        $mostrar['codigo_plat']   = $plataforma->codigo;
-        $mostrar['modo']          = $modo;
+        $mostrar['tipo']          = $modo;
         $mostrar['codigo']        = $codigo;
-        $mostrar['id']            = $busqueda[0]->id;
       }
     }
     return view('informe_juego', ['plataformas' => $usuario->plataformas,'mostrar' => $mostrar]);
@@ -40,7 +38,7 @@ class InformeContableController extends Controller
 
     $jugadores = DB::table('producido_jugadores as p')
     ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
-    ->selectRaw('-1 as id, dp.jugador as codigo')->distinct()
+    ->selectRaw('CONCAT(p.id_plataforma,"|",dp.jugador) as plataforma_codigo,dp.jugador as codigo')->distinct()
     ->whereIn('p.id_plataforma',$plats)
     ->where('dp.jugador','LIKE',$jugador.'%')
     ->orderBy('codigo','asc');
@@ -56,7 +54,7 @@ class InformeContableController extends Controller
     foreach($usuario->plataformas as $p) $plats[] = $p->id_plataforma;
 
     $j = DB::table('plataforma_tiene_juego as pj')
-    ->select('j.id_juego as id','j.cod_juego as codigo')
+    ->select(DB::raw('CONCAT(pj.id_plataforma,"|",j.cod_juego) as plataforma_codigo'),'j.cod_juego as codigo')
     ->join('juego as j','j.id_juego','=','pj.id_juego')
     ->whereIn('pj.id_plataforma',$plats)
     ->whereNull('j.deleted_at')
@@ -65,7 +63,7 @@ class InformeContableController extends Controller
     if($id_plataforma != "0") $j = $j->where('pj.id_plataforma',$id_plataforma);
 
     $j_no_en_bd = DB::table('detalle_producido_juego as dp')
-    ->selectRaw('-1 as id, dp.cod_juego as codigo')->distinct()
+    ->selectRaw('CONCAT(dp.id_plataforma,"|",dp.cod_juego) as plataforma_codigo, dp.cod_juego as codigo')->distinct()
     ->whereNull('dp.id_juego')
     ->whereIn('dp.id_plataforma',$plats)
     ->where('dp.cod_juego','LIKE',$cod_juego.'%')->orderBy('codigo','asc');
@@ -75,7 +73,19 @@ class InformeContableController extends Controller
     return ['busqueda' => $j->union($j_no_en_bd)->orderBy('codigo','asc')->get()];
   }
 
-  public function obtenerInformeDeJuego($id_juego){
+  public function obtenerInformeDeJuego($id_plataforma,$cod_juego){
+    $id_juegos = Juego::where('cod_juego',$cod_juego)->get();
+    
+    if(empty($id_juegos)) return null;
+    
+    $pj = DB::table('plataforma_tiene_juego')
+    ->whereIn('id_juego',$id_juegos->pluck('id_juego'))
+    ->where('id_plataforma',$id_plataforma)->first();
+        
+    if(empty($pj)) return null;
+    
+    $id_juego = $pj->id_juego;
+    
     $juego = Juego::find($id_juego);
 
     $estados = DB::table('plataforma_tiene_juego as pj')
@@ -83,7 +93,7 @@ class InformeContableController extends Controller
     ->join('plataforma as p','p.id_plataforma','=','pj.id_plataforma')
     ->join('estado_juego as ej','ej.id_estado_juego','=','pj.id_estado_juego')
     ->where('pj.id_juego',$id_juego)->get();
-
+    
     return ['juego' => $juego, 'categoria' => $juego->categoria_juego, 'moneda' => $juego->tipo_moneda, 'estados' => $estados];
   }
 

@@ -395,10 +395,10 @@ Route::group(['prefix' => 'informeContableJuego', 'middleware' => 'tiene_permiso
   Route::get('/', 'InformeContableController@informeContableJuego');
   Route::get('obtenerJuegoPlataforma/{id_plataforma}/{cod_juego?}', 'InformeContableController@obtenerJuegoPlataforma');
   Route::get('obtenerJugadorPlataforma/{id_plataforma}/{jugador?}', 'InformeContableController@obtenerJugadorPlataforma');
-  Route::get('obtenerInformeDeJuego/{id_juego}', 'InformeContableController@obtenerInformeDeJuego');
+  Route::get('obtenerInformeDeJuego/{id_plataforma}/{cod_juego}', 'InformeContableController@obtenerInformeDeJuego');
   Route::get('obtenerProducidosDeJuego/{id_plataforma}/{cod_juego}/{offset?}/{size}', 'InformeContableController@obtenerProducidosDeJuego');
   Route::get('obtenerProducidosDeJugador/{id_plataforma}/{jugador}/{offset?}/{size}', 'InformeContableController@obtenerProducidosDeJugador');
-  Route::get('{id_plataforma}/{modo}/{codigo}', 'InformeContableController@informeContableJuego');
+  Route::get('{id_plataforma}/{tipo}/{codigo}', 'InformeContableController@informeContableJuego');
 });
 
 Route::group(['prefix' => 'informeEstadoJugadores', 'middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {

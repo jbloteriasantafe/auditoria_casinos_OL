@@ -1,19 +1,14 @@
 $(document).ready(function() {
-    $('#informesAuditoria').removeClass().addClass('subMenu2 collapse in');
     $('.tituloSeccionPantalla').text('Informe Contable');
-    $('#opcInformesContableJuego').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
-    $('#opcInformesContableJuego').addClass('opcionesSeleccionado');
     $('#selectPlataforma').val("").change();
     if($('#mostrar').length > 0){//Si venimos redirigios para mostrar un juego/jugador
-        const id_plat = $('#mostrar').attr('data-id_plataforma');//@HACK: como hacer esto de manera no tan fea?
-        const codplat = $('#mostrar').attr('data-codigo_plat')
-        const modo    = $('#mostrar').attr('data-modo');
-        const id      = $('#mostrar').attr('data-id');
-        const codigo  = $('#mostrar').attr('data-codigo');
-        $('#selectPlataforma').val(id_plat);
-        $('#selectTipoCodigo').val(modo);
-        $('#inputCodigo').setearElementoSeleccionado(id,codigo);
-        setTimeout(function(){ mostrarModal(id_plat,codplat,modo,id,codigo); },250);
+      const id_plataforma = $('#mostrar').attr('data-id_plataforma');//@HACK: como hacer esto de manera no tan fea?
+      const modo    = $('#mostrar').attr('data-modo');
+      const codigo  = $('#mostrar').attr('data-codigo');
+      $('#selectPlataforma').val(id_plataforma);
+      $('#selectTipoCodigo').val(tipo);
+      $('#inputCodigo').setearElementoSeleccionado(id_plataforma+'|'+tipo+'|'+codigo,codigo);
+      setTimeout(function(){ mostrarModal(id_plataforma,tipo,codigo); },250);
     }
 });
 
@@ -39,7 +34,7 @@ $('#selectPlataforma').change(function(e) {
         if(tipo == 'juego') url += 'obtenerJuegoPlataforma/';
         else if(tipo == 'jugador') url += 'obtenerJugadorPlataforma/';
 
-        $('#inputCodigo').generarDataList(url + id_plat, 'busqueda', 'id', 'codigo', 1);
+        $('#inputCodigo').generarDataList(url + id_plat, 'busqueda', 'plataforma_codigo', 'codigo', 1);
         $('#inputCodigo').setearElementoSeleccionado(0, '');
         $('#btn-verDetalles').prop('disabled', false);
         $('#inputCodigo').prop('disabled', false);
@@ -78,58 +73,54 @@ function limpiarNull(str, c = '-') {
 
 const default_page_size = 30;
 
-function verJuego(id_juego,id_plataforma, after = function(){}){
-    $.get("/informeContableJuego/obtenerInformeDeJuego/" + id_juego, function(data) {
-        $('#codigo').text(limpiarNull(data.juego.cod_juego));
-        $('#proveedor').text(limpiarNull(data.juego.proveedor));
-        $('#denominacion').text(limpiarNull(data.juego.denominacion_juego));
-        $('#categoria').text(limpiarNull(data.categoria.nombre));
-        $('#moneda').text(limpiarNull(data.moneda.descripcion));
-        $('#devolucion').text(limpiarNull(data.juego.porcentaje_devolucion));
-        {
-            const e = data.juego.escritorio;
-            const m = data.juego.movil;
-            if(e && m) $('#tipo').text('ESCRITORIO/MÓVIL');
-            else if(e) $('#tipo').text('ESCRITORIO');
-            else if(m) $('#tipo').text('MÓVIL');
-            else       $('#tipo').text('ERROR S/ TIPO');
-        }
+function verJuego(id_plataforma,codigo, after = function(){}){
+    $.get("/informeContableJuego/obtenerInformeDeJuego/" + id_plataforma + "/" + codigo, function(data) {
+        if(data){//Puede que el juego no este en BD pero si produciendo
+          $('#codigo').text(limpiarNull(data.juego.cod_juego));
+          $('#proveedor').text(limpiarNull(data.juego.proveedor));
+          $('#denominacion').text(limpiarNull(data.juego.denominacion_juego));
+          $('#categoria').text(limpiarNull(data.categoria.nombre));
+          $('#moneda').text(limpiarNull(data.moneda.descripcion));
+          $('#devolucion').text(limpiarNull(data.juego.porcentaje_devolucion));
+          {
+              const e = data.juego.escritorio;
+              const m = data.juego.movil;
+              if(e && m) $('#tipo').text('ESCRITORIO/MÓVIL');
+              else if(e) $('#tipo').text('ESCRITORIO');
+              else if(m) $('#tipo').text('MÓVIL');
+              else       $('#tipo').text('ERROR S/ TIPO');
+          }
 
-        for(const pidx in data.estados){
-            const e = data.estados[pidx];
-            if(e.id_plataforma == id_plataforma){
-                $('#estado').text(e.estado);
-                break;
-            }
+          for(const pidx in data.estados){
+              const e = data.estados[pidx];
+              if(e.id_plataforma == id_plataforma){
+                  $('#estado').text(e.estado);
+                  break;
+              }
+          }
         }
-
         after();
     });
 }
 
-function mostrarModal(id_plataforma,cod_plat,tipo,id_juego,codigo){
+function mostrarModal(id_plataforma,modo,codigo){
     $('#proveedor,#denominacion,#categoria,#moneda,#devolucion,#tipo,#producidoEsperado').text('-');
     $('#codigo').text(codigo);
-    $('#plataforma').text(cod_plat);
+    $('#plataforma').text($(`#selectPlataforma option[value='${id_plataforma}']`)?.attr('data-codigo'));
     $('#verTodosProducidos').prop('checked',false);
-    if(tipo == 'juego'){
+    if(modo == 'juego'){
         $('.de_juego').show();
         $('.de_jugador').hide();
         $('#estado').text('Produciendo (NO EN BD)');
-        if(id_juego != -1){
-            verJuego(id_juego,id_plataforma,function(){
-                cargarProducidos(id_plataforma,tipo,codigo,1,default_page_size);
-            });
-        }
-        else{
-            cargarProducidos(id_plataforma,tipo,codigo,1,default_page_size);
-        }
+        verJuego(id_plataforma,codigo,function(){
+          cargarProducidos(id_plataforma,modo,codigo,1,default_page_size);
+        });
     }
-    else if(tipo == 'jugador'){
+    else if(modo == 'jugador'){
         $('.de_juego').hide();
         $('.de_jugador').show();
         $('#estado').text('-');
-        cargarProducidos(id_plataforma,tipo,codigo,1,default_page_size);
+        cargarProducidos(id_plataforma,modo,codigo,1,default_page_size);
     }
 }
 
@@ -138,14 +129,13 @@ $('#btn-verDetalles').click(function(e) {
     const cod_plat = $('#selectPlataforma option:selected').attr('data-codigo');
     const id_plataforma = $('#selectPlataforma').val();
     const tipo = $('#selectTipoCodigo').val();
-    const id_juego = $('#inputCodigo').obtenerElementoSeleccionado();
-    mostrarModal(id_plataforma,cod_plat,tipo,id_juego,codigo);
+    mostrarModal(id_plataforma,tipo,codigo);
 });
 
-function cargarProducidos(id_plataforma,tipo,codigo,pagina,page_size){
+function cargarProducidos(id_plataforma,modo,codigo,pagina,page_size){
     let url = '/informeContableJuego/';
-    if(tipo == 'juego') url += 'obtenerProducidosDeJuego';
-    else if(tipo == 'jugador') url += 'obtenerProducidosDeJugador';
+    if(modo == 'juego') url += 'obtenerProducidosDeJuego';
+    else if(modo == 'jugador') url += 'obtenerProducidosDeJugador';
 
     $.get(`${url}/${id_plataforma}/${codigo}/${(pagina-1)*page_size}/${page_size}`,function(data){
         $('#apuesta').text(data.total? data.total.apuesta : '-');
