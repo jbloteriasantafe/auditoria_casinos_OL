@@ -40,31 +40,45 @@ class InformeContableController extends Controller
     if(!ctype_digit($id_plataforma)){
       return ['busqueda' => []];
     }
+    
+    $tempTableName = 'obtenerJugadorPlataforma_' . bin2hex(random_bytes(4));
        
-    $codigos = [];
+    //Al forzar un JOIN, en $query usa el indice que tiene
+    //Si uso IN () es mu
+    DB::statement("CREATE TEMPORARY TABLE {$tempTableName} (id_producido_jugadores INT PRIMARY KEY)");
+    DB::statement("
+        INSERT INTO {$tempTableName} (id_producido_jugadores)
+        SELECT id_producido_jugadores 
+        FROM producido_jugadores 
+        WHERE id_plataforma = ?
+    ", [$id_plataforma]);
     
-    DB::table('producido_jugadores as p')
-    ->select('p.id_producido_jugadores')
-    ->where('p.id_plataforma',$id_plataforma)
-    ->chunkById(1000,function($ids_producidos_jugadores) use (&$codigos){
-      $chunk_codigos = DB::table('detalle_producido_jugadores as dp')
-      ->selectRaw("dp.jugador")->distinct()
-      ->whereIn('dp.id_producido_jugadores',$ids_producidos_jugadores->pluck('id_producido_jugadores'))
-      ->orderBy('dp.jugador','asc')
-      ->get();
-      
-      foreach($chunk_codigos as $ck){
-        $codigos[$ck->jugador] = true;
-      }
-    },'id_producido_jugadores');
+    $query = DB::table('detalle_producido_jugadores as dp')
+    ->join("{$tempTableName} as tmp", 'dp.id_producido_jugadores', '=', 'tmp.id_producido_jugadores')
+    ->select('dp.jugador')
+    ->distinct()
+    ->orderBy('dp.jugador', 'asc');
     
-    ksort($codigos);
-    $codigos = array_keys($codigos);
-    $codigos = array_map(function($c) use ($id_plataforma){
-      return ['plataforma_codigo' => ($id_plataforma.'|'.$c),'codigo' => $c];
-    },$codigos);
+    $query = DB::table('detalle_producido_jugadores as dp')
+    ->join("{$tempTableName} as tmp", 'dp.id_producido_jugadores', '=', 'tmp.id_producido_jugadores')
+    ->select('dp.jugador')
+    ->distinct()
+    ->orderBy('dp.jugador', 'asc');
 
-    return ['busqueda' => $codigos];
+    if (!empty($jugador)) {
+      $query->where('dp.jugador', 'LIKE', $jugador . '%');
+    }
+
+    $results = $query->get();
+
+    DB::statement("DROP TEMPORARY TABLE IF EXISTS {$tempTableName}");
+    
+    return ['busqueda' => $results->map(function($row) use ($id_plataforma) {
+        return [
+            'plataforma_codigo' => $id_plataforma . '|' . $row->jugador,
+            'codigo' => $row->jugador
+        ];
+    })->toArray()];
   }
 
   public function obtenerJuegoPlataforma($id_plataforma,$cod_juego=""){
