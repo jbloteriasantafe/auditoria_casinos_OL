@@ -770,7 +770,7 @@ class LectorCSVController extends Controller
     DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_jugadores_validos_a_f_imp');
     DB::statement('CREATE TEMPORARY TABLE temp_jugadores_validos_a_f_imp
       (id_jugador INT(11) PRIMARY KEY,hash BINARY(16),UNIQUE unq_temp_jugadores_validos_a_f_imp (id_jugador,hash))
-      SELECT j.id_jugador,'.$this->jugador_hash('j.').' as hash
+      SELECT j.id_jugador,j.hash
       FROM jugador j
       WHERE j.id_plataforma = :id_plataforma
       AND j.fecha_importacion < :fecha_importacion1
@@ -835,7 +835,7 @@ class LectorCSVController extends Controller
       JOIN jugadores_temporal jt ON (
         jt.id_importacion_estado_jugador = :id_importacion_estado_jugador
         AND jt.codigo = j_prox.codigo
-        AND jt.hash = ".$this->jugador_hash('j_prox.')."
+        AND jt.hash   = j_prox.hash
         AND (".
           $this->jugador_comp_attrs('jt.','=','j_prox.',' AND ')
         .")
@@ -856,8 +856,10 @@ class LectorCSVController extends Controller
      Simplemente inserto jugadores si no tienen entrada valida
     */ 
     DB::statement("INSERT INTO jugador 
-    (id_plataforma,fecha_importacion,valido_hasta,".implode(',',$this->jugador_prefix_attrs('')).")
-    SELECT :id_plataforma1,:fecha_importacion1,DATE_SUB(:prox_fecha_importacion,INTERVAL 1 DAY),".implode(',',$this->jugador_prefix_attrs('jt.'))."
+    (id_plataforma,fecha_importacion,valido_hasta,".implode(',',$this->jugador_prefix_attrs('')).",hash)
+    SELECT :id_plataforma1,:fecha_importacion1,DATE_SUB(:prox_fecha_importacion,INTERVAL 1 DAY),"
+    .implode(',',$this->jugador_prefix_attrs('jt.')).",
+    jt.hash as hash
     FROM jugadores_temporal jt
     WHERE jt.id_importacion_estado_jugador = :id_importacion_estado_jugador
     AND NOT EXISTS ( -- Solo inserto si no hay un jugador valido
