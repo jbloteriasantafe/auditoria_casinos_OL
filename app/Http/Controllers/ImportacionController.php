@@ -121,14 +121,18 @@ class ImportacionController extends Controller
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
       ->where('j.valido_hasta','>=',$importacion->fecha_importacion)
       ->orderBy('j.codigo','asc')
-      ->skip($request->page*$request->size)->take($request->size)->get();
+      ->skip($request->page*$request->size)->take($request->size)->get()
+      ->transform(function(&$j){
+        unset($j->hash);
+        return $j;
+      });
           
       $cant_detalles = DB::table(DB::raw('jugador as j'))
-      ->selectRaw('COUNT(distinct j.codigo) as total')
+      ->selectRaw('COUNT(*) as total')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
       ->where('j.valido_hasta','>=',$importacion->fecha_importacion)
-      ->groupBy('j.id_plataforma')->first()->total;
+      ->groupBy(DB::raw('"constant"'))->first()->total;
       
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
       'cant_detalles' => $cant_detalles,
