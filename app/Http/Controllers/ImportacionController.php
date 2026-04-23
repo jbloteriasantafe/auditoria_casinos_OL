@@ -119,10 +119,7 @@ class ImportacionController extends Controller
       ->select('j.*')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
-      ->where(function($q) use ($importacion){
-        return $q->where('j.valido_hasta','>=',$importacion->fecha_importacion)
-        ->orWhereNull('j.valido_hasta');
-      })
+      ->where('j.valido_hasta','>=',$importacion->fecha_importacion)
       ->orderBy('j.codigo','asc')
       ->skip($request->page*$request->size)->take($request->size)->get();
           
@@ -130,10 +127,7 @@ class ImportacionController extends Controller
       ->selectRaw('COUNT(distinct j.codigo) as total')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
-      ->where(function($q) use ($importacion){
-        return $q->where('j.valido_hasta','>=',$importacion->fecha_importacion)
-        ->orWhereNull('j.valido_hasta');
-      })
+      ->where('j.valido_hasta','>=',$importacion->fecha_importacion)
       ->groupBy('j.id_plataforma')->first()->total;
       
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,

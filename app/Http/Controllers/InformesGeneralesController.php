@@ -341,16 +341,18 @@ class InformesGeneralesController extends Controller
     };
 
     $ret = [];
+    $hoy = date('Y-m-d');
     foreach (\App\Plataforma::all() as $plat) {//El indice de la tabla es por plataforma por eso lo hago asi
       $BD = DB::table('jugador')
         ->selectRaw('TRIM(UPPER(provincia)) as provincia,TRIM(UPPER(localidad)) as localidad,COUNT(distinct codigo) as cantidad')
-        ->whereNull('valido_hasta')
+        ->where('fecha_importacion','<=',$hoy)
+        ->where('valido_hasta','>=',$hoy)
         ->where('id_plataforma', '=', $plat->id_plataforma)
         ->groupBy(DB::raw('TRIM(UPPER(provincia)),TRIM(UPPER(localidad))'))
         ->whereRaw('jugador.codigo IN (
         SELECT DISTINCT rm.jugador
         FROM resumen_mensual_producido_jugadores as rm
-        WHERE rm.id_plataforma = jugador.id_plataforma AND TIMESTAMPDIFF(MONTH,rm.aniomes,CURDATE()) < 12
+        WHERE rm.id_plataforma = '.$plat->id_plataforma.' AND TIMESTAMPDIFF(MONTH,rm.aniomes,"'.$hoy.'") < 12
       )')
         ->get()
         ->groupBy(function (&$item) use ($f_agrupar, $lista_conversiones_provs) {

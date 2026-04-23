@@ -765,41 +765,22 @@ class LectorCSVController extends Controller
       ['id_plataforma','=',$importacion->id_plataforma],
       ['fecha_importacion','>',$importacion->fecha_importacion]
     ])->orderBy('fecha_importacion','asc')->first();
-    $prox_imp   = is_null($prox_imp)? null : $prox_imp->fecha_importacion;
+    $prox_imp   = is_null($prox_imp)? '9999-12-31' : $prox_imp->fecha_importacion;
     
     DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_jugadores_validos_a_f_imp');
+    //@NOTA: _NO_ deberia haber importacion en fecha_importacion
+    //(se elimina antes de llamar esta función)
     DB::statement('CREATE TEMPORARY TABLE temp_jugadores_validos_a_f_imp
       (id_jugador INT(11) PRIMARY KEY,hash BINARY(16),UNIQUE unq_temp_jugadores_validos_a_f_imp (id_jugador,hash))
       SELECT j.id_jugador,j.hash
       FROM jugador j
       WHERE j.id_plataforma = :id_plataforma
-      AND j.fecha_importacion < :fecha_importacion1
-      AND (
-           j.valido_hasta IS NULL 
-        OR j.valido_hasta >= :fecha_importacion2
-      )
-      AND NOT EXISTS ( -- Nos aseguramos que sea la ultima fecha de importación
-        SELECT 1
-        FROM jugador j2
-        WHERE j2.codigo = j.codigo
-        AND j2.id_plataforma = j.id_plataforma
-        AND j2.fecha_importacion < :fecha_importacion3
-        AND (
-             j2.valido_hasta IS NULL 
-          OR j2.valido_hasta >= :fecha_importacion4
-        )
-        AND (
-              j2.fecha_importacion > j.fecha_importacion
-          OR (j2.fecha_importacion = j.fecha_importacion AND j2.id_jugador > j.id_jugador)
-        )
-        LIMIT 1
-      )',
+      AND j.fecha_importacion <= :fecha_importacion1
+      AND j.valido_hasta >= :fecha_importacion2',
       [
         'id_plataforma' => $id_plataforma,
         'fecha_importacion1' => $fecha,
-        'fecha_importacion2' => $fecha,
-        'fecha_importacion3' => $fecha,
-        'fecha_importacion4' => $fecha,
+        'fecha_importacion2' => $fecha
       ]
     );
     $debugtime(__LINE__);
@@ -855,34 +836,39 @@ class LectorCSVController extends Controller
     /*
      Simplemente inserto jugadores si no tienen entrada valida
     */ 
+    //@SPEED: generar un regex con una query select j_valido.codigo ? -> trivial el chequeo
+    
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_jugadores_codigos_ya_validos');
+    //@NOTA: _NO_ deberia haber importacion en fecha_importacion
+    //(se elimina antes de llamar esta función)
+    DB::statement('CREATE TEMPORARY TABLE temp_jugadores_codigos_ya_validos
+      (codigo VARCHAR(16) PRIMARY KEY)
+      SELECT j.codigo
+      FROM jugador j
+      WHERE j.id_plataforma = :id_plataforma
+      AND j.fecha_importacion <= :fecha_importacion1
+      AND j.valido_hasta >= :fecha_importacion2',
+      [
+        'id_plataforma' => $id_plataforma,
+        'fecha_importacion1' => $fecha,
+        'fecha_importacion2' => $fecha
+      ]
+    );
+    $debugtime(__LINE__);
+    
     DB::statement("INSERT INTO jugador 
     (id_plataforma,fecha_importacion,valido_hasta,".implode(',',$this->jugador_prefix_attrs('')).",hash)
-    SELECT :id_plataforma1,:fecha_importacion1,DATE_SUB(:prox_fecha_importacion,INTERVAL 1 DAY),"
+    SELECT :id_plataforma1,:fecha_importacion1,COALESCE(DATE_SUB(:prox_fecha_importacion,INTERVAL 1 DAY),'9999-12-31'),"
     .implode(',',$this->jugador_prefix_attrs('jt.')).",
     jt.hash as hash
     FROM jugadores_temporal jt
+    LEFT JOIN temp_jugadores_codigos_ya_validos as j_valido ON j_valido.codigo = jt.codigo
     WHERE jt.id_importacion_estado_jugador = :id_importacion_estado_jugador
-    AND NOT EXISTS ( -- Solo inserto si no hay un jugador valido
-      SELECT 1
-      FROM jugador as j_valido
-      WHERE j_valido.id_plataforma = :id_plataforma2
-      AND j_valido.fecha_importacion <= :fecha_importacion2
-      AND (
-        j_valido.valido_hasta IS NULL
-        OR j_valido.valido_hasta >= :fecha_importacion3
-      )
-      AND j_valido.codigo = jt.codigo
-      LIMIT 1
-    )",[
+    AND j_valido.codigo IS NULL",[
       'id_plataforma1' => $id_plataforma,
       'fecha_importacion1' => $fecha,
       'prox_fecha_importacion' => $prox_imp,
-      
-      'id_importacion_estado_jugador' => $importacion->id_importacion_estado_jugador,
-      
-      'id_plataforma2' => $id_plataforma,
-      'fecha_importacion2' => $fecha,
-      'fecha_importacion3' => $fecha
+      'id_importacion_estado_jugador' => $importacion->id_importacion_estado_jugador
     ]);
     $debugtime(__LINE__);
     
@@ -897,10 +883,7 @@ class LectorCSVController extends Controller
       ->select('codigo')
       ->where('id_plataforma',$importacion->id_plataforma)
       ->where('fecha_importacion','<=',$fecha)
-      ->where(function($q) use ($fecha){
-        return $q->where('valido_hasta','>=',$fecha)
-        ->orWhereNull('valido_hasta');
-      })
+      ->where('valido_hasta','>=',$fecha)
       ->count()
     ];
     $debugtime(__LINE__);
@@ -1034,7 +1017,7 @@ class LectorCSVController extends Controller
         
         foreach($importaciones as $imp){
           $err = DB::statement("INSERT INTO jugador (id_plataforma,fecha_importacion,valido_hasta,localidad,provincia,fecha_alta,codigo,estado,fecha_autoexclusion,fecha_nacimiento,fecha_ultimo_movimiento,sexo)
-          SELECT ?,?,NULL,
+          SELECT ?,?,'9999-12-31',
             dj.localidad,dj.provincia,dj.fecha_alta,dj.codigo,ej.estado,ej.fecha_autoexclusion,dj.fecha_nacimiento,ej.fecha_ultimo_movimiento,dj.sexo
           FROM estado_jugador ej
           JOIN datos_jugador dj ON (dj.id_datos_jugador = ej.id_datos_jugador)
@@ -1076,11 +1059,11 @@ class LectorCSVController extends Controller
             ON (j_insertado.id_plataforma = j_anterior.id_plataforma
             AND j_insertado.codigo = j_anterior.codigo
             AND j_insertado.fecha_importacion > j_anterior.fecha_importacion
-            AND j_insertado.valido_hasta IS NULL)
+            AND j_insertado.valido_hasta = '9999-12-31')
           SET j_anterior.valido_hasta = DATE_SUB(j_insertado.fecha_importacion,INTERVAL 1 DAY)
           WHERE j_anterior.id_plataforma = ? 
           AND j_anterior.fecha_importacion < ?
-          AND j_anterior.valido_hasta IS NULL",
+          AND j_anterior.valido_hasta = '9999-12-31'",
             [$idp,$imp->fecha_importacion]
           );
           if(!$err){
