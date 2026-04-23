@@ -128,11 +128,10 @@ class ImportacionController extends Controller
       });
           
       $cant_detalles = DB::table(DB::raw('jugador as j'))
-      ->selectRaw('COUNT(*) as total')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
       ->where('j.valido_hasta','>=',$importacion->fecha_importacion)
-      ->groupBy(DB::raw('"constant"'))->first()->total;
+      ->count();
       
       return ['fecha' => $importacion->fecha_importacion, 'plataforma' => $importacion->plataforma, 'tipo_moneda'  => null,
       'cant_detalles' => $cant_detalles,
