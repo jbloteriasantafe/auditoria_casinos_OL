@@ -114,8 +114,8 @@ class ImportacionController extends Controller
     else if($request->tipo_importacion == 'estado_jugadores'){
       $importacion = ImportacionEstadoJugador::find($request->id);
       if(is_null($importacion)) return response()->json("No existe la importación",422);
-    
-      $detalles = DB::table('jugador as j')
+      //Por MySQL workbench es instantaneo, nose porque demora tanto desde el web server
+      $detalles = DB::table('jugador as j FORCE INDEX (idx_jugador_id_plataforma_codigo_fecha_importacion_valido_hasta)')
       ->select('j.*')
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
@@ -127,7 +127,7 @@ class ImportacionController extends Controller
         return $j;
       });
           
-      $cant_detalles = DB::table(DB::raw('jugador as j'))
+      $cant_detalles = DB::table(DB::raw('jugador as j FORCE INDEX (idx_jugador_id_plataforma_fecha_importacion_valido_hasta)'))
       ->where('j.id_plataforma','=',$importacion->id_plataforma)
       ->where('j.fecha_importacion','<=',$importacion->fecha_importacion)
       ->where('j.valido_hasta','>=',$importacion->fecha_importacion)
