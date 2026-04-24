@@ -60,7 +60,7 @@ class EstadoController extends Controller
 
     $sort_by = [
       'orden' => 'asc',
-      'columna' => 'j.id_plataforma',
+      'columna' => 'j.codigo',
     ];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
