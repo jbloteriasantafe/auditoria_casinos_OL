@@ -27,8 +27,14 @@ class EstadoController extends Controller
   }
   
   public function buscarJugadores(Request $request){
+    //Retorno el ultimo estado del jugador
+    $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']
+    ->plataformas->pluck('id_plataforma')->toArray();
+    if(!in_array($request->plataforma ?? null,$plataformas)){
+      return [];
+    }
+    
     $reglas = [];
-    if(!is_null($request->plataforma)) $reglas[] = ['j.id_plataforma','=',$request->plataforma];
     if(!is_null($request->codigo)) $reglas[] = ['j.codigo','LIKE',$request->codigo];
     if(!is_null($request->estado)) $reglas[] = ['j.estado','LIKE',$request->estado];
     $hoy = date('Y-m-d');
@@ -50,42 +56,34 @@ class EstadoController extends Controller
     if(!is_null($request->fecha_alta_hasta)) $reglas[] = ['j.fecha_alta','<=',$request->fecha_alta_hasta];
     if(!is_null($request->fecha_ultimo_movimiento_desde)) $reglas[] = ['j.fecha_ultimo_movimiento','>=',$request->fecha_ultimo_movimiento_desde];
     if(!is_null($request->fecha_ultimo_movimiento_hasta)) $reglas[] = ['j.fecha_ultimo_movimiento','<=',$request->fecha_ultimo_movimiento_hasta];
+    if(!is_null($request->sort_by)) $sort_by = $request->sort_by;
 
     $sort_by = [
       'orden' => 'asc',
       'columna' => 'j.id_plataforma',
     ];
-
-    if(!is_null($request->sort_by)) $sort_by = $request->sort_by;
-
-    //Retorno el ultimo estado del jugador
-    $plataformas = UsuarioController::getInstancia()->quienSoy()['usuario']->plataformas->map(function($c){
-      return $c->id_plataforma;
-    });
+    if(!empty($request->sort_by)){
+      $sort_by = $request->sort_by;
+    }
 
     $data = DB::table('jugador as j')
     ->select('j.*','p.codigo as plataforma')
     ->join('plataforma as p','p.id_plataforma','=','j.id_plataforma')
+    ->where('j.id_plataforma','=',$request->plataforma)
     ->where('j.fecha_importacion','<=',$hoy)
     ->where('j.valido_hasta','>=',$hoy)
-    ->where($reglas)->whereIn('j.id_plataforma',$plataformas)
-    ->orderBy($sort_by['columna'],$sort_by['orden'])
+    ->where($reglas)
+    ->orderBy($sort_by['columna'] ?? 'j.id_plataforma',$sort_by['orden'] ?? 'asc')
     ->skip(($request->page-1)*$request->page_size)->take($request->page_size)->get()->transform(function(&$j){
       unset($j->hash);
       return $j;
     });
     
-    $totales = DB::table('jugador as j')
-    ->selectRaw('COUNT(distinct j.codigo) as total')
+    $total = DB::table('jugador as j')
+    ->where('j.id_plataforma','=',$request->plataforma)
     ->where('j.fecha_importacion','<=',$hoy)
     ->where('j.valido_hasta','>=',$hoy)
-    ->where($reglas)->whereIn('j.id_plataforma',$plataformas);
-    if(!is_null($request->plataforma)){
-      $totales = $totales->where('j.id_plataforma','=',$request->plataforma);
-    }
-    $totales = $totales->groupBy('j.id_plataforma')->get()->pluck('total');
-    $total = 0;
-    foreach($totales as $t) $total+=$t;
+    ->count();
     
     return [
       'current_page' => $request->page,

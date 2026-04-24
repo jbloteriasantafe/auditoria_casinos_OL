@@ -104,9 +104,8 @@ background-color: #4CAF50;
               <div class="col-md-2">
                 <h5>Plataformas</h5>
                 <select id="buscadorPlataforma" class="form-control">
-                  <option data-codigo="" value="">-Todas las plataformas-</option>
                   @foreach ($plataformas as $p)
-                  <option id="{{$p->id_plataforma}}" value="{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}">{{$p->nombre}}</option>
+                  <option {!! $loop->first? 'selected default' : '' !!} id="{{$p->id_plataforma}}" value="{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}">{{$p->nombre}}</option>
                   @endforeach
                 </select>
               </div>
@@ -280,11 +279,9 @@ background-color: #4CAF50;
             <div class="col-md-6">
               <h5 style="text-align: center">PLATAFORMA</h5>
               <select id="plataformaInformeDemografico" class="form-control">
-                <option value="">Seleccione</option>
                 @foreach ($plataformas as $plataforma)
-                <option value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
+                <option {!! $loop->first? 'selected default' : '' !!} value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
                 @endforeach
-                <option value="TODAS">- TODAS -</option>
               </select>
             </div>
           </div>
