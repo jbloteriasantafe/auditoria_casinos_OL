@@ -365,19 +365,48 @@ class EstadoController extends Controller
   }
   
 public function informeDemografico(Request $request){
-    $reglas = [];
-    if(isset($request->id_plataforma) && $request->id_plataforma != 'TODAS'){
-      $reglas[] = ['p.id_plataforma','=',$request->id_plataforma];
+    $plats = [];
+    if(isset($request->id_plataforma)){//@TODO: validar permisos usuario
+      if($request->id_plataforma == 'TODAS'){
+        $plats = Plataforma::all()->pluck('id_plataforma')->toArray();
+      }
+      else{
+        $plats = [ $request->id_plataforma ];
+      }
+    }
+    else{
+      return 'Seleccione una plataforma';
     }
     
+    $d = cal_days_in_month(CAL_GREGORIAN,intval($request->mes),intval($request->anio);
+    $fecha = str_pad($request->anio,4,'0',STR_PAD_LEFT).'-'
+    .str_pad($request->mes,2,'0',STR_PAD_LEFT).'-'
+    .str_pad($d,2,'0',STR_PAD_LEFT);
+    
+    DB::table('jugador as j')
+    ->whereYear(
     $edad = 'IFNULL(TIMESTAMPDIFF(YEAR,j.fecha_nacimiento,LAST_DAY(p.fecha)),"-")';
+    
+    $ultimo_producido = DB::table('producido_jugadores as p')
+    ->whereYear('p.fecha','<=',$request->anio)
+    ->whereMonth('p.fecha','<=',$request->mes)
+    ->where($reglas)
+    ->orderBy('p.fecha','desc')
+    ->first();
+    
+    if($ultimo_producido === null) return 'No hay producido';
+        
+    $ultima_fecha = $ultimo_producido->fecha;
     
     $menores_de_18 = DB::table('producido_jugadores as p')
     ->select('dp.jugador')->distinct()
     ->join('detalle_producido_jugadores as dp','dp.id_producido_jugadores','=','p.id_producido_jugadores')
     ->join('plataforma as pl','p.id_plataforma','=','p.id_plataforma')
     ->leftJoin('jugador as j',function($j){
-      return $j->on('j.id_plataforma','=','p.id_plataforma')->on('j.codigo','=','dp.jugador')->whereNull('j.valido_hasta');
+      return $j->on('j.id_plataforma','=','p.id_plataforma')
+      ->on('j.codigo','=','dp.jugador')
+      ->on('j.fecha_importacion','<=','p.fecha')
+      ->on('j.valido_hasta','>=','p.fecha');
     })
     ->where($reglas)
     ->whereYear('p.fecha','=',$request->anio)
