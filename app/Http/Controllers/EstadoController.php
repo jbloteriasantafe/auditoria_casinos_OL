@@ -365,6 +365,8 @@ class EstadoController extends Controller
   }
   
 public function informeDemografico(Request $request){
+    return 'implementando!';
+    /*
     $plats = [];
     if(isset($request->id_plataforma)){//@TODO: validar permisos usuario
       if($request->id_plataforma == 'TODAS'){
@@ -477,7 +479,7 @@ public function informeDemografico(Request $request){
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf->stream('planilla.pdf',['Attachment'=>0]);
+    return $dompdf->stream('planilla.pdf',['Attachment'=>0]);*/
   }
 }
 
