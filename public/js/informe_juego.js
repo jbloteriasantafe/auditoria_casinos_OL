@@ -3,11 +3,13 @@ $(document).ready(function() {
     $('#selectPlataforma').val("").change();
     if($('#mostrar').length > 0){//Si venimos redirigios para mostrar un juego/jugador
       const id_plataforma = $('#mostrar').attr('data-id_plataforma');//@HACK: como hacer esto de manera no tan fea?
-      const modo    = $('#mostrar').attr('data-modo');
+      const tipo    = $('#mostrar').attr('data-tipo');
       const codigo  = $('#mostrar').attr('data-codigo');
-      $('#selectPlataforma').val(id_plataforma);
-      $('#selectTipoCodigo').val(tipo);
+      $('#selectPlataforma').val(id_plataforma).change();//Genero el datalist al triggerear el change
+      $('#selectTipoCodigo').val(tipo).change();
+      $('#inputCodigo').val(codigo);
       $('#inputCodigo').setearElementoSeleccionado(id_plataforma+'|'+tipo+'|'+codigo,codigo);
+      $('#inputCodigo').change();
       setTimeout(function(){ mostrarModal(id_plataforma,tipo,codigo); },250);
     }
 });
@@ -34,7 +36,7 @@ $('#selectPlataforma').change(function(e) {
         if(tipo == 'juego') url += 'obtenerJuegoPlataforma/';
         else if(tipo == 'jugador') url += 'obtenerJugadorPlataforma/';
 
-        $('#inputCodigo').generarDataList(url + id_plat, 'busqueda', 'plataforma_codigo', 'codigo', 1);
+        $('#inputCodigo').generarDataList(url + id_plat, 'busqueda', 'plataforma_codigo', 'codigo', 3);
         $('#inputCodigo').setearElementoSeleccionado(0, '');
         $('#btn-verDetalles').prop('disabled', false);
         $('#inputCodigo').prop('disabled', false);

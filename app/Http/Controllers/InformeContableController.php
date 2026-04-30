@@ -22,9 +22,9 @@ class InformeContableController extends Controller
         $busqueda = $this->obtenerJugadorPlataforma($id_plataforma,$codigo)['busqueda'];
       }
       $plataforma = Plataforma::find($id_plataforma);
-      if(count($busqueda) > 0 && $busqueda[0]->codigo == $codigo && !is_null($plataforma)){
+      if($busqueda->first() && $busqueda->first()->codigo == $codigo && !is_null($plataforma)){
         $mostrar['id_plataforma'] = $id_plataforma;
-        $mostrar['tipo']          = $modo;
+        $mostrar['tipo']          = $tipo;
         $mostrar['codigo']        = $codigo;
       }
     }
@@ -41,44 +41,24 @@ class InformeContableController extends Controller
       return ['busqueda' => []];
     }
     
-    $tempTableName = 'obtenerJugadorPlataforma_' . bin2hex(random_bytes(4));
-       
-    //Al forzar un JOIN, en $query usa el indice que tiene
-    //Si uso IN () es mu
-    DB::statement("CREATE TEMPORARY TABLE {$tempTableName} (id_producido_jugadores INT PRIMARY KEY)");
-    DB::statement("
-        INSERT INTO {$tempTableName} (id_producido_jugadores)
-        SELECT id_producido_jugadores 
-        FROM producido_jugadores 
-        WHERE id_plataforma = ?
-    ", [$id_plataforma]);
-    
-    $query = DB::table('detalle_producido_jugadores as dp')
-    ->join("{$tempTableName} as tmp", 'dp.id_producido_jugadores', '=', 'tmp.id_producido_jugadores')
-    ->select('dp.jugador')
-    ->distinct()
-    ->orderBy('dp.jugador', 'asc');
-    
-    $query = DB::table('detalle_producido_jugadores as dp')
-    ->join("{$tempTableName} as tmp", 'dp.id_producido_jugadores', '=', 'tmp.id_producido_jugadores')
-    ->select('dp.jugador')
-    ->distinct()
-    ->orderBy('dp.jugador', 'asc');
+    $q = DB::table('resumen_mensual_producido_jugadores as rmpj')
+    ->select('rmpj.jugador')->distinct()
+    ->where('rmpj.id_plataforma','=',$id_plataforma)
+    ->whereIn('rmpj.id_tipo_moneda',\App\TipoMoneda::all()->pluck('id_tipo_moneda'))
+    ->orderBy('rmpj.jugador','asc');
 
     if (!empty($jugador)) {
-      $query->where('dp.jugador', 'LIKE', $jugador . '%');
+      $q = $q->where('rmpj.jugador', 'LIKE', $jugador . '%');
     }
 
-    $results = $query->get();
-
-    DB::statement("DROP TEMPORARY TABLE IF EXISTS {$tempTableName}");
+    $results = $q->get();
     
     return ['busqueda' => $results->map(function($row) use ($id_plataforma) {
-        return [
+        return (object)[
             'plataforma_codigo' => $id_plataforma . '|' . $row->jugador,
             'codigo' => $row->jugador
         ];
-    })->toArray()];
+    })];
   }
 
   public function obtenerJuegoPlataforma($id_plataforma,$cod_juego=""){

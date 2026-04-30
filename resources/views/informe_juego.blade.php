@@ -268,7 +268,7 @@
           </div>
     </div>
 
-@if(!is_null($mostrar))
+@if(!empty($mostrar))
 <input id='mostrar' 
 
 @foreach($mostrar as $k => $v)
@@ -294,7 +294,7 @@ hidden/>
 <!-- Termina modal de ayuda -->
 
 @section('scripts')
-<script src="/js/informe_juego.js?3" charset="utf-8"></script>
+<script src="/js/informe_juego.js?4" charset="utf-8"></script>
 
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 
