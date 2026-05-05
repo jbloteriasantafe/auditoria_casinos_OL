@@ -740,6 +740,79 @@ class LectorCSVController extends Controller
     $pdo->exec($query);
   }
   
+  private function _jugadoresTemp_ExportCSV($fhandle,$id_importacion_estado_jugador){
+    $attrs = $this->attrsJugadorArchivo();
+    $attrs[] = 'HEX(hash) as hash';
+    for($i=1;$i<count($attrs);$i++){//Inserto hash despues del codigo
+      $aux = $attrs[$i];
+      $attrs[$i] = $attrs[count($attrs)-1];
+      $attrs[count($attrs)-1] = $aux;
+    }
+    
+    {
+      $header = $this->attrsJugadorArchivo();
+      $header[] = 'hash';
+      for($i=1;$i<count($header);$i++){//Inserto hash despues del codigo
+        $aux = $header[$i];
+        $header[$i] = $header[count($header)-1];
+        $header[count($header)-1] = $aux;
+      }
+      fputcsv($fhandle,$header);
+    }
+    
+    $q = DB::table('jugadores_temporal') 
+    ->selectRaw(implode(',',$attrs))   
+    ->where('id_importacion_estado_jugador','=',$id_importacion_estado_jugador)
+    ->orderBy('id_importacion_estado_jugador','asc')
+    ->chunk(5000,function($js) use ($fhandle){
+      foreach($js as $j){
+        fputcsv($fhandle,(array) $j);
+      }
+    });
+    
+    return $fhandle;
+  }
+  
+  public function jugadoresExportCSV($fhandle,$id_plataforma,$fecha_importacion){
+    $importacion = DB::table('importacion_estado_jugador')//Necesito un ID por una FK constraint de jugadores_temporal
+    ->select('id_importacion_estado_jugador')
+    ->where('id_plataforma','=',$id_plataforma)
+    ->where('fecha_importacion','<=',$fecha_importacion)
+    ->orderBy('fecha_importacion','desc')
+    ->first();
+    if($importacion === null){
+      return false;
+    }
+    
+    return DB::transaction(function() use ($fhandle,$id_plataforma,$fecha_importacion,$importacion){
+      $id_importacion_estado_jugador = $importacion->id_importacion_estado_jugador;
+      $attrs_jug = implode(',',$this->jugador_prefix_attrs('j.'));
+      $attrs_tabla = implode(',',$this->jugador_prefix_attrs(''));
+      
+      DB::statement("INSERT INTO jugadores_temporal
+      (id_importacion_estado_jugador,$attrs_tabla,hash)
+      SELECT
+      $id_importacion_estado_jugador,$attrs_jug,j.hash
+      FROM jugador as j
+      WHERE j.id_plataforma = :id_plataforma
+      AND j.fecha_importacion <= :fecha_importacion1
+      AND j.valido_hasta >= :fecha_importacion2",[
+        'id_plataforma' => $id_plataforma,
+        'fecha_importacion1' => $fecha_importacion,
+        'fecha_importacion2' => $fecha_importacion
+      ]);
+      
+      $this->_jugadoresTemp_ExportCSV($fhandle,$id_importacion_estado_jugador);
+      
+      DB::statement('DELETE FROM jugadores_temporal 
+      WHERE id_importacion_estado_jugador = :id_importacion_estado_jugador',[
+        'id_importacion_estado_jugador' => $id_importacion_estado_jugador,
+      ]);
+      
+      return $fhandle;
+    });
+  }
+  
   public function importarJugadores($archivo,$md5,$fecha,$id_plataforma){
     $time = time();
     $step = 0;

@@ -235,7 +235,7 @@ background-color: #4CAF50;
   <div class="col-md-2 col-sm-3">
     <div class="row">
       <div class="col-lg-12">
-        <a href="" id="btn-informe-demografico" style="text-decoration: none;">
+        <a href="" data-js-click-mostrar="[data-js-modal-informe-demografico]" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
           <div class="backgroundNuevo" style="background-color: #29615c !important;"></div>
@@ -251,50 +251,97 @@ background-color: #4CAF50;
         </a>
       </div>
     </div>
-  </div>
-</div>
-
-<div class="modal fade" id="modalInformeDemografico" tabindex="-1" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarVerificarEstados" type="button" class="close" 
-        data-toggle="collapse" data-minimizar="true" data-target="#modalInformeDemografico .collapse" style="position:relative; right:20px; top:5px">
-          <i class="fa fa-minus"></i>
-        </button>
-        <h3 class="modal-title">| INFORME DEMOGRAFICO</h3>
-      </div>
-      <div class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <div class="row">
-            <div class="col-md-6">
-              <h5>Mes</h5>
-              <div class="input-group date" id="dtpMesInformeDemografico">
-                <input type="text" class="form-control" data-date-format="yyyy-mm-dd" id="fechaImportacionEstados" autocomplete="off" style="background-color: rgb(255,255,255);">
-                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+    <div class="row">
+      <div class="col-lg-12">
+        <a href="" data-js-click-mostrar="[data-js-modal-descargar-jugadores]"  style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center>
+              <img class="imgNuevo" src="/img/logos/CSV_white.png">
+            </center>
+            <div class="backgroundNuevo"></div>
+            <div class="row">
+              <div class="col-xs-12">
+                <center>
+                  <h5 class="txtLogo" style="font-size: 165px !important;">↓</h5>
+                  <h4 class="txtNuevo"><br>DESCARGAR JUGADORES</h4>
+                </center>
               </div>
             </div>
-            <div class="col-md-6">
-              <h5 style="text-align: center">PLATAFORMA</h5>
-              <select id="plataformaInformeDemografico" class="form-control">
-                @foreach ($plataformas as $plataforma)
-                <option {!! $loop->first? 'selected default' : '' !!} value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
-                @endforeach
-              </select>
-            </div>
           </div>
-          <div class="row" id="animacionGenerando" style="text-align: center;" hidden>&nbsp;</div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-informeDemografico">VERIFICAR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-        </div>
+        </a>
       </div>
     </div>
   </div>
 </div>
+
+@component('Components/modal',[
+  'clases_modal' => 'modalInformeDemografico',
+  'attrs_modal' => 'data-js-modal-informe-demografico data-js-modal-aniomes-plataforma',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+])
+  @slot('titulo')
+  INFORME DEMOGRAFICO
+  @endslot
+  @slot('cuerpo')
+  <form class="row">
+      <div class="col-md-6">
+        <h5 style="text-align: center">AÑO-MES</h5>
+        @component('Components/inputFecha',[
+          'form_group_attrs' => 'style=""',
+          'attrs'            => "name='anio_mes'",
+          'attrs_dtp'        => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="year"',
+        ])
+        @endcomponent
+      </div>
+      <div class="col-md-6">
+        <h5 style="text-align: center">PLATAFORMA</h5>
+        <select name="id_plataforma" class="form-control">
+          @foreach ($plataformas as $plataforma)
+          <option value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
+          @endforeach
+        </select>
+      </div>
+  </form>
+  @endslot
+  @slot('pie')
+  <button type="button" class="btn btn-successAceptar" data-js-click-new-tab="informeEstadoJugadores/informeDemografico">INFORME</button>
+  @endslot
+@endcomponent
+
+@component('Components/modal',[
+  'clases_modal' => 'modalDescargarJugadores',
+  'attrs_modal' => 'data-js-modal-descargar-jugadores data-js-modal-aniomes-plataforma',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+])
+  @slot('titulo')
+  DESCARGAR JUGADORES
+  @endslot
+  @slot('cuerpo')
+  <form class="row">
+      <div class="col-md-6">
+        <h5 style="text-align: center">AÑO-MES</h5>
+        @component('Components/inputFecha',[
+          'form_group_attrs' => 'style=""',
+          'attrs'            => "name='anio_mes'",
+          'attrs_dtp'        => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="year"',
+        ])
+        @endcomponent
+      </div>
+      <div class="col-md-6">
+        <h5 style="text-align: center">PLATAFORMA</h5>
+        <select name="id_plataforma" class="form-control">
+          @foreach ($plataformas as $plataforma)
+          <option value="{{$plataforma->id_plataforma}}" data-codigo="{{$plataforma->codigo}}">{{$plataforma->nombre}}</option>
+          @endforeach
+        </select>
+      </div>
+  </form>
+  @endslot
+  @slot('pie')
+  <button type="button" class="btn btn-successAceptar" data-js-click-new-tab="informeEstadoJugadores/jugadoresZIP">DESCARGAR</button>
+  @endslot
+@endcomponent
+
 
 @if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_despacho)
 <div class="row">
@@ -432,7 +479,7 @@ background-color: #4CAF50;
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionInformeEstadoJugadores.js?8" charset="utf-8"></script>
+<script src="/js/seccionInformeEstadoJugadores.js?8" type="module" charset="utf-8"></script>
 <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="/js/md5.js?3" charset="utf-8"></script>
 <!-- Custom input Bootstrap -->

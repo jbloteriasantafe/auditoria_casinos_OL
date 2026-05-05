@@ -1,4 +1,10 @@
+import "/js/Components/modal.js";
+import "/js/Components/inputFecha.js";
+import {AUX} from "/js/Components/AUX.js";
+
 $(document).ready(function(){
+  cargar_codigo_viejo();//Ir moviendo de la forma antigua de carga a la nueva
+  
   const ddmmyy_dtp = {
     language:  'es',
     todayBtn:  1,
@@ -26,8 +32,46 @@ $(document).ready(function(){
   
   $('.tituloSeccionPantalla').text('Estado de Jugadores');
   $('#btn-buscar').trigger('click');
+  
+  $('[data-js-click-mostrar]').click(function(e){
+    e.preventDefault();
+    const tgt = $(e.currentTarget);
+    const a_mostrar = $(tgt.attr('data-js-click-mostrar'));
+    a_mostrar.trigger('mostrar');
+  });
+  
+  $('[data-js-modal-aniomes-plataforma]').each(function(_,Mobj){
+    const  M = $(Mobj);
+    const $M = M.find.bind(M);
+    
+    M.on('mostrar',function(e){
+      e.preventDefault();
+      $M('[name]').val('');
+      $M('select').each(function(_,sel){
+        $(sel).val($(sel).find('option:first').attr('value'));
+      });
+      const hoy = new Date();
+      $M('[data-js-fecha]').each(function(_,dtp){
+        $(dtp).data('datetimepicker').setDate(hoy);
+      });
+      M.modal('show');
+    });
+    
+    $M('[data-js-click-new-tab]').each(function(_,obj){
+      $(obj).click(function(e){
+        e.preventDefault();
+        const tgt = $M(e.currentTarget);
+        const url = tgt.attr('data-js-click-new-tab');
+        const form = $M('form')[0];
+        const params = new URLSearchParams(Object.fromEntries((new FormData(form))));
+        window.open(url+'?'+params,'_blank');
+      });
+    });
+  });
 });
 
+
+function cargar_codigo_viejo(){
 //PAGINACION
 $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true) {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
@@ -128,7 +172,7 @@ function clickIndice(e, pageNumber, tam,async = true) {
 function llenarFila(fila,jugador){
   const convertir_fecha = function(fecha){
     if(fecha == null || fecha.length == 0) return '-';
-    yyyymmdd = fecha.split('-');
+    const yyyymmdd = fecha.split('-');
     return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
   }
   const convertir_fechahora = function(fechahora){
@@ -484,3 +528,5 @@ $('#btn-informeDemografico').click(function(){
     mes: fecha[1]
   }),'_blank');
 });
+
+}

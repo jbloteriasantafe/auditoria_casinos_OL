@@ -363,15 +363,11 @@ class EstadoController extends Controller
   }
   
 public function informeDemografico(Request $request){
-    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if($user->plataformas()->where('plataforma.id_plataforma',$request->id_plataforma ?? -1)->count() <= 0)
-      return response()->json(["errores" => ["No puede acceder a la plataforma"]],422);
-      
-    $mes = intval($request->mes ?? 0);
-    $anio = intval($request->anio ?? 0);
-    if($mes == 0 || $anio == 0){
-      return response()->json(["errores" => ["Fecha faltante o formato incorrecto"]],422);
+    $result = $this->_validateAnioMesPlataforma($request);
+    if(count($result['errores'])){
+       return response()->json($result,422);
     }
+    extract($result);
     //Lo necesito para el indice de resumen_mensual
     //la busqueda igual es sobre todas las monedas
     $id_tms = \App\TipoMoneda::all()->pluck('id_tipo_moneda');
@@ -380,7 +376,7 @@ public function informeDemografico(Request $request){
     //despues los que tienen 18- años buscando dia a dia sobre cada detalle_producido_jugadores del mes
     $ultima_fecha_producido_mes = DB::table('producido_jugadores as pj')
     ->select('pj.fecha')
-    ->where('pj.id_plataforma','=',$request->id_plataforma)
+    ->where('pj.id_plataforma','=',$id_plataforma)
     ->where(DB::raw('YEAR(pj.fecha)'),'=',$anio)
     ->where(DB::raw('MONTH(pj.fecha)'),'=',$mes)
     ->orderBy('pj.fecha','desc')
@@ -388,7 +384,7 @@ public function informeDemografico(Request $request){
     
     $primer_fecha_producido_mes = DB::table('producido_jugadores as pj')
     ->select('pj.fecha')
-    ->where('pj.id_plataforma','=',$request->id_plataforma)
+    ->where('pj.id_plataforma','=',$id_plataforma)
     ->where(DB::raw('YEAR(pj.fecha)'),'=',$anio)
     ->where(DB::raw('MONTH(pj.fecha)'),'=',$mes)
     ->orderBy('pj.fecha','asc')
@@ -419,7 +415,7 @@ public function informeDemografico(Request $request){
     END';
     
     $q = DB::table('jugador as j')
-    ->where('j.id_plataforma','=',$request->id_plataforma)
+    ->where('j.id_plataforma','=',$id_plataforma)
     ->where('j.fecha_importacion','<=',$ultimo_dia_mes)
     ->where('j.valido_hasta','>=',$ultimo_dia_mes);
     
@@ -429,8 +425,8 @@ public function informeDemografico(Request $request){
     foreach($id_tms as $id_tm){
       $rjt = "rj{$id_tm}";
       $rjts[] = $rjt;
-      $q = $q->leftJoin("resumen_mensual_producido_jugadores as $rjt",function($j) use ($rjt,$request,$id_tm,$primer_dia_mes){
-        return $j->where("$rjt.id_plataforma",'=',$request->id_plataforma)
+      $q = $q->leftJoin("resumen_mensual_producido_jugadores as $rjt",function($j) use ($rjt,$id_plataforma,$id_tm,$primer_dia_mes){
+        return $j->where("$rjt.id_plataforma",'=',$id_plataforma)
         ->where("$rjt.id_tipo_moneda",'=',$id_tm)
         ->where("$rjt.aniomes",'=',$primer_dia_mes)
         ->on("$rjt.jugador",'=','j.codigo');
@@ -450,13 +446,13 @@ public function informeDemografico(Request $request){
         
     $no_en_bd = DB::table('resumen_mensual_producido_jugadores as rj')
     ->selectRaw("rj.jugador as jugador,SUM(IFNULL(rj.apuesta <> 0,0)+IFNULL(rj.premio <> 0,0)+IFNULL(rj.beneficio <> 0,0)) > 0 as jugo")
-    ->leftJoin('jugador as j',function($j) use ($request,$ultimo_dia_mes){
-      return $j->where('j.id_plataforma','=',$request->id_plataforma)
+    ->leftJoin('jugador as j',function($j) use ($id_plataforma,$ultimo_dia_mes){
+      return $j->where('j.id_plataforma','=',$id_plataforma)
       ->where('j.fecha_importacion','<=',$ultimo_dia_mes)
       ->where('j.valido_hasta','>=',$ultimo_dia_mes)
       ->on('rj.jugador','=','j.codigo');
     })
-    ->where('rj.id_plataforma','=',$request->id_plataforma)
+    ->where('rj.id_plataforma','=',$id_plataforma)
     ->where('rj.aniomes','=',$primer_dia_mes)
     ->whereIn('rj.id_tipo_moneda',$id_tms)
     ->whereNull('j.codigo')
@@ -487,12 +483,12 @@ public function informeDemografico(Request $request){
         ))
       ) as edad,
       SUM(IFNULL(dpj.apuesta <> 0,0)+IFNULL(dpj.premio <> 0,0)+IFNULL(dpj.beneficio <> 0,0)) > 0 as jugo")
-    ->where('j.id_plataforma','=',$request->id_plataforma)
+    ->where('j.id_plataforma','=',$id_plataforma)
     ->where('j.fecha_importacion','<=',$ultimo_dia_mes)
     ->where('j.valido_hasta','>=',$ultimo_dia_mes)
     ->whereIn('j.codigo',$posibles_menores_en_bd->pluck('jugador'))
-    ->leftJoin('producido_jugadores as pj',function($j) use ($request,$id_tms,$primer_fecha_producido_mes,$ultima_fecha_producido_mes){
-      return $j->where("pj.id_plataforma",'=',$request->id_plataforma)
+    ->leftJoin('producido_jugadores as pj',function($j) use ($id_plataforma,$id_tms,$primer_fecha_producido_mes,$ultima_fecha_producido_mes){
+      return $j->where("pj.id_plataforma",'=',$id_plataforma)
       ->whereIn("pj.id_tipo_moneda",$id_tms)
       ->where("pj.fecha",">=",$primer_fecha_producido_mes)
       ->where("pj.fecha","<=",$ultima_fecha_producido_mes);
@@ -513,7 +509,7 @@ public function informeDemografico(Request $request){
       }
     }
     
-    $plataforma = Plataforma::find($request->id_plataforma);
+    $plataforma = Plataforma::find($id_plataforma);
     $cod_plataforma = $plataforma->codigo;
     $plataforma = $plataforma->nombre;
     
@@ -521,7 +517,7 @@ public function informeDemografico(Request $request){
     $uF = (new \DateTimeImmutable($ultima_fecha_producido_mes))->format('ymd');
     $bdF = DB::table('importacion_estado_jugador')
     ->select('fecha_importacion')
-    ->where('id_plataforma','=',$request->id_plataforma)
+    ->where('id_plataforma','=',$id_plataforma)
     ->where('fecha_importacion','<=',$ultimo_dia_mes)
     ->orderBy('fecha_importacion','desc')
     ->first();
@@ -539,6 +535,75 @@ public function informeDemografico(Request $request){
     $dompdf->getCanvas()->page_text(20, 815, "[Producido $pF-$uF | Jugadores $bdF]", $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf->stream("informeDemografico-$cod_plataforma-{$pF}a{$uF}BD{$bdF}.pdf",['Attachment'=>0]);
+  }
+  
+  private function _validateAnioMesPlataforma(Request $request){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $errores = [];
+    $id_plataforma = $request->id_plataforma ?? -1;
+    if($user->plataformas()->where('plataforma.id_plataforma',$id_plataforma)->count() <= 0){
+      $errores[] = "No puede acceder a la plataforma";
+    }
+    
+    $anio_mes = $request->anio_mes ?? '';
+    $anio_mes = explode('-',$anio_mes);
+    $anio = intval($anio_mes[0] ?? -1);
+    $mes = intval($anio_mes[1] ?? -1);
+    if($mes == -1 || $anio == -1){
+      $errores[] = "Fecha faltante o formato incorrecto";
+    }
+    
+    return compact('anio','mes','id_plataforma','errores');
+  }
+  
+  public function jugadoresZIP(Request $request){
+    $result = $this->_validateAnioMesPlataforma($request);
+    if(count($result['errores']) > 0){
+      return response()->json($result,422);
+    }
+    
+    extract($result);
+    $anio_mes = str_pad($anio,4,'0',STR_PAD_LEFT).'-'.str_pad($mes,2,'0',STR_PAD_LEFT);
+    $ultimo_dia_mes = $anio_mes.'-'.str_pad(cal_days_in_month(CAL_GREGORIAN,$mes,$anio),2,'0',STR_PAD_LEFT); 
+      
+    $LCSVC = LectorCSVController::getInstancia();
+    $csvfhandle = tmpfile();
+    $LCSVC->jugadoresExportCSV($csvfhandle,$id_plataforma,$ultimo_dia_mes);
+    rewind($csvfhandle);
+    
+    $timestamp = new \DateTimeImmutable();
+    $codigo_plat = Plataforma::find($id_plataforma)->codigo;
+    $ultimo_dia_mes = str_replace('-','',$ultimo_dia_mes);
+    $filename = 'jugadores_'.$codigo_plat.'_'.$ultimo_dia_mes.'_'.$timestamp->format('Ymdhis');
+    
+    extract($this->CSV_a_ZIP($csvfhandle,$filename));
+    
+    return response()->download($filepathzip,$filenamezip,$headers)->deleteFileAfterSend(true);
+  }
+  
+  private function CSV_a_ZIP($csvfhandle,$filename){
+    $filepathcsv = stream_get_meta_data($csvfhandle)['uri'];
+    $md5 = md5_file($filepathcsv);
+    if($md5 === false){
+      return response()->json(['error' => ['NO SE PUEDE CREAR EL MD5']],500);
+    }
+    
+    $filenamezip = $filename.'.zip';
+    $filepathzip = tempnam('','');
+    $zip = new \ZipArchive();
+    if($zip->open($filepathzip,\ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true){
+      return response()->json(['error' => ['NO SE PUEDE CREAR EL ZIP']],500);
+    }
+    
+    $zip->addFromString($filename.'.md5',$md5);
+    $zip->addFile(stream_get_meta_data($csvfhandle)['uri'],$filename.'.csv');
+    $zip->close();
+    
+    $headers = [
+      "Content-type" => "application/zip",
+    ];
+    
+    return compact('filepathzip','filenamezip','headers');
   }
 }
 

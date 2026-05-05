@@ -407,6 +407,7 @@ Route::group(['prefix' => 'informeEstadoJugadores', 'middleware' => 'tiene_permi
   Route::get('/historial', 'EstadoController@historialJugador');
   Route::post('/importarJugadores', 'ImportacionController@importarJugadores');
   Route::get('/informeDemografico', 'EstadoController@informeDemografico');
+  Route::get('/jugadoresZIP', 'EstadoController@jugadoresZIP');
 });
 Route::group(['prefix' => 'informeEstadoJuegos', 'middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {
   Route::get('/', 'EstadoController@informeEstadoJuegos');
