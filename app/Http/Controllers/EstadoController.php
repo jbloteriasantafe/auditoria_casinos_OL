@@ -567,9 +567,19 @@ public function informeDemografico(Request $request){
     $ultimo_dia_mes = $anio_mes.'-'.str_pad(cal_days_in_month(CAL_GREGORIAN,$mes,$anio),2,'0',STR_PAD_LEFT); 
       
     $LCSVC = LectorCSVController::getInstancia();
-    $csvfhandle = tmpfile();
+    
+    $MB500 = 1024*1024*500;
+    $csvfhandle = fopen("php://temp/maxmemory:$MB500", 'r+');
+    //Guardo en memoria para que no sea tan lento
     $LCSVC->jugadoresExportCSV($csvfhandle,$id_plataforma,$ultimo_dia_mes);
     rewind($csvfhandle);
+    
+    //Una vez que ya proceso todo pongo todo en un archivo temporal
+    $aux = tmpfile();
+    file_put_contents(stream_get_meta_data($aux)['uri'],$csvfhandle);//Escribe todo en 1 call
+    rewind($aux);
+    fclose($csvfhandle);
+    $csvfhandle = $aux;
     
     $timestamp = new \DateTimeImmutable();
     $codigo_plat = Plataforma::find($id_plataforma)->codigo;
