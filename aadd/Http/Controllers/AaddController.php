@@ -9,6 +9,6 @@ class AaddController extends Controller
 {
     public function index()
     {
-        return view()->file(base_path('aadd/Views/index.blade.php'));
+        return view('aadd::index');
     }
 }
