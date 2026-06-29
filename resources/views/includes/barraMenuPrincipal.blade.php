@@ -170,6 +170,14 @@
       @endcomponent
     @endif
   @endforeach
+  <div class="card" style="width:5vw;flex: unset;">
+    <a class="etiquetaIconoApuestasDeportivas" tabindex="-1" href="#">
+      @component('includes.barraMenuPrincipal_texto_con_icono',[
+        'icono' => '<img src="/img/logos/icono_apuestas_deportivas.svg">',
+      ])
+      @endcomponent
+    </a>
+  </div>
   <div class="card dropdown" style="width: 5vw;flex: unset;"  onclick="markNotificationAsRead('{{count($usuario->unreadNotifications)}}')">
     <a class="dropdown-toggle no_abrir_en_mouseenter" type="button" data-toggle="dropdown">
       @component('includes.barraMenuPrincipal_texto_con_icono',[

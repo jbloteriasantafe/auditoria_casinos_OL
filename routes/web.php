@@ -453,3 +453,6 @@ Route::group(['prefix' => 'backoffice', 'middleware' => 'tiene_permiso:informes_
   Route::post('buscar', 'BackOfficeController@buscar');
   Route::post('descargar', 'BackOfficeController@descargar');
 });
+
+require __DIR__ . '/../aadd/routes.php';
+
