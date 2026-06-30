@@ -48,6 +48,8 @@
                                 </tbody>
                             </table>
                         </div>
+
+
                     </div>
                 </div>
             </div>
@@ -63,6 +65,9 @@
                 <p>Este submódulo fue diseñado para trabajar de forma modular y autónoma dentro del directorio <code>aadd/</code>, sin afectar el núcleo de la aplicación (<code>app/</code>).</p>
                 <a href="/aadd/documentacion.md" target="_blank" class="btn btn-primary btn-block" style="margin-top: 15px;">
                     <i class="fa fa-book"></i> Ver Documentación
+                </a>
+                <a href="/aadd/importaciones" target="_blank" class="btn btn-primary btn-block" style="margin-top: 15px;">
+                    <i class="fa fa-book"></i> Importador de archivos
                 </a>
             </div>
         </div>
