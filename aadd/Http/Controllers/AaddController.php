@@ -32,57 +32,74 @@ class AaddController extends Controller
     }
 
     /**
-     * Recibe la petición HTTP con el archivo subido desde el formulario,
-     * lo valida, lo guarda físicamente en la carpeta de imports y devuelve
-     * el resultado de la operación a la vista.
+     * Recibe la petición HTTP con los archivos subidos desde el formulario,
+     * los valida, los guarda físicamente en la carpeta de imports asignando la plataforma
+     * y devuelve el resultado de la operación en formato JSON usando DTOs.
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\View\View
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View
      */
     public function importar(Request $request)
     {
-        // 1. Validar que el archivo exista y no exceda los 10MB
+        // 1. Validar que vengan arrays de archivos y plataformas
         $this->validate($request, [
-            'archivo' => 'required|file|max:10240',
+            'archivos' => 'required|array',
+            'archivos.*' => 'file|max:10240',
+            'plataformas' => 'required|array',
         ]);
 
-        $file = $request->file('archivo');
+        $archivos = $request->file('archivos');
+        $plataformas = $request->input('plataformas');
         
-        // 2. Obtener y limpiar la extensión original del archivo a minúsculas
-        $extension = strtolower($file->getClientOriginalExtension());
-        
-        // 3. Validar manualmente la extensión permitida (evitando fallos de tipos MIME)
-        if (!in_array($extension, ['csv', 'xlsx', 'xls'])) {
-            return back()->withErrors(['archivo' => 'El archivo debe ser de tipo: csv, xlsx, xls.']);
-        }
-        
-        /* Esto luego es ir a la bd */
-
-        // 4. Construir las rutas de destino absolutas (directamente dentro del módulo AADD)
+        $resultados = [];
         $destinationPath = base_path('aadd/Storage/Imports');
-        
-        // 5. Generar un nombre único para el archivo usando el tiempo actual (timestamp)
-        $fileName = time() . '_' . $file->getClientOriginalName();
-        
-        // 6. Mover físicamente el archivo temporal subido hacia nuestra carpeta destino segura
-        $file->move($destinationPath, $fileName);
-        
-        // 7. Preparar las rutas para mostrar en el mensaje de éxito o usarlas a futuro
-        $path = 'aadd/storage/imports/' . $fileName;
-        $fullPath = $destinationPath . '/' . $fileName;
-    
-        $mensaje = '';
 
-        // 8. Verificar que la instancia del archivo sigue existiendo y setear el mensaje de estado
-        if ($file) {
-            $mensaje = 'Archivo subido y guardado correctamente en: ' . $path . '.';
-        } else {
-            $mensaje = 'No se pudo leer el archivo';
+        foreach ($archivos as $index => $file) {
+            $nombreOriginal = $file->getClientOriginalName();
+            $plataforma = isset($plataformas[$index]) ? $plataformas[$index] : 'Desconocida';
+            $extension = strtolower($file->getClientOriginalExtension());
+            
+            // Validar extensión
+            if (!in_array($extension, ['csv', 'xlsx', 'xls'])) {
+                $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearError(
+                    $nombreOriginal, 
+                    $plataforma, 
+                    'Extensión inválida. Solo csv, xlsx, xls.'
+                );
+                continue;
+            }
+
+            try {
+                // Generar un nombre único para el archivo
+                $fileName = time() . '_' . $plataforma . '_' . $nombreOriginal;
+                
+                // Mover físicamente el archivo
+                $file->move($destinationPath, $fileName);
+                $path = 'aadd/storage/imports/' . $fileName;
+
+                $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearExito(
+                    $nombreOriginal, 
+                    $plataforma, 
+                    $path,
+                    'Guardado con éxito'
+                );
+            } catch (\Exception $e) {
+                $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearError(
+                    $nombreOriginal, 
+                    $plataforma, 
+                    'Error al guardar en disco: ' . $e->getMessage()
+                );
+            }
         }
 
-        // 9. Retornar a la vista de importaciones con los mensajes resultantes
+        if ($request->ajax()) {
+            return response()->json($resultados);
+        }
+
+        // Fallback en caso de que no sea AJAX
         return view('aadd::importaciones', [
-            'mensaje' => $mensaje
+            'mensaje' => 'Archivos procesados.',
+            'resultados' => $resultados
         ]);
     }
 }
