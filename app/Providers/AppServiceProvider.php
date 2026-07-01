@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        View::addNamespace('aadd', base_path('aadd/Views'));
+        //
     }
 
     /**

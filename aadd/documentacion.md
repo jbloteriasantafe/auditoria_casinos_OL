@@ -15,13 +15,32 @@ El submódulo está contenido enteramente bajo la raíz del directorio `aadd/` e
   - `Views/`
     - `index.blade.php` (Plantilla de presentación visual de la sección)
     - `menu_item.blade.php` (Botón de acceso directo en la barra de navegación)
+  - `Providers/`
+    - `AaddServiceProvider.php` (Proveedor de servicios para inicializar y desacoplar vistas y migraciones. Análogo a `app/Providers/appServiceProvider.php`)
+  - `Database/`
+    - `Migrations/` (Migraciones exclusivas de la base de datos del módulo)
+  - `Entities/` (Entidades/Modelos Eloquent del módulo)
+    - `Archivo.php`
+    - `BeneficioDiario.php`
+    - `BeneficioMensual.php`
+  - `Actions/` (Acciones/Casos de uso del módulo)
+    - `CargarArchivoAction.php` (Guarda el archivo subido en la base de datos)
+    - `ProcesarArchivoAction.php` (Mapea el contenido del archivo usando la estrategia correspondiente y lo persiste)
+    - `Estrategias/`
+      - `EstrategiaMapeo.php` (Interfaz de estrategia de mapeo)
+      - `MapeadorGenerico.php` (Mapeador placeholder para testing)
+  - `Enums/` (Clases emuladoras de enums)
+    - `Plataforma.php`
+    - `TipoArchivo.php`
 
 ### Dependencias en otros directorios
 
 - `routes/web.php`: Se agregó la línea `require __DIR__ . '/../aadd/routes.php';` para importar las rutas del módulo.
 - `composer.json`: Se agregó `autoload.psr-4.AADD` para que el autoloader cargue el namespace `AADD/`.
-- `app/Providers/AppServiceProvider.php`: Se agregó la línea `View::addNamespace('aadd', base_path('aadd/Views'));` en el método `boot()` para poder definir vistas fuera de `resources/views/` (en `aadd/Views`).
+- `config/app.php`: Se registró el proveedor de servicios `AADD\Providers\AaddServiceProvider::class` dentro del arreglo de `providers`.
 - `resources/views/includes/barraMenuPrincipal.blade.php`: Se agregó la línea `@include('aadd::menu_item')` para que el submódulo sea accesible desde la barra de menú principal mediante su propio componente.
+
+---
 
 ## Configuración de Autoload (Composer)
 
@@ -42,20 +61,49 @@ El espacio de nombres `AADD` ha sido mapeado a la carpeta `aadd/` a través de P
 > composer dump-autoload
 > ```
 
-## Configuración del Namespace de Vistas
+---
 
-Para evitar cargar las plantillas mediante rutas absolutas y permitir una integración limpia, se registra el namespace de vistas `aadd` en `app/Providers/AppServiceProvider.php` en el método `boot()`:
+## Configuración del Proveedor de Servicios (`AaddServiceProvider`)
+
+Para desacoplar el módulo y facilitar su posterior extracción, todas las inicializaciones se gestionan a través de `AADD\Providers\AaddServiceProvider`. En su método `boot()` se registran:
+
+1. **El espacio de nombres de vistas (`aadd`)**: Permite referenciar las vistas con el prefijo `aadd::` (por ejemplo: `aadd::index`).
+2. **Las migraciones del módulo**: Informa a Laravel dónde buscar las migraciones específicas de este módulo.
 
 ```php
-use Illuminate\Support\Facades\View;
-
 public function boot()
 {
+    // Registrar el espacio de nombres para las vistas del módulo AADD
     View::addNamespace('aadd', base_path('aadd/Views'));
+
+    // Cargar las migraciones del módulo de forma automática
+    $this->loadMigrationsFrom(base_path('aadd/Database/Migrations'));
 }
 ```
 
-Esto permite hacer referencia a las vistas del submódulo usando el prefijo `aadd::` (por ejemplo: `@include('aadd::menu_item')` o `view('aadd::index')`).
+---
+
+## Gestión de Base de Datos y Migraciones
+
+El módulo cuenta con su propio directorio de migraciones bajo `aadd/Database/Migrations/`.
+
+### Crear una nueva migración
+Para crear una migración que pertenezca exclusivamente a este módulo, se debe utilizar el comando de Artisan indicando la ruta mediante el parámetro `--path`:
+
+```bash
+php artisan make:migration crear_tabla_ejemplo_aadd --path=aadd/Database/Migrations
+```
+
+### Ejecutar las migraciones
+Debido a que el módulo registra su ruta de migraciones mediante el método `loadMigrationsFrom` en `AaddServiceProvider`, no es necesario especificar la ruta al ejecutar las migraciones globales:
+
+```bash
+php artisan migrate
+```
+
+Las migraciones de este módulo se ejecutarán automáticamente junto con las de la aplicación principal.
+
+---
 
 ## Enrutamiento y Control de Acceso
 
@@ -67,6 +115,8 @@ Dado que se incluyen en `routes/web.php`, heredan el grupo de middleware `web` p
   - **Acción:** `AADD\Http\Controllers\AaddController@index`
   - **Middleware:** `tiene_permiso` (fuerza la autenticación básica del usuario)
   - **Comportamiento:** Renderiza la vista visual `index.blade.php` a través de la carga por namespace (`aadd::index`).
+
+---
 
 ## Controladores y Vistas
 
