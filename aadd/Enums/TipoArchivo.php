@@ -2,6 +2,8 @@
 
 namespace AADD\Enums;
 
+// TODO: enums no existen en php 7.0
+// Corregir al migrar.
 class TipoArchivo
 {
     const BENEFICIO_DIARIO = 'BENEFICIO_DIARIO';
