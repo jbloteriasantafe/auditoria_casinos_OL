@@ -14,7 +14,7 @@ El submódulo está contenido enteramente bajo la raíz del directorio `aadd/` e
       - `AaddController.php` (Controlador encargado de responder a las rutas)
   - `Views/`
     - `index.blade.php` (Plantilla de presentación visual de la sección)
-    - `menu_item.blade.php` (Botón de acceso directo en la barra de navegación)
+    - `itemBarraMenuPrincipal.blade.php` (Botón de acceso directo en la barra de navegación)
   - `Providers/`
     - `AaddServiceProvider.php` (Proveedor de servicios para inicializar y desacoplar vistas y migraciones. Análogo a `app/Providers/appServiceProvider.php`)
   - `Database/`
@@ -86,6 +86,11 @@ public function boot()
 ## Gestión de Base de Datos y Migraciones
 
 El módulo cuenta con su propio directorio de migraciones bajo `aadd/Database/Migrations/`.
+
+### Configuración de la Conexión de Base de Datos
+El módulo opera sobre una base de datos independiente llamada `aadd`. Para esto se configuró la conexión `'aadd'` en `config/database.php`, la cual comparte el mismo servidor y credenciales que la conexión `'mysql'` por defecto, pero apunta al esquema `'aadd'`. 
+
+Tanto las migraciones del módulo (mediante `Schema::connection('aadd')`) como las entidades/modelos (`protected $connection = 'aadd';`) están forzados a ejecutarse sobre esta conexión.
 
 ### Crear una nueva migración
 Para crear una migración que pertenezca exclusivamente a este módulo, se debe utilizar el comando de Artisan indicando la ruta mediante el parámetro `--path`:

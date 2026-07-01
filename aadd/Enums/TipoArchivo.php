@@ -4,8 +4,7 @@ namespace AADD\Enums;
 
 class TipoArchivo
 {
-    const DIARIO = 'diario';
-    const MENSUAL = 'mensual';
+    const BENEFICIO_DIARIO = 'BENEFICIO_DIARIO';
 
     /**
      * Obtener todos los tipos de archivo disponibles.
@@ -15,8 +14,7 @@ class TipoArchivo
     public static function obtenerTodos()
     {
         return [
-            self::DIARIO => 'Diario',
-            self::MENSUAL => 'Mensual',
+            self::BENEFICIO_DIARIO,
         ];
     }
 }

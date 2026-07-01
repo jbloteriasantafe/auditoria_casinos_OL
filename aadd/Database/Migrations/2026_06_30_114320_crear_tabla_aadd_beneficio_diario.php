@@ -13,9 +13,9 @@ class CrearTablaAaddBeneficioDiario extends Migration
      */
     public function up()
     {
-        Schema::create('aadd_t_beneficio_diario', function (Blueprint $tabla) {
+        Schema::connection('aadd')->create('aadd_t_beneficio_diario', function (Blueprint $tabla) {
             $tabla->increments('id');
-            $tabla->unsignedInteger('id_plataforma'); // Identificador de la plataforma (enum en PHP)
+            $tabla->string('id_plataforma', 50); // Identificador de la plataforma (enum en PHP)
             $tabla->unsignedInteger('id_archivo'); // Relación con el archivo de origen
             $tabla->timestampTz('fecha'); // Fecha y hora exacta (con zona horaria)
             $tabla->integer('jugadores_activos'); // Cantidad de jugadores activos en el día
@@ -39,6 +39,6 @@ class CrearTablaAaddBeneficioDiario extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('aadd_t_beneficio_diario');
+        Schema::connection('aadd')->dropIfExists('aadd_t_beneficio_diario');
     }
 }

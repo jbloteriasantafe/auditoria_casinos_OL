@@ -27,11 +27,12 @@
                                 <div id="listaArchivosPreview" style="display: none; max-height: 300px; overflow-y: auto;">
                                     <table class="table table-bordered table-striped" style="margin-bottom: 0;">
                                         <thead>
-                                            <tr>
+                                             <tr>
                                                 <th>Archivo</th>
-                                                <th style="width: 45%;">Plataforma</th>
+                                                <th style="width: 35%;">Plataforma</th>
+                                                <th style="width: 25%;">Fecha</th>
                                                 <th style="width: 15%;">Estado</th>
-                                            </tr>
+                                             </tr>
                                         </thead>
                                         <tbody id="tbodyArchivosPreview">
                                             <!-- Filas generadas por JS -->

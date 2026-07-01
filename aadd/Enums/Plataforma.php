@@ -4,8 +4,12 @@ namespace AADD\Enums;
 
 class Plataforma
 {
-    const PLATAFORMA_A = 1;
-    const PLATAFORMA_B = 2;
+    const BPLAY = 'BPLAY';
+    const CITYCENTER = 'CITYCENTER';
+    const JUGADON = 'JUGADON';
+    const BETWARRIOR = 'BETWARRIOR';
+    const BETSON = 'BETSON';
+    const BET365 = 'BET365';
 
     /**
      * Obtener todas las plataformas disponibles.
@@ -15,8 +19,25 @@ class Plataforma
     public static function obtenerTodas()
     {
         return [
-            self::PLATAFORMA_A => 'Plataforma A',
-            self::PLATAFORMA_B => 'Plataforma B',
+            self::BPLAY,
+            self::CITYCENTER,
+            self::JUGADON,
+            self::BETWARRIOR,
+            self::BETSON,
+            self::BET365,
         ];
+    }
+
+    /**
+     * Obtener el ID de la plataforma a partir de su representación en string.
+     *
+     * @param string $nombre
+     * @return string|null
+     */
+    public static function obtenerIdDesdeString($nombre)
+    {
+        $todas = self::obtenerTodas();
+        $nombreUpper = strtoupper($nombre);
+        return in_array($nombreUpper, $todas) ? $nombreUpper : null;
     }
 }

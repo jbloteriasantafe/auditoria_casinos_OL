@@ -14,19 +14,24 @@ class CrearTablaAaddArchivo extends Migration
      */
     public function up()
     {
-        Schema::create('aadd_t_archivo', function (Blueprint $tabla) {
+        Schema::connection('aadd')->create('aadd_t_archivo', function (Blueprint $tabla) {
             $tabla->increments('id');
             $tabla->string('nombre'); // Nombre original del archivo
             $tabla->binary('contenido'); // Contenido binario del archivo
-            $tabla->unsignedInteger('id_plataforma'); // Identificador de la plataforma (enum en PHP)
+            $tabla->string('id_plataforma', 50); // Identificador de la plataforma (enum en PHP)
             $tabla->date('fecha'); // Fecha asociada al archivo
             $tabla->string('tipo_archivo'); // Tipo de archivo (enum en PHP)
             $tabla->timestamps();
+
+            // Índices para optimizar consultas por rango de fecha y selección del último ID
+            $tabla->index('fecha');
+            $tabla->index(['id_plataforma', 'fecha']);
         });
 
         // Modificar la columna contenido para soportar archivos de hasta 16MB (MediumBlob) en MySQL
-        if (config('database.default') === 'mysql') {
-            DB::statement("ALTER TABLE aadd_t_archivo MODIFY contenido MEDIUMBLOB");
+        // TODO: Revisar, corresponde chequear tamaño de archivos antes de subir a BD? 
+        if (config('database.connections.aadd.driver') === 'mysql') {
+            DB::connection('aadd')->statement("ALTER TABLE aadd_t_archivo MODIFY contenido MEDIUMBLOB");
         }
     }
 
@@ -37,6 +42,6 @@ class CrearTablaAaddArchivo extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('aadd_t_archivo');
+        Schema::connection('aadd')->dropIfExists('aadd_t_archivo');
     }
 }

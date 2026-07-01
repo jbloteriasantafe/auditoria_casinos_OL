@@ -12,16 +12,17 @@ class CargarArchivoAction
      *
      * @param UploadedFile $archivoSubido
      * @param string $tipoArchivo
-     * @param int $idPlataforma
+     * @param string $idPlataforma
+     * @param string $fecha
      * @return Archivo
      */
-    public function ejecutar(UploadedFile $archivoSubido, $tipoArchivo, $idPlataforma)
+    public function ejecutar(UploadedFile $archivoSubido, $tipoArchivo, $idPlataforma, $fecha)
     {
         $entidadArchivo = new Archivo();
         $entidadArchivo->nombre = $archivoSubido->getClientOriginalName();
         $entidadArchivo->contenido = file_get_contents($archivoSubido->getRealPath());
         $entidadArchivo->id_plataforma = $idPlataforma;
-        $entidadArchivo->fecha = date('Y-m-d'); // Fecha de la carga
+        $entidadArchivo->fecha = $fecha;
         $entidadArchivo->tipo_archivo = $tipoArchivo;
         $entidadArchivo->save();
 

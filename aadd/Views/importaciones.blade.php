@@ -44,6 +44,7 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
+    var plataformas = {!! json_encode($plataformas) !!};
     var archivosSeleccionados = [];
 
     // Cuando se seleccionan archivos
@@ -55,15 +56,12 @@ $(document).ready(function() {
         if(archivosSeleccionados.length > 0) {
             $('#listaArchivosPreview').show();
             
-            var opcionesPlataforma = `
-                <option value="" disabled selected>Seleccione...</option>
-                <option value="BPLAY">BPLAY</option>
-                <option value="CITYCENTER">CITYCENTER</option>
-                <option value="JUGADON">JUGADON</option>
-                <option value="BETWARRIOR">BETWARRIOR</option>
-                <option value="BETSON">BETSON</option>
-                <option value="BET365">BET365</option>
-            `;
+            var opcionesPlataforma = '<option value="" disabled selected>Seleccione...</option>';
+            plataformas.forEach(function(platNombre) {
+                opcionesPlataforma += '<option value="' + platNombre + '">' + platNombre + '</option>';
+            });
+
+            var hoy = "{{ date('Y-m-d') }}";
 
             archivosSeleccionados.forEach(function(archivo, index) {
                 var tr = $('<tr>').attr('data-index', index);
@@ -73,9 +71,12 @@ $(document).ready(function() {
                 var selectPlataforma = $('<select>').addClass('form-control select-plataforma').prop('required', true).html(opcionesPlataforma);
                 var tdPlataforma = $('<td>').append(selectPlataforma);
                 
+                var inputFecha = $('<input>').attr('type', 'date').addClass('form-control input-fecha').val(hoy).prop('required', true);
+                var tdFecha = $('<td>').append(inputFecha);
+                
                 var tdEstado = $('<td>').addClass('td-estado').html('<span class="text-muted"><i class="fa fa-clock-o"></i> Pendiente</span>');
 
-                tr.append(tdNombre).append(tdPlataforma).append(tdEstado);
+                tr.append(tdNombre).append(tdPlataforma).append(tdFecha).append(tdEstado);
                 tbody.append(tr);
             });
         } else {
@@ -91,17 +92,18 @@ $(document).ready(function() {
             return;
         }
 
-        // Validar que todos tengan plataforma seleccionada
-        var faltaPlataforma = false;
+        // Validar que todos tengan plataforma y fecha seleccionada
+        var faltaDatos = false;
         $('#tbodyArchivosPreview tr').each(function() {
-            var val = $(this).find('.select-plataforma').val();
-            if(!val) {
-                faltaPlataforma = true;
+            var plat = $(this).find('.select-plataforma').val();
+            var fecha = $(this).find('.input-fecha').val();
+            if(!plat || !fecha) {
+                faltaDatos = true;
             }
         });
 
-        if (faltaPlataforma) {
-            $('#errorAjaxForm').text('Debe seleccionar la plataforma para todos los archivos.').show();
+        if (faltaDatos) {
+            $('#errorAjaxForm').text('Debe seleccionar la plataforma y la fecha para todos los archivos.').show();
             return;
         }
 
@@ -109,14 +111,16 @@ $(document).ready(function() {
         // Agregar token CSRF
         formData.append('_token', $('input[name="_token"]').val());
 
-        // Recorrer filas para empaquetar archivo original + plataforma
+        // Recorrer filas para empaquetar archivo original + plataforma + fecha
         $('#tbodyArchivosPreview tr').each(function() {
             var index = $(this).attr('data-index');
             var plataforma = $(this).find('.select-plataforma').val();
+            var fecha = $(this).find('.input-fecha').val();
             var archivo = archivosSeleccionados[index];
             
             formData.append('archivos[]', archivo);
             formData.append('plataformas[]', plataforma);
+            formData.append('fechas[]', fecha);
         });
 
         $('#errorAjaxForm').hide().text('');
@@ -125,6 +129,7 @@ $(document).ready(function() {
         // Deshabilitar UI
         $(this).prop('disabled', true).text('IMPORTANDO...');
         $('.select-plataforma').prop('disabled', true);
+        $('.input-fecha').prop('disabled', true);
         $('#archivoModal').prop('disabled', true);
         
         // Limpiar estados previos
@@ -161,6 +166,7 @@ $(document).ready(function() {
             error: function(data) {
                 $('#btn-importar-ajax').prop('disabled', false).text('IMPORTAR');
                 $('.select-plataforma').prop('disabled', false);
+                $('.input-fecha').prop('disabled', false);
                 $('#archivoModal').prop('disabled', false);
                 $('.td-estado').html('<span class="text-danger"><i class="fa fa-times"></i> Falló</span>');
                 
@@ -185,6 +191,7 @@ $(document).ready(function() {
         $('#listaArchivosPreview').hide();
         $('#btn-importar-ajax').prop('disabled', false).text('IMPORTAR');
         $('.select-plataforma').prop('disabled', false);
+        $('.input-fecha').prop('disabled', false);
         $('#archivoModal').prop('disabled', false);
         archivosSeleccionados = [];
     });

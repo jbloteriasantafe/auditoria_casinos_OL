@@ -26,8 +26,10 @@ class AaddController extends Controller
      */
     public function importaciones()
     {
+        $plataformas = \AADD\Enums\Plataforma::obtenerTodas();
         return view('aadd::importaciones', [
-            'mensaje' => null            // Sin mensajes al cargar la página por primera vez
+            'mensaje' => null,
+            'plataformas' => $plataformas
         ]);
     }
 
@@ -41,53 +43,65 @@ class AaddController extends Controller
      */
     public function importar(Request $request)
     {
-        // 1. Validar que vengan arrays de archivos y plataformas
+        // 1. Validar que vengan arrays de archivos, plataformas y fechas
         $this->validate($request, [
             'archivos' => 'required|array',
             'archivos.*' => 'file|max:10240',
             'plataformas' => 'required|array',
+            'fechas' => 'required|array',
         ]);
 
         $archivos = $request->file('archivos');
         $plataformas = $request->input('plataformas');
+        $fechas = $request->input('fechas');
         
         $resultados = [];
-        $destinationPath = base_path('aadd/Storage/Imports');
+        $cargarAction = new \AADD\Actions\CargarArchivoAction();
 
         foreach ($archivos as $index => $file) {
             $nombreOriginal = $file->getClientOriginalName();
-            $plataforma = isset($plataformas[$index]) ? $plataformas[$index] : 'Desconocida';
+            $plataformaString = isset($plataformas[$index]) ? $plataformas[$index] : 'Desconocida';
+            $fecha = isset($fechas[$index]) ? $fechas[$index] : date('Y-m-d');
             $extension = strtolower($file->getClientOriginalExtension());
             
             // Validar extensión
             if (!in_array($extension, ['csv', 'xlsx', 'xls'])) {
                 $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearError(
                     $nombreOriginal, 
-                    $plataforma, 
+                    $plataformaString, 
                     'Extensión inválida. Solo csv, xlsx, xls.'
                 );
                 continue;
             }
 
+            // Obtener el ID de la plataforma a partir de su string
+            $idPlataforma = \AADD\Enums\Plataforma::obtenerIdDesdeString($plataformaString);
+
+            if (is_null($idPlataforma)) {
+                $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearError(
+                    $nombreOriginal, 
+                    $plataformaString, 
+                    'Plataforma no válida.'
+                );
+                continue;
+            }
+
             try {
-                // Generar un nombre único para el archivo
-                $fileName = time() . '_' . $plataforma . '_' . $nombreOriginal;
-                
-                // Mover físicamente el archivo
-                $file->move($destinationPath, $fileName);
-                $path = 'aadd/storage/imports/' . $fileName;
+                // Guardar en la base de datos usando CargarArchivoAction
+                $tipoArchivo = \AADD\Enums\TipoArchivo::BENEFICIO_DIARIO;
+                $archivoEntidad = $cargarAction->ejecutar($file, $tipoArchivo, $idPlataforma, $fecha);
 
                 $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearExito(
                     $nombreOriginal, 
-                    $plataforma, 
-                    $path,
-                    'Guardado con éxito'
+                    $plataformaString, 
+                    'db_id: ' . $archivoEntidad->id, // Guardamos referencia del ID en lugar de la ruta física
+                    'Guardado con éxito en BD'
                 );
             } catch (\Exception $e) {
                 $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearError(
                     $nombreOriginal, 
-                    $plataforma, 
-                    'Error al guardar en disco: ' . $e->getMessage()
+                    $plataformaString, 
+                    'Error al guardar en base de datos: ' . $e->getMessage()
                 );
             }
         }
@@ -97,9 +111,11 @@ class AaddController extends Controller
         }
 
         // Fallback en caso de que no sea AJAX
+        $plataformasEnum = \AADD\Enums\Plataforma::obtenerTodas();
         return view('aadd::importaciones', [
             'mensaje' => 'Archivos procesados.',
-            'resultados' => $resultados
+            'resultados' => $resultados,
+            'plataformas' => $plataformasEnum
         ]);
     }
 }

@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class BeneficioMensual extends Model
 {
     /**
+     * Conexión de base de datos para el modelo.
+     *
+     * @var string
+     */
+    protected $connection = 'aadd';
+
+    /**
      * Nombre de la tabla asociada al modelo.
      *
      * @var string

@@ -43,7 +43,7 @@ class ProcesarArchivoAction
     /**
      * Resolver la estrategia de mapeo según la plataforma y tipo de archivo.
      *
-     * @param int $idPlataforma
+     * @param string $idPlataforma
      * @param string $tipoArchivo
      * @return EstrategiaMapeo
      * @throws Exception
