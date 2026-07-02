@@ -24,12 +24,59 @@ class AaddController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function importaciones()
+    public function importaciones(Request $request)
     {
         $plataformas = \AADD\Enums\Plataforma::obtenerTodas();
+        
+        $mesSeleccionado = $request->input('mes');
+        if ($mesSeleccionado && preg_match('/^\d{4}-\d{2}$/', $mesSeleccionado)) {
+            $partes = explode('-', $mesSeleccionado);
+            $anio = $partes[0];
+            $mes = $partes[1];
+        } else {
+            $mes = date('m');
+            $anio = date('Y');
+        }
+        
+        $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mes, $anio);
+        $dias = [];
+        for ($i = 1; $i <= $diasEnMes; $i++) {
+            $dias[] = sprintf("%04d-%02d-%02d", $anio, $mes, $i);
+        }
+
+        $archivosMes = \AADD\Entities\Archivo::where('fecha', 'like', "$anio-$mes-%")
+                                             ->select('fecha', 'id_plataforma', \DB::raw('count(*) as cantidad'))
+                                             ->groupBy('fecha', 'id_plataforma')
+                                             ->get();
+        
+        $matriz = [];
+        foreach ($dias as $dia) {
+            foreach ($plataformas as $plat) {
+                $matriz[$dia][$plat] = 0;
+            }
+        }
+
+        foreach ($archivosMes as $archivo) {
+            if (isset($matriz[$archivo->fecha][$archivo->id_plataforma])) {
+                $matriz[$archivo->fecha][$archivo->id_plataforma] = $archivo->cantidad;
+            }
+        }
+
+        if ($request->ajax()) {
+            return view('aadd::Componentes.tablaEstadoMensual', [
+                'plataformas' => $plataformas,
+                'dias' => $dias,
+                'matriz' => $matriz,
+                'mesActual' => "$anio-$mes"
+            ]);
+        }
+
         return view('aadd::importaciones', [
             'mensaje' => null,
-            'plataformas' => $plataformas
+            'plataformas' => $plataformas,
+            'dias' => $dias,
+            'matriz' => $matriz,
+            'mesActual' => "$anio-$mes"
         ]);
     }
 
@@ -116,6 +163,39 @@ class AaddController extends Controller
             'mensaje' => 'Archivos procesados.',
             'resultados' => $resultados,
             'plataformas' => $plataformasEnum
+        ]);
+    }
+
+    /**
+     * Obtiene la cantidad de archivos recibidos en una fecha para una plataforma.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cantidadArchivos(Request $request)
+    {
+        $this->validate($request, [
+            'plataforma' => 'required|string',
+            'fecha' => 'required|date'
+        ]);
+
+        $plataformaString = $request->input('plataforma');
+        $fecha = $request->input('fecha');
+        
+        $idPlataforma = \AADD\Enums\Plataforma::obtenerIdDesdeString($plataformaString);
+        
+        if (is_null($idPlataforma)) {
+            return response()->json(['error' => 'Plataforma no válida.'], 400);
+        }
+
+        $cantidad = \AADD\Entities\Archivo::where('id_plataforma', $idPlataforma)
+                                          ->where('fecha', $fecha)
+                                          ->count();
+
+        return response()->json([
+            'plataforma' => $plataformaString,
+            'fecha' => $fecha,
+            'cantidad' => $cantidad
         ]);
     }
 }

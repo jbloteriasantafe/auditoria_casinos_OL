@@ -5,6 +5,14 @@
 @endsection
 
 @section('contenidoVista')
+<style>
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05) !important; border: none !important; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; }
+    .btn { border-radius: 8px !important; }
+    .alert { border-radius: 8px !important; }
+    .well { border-radius: 12px !important; }
+    .modal-content { border-radius: 12px !important; overflow: hidden; }
+</style>
 <div class="row">
     <div class="col-md-9">
         <div class="panel panel-default">
@@ -23,19 +31,10 @@
                 <a href="/aadd" class="btn btn-default"><i class="fa fa-arrow-left"></i> Volver al panel principal</a>
             </div>
         </div>
+
+        @include('aadd::Componentes.tablaEstadoMensual')
     </div>
     
-    <div class="col-md-3">
-        <div class="panel panel-default" style="border-left: 4px solid #2e7d32;">
-            <div class="panel-heading">
-                <h4><i class="fa fa-info-circle" style="color: #2e7d32;"></i> Ayuda</h4>
-            </div>
-            <div class="panel-body">
-                <p>En esta sección puedes subir archivos en formato <strong>CSV</strong> y <strong>Excel</strong>.</p>
-                <p>El sistema se encargará de guardarlos físicamente en el servidor de forma segura.</p>
-            </div>
-        </div>
-    </div>
 </div>
 
 @include('aadd::Modals.modalImportadorAadd')
@@ -196,5 +195,20 @@ $(document).ready(function() {
         archivosSeleccionados = [];
     });
 });
+
+window.actualizarTablaMensual = function(mes) {
+    if (!mes) return;
+    $.ajax({
+        url: '/aadd/importaciones',
+        type: 'GET',
+        data: { mes: mes },
+        success: function(response) {
+            $('#contenedor-tabla-mensual').replaceWith(response);
+        },
+        error: function(err) {
+            console.error('Error al actualizar la tabla mensual', err);
+        }
+    });
+};
 </script>
 @endsection

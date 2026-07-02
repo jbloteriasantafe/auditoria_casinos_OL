@@ -5,6 +5,14 @@
 @endsection
 
 @section('contenidoVista')
+<style>
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05) !important; border: none !important; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; }
+    .btn { border-radius: 8px !important; }
+    .alert { border-radius: 8px !important; }
+    .well { border-radius: 12px !important; }
+    .modal-content { border-radius: 12px !important; overflow: hidden; }
+</style>
 <div class="row">
     <div class="col-md-9">
         <div class="panel panel-default">
@@ -66,7 +74,7 @@
                 <a href="/aadd/documentacion.md" target="_blank" class="btn btn-primary btn-block" style="margin-top: 15px;">
                     <i class="fa fa-book"></i> Ver Documentación
                 </a>
-                <a href="/aadd/importaciones" target="_blank" class="btn btn-primary btn-block" style="margin-top: 15px;">
+                <a href="/aadd/importaciones" class="btn btn-primary btn-block" style="margin-top: 15px;">
                     <i class="fa fa-book"></i> Importador de archivos
                 </a>
             </div>

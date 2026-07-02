@@ -9,3 +9,6 @@ Route::get('/aadd/importaciones', '\AADD\Http\Controllers\AaddController@importa
 Route::post('/aadd/importar', '\AADD\Http\Controllers\AaddController@importar')
     ->middleware('tiene_permiso');
 
+Route::get('/aadd/cantidad-archivos', '\AADD\Http\Controllers\AaddController@cantidadArchivos')
+    ->middleware('tiene_permiso');
+
