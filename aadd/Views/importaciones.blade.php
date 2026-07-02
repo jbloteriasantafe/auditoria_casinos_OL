@@ -12,38 +12,64 @@
     .alert { border-radius: 8px !important; }
     .well { border-radius: 12px !important; }
     .modal-content { border-radius: 12px !important; overflow: hidden; }
+    .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
 </style>
 <div class="row">
-    <div class="col-md-9">
-        <div class="panel panel-default">
-            <div class="panel-heading" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
-                <h3 class="panel-title" style="font-weight: bold; color: #333;"><i class="fa fa-upload"></i> Importación</h3>
-            </div>
-            <div class="panel-body text-center" style="padding: 40px;">
-                <!-- Contenedores de alerta para cuando se cierre el modal -->
-                <div id="mensajeExito" class="alert alert-success" style="display: none; text-align: left;"></div>
-                <div id="mensajeError" class="alert alert-danger" style="display: none; text-align: left;"></div>
-
-                <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="background-color: #2e7d32; border-color: #1b5e20;">
-                    <i class="fa fa-upload"></i> Importación beneficio diario
-                </button>
-                <br><br><br>
-                <a href="/aadd" class="btn btn-default"><i class="fa fa-arrow-left"></i> Volver al panel principal</a>
-            </div>
-        </div>
-
-        @include('aadd::Componentes.tablaEstadoMensual')
+    <div class="panel panel-default">
+    <div class="panel-heading" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+        <h3 class="panel-title" style="font-weight: bold; color: #333;"><i class="fa fa-upload"></i> Importación</h3>
     </div>
+    <div class="panel-body text-center" style="padding: 40px;">
+        <!-- Contenedores de alerta para cuando se cierre el modal -->
+        <div id="mensajeExito" class="alert alert-success" style="display: none; text-align: left;"></div>
+        <div id="mensajeError" class="alert alert-danger" style="display: none; text-align: left;"></div>
+
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="background-color: #2e7d32; border-color: #1b5e20;">
+            <i class="fa fa-upload"></i> Importación beneficio diario
+        </button>
+        <br><br><br>
+        <a href="/aadd" class="btn btn-default"><i class="fa fa-arrow-left"></i> Volver al panel principal</a>
+    </div>
+</div>
+    @include('aadd::Componentes.tablaEstadoMensual')
     
 </div>
 
 @include('aadd::Modals.modalImportadorAadd')
+
+<!-- Modal Detalles Archivos -->
+<div class="modal fade" id="modalDetallesArchivos" tabindex="-1" role="dialog" aria-labelledby="modalDetallesArchivosLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+      <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+        <h4 class="modal-title" id="modalDetallesArchivosLabel" style="font-weight: bold; color: #333;"><i class="fa fa-list"></i> Archivos Cargados</h4>
+      </div>
+      <div class="modal-body">
+        <div id="cargandoDetalles" style="display: none; text-align: center; padding: 20px;">
+            <i class="fa fa-spinner fa-spin fa-2x text-primary"></i>
+            <p style="margin-top: 10px;">Buscando archivos...</p>
+        </div>
+        <ul id="listaArchivosDetalle" class="list-group" style="margin-bottom: 0; display: none;">
+            <!-- Acá se llenan los archivos -->
+        </ul>
+        <div id="mensajeSinArchivos" class="alert alert-warning" style="display: none; margin-bottom: 0;">
+            No hay archivos cargados para esta fecha y plataforma.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('scripts')
 <script>
+    window.plataformas_disponibles = {!! json_encode($plataformas ?? []) !!};
+
 $(document).ready(function() {
-    var plataformas = {!! json_encode($plataformas) !!};
+    var plataformas = window.plataformas_disponibles || [];
     var archivosSeleccionados = [];
 
     // Cuando se seleccionan archivos
@@ -60,7 +86,7 @@ $(document).ready(function() {
                 opcionesPlataforma += '<option value="' + platNombre + '">' + platNombre + '</option>';
             });
 
-            var hoy = "{{ date('Y-m-d') }}";
+            var hoy = new Date().toISOString().split('T')[0];
 
             archivosSeleccionados.forEach(function(archivo, index) {
                 var tr = $('<tr>').attr('data-index', index);
@@ -108,7 +134,7 @@ $(document).ready(function() {
 
         var formData = new FormData();
         // Agregar token CSRF
-        formData.append('_token', $('input[name="_token"]').val());
+        formData.append('_token', $('meta[name="_token"]').attr('content') || $('input[name="_token"]').val());
 
         // Recorrer filas para empaquetar archivo original + plataforma + fecha
         $('#tbodyArchivosPreview tr').each(function() {
@@ -207,6 +233,37 @@ window.actualizarTablaMensual = function(mes) {
         },
         error: function(err) {
             console.error('Error al actualizar la tabla mensual', err);
+        }
+    });
+};
+
+window.verDetallesArchivos = function(fecha, plataforma) {
+    $('#modalDetallesArchivosLabel').html('<i class="fa fa-list"></i> Archivos Cargados - ' + plataforma + ' (' + fecha + ')');
+    $('#listaArchivosDetalle').empty().hide();
+    $('#mensajeSinArchivos').hide();
+    $('#cargandoDetalles').show();
+    $('#modalDetallesArchivos').modal('show');
+
+    $.ajax({
+        url: '/aadd/detalles-archivos',
+        type: 'GET',
+        data: { fecha: fecha, plataforma: plataforma },
+        success: function(response) {
+            $('#cargandoDetalles').hide();
+            if (response.archivos && response.archivos.length > 0) {
+                var ul = $('#listaArchivosDetalle');
+                response.archivos.forEach(function(archivo) {
+                    var tipoStr = archivo.tipo_archivo ? archivo.tipo_archivo.replace(/_/g, ' ') : 'Desconocido';
+                    ul.append('<li class="list-group-item"><i class="fa fa-file-text-o text-info"></i> <strong>' + tipoStr + '</strong>: ' + archivo.nombre + '</li>');
+                });
+                ul.show();
+            } else {
+                $('#mensajeSinArchivos').show();
+            }
+        },
+        error: function(err) {
+            $('#cargandoDetalles').hide();
+            $('#mensajeSinArchivos').text('Error al buscar los archivos.').show();
         }
     });
 };

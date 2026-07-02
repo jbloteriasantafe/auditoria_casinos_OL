@@ -12,3 +12,8 @@ Route::post('/aadd/importar', '\AADD\Http\Controllers\AaddController@importar')
 Route::get('/aadd/cantidad-archivos', '\AADD\Http\Controllers\AaddController@cantidadArchivos')
     ->middleware('tiene_permiso');
 
+Route::get('/aadd/detalles-archivos', '\AADD\Http\Controllers\AaddController@detallesArchivos')
+    ->middleware('tiene_permiso');
+
+Route::get('/aadd/beneficio-diario', '\AADD\Http\Controllers\AaddController@beneficioDiario')
+    ->middleware('tiene_permiso');

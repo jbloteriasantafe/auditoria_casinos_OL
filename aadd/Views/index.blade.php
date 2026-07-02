@@ -12,6 +12,7 @@
     .alert { border-radius: 8px !important; }
     .well { border-radius: 12px !important; }
     .modal-content { border-radius: 12px !important; overflow: hidden; }
+    .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
 </style>
 <div class="row">
     <div class="col-md-9">
@@ -71,8 +72,8 @@
             </div>
             <div class="panel-body">
                 <p>Este submódulo fue diseñado para trabajar de forma modular y autónoma dentro del directorio <code>aadd/</code>, sin afectar el núcleo de la aplicación (<code>app/</code>).</p>
-                <a href="/aadd/documentacion.md" target="_blank" class="btn btn-primary btn-block" style="margin-top: 15px;">
-                    <i class="fa fa-book"></i> Ver Documentación
+                <a href="/aadd/beneficio-diario" class="btn btn-primary btn-block" style="margin-top: 15px;">
+                    <i class="fa fa-book"></i> Ver beneficio diario
                 </a>
                 <a href="/aadd/importaciones" class="btn btn-primary btn-block" style="margin-top: 15px;">
                     <i class="fa fa-book"></i> Importador de archivos

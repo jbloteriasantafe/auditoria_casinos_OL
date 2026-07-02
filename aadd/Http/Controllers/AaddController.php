@@ -198,4 +198,91 @@ class AaddController extends Controller
             'cantidad' => $cantidad
         ]);
     }
+
+    /**
+     * Obtiene los nombres de los archivos recibidos en una fecha para una plataforma.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detallesArchivos(Request $request)
+    {
+        $this->validate($request, [
+            'plataforma' => 'required|string',
+            'fecha' => 'required|date'
+        ]);
+
+        $plataformaString = $request->input('plataforma');
+        $fecha = $request->input('fecha');
+        
+        $idPlataforma = \AADD\Enums\Plataforma::obtenerIdDesdeString($plataformaString);
+        
+        if (is_null($idPlataforma)) {
+            return response()->json(['error' => 'Plataforma no válida.'], 400);
+        }
+
+        $archivos = \AADD\Entities\Archivo::where('id_plataforma', $idPlataforma)
+                                          ->where('fecha', $fecha)
+                                          ->select('nombre', 'tipo_archivo')
+                                          ->get();
+
+        return response()->json([
+            'plataforma' => $plataformaString,
+            'fecha' => $fecha,
+            'archivos' => $archivos
+        ]);
+    }
+
+    /**
+     * Muestra la vista de beneficio diario o la tabla filtrada si es AJAX.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function beneficioDiario(Request $request)
+    {
+        $plataformas = \AADD\Enums\Plataforma::obtenerTodas();
+        
+        $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
+        $fechaHasta = $request->input('fecha_hasta', date('Y-m-t'));
+        
+        $plataformaSeleccionada = $request->input('plataforma');
+        if (!$plataformaSeleccionada || !in_array($plataformaSeleccionada, $plataformas)) {
+            $plataformaSeleccionada = $plataformas[0] ?? null;
+        }
+        
+        // Validar fechas
+        $inicio = strtotime($fechaDesde);
+        $fin = strtotime($fechaHasta);
+        if ($inicio > $fin) {
+            $temp = $inicio;
+            $inicio = $fin;
+            $fin = $temp;
+        }
+
+        // Limitar a máximo 60 días para evitar sobrecarga (opcional, pero buena práctica)
+        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
+        if ($diferenciaDias > 60) {
+            $fin = strtotime('+60 days', $inicio);
+        }
+        
+        $dias = [];
+        for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
+            $dias[] = date('Y-m-d', $current);
+        }
+
+        if ($request->ajax()) {
+            return view('aadd::Componentes.tablaBeneficioDiario', [
+                'dias' => $dias,
+                'plataformaSeleccionada' => $plataformaSeleccionada
+            ]);
+        }
+
+        return view('aadd::beneficio-diario', [
+            'plataformas' => $plataformas,
+            'plataformaSeleccionada' => $plataformaSeleccionada,
+            'dias' => $dias,
+            'fechaDesde' => date('Y-m-d', $inicio),
+            'fechaHasta' => date('Y-m-d', $fin)
+        ]);
+    }
 }
