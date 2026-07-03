@@ -68,6 +68,18 @@
 </div>
 @endsection
 
+@section('contenidoAyuda')
+<div class="col-md-12">
+    <h5>Importador de Archivos de Beneficio Diario</h5>
+    <p>Esta interfaz permite gestionar y visualizar la importación de archivos de las plataformas.</p>
+    <ul>
+        <li><strong>Importación:</strong> Utilice el botón "Importación beneficio diario" para abrir el modal de carga. Allí podrá seleccionar múltiples archivos, indicando para cada uno la plataforma y fecha correspondiente antes de importarlos.</li>
+        <li><strong>Visualización de Estado:</strong> En la tabla inferior se muestra el estado de las importaciones realizadas a nivel mensual, organizado por día y plataforma.</li>
+        <li><strong>Detalles por Día:</strong> Puede interactuar con la tabla de estado para ver un listado detallado de los archivos que ya fueron procesados y cargados para una fecha y plataforma específica.</li>
+    </ul>
+</div>
+@endsection
+
 @section('scripts')
 <script>
     window.plataformas_disponibles = {!! json_encode($plataformas ?? []) !!};

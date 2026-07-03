@@ -6,6 +6,10 @@ use AADD\Entities\Archivo;
 use AADD\Enums\TipoArchivo;
 use Exception;
 
+// Requerir la librería de lectura de Excel
+require_once base_path('aadd/Libs/SimpleXLSX.php');
+use Shuchkin\SimpleXLSX;
+
 class MapeadorBplay implements EstrategiaMapeoArchivo
 {
     /**
@@ -33,19 +37,58 @@ class MapeadorBplay implements EstrategiaMapeoArchivo
      */
     private function mapearBeneficioDiario(Archivo $archivo)
     {
-        // En una implementación real, se procesaría $archivo->contenido.
-        // Estructura de prueba adaptada para BPLAY.
-        return [
-            [
-                'fecha' => $archivo->fecha,
-                'jugadores_activos' => 150,
-                'apuestas_realizadas' => 3000,
-                'turnover' => 60000.00,
-                'turnover_bonos' => 6000.00,
-                'payout' => 54000.00,
-                'payout_bonos' => 5000.00,
-                'ggr' => 6000.00,
-            ]
+        // Parsear el contenido del archivo cargado en memoria (Blob)
+        $xlsx = SimpleXLSX::parseData($archivo->contenido);
+
+        if (!$xlsx) {
+            throw new Exception("Error al parsear el archivo Excel: " . SimpleXLSX::parseError());
+        }
+
+        $filas = $xlsx->rows();
+        
+        if (count($filas) === 0) {
+            return [];
+        }
+
+        // Obtener encabezados para mapear índices
+        $encabezados = array_shift($filas);
+        $encabezados = array_map(function($h) {
+            return strtoupper(trim($h));
+        }, $encabezados);
+
+        $indices = [
+            'fecha'               => array_search('FECHA', $encabezados),
+            'jugadores_activos'   => array_search('JUGADORES ACTIVOS', $encabezados),
+            'turnover_efectivo'   => array_search('APUESTAS REALIZADAS EFECTIVO', $encabezados),
+            'payout_efectivo'     => array_search('PREMIOS PAGADOS EFECTIVO', $encabezados),
+            'apuestas_bonos'      => array_search('APUESTAS BONOS', $encabezados),
+            'premios_bonos'       => array_search('PREMIOS BONOS', $encabezados),
+            'ggr_efectivo'        => array_search('GGR EFECTIVO', $encabezados),
         ];
+
+        $resultados = [];
+
+        foreach ($filas as $fila) {
+            // Ignorar filas donde la fecha esté vacía
+            if (!isset($fila[$indices['fecha']]) || empty(trim($fila[$indices['fecha']]))) {
+                continue;
+            }
+
+            // SimpleXLSX para BPLAY: "2026-06-10 00:00:00"
+            $fecha = date('Y-m-d', strtotime(trim($fila[$indices['fecha']])));
+
+            $resultados[] = [
+                'fecha'               => $fecha,
+                'jugadores_activos'   => (int) ($fila[$indices['jugadores_activos']] ?? 0),
+                'apuestas_realizadas' => 0, // BPLAY no envía la cantidad de apuestas
+                'turnover'            => (float) ($fila[$indices['turnover_efectivo']] ?? 0),
+                'turnover_bonos'      => (float) ($fila[$indices['apuestas_bonos']] ?? 0),
+                'payout'              => (float) ($fila[$indices['payout_efectivo']] ?? 0),
+                'payout_bonos'        => (float) ($fila[$indices['premios_bonos']] ?? 0),
+                'ggr'                 => (float) ($fila[$indices['ggr_efectivo']] ?? 0),
+            ];
+        }
+
+        return $resultados;
     }
 }
