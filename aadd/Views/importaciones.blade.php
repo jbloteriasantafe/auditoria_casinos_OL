@@ -72,6 +72,44 @@
 <script>
     window.plataformas_disponibles = {!! json_encode($plataformas ?? []) !!};
 
+    window.paginarTabla = function(tableSelector, filasPorPagina) {
+        var $table = $(tableSelector);
+        $table.next('.paginador-custom').remove();
+        
+        var $tbody = $table.find('tbody');
+        var $tr = $tbody.find('tr:not(.no-paginar)');
+        var totalFilas = $tr.length;
+        var totalPaginas = Math.ceil(totalFilas / filasPorPagina);
+        
+        if (totalPaginas <= 1) return;
+        
+        var $paginador = $('<div class="paginador-custom text-center" style="margin-top: 15px;"></div>');
+        for (var i = 1; i <= totalPaginas; i++) {
+            var $btn = $('<button class="btn btn-default btn-sm" style="margin: 0 2px;">' + i + '</button>');
+            $btn.data('page', i);
+            $paginador.append($btn);
+        }
+        $table.after($paginador);
+        
+        function mostrarPagina(page) {
+            $paginador.find('button').removeClass('btn-primary').addClass('btn-default');
+            $paginador.find('button').filter(function() { return $(this).data('page') === page; }).removeClass('btn-default').addClass('btn-primary');
+            
+            var inicio = (page - 1) * filasPorPagina;
+            var fin = inicio + filasPorPagina;
+            
+            $tr.hide();
+            $tr.slice(inicio, fin).show();
+        }
+        
+        $paginador.on('click', 'button', function(e) {
+            e.preventDefault();
+            mostrarPagina($(this).data('page'));
+        });
+        
+        mostrarPagina(1);
+    };
+
 $(document).ready(function() {
     var plataformas = window.plataformas_disponibles || [];
     var archivosSeleccionados = [];
@@ -224,6 +262,11 @@ $(document).ready(function() {
         $('#archivoModal').prop('disabled', false);
         archivosSeleccionados = [];
     });
+    
+    // Inicializar paginación al cargar la vista
+    if (typeof paginarTabla === 'function') {
+        paginarTabla('#contenedor-tabla-mensual table', 30);
+    }
 });
 
 window.actualizarTablaMensual = function(mes) {
@@ -234,6 +277,9 @@ window.actualizarTablaMensual = function(mes) {
         data: { mes: mes },
         success: function(response) {
             $('#contenedor-tabla-mensual').replaceWith(response);
+            if (typeof paginarTabla === 'function') {
+                paginarTabla('#contenedor-tabla-mensual table', 30);
+            }
         },
         error: function(err) {
             console.error('Error al actualizar la tabla mensual', err);

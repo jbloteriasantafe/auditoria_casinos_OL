@@ -69,6 +69,45 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
+    function paginarTabla(tableSelector, filasPorPagina) {
+        var $table = $(tableSelector);
+        // Evitar duplicar controles si ya existe
+        $table.next('.paginador-custom').remove();
+        
+        var $tbody = $table.find('tbody');
+        var $tr = $tbody.find('tr:not(.no-paginar)'); // se puede marcar filas especiales si hace falta
+        var totalFilas = $tr.length;
+        var totalPaginas = Math.ceil(totalFilas / filasPorPagina);
+        
+        if (totalPaginas <= 1) return;
+        
+        var $paginador = $('<div class="paginador-custom text-center" style="margin-top: 15px;"></div>');
+        for (var i = 1; i <= totalPaginas; i++) {
+            var $btn = $('<button class="btn btn-default btn-sm" style="margin: 0 2px;">' + i + '</button>');
+            $btn.data('page', i);
+            $paginador.append($btn);
+        }
+        $table.after($paginador);
+        
+        function mostrarPagina(page) {
+            $paginador.find('button').removeClass('btn-primary').addClass('btn-default');
+            $paginador.find('button').filter(function() { return $(this).data('page') === page; }).removeClass('btn-default').addClass('btn-primary');
+            
+            var inicio = (page - 1) * filasPorPagina;
+            var fin = inicio + filasPorPagina;
+            
+            $tr.hide();
+            $tr.slice(inicio, fin).show();
+        }
+        
+        $paginador.on('click', 'button', function(e) {
+            e.preventDefault();
+            mostrarPagina($(this).data('page'));
+        });
+        
+        mostrarPagina(1);
+    }
+
     function actualizarTabla() {
         var formData = $('#filtroBeneficioDiario').serialize();
         
@@ -82,6 +121,7 @@ $(document).ready(function() {
             success: function(response) {
                 $('#contenedor-tabla-beneficio').html(response);
                 $('#contenedor-tabla-beneficio').css('opacity', '1');
+                paginarTabla('#contenedor-tabla-beneficio table', 30);
             },
             error: function(err) {
                 console.error('Error al actualizar la tabla', err);
@@ -93,6 +133,9 @@ $(document).ready(function() {
     $('#fecha_desde, #fecha_hasta, #plataforma').on('change', function() {
         actualizarTabla();
     });
+    
+    // Inicializar paginación al cargar la página por primera vez
+    paginarTabla('#contenedor-tabla-beneficio table', 30);
 });
 </script>
 @endsection
