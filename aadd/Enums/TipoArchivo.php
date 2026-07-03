@@ -19,4 +19,23 @@ class TipoArchivo
             self::BENEFICIO_DIARIO,
         ];
     }
+
+    public static function columnas($tipoArchivo)
+    {
+        switch($tipoArchivo) {
+            case self::BENEFICIO_DIARIO:
+                return [
+                    'FECHA',
+                    'JUGADORES ACTIVOS',
+                    'APUESTAS REALIZADAS',
+                    'TURNOVER',
+                    'TURNOVER BONOS',
+                    'PAYOUT',
+                    'PAYOUT BONOS',
+                    'GGR',
+                ];
+            default:
+                throw new Exception("Tipo de archivo no soportado: " . $tipoArchivo);
+        }
+    }
 }
