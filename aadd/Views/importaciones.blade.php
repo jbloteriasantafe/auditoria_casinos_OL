@@ -6,12 +6,16 @@
 
 @section('contenidoVista')
 <style>
-    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05) !important; border: none !important; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; }
-    .btn { border-radius: 8px !important; }
-    .alert { border-radius: 8px !important; }
-    .well { border-radius: 12px !important; }
-    .modal-content { border-radius: 12px !important; overflow: hidden; }
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; border: 1px solid #f0f0f0 !important; background-color: #ffffff; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #fafbfc !important; border-bottom: 1px solid #f0f0f0 !important; color: #555 !important; }
+    .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
+    .btn-primary { background-color: #e8f5e9 !important; color: #2e7d32 !important; border: none !important; }
+    .btn-primary:hover { background-color: #c8e6c9 !important; color: #1b5e20 !important; }
+    .btn-default { background-color: #f5f5f5 !important; color: #555 !important; border: none !important; }
+    .btn-default:hover { background-color: #e0e0e0 !important; }
+    .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
+    .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important; border: 1px solid #f5f5f5 !important; background-color: #fdfdfd !important; }
+    .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
 </style>
 <div class="row">
@@ -24,7 +28,7 @@
         <div id="mensajeExito" class="alert alert-success" style="display: none; text-align: left;"></div>
         <div id="mensajeError" class="alert alert-danger" style="display: none; text-align: left;"></div>
 
-        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="background-color: #2e7d32; border-color: #1b5e20;">
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="box-shadow: 0 4px 10px rgba(46,125,50,0.15) !important;">
             <i class="fa fa-upload"></i> Importación beneficio diario
         </button>
         <br><br><br>

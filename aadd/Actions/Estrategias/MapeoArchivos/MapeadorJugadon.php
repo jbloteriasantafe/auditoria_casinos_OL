@@ -6,6 +6,10 @@ use AADD\Entities\Archivo;
 use AADD\Enums\TipoArchivo;
 use Exception;
 
+// Requerir la librería de lectura de Excel que descargamos
+require_once base_path('aadd/Libs/SimpleXLSX.php');
+use Shuchkin\SimpleXLSX;
+
 class MapeadorJugadon implements EstrategiaMapeoArchivo
 {
     /**
@@ -33,19 +37,58 @@ class MapeadorJugadon implements EstrategiaMapeoArchivo
      */
     private function mapearBeneficioDiario(Archivo $archivo)
     {
-        // En una implementación real, se procesaría $archivo->contenido.
-        // Estructura de prueba adaptada para JUGADON.
-        return [
-            [
-                'fecha' => $archivo->fecha,
-                'jugadores_activos' => 80,
-                'apuestas_realizadas' => 1500,
-                'turnover' => 30000.00,
-                'turnover_bonos' => 3000.00,
-                'payout' => 27000.00,
-                'payout_bonos' => 2000.00,
-                'ggr' => 3000.00,
-            ]
+        // Parsear el contenido del archivo cargado en memoria (Blob)
+        $xlsx = SimpleXLSX::parseData($archivo->contenido);
+
+        if (!$xlsx) {
+            throw new Exception("Error al parsear el archivo Excel: " . SimpleXLSX::parseError());
+        }
+
+        $filas = $xlsx->rows();
+        
+        if (count($filas) === 0) {
+            return [];
+        }
+
+        // Obtener encabezados para mapear índices
+        $encabezados = array_shift($filas);
+        $encabezados = array_map('trim', $encabezados);
+
+        $indices = [
+            'fecha'               => array_search('FECHA', $encabezados),
+            'jugadores_activos'   => array_search('JUGADORES ACTIVOS', $encabezados),
+            'apuestas_realizadas' => array_search('APUESTAS REALIZADAS', $encabezados),
+            'turnover_diario'     => array_search('TURNOVER DIARIO', $encabezados),
+            'turnover_bonos'      => array_search('TURNOVER EN BONOS', $encabezados),
+            'payout_diario'       => array_search('PAYOUT DIARIO', $encabezados),
+            'payout_bonos'        => array_search('PAYOUT EN BONOS', $encabezados),
+            'ggr'                 => array_search('GGR', $encabezados),
         ];
+
+        $resultados = [];
+
+        foreach ($filas as $fila) {
+            // Ignorar filas donde la fecha esté vacía
+            if (!isset($fila[$indices['fecha']]) || empty(trim($fila[$indices['fecha']]))) {
+                continue;
+            }
+
+            // SimpleXLSX maneja fechas de diferentes maneras, si es un string lo toma, si es número serial, se puede formatear.
+            // Para JUGADON sabemos que viene como string "YYYY-MM-DD".
+            $fecha = date('Y-m-d', strtotime(trim($fila[$indices['fecha']])));
+
+            $resultados[] = [
+                'fecha'               => $fecha,
+                'jugadores_activos'   => (int) $fila[$indices['jugadores_activos']],
+                'apuestas_realizadas' => (int) $fila[$indices['apuestas_realizadas']],
+                'turnover'            => (float) $fila[$indices['turnover_diario']],
+                'turnover_bonos'      => (float) $fila[$indices['turnover_bonos']],
+                'payout'              => (float) $fila[$indices['payout_diario']],
+                'payout_bonos'        => (float) $fila[$indices['payout_bonos']],
+                'ggr'                 => (float) $fila[$indices['ggr']],
+            ];
+        }
+
+        return $resultados;
     }
 }

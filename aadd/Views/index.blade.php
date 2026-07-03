@@ -6,12 +6,14 @@
 
 @section('contenidoVista')
 <style>
-    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05) !important; border: none !important; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; }
-    .btn { border-radius: 8px !important; }
-    .alert { border-radius: 8px !important; }
-    .well { border-radius: 12px !important; }
-    .modal-content { border-radius: 12px !important; overflow: hidden; }
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; border: 1px solid #f0f0f0 !important; background-color: #ffffff; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #fafbfc !important; border-bottom: 1px solid #f0f0f0 !important; color: #555 !important; }
+    .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
+    .btn-primary { background-color: #e3f2fd !important; color: #1565c0 !important; border: none !important; }
+    .btn-primary:hover { background-color: #bbdefb !important; color: #0d47a1 !important; }
+    .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
+    .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important; border: 1px solid #f5f5f5 !important; background-color: #fdfdfd !important; }
+    .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
 </style>
 <div class="row">
@@ -23,14 +25,14 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="alert alert-success" style="background-color: #2e7d32; border-color: #1b5e20; color: #fff; margin-bottom: 25px;">
-                            <h4><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
+                        <div class="alert alert-success" style="background-color: #e8f5e9; color: #2e7d32; margin-bottom: 25px;">
+                            <h4 style="color: #2e7d32;"><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
                             <p>El submódulo <strong>AADD</strong> se ha enlazado de forma exitosa a la estructura y enrutador principal de la aplicación Laravel. Este es un entorno de pruebas aislado y protegido.</p>
                         </div>
                         
-                        <div class="well" style="background-color: #f5f5f5; border: 1px solid #e3e3e3; border-radius: 4px; padding: 20px;">
-                            <h3 style="margin-top: 0; font-family: Roboto-Condensed; font-weight: bold; color: #333;">Información del Submódulo</h3>
-                            <hr style="border-top: 1px solid #dcdcdc; margin-top: 10px; margin-bottom: 15px;">
+                        <div class="well" style="padding: 20px;">
+                            <h3 style="margin-top: 0; font-family: Roboto-Condensed, sans-serif; font-weight: 500; color: #555;">Información del Submódulo</h3>
+                            <hr style="border-top: 1px solid #eee; margin-top: 10px; margin-bottom: 15px;">
                             
                             <table class="table table-striped" style="margin-bottom: 0;">
                                 <tbody>
@@ -66,9 +68,9 @@
     </div>
 
     <div class="col-md-3">
-        <div class="panel panel-default" style="border-left: 4px solid #1976D2;">
+        <div class="panel panel-default" style="border-left: 4px solid #90caf9;">
             <div class="panel-heading">
-                <h4><i class="fa fa-info-circle" style="color: #1976D2;"></i> Estado</h4>
+                <h4><i class="fa fa-info-circle" style="color: #64b5f6;"></i> Estado</h4>
             </div>
             <div class="panel-body">
                 <p>Este submódulo fue diseñado para trabajar de forma modular y autónoma dentro del directorio <code>aadd/</code>, sin afectar el núcleo de la aplicación (<code>app/</code>).</p>

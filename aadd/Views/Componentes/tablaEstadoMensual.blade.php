@@ -1,7 +1,7 @@
 <div id="contenedor-tabla-mensual">
     <div class="panel panel-default" style="margin-top: 20px;">
-        <div class="panel-heading" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
-            <h3 class="panel-title" style="font-weight: bold; color: #333; margin: 0;"><i class="fa fa-calendar"></i> Estado Mensual</h3>
+        <div class="panel-heading" style="background-color: #fafbfc; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="panel-title" style="font-weight: 500; color: #555; margin: 0;"><i class="fa fa-calendar"></i> Estado Mensual</h3>
             <div style="margin: 0; display: flex; align-items: center;">
                 <label for="mes" style="margin-right: 10px; margin-bottom: 0;">Mes:</label>
                 <input type="month" id="mes-selector" class="form-control" style="width: auto; display: inline-block; padding: 4px 8px; height: 30px;" value="{{ $mesActual ?? '' }}" onchange="actualizarTablaMensual(this.value)">

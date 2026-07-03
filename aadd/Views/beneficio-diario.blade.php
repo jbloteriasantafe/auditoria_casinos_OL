@@ -6,11 +6,15 @@
 
 @section('contenidoVista')
 <style>
-    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05) !important; border: none !important; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; }
-    .btn { border-radius: 8px !important; }
-    .table > thead > tr > th { text-align: center; vertical-align: middle; background-color: #f9f9f9; color: #333; font-weight: bold; border-bottom: 2px solid #ddd; }
-    .table > tbody > tr > td { text-align: center; vertical-align: middle; }
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; border: 1px solid #f0f0f0 !important; background-color: #ffffff; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #fafbfc !important; border-bottom: 1px solid #f0f0f0 !important; color: #555 !important; }
+    .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
+    .btn-primary { background-color: #e3f2fd !important; color: #1565c0 !important; border: none !important; }
+    .btn-primary:hover { background-color: #bbdefb !important; color: #0d47a1 !important; }
+    .table { border: none !important; }
+    .table > thead > tr > th { text-align: center; vertical-align: middle; background-color: #f8fafd; color: #555; font-weight: 600; border-bottom: 2px solid #edf2f7; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
+    .table > tbody > tr > td { text-align: center; vertical-align: middle; border-top: 1px solid #f8f9fa; color: #666; }
+    .table-striped > tbody > tr:nth-of-type(odd) { background-color: #fcfcfc; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
 </style>
 <div class="row">

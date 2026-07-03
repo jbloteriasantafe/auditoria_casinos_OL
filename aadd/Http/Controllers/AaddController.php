@@ -138,13 +138,18 @@ class AaddController extends Controller
                 $tipoArchivo = \AADD\Enums\TipoArchivo::BENEFICIO_DIARIO;
                 $archivoEntidad = $cargarAction->ejecutar($file, $tipoArchivo, $idPlataforma, $fecha);
 
+                // Procesar el archivo mapeándolo e insertándolo en la BD
+                $procesarAction = new \AADD\Actions\ProcesarArchivoAction();
+                $procesarAction->ejecutar($archivoEntidad);
+
                 $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearExito(
                     $nombreOriginal, 
                     $plataformaString, 
                     'db_id: ' . $archivoEntidad->id, // Guardamos referencia del ID en lugar de la ruta física
-                    'Guardado con éxito en BD'
+                    'Guardado y procesado con éxito en BD'
                 );
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                \Log::error("Error procesando archivo: " . $e->getMessage(), ['exception' => $e]);
                 $resultados[] = \AADD\Dto\ArchivoImportadoDTO::crearError(
                     $nombreOriginal, 
                     $plataformaString, 
@@ -270,10 +275,19 @@ class AaddController extends Controller
             $dias[] = date('Y-m-d', $current);
         }
 
+        $idPlataforma = \AADD\Enums\Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
+        $beneficios = \AADD\Entities\BeneficioDiario::where('id_plataforma', $idPlataforma)
+            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->get()
+            ->keyBy(function ($item) {
+                return date('Y-m-d', strtotime($item->fecha));
+            });
+
         if ($request->ajax()) {
             return view('aadd::Componentes.tablaBeneficioDiario', [
                 'dias' => $dias,
-                'plataformaSeleccionada' => $plataformaSeleccionada
+                'plataformaSeleccionada' => $plataformaSeleccionada,
+                'beneficios' => $beneficios
             ]);
         }
 
@@ -281,6 +295,7 @@ class AaddController extends Controller
             'plataformas' => $plataformas,
             'plataformaSeleccionada' => $plataformaSeleccionada,
             'dias' => $dias,
+            'beneficios' => $beneficios,
             'fechaDesde' => date('Y-m-d', $inicio),
             'fechaHasta' => date('Y-m-d', $fin)
         ]);

@@ -21,18 +21,30 @@ class ProcesarArchivoAction
     public function ejecutar(Archivo $archivo)
     {
         $selector = new SelectorEstrategiaMapeoArchivos();
-        $mapear = $selector->resolverEstrategia($archivo->id_plataforma, $archivo->tipo_archivo);
+        $estrategiaMapeo = $selector->resolverEstrategia($archivo->id_plataforma);
 
-        $registrosMapeados = call_user_func($mapear, $archivo);
+        $registrosMapeados = $estrategiaMapeo->mapear($archivo);
 
         foreach ($registrosMapeados as $datos) {
             $datos['id_archivo'] = $archivo->id;
             $datos['id_plataforma'] = $archivo->id_plataforma;
 
             if ($archivo->tipo_archivo === TipoArchivo::BENEFICIO_DIARIO) {
-                BeneficioDiario::create($datos);
+                BeneficioDiario::updateOrCreate(
+                    [
+                        'id_plataforma' => $datos['id_plataforma'],
+                        'fecha'         => $datos['fecha'],
+                    ],
+                    $datos
+                );
             } else {
-                BeneficioMensual::create($datos);
+                BeneficioMensual::updateOrCreate(
+                    [
+                        'id_plataforma' => $datos['id_plataforma'],
+                        'fecha'         => $datos['fecha'],
+                    ],
+                    $datos
+                );
             }
         }
     }
