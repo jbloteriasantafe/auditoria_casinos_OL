@@ -12,10 +12,14 @@
     .btn-primary { background-color: #e3f2fd !important; color: #1565c0 !important; border: none !important; }
     .btn-primary:hover { background-color: #bbdefb !important; color: #0d47a1 !important; }
     .table { border: none !important; }
-    .table > thead > tr > th { text-align: center; vertical-align: middle; background-color: #f8fafd; color: #555; font-weight: 600; border-bottom: 2px solid #edf2f7; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
-    .table > tbody > tr > td { text-align: center; vertical-align: middle; border-top: 1px solid #f8f9fa; color: #666; }
+    .table > thead > tr > th { text-align: center; vertical-align: middle; background-color: #f8fafd; color: #333; font-weight: 600; border-bottom: 2px solid #edf2f7; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
+    .table > tbody > tr > td { text-align: center; vertical-align: middle; border-top: 1px solid #f8f9fa; color: #222; font-weight: 500; }
     .table-striped > tbody > tr:nth-of-type(odd) { background-color: #fcfcfc; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
+    .chip { display: inline-flex; align-items: center; padding: 8px 16px; margin-right: 12px; margin-bottom: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 50px; color: #495057; font-weight: 500; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .chip:hover { background-color: #e3f2fd; border-color: #90caf9; color: #1565c0; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .chip i { margin-right: 8px; font-size: 1.1em; color: #64b5f6; transition: color 0.2s ease; }
+    .chip:hover i { color: #1565c0; }
 </style>
 <div class="row">
     <div class="col-md-12">
@@ -24,6 +28,15 @@
                 <h4>Beneficio Diario</h4>
             </div>
             <div class="panel-body">
+                <div style="margin-bottom: 20px;">
+                    <a href="/aadd" class="chip">
+                        <i class="fa fa-arrow-left"></i> Menú Principal
+                    </a>
+                    <a href="/aadd/importaciones" class="chip">
+                        <i class="fa fa-upload"></i> Importador de Archivos
+                    </a>
+                </div>
+
                 <form id="filtroBeneficioDiario" class="form-inline" style="margin-bottom: 20px;">
                     <div class="form-group">
                         <label for="fecha_desde">Desde:</label>

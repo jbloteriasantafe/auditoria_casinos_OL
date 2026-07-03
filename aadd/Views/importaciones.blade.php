@@ -16,7 +16,13 @@
     .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
     .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important; border: 1px solid #f5f5f5 !important; background-color: #fdfdfd !important; }
     .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; }
+    .table > thead > tr > th { color: #333 !important; font-weight: 600; }
+    .table > tbody > tr > td { color: #222 !important; font-weight: 500; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
+    .chip { display: inline-flex; align-items: center; padding: 8px 16px; margin-right: 12px; margin-bottom: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 50px; color: #495057; font-weight: 500; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .chip:hover { background-color: #e3f2fd; border-color: #90caf9; color: #1565c0; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .chip i { margin-right: 8px; font-size: 1.1em; color: #64b5f6; transition: color 0.2s ease; }
+    .chip:hover i { color: #1565c0; }
 </style>
 <div class="row">
     <div class="panel panel-default">
@@ -31,8 +37,15 @@
         <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="box-shadow: 0 4px 10px rgba(46,125,50,0.15) !important;">
             <i class="fa fa-upload"></i> Importación beneficio diario
         </button>
-        <br><br><br>
-        <a href="/aadd" class="btn btn-default"><i class="fa fa-arrow-left"></i> Volver al panel principal</a>
+        
+        <div style="margin-top: 30px; display: flex; justify-content: center; gap: 10px;">
+            <a href="/aadd" class="chip" style="margin: 0;">
+                <i class="fa fa-arrow-left"></i> Menú Principal
+            </a>
+            <a href="/aadd/beneficio-diario" class="chip" style="margin: 0;">
+                <i class="fa fa-line-chart"></i> Beneficio Diario
+            </a>
+        </div>
     </div>
 </div>
     @include('aadd::Componentes.tablaEstadoMensual')

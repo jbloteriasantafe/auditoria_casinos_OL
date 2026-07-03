@@ -15,6 +15,10 @@
     .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important; border: 1px solid #f5f5f5 !important; background-color: #fdfdfd !important; }
     .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
+    .chip { display: inline-flex; align-items: center; padding: 8px 16px; margin-right: 12px; margin-bottom: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 50px; color: #495057; font-weight: 500; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .chip:hover { background-color: #e3f2fd; border-color: #90caf9; color: #1565c0; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .chip i { margin-right: 8px; font-size: 1.1em; color: #64b5f6; transition: color 0.2s ease; }
+    .chip:hover i { color: #1565c0; }
 </style>
 <div class="row">
     <div class="col-md-9">
@@ -25,9 +29,18 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="alert alert-success" style="background-color: #e8f5e9; color: #2e7d32; margin-bottom: 25px;">
+                        <div class="alert alert-success" style="background-color: #e8f5e9; color: #2e7d32; margin-bottom: 20px;">
                             <h4 style="color: #2e7d32;"><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
                             <p>El submódulo <strong>AADD</strong> se ha enlazado de forma exitosa a la estructura y enrutador principal de la aplicación Laravel. Este es un entorno de pruebas aislado y protegido.</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <a href="/aadd/beneficio-diario" class="chip">
+                                <i class="fa fa-line-chart"></i> Beneficio Diario
+                            </a>
+                            <a href="/aadd/importaciones" class="chip">
+                                <i class="fa fa-upload"></i> Importador de Archivos
+                            </a>
                         </div>
                         
                         <div class="well" style="padding: 20px;">
@@ -74,12 +87,6 @@
             </div>
             <div class="panel-body">
                 <p>Este submódulo fue diseñado para trabajar de forma modular y autónoma dentro del directorio <code>aadd/</code>, sin afectar el núcleo de la aplicación (<code>app/</code>).</p>
-                <a href="/aadd/beneficio-diario" class="btn btn-primary btn-block" style="margin-top: 15px;">
-                    <i class="fa fa-book"></i> Ver beneficio diario
-                </a>
-                <a href="/aadd/importaciones" class="btn btn-primary btn-block" style="margin-top: 15px;">
-                    <i class="fa fa-book"></i> Importador de archivos
-                </a>
             </div>
         </div>
     </div>
