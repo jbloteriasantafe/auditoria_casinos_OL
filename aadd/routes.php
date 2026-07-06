@@ -17,3 +17,6 @@ Route::get('/aadd/detalles-archivos', '\AADD\Http\Controllers\AaddController@det
 
 Route::get('/aadd/beneficio-diario', '\AADD\Http\Controllers\AaddController@beneficioDiario')
     ->middleware('tiene_permiso');
+
+Route::get('/aadd/acumulado-mensual', '\AADD\Http\Controllers\AaddController@acumuladoMensual')
+    ->middleware('tiene_permiso');

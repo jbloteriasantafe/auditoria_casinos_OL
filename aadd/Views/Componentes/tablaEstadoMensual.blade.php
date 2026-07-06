@@ -8,8 +8,27 @@
             </div>
         </div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover text-center">
+<style>
+    .table-moderna { border-collapse: separate !important; border-spacing: 0; width: 100%; margin-bottom: 0; background-color: transparent; border: none !important; }
+    .table-moderna thead th { background-color: #ffffff !important; color: #504E76 !important; font-weight: 700 !important; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 16px 12px !important; border-bottom: 2px solid #C4C3E3 !important; border-top: none !important; border-left: none !important; border-right: none !important; vertical-align: middle; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 4px rgba(80,78,118,0.05); }
+    .table-moderna tbody td { padding: 14px 12px !important; vertical-align: middle !important; border-bottom: 1px solid #eaeaef !important; border-top: none !important; border-left: none !important; border-right: none !important; color: #504E76; font-size: 0.9rem; font-weight: 500; transition: all 0.2s ease; }
+    .table-moderna tbody tr:last-child td { border-bottom: none !important; }
+    .table-moderna tbody tr:hover td { background-color: #f8f6e9 !important; }
+    .table-responsive-moderna { border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(80, 78, 118, 0.05), 0 2px 4px -1px rgba(80, 78, 118, 0.03); border: 1px solid #C4C3E3; background: #fff; margin-top: 20px; }
+    .table-responsive-moderna::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-responsive-moderna::-webkit-scrollbar-track { background: #ffffff; border-radius: 8px; }
+    .table-responsive-moderna::-webkit-scrollbar-thumb { background: #C4C3E3; border-radius: 8px; }
+    .table-responsive-moderna::-webkit-scrollbar-thumb:hover { background: #504E76; }
+    
+    .badge-m { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.3px; min-width: 60px; box-shadow: 0 1px 2px rgba(80, 78, 118, 0.1); transition: all 0.2s ease; }
+    .badge-m:hover { transform: scale(1.05); filter: brightness(1.05); box-shadow: 0 3px 6px rgba(80, 78, 118, 0.15); cursor: pointer; }
+    .badge-success-m { background-color: #A3B565; color: #ffffff; border: 1px solid #92a454; }
+    .badge-warning-m { background-color: #FCDD9D; color: #504E76; border: 1px solid #ebc67d; }
+    .badge-danger-m { background-color: #F1642E; color: #ffffff; border: 1px solid #d4521e; }
+    .badge-m i { margin-right: 4px; font-size: 0.85em; }
+</style>
+                <div class="table-responsive table-responsive-moderna" style="max-height: 60vh; overflow-y: auto;">
+                    <table class="table table-moderna text-center">
                         <thead>
                             <tr>
                                 <th style="text-align: center;">Fecha</th>
@@ -28,11 +47,11 @@
                                         @foreach($plataformas as $plat)
                                             <td style="cursor: pointer;" onclick="verDetallesArchivos('{{ $dia }}', '{{ $plat }}')" title="Ver detalles de archivos">
                                                 @if($matriz[$dia][$plat] == 4)
-                                                    <span class="text-success" style="font-weight: bold;"><i class="fa fa-check"></i> {{ $matriz[$dia][$plat] }} / 4</span>
+                                                    <span class="badge-m badge-success-m"><i class="fa fa-check"></i> {{ $matriz[$dia][$plat] }} / 4</span>
                                                 @elseif($matriz[$dia][$plat] > 0)
-                                                    <span class="text-warning" style="font-weight: bold;">{{ $matriz[$dia][$plat] }} / 4</span>
+                                                    <span class="badge-m badge-warning-m"><i class="fa fa-exclamation-triangle" style="display:none;"></i> {{ $matriz[$dia][$plat] }} / 4</span>
                                                 @else
-                                                    <span class="text-danger">{{ $matriz[$dia][$plat] }} / 4</span>
+                                                    <span class="badge-m badge-danger-m"><i class="fa fa-times"></i> {{ $matriz[$dia][$plat] }} / 4</span>
                                                 @endif
                                             </td>
                                         @endforeach

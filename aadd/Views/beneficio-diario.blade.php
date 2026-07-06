@@ -6,38 +6,28 @@
 
 @section('contenidoVista')
 <style>
-    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; border: 1px solid #f0f0f0 !important; background-color: #ffffff; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #fafbfc !important; border-bottom: 1px solid #f0f0f0 !important; color: #555 !important; }
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #ffffff; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #504E76 !important; }
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
-    .btn-primary { background-color: #e3f2fd !important; color: #1565c0 !important; border: none !important; }
-    .btn-primary:hover { background-color: #bbdefb !important; color: #0d47a1 !important; }
+    .btn-primary { background-color: #504E76 !important; color: #ffffff !important; border: none !important; }
+    .btn-primary:hover { background-color: #3b3958 !important; color: #ffffff !important; }
     .table { border: none !important; }
     .table > thead > tr > th { text-align: center; vertical-align: middle; background-color: #f8fafd; color: #333; font-weight: 600; border-bottom: 2px solid #edf2f7; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
     .table > tbody > tr > td { text-align: center; vertical-align: middle; border-top: 1px solid #f8f9fa; color: #222; font-weight: 500; }
     .table-striped > tbody > tr:nth-of-type(odd) { background-color: #fcfcfc; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
-    .chip { display: inline-flex; align-items: center; padding: 8px 16px; margin-right: 12px; margin-bottom: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 50px; color: #495057; font-weight: 500; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
-    .chip:hover { background-color: #e3f2fd; border-color: #90caf9; color: #1565c0; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
-    .chip i { margin-right: 8px; font-size: 1.1em; color: #64b5f6; transition: color 0.2s ease; }
-    .chip:hover i { color: #1565c0; }
+
 </style>
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
-            <div class="panel-heading">
+            <div class="panel-heading" style="margin-bottom: 20px">
                 <h4>Beneficio Diario</h4>
             </div>
             <div class="panel-body">
-                <div style="margin-bottom: 20px;">
-                    <a href="/aadd" class="chip">
-                        <i class="fa fa-arrow-left"></i> Menú Principal
-                    </a>
-                    <a href="/aadd/importaciones" class="chip">
-                        <i class="fa fa-upload"></i> Importador de Archivos
-                    </a>
-                </div>
+                @include('aadd::Componentes.navegacion-chips', ['pantalla' => 'beneficio-diario'])
 
-                <form id="filtroBeneficioDiario" class="form-inline" style="margin-bottom: 20px;">
+                <form id="filtroBeneficioDiario" class="form-inline" style="margin-bottom: 20px; margin-top: 20px;">
                     <div class="form-group">
                         <label for="fecha_desde">Desde:</label>
                         <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="{{ $fechaDesde }}">
@@ -55,6 +45,51 @@
                         </select>
                     </div>
                 </form>
+
+                <div class="row" style="margin-bottom: 20px; display: flex; flex-wrap: wrap;">
+                    <!-- Acumulado del Rango -->
+                    <div class="col-md-6" style="margin-bottom: 10px;">
+                        <div class="panel panel-default" style="border: 1px solid #C4C3E3; box-shadow: 0 4px 6px -1px rgba(80, 78, 118, 0.05); border-radius: 12px; height: 100%;">
+                            <div class="panel-heading" style="background-color: #ffffff; border-bottom: 1px solid #eaeaef; border-radius: 12px 12px 0 0; padding: 15px;">
+                                <h5 style="margin: 0; color: #504E76; font-weight: bold;"><i class="fa fa-calendar-check-o"></i> Acumulado del Rango (GGR)</h5>
+                                <small class="text-muted">Suma del rango seleccionado</small>
+                            </div>
+                            <div class="panel-body" style="padding: 15px;">
+                                <div class="row" id="acumulados-rango-container">
+                                    @foreach($plataformas as $plat)
+                                        <div class="col-xs-4" style="margin-bottom: 10px;">
+                                            <span style="font-size: 0.8em; color: #777; text-transform: uppercase;">{{ $plat }}</span><br>
+                                            <strong style="font-size: 1.1em; color: #A3B565;" id="rango-{{ $plat }}">
+                                                $ {{ number_format($acumuladosRango[$plat] ?? 0, 2, ',', '.') }}
+                                            </strong>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Acumulado Mensual -->
+                    <div class="col-md-6" style="margin-bottom: 10px;">
+                        <div class="panel panel-default" style="border: 1px solid #C4C3E3; box-shadow: 0 4px 6px -1px rgba(80, 78, 118, 0.05); border-radius: 12px; height: 100%;">
+                            <div class="panel-heading" style="background-color: #ffffff; border-bottom: 1px solid #eaeaef; border-radius: 12px 12px 0 0; padding: 15px;">
+                                <div class="pull-right">
+                                    <input type="month" id="selector_mes" class="form-control input-sm" style="width: auto; display: inline-block; border-radius: 6px; margin-top: -5px;">
+                                </div>
+                                <h5 style="margin: 0; color: #504E76; font-weight: bold;"><i class="fa fa-calendar"></i> Acumulado Mensual (GGR)</h5>
+                                <small class="text-muted">Total del mes seleccionado</small>
+                            </div>
+                            <div class="panel-body" style="padding: 15px; position: relative;">
+                                <span id="estado-mes-badge" class="badge pull-right" style="background-color: #F1642E; display: none;">Mes Concluido</span>
+                                <div class="row" id="acumulados-mes-container">
+                                    <div class="col-md-12 text-center text-muted" id="mensaje-seleccione-mes" style="padding: 20px;">
+                                        Seleccione un mes para ver el acumulado.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div id="contenedor-tabla-beneficio">
                     @include('aadd::Componentes.tablaBeneficioDiario')
@@ -80,46 +115,9 @@
 @endsection
 
 @section('scripts')
+@include('aadd::Componentes.scripts-paginacion')
 <script>
 $(document).ready(function() {
-    function paginarTabla(tableSelector, filasPorPagina) {
-        var $table = $(tableSelector);
-        // Evitar duplicar controles si ya existe
-        $table.next('.paginador-custom').remove();
-        
-        var $tbody = $table.find('tbody');
-        var $tr = $tbody.find('tr:not(.no-paginar)'); // se puede marcar filas especiales si hace falta
-        var totalFilas = $tr.length;
-        var totalPaginas = Math.ceil(totalFilas / filasPorPagina);
-        
-        if (totalPaginas <= 1) return;
-        
-        var $paginador = $('<div class="paginador-custom text-center" style="margin-top: 15px;"></div>');
-        for (var i = 1; i <= totalPaginas; i++) {
-            var $btn = $('<button class="btn btn-default btn-sm" style="margin: 0 2px;">' + i + '</button>');
-            $btn.data('page', i);
-            $paginador.append($btn);
-        }
-        $table.after($paginador);
-        
-        function mostrarPagina(page) {
-            $paginador.find('button').removeClass('btn-primary').addClass('btn-default');
-            $paginador.find('button').filter(function() { return $(this).data('page') === page; }).removeClass('btn-default').addClass('btn-primary');
-            
-            var inicio = (page - 1) * filasPorPagina;
-            var fin = inicio + filasPorPagina;
-            
-            $tr.hide();
-            $tr.slice(inicio, fin).show();
-        }
-        
-        $paginador.on('click', 'button', function(e) {
-            e.preventDefault();
-            mostrarPagina($(this).data('page'));
-        });
-        
-        mostrarPagina(1);
-    }
 
     function actualizarTabla() {
         var formData = $('#filtroBeneficioDiario').serialize();
@@ -132,8 +130,17 @@ $(document).ready(function() {
             type: 'GET',
             data: formData,
             success: function(response) {
-                $('#contenedor-tabla-beneficio').html(response);
+                // Ahora el controlador devuelve un JSON con html y acumulados_rango
+                $('#contenedor-tabla-beneficio').html(response.html);
                 $('#contenedor-tabla-beneficio').css('opacity', '1');
+                
+                // Actualizar las tarjetas de acumulado de rango
+                if (response.acumulados_rango) {
+                    $.each(response.acumulados_rango, function(plat, valor) {
+                        $('#rango-' + plat).text('$ ' + valor.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                    });
+                }
+                
                 paginarTabla('#contenedor-tabla-beneficio table', 30);
             },
             error: function(err) {
@@ -146,6 +153,45 @@ $(document).ready(function() {
     $('#fecha_desde, #fecha_hasta, #plataforma').on('change', function() {
         actualizarTabla();
     });
+
+    $('#selector_mes').on('change', function() {
+        var mes = $(this).val();
+        if(!mes) return;
+        
+        $('#acumulados-mes-container').html('<div class="col-md-12 text-center"><i class="fa fa-spinner fa-spin text-primary"></i></div>');
+        $('#estado-mes-badge').hide();
+
+        $.ajax({
+            url: '/aadd/acumulado-mensual',
+            type: 'GET',
+            data: { mes: mes },
+            success: function(response) {
+                var html = '';
+                $.each(response.acumulados, function(plat, valor) {
+                    var valorFormatted = valor.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    html += '<div class="col-xs-4" style="margin-bottom: 10px;">' +
+                                '<span style="font-size: 0.8em; color: #777; text-transform: uppercase;">' + plat + '</span><br>' +
+                                '<strong style="font-size: 1.1em; color: #504E76;">$ ' + valorFormatted + '</strong>' +
+                            '</div>';
+                });
+                $('#acumulados-mes-container').html(html);
+                
+                if(response.concluido) {
+                    $('#estado-mes-badge').text('Mes Concluido').css('background-color', '#A3B565').show();
+                } else {
+                    $('#estado-mes-badge').text('Mes en Curso').css('background-color', '#FCDD9D').show();
+                }
+            },
+            error: function() {
+                $('#acumulados-mes-container').html('<div class="col-md-12 text-center text-danger">Error al cargar datos.</div>');
+            }
+        });
+    });
+    
+    // Inicializar el selector de mes con el mes actual y disparar la carga
+    var hoy = new Date();
+    var mesActualStr = hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2);
+    $('#selector_mes').val(mesActualStr).trigger('change');
     
     // Inicializar paginación al cargar la página por primera vez
     paginarTabla('#contenedor-tabla-beneficio table', 30);
