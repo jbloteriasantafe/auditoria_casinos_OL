@@ -6,19 +6,16 @@
 
 @section('contenidoVista')
 <style>
-    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; border: 1px solid #f0f0f0 !important; background-color: #ffffff; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #fafbfc !important; border-bottom: 1px solid #f0f0f0 !important; color: #555 !important; }
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #ffffff; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #504E76 !important; }
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
-    .btn-primary { background-color: #e3f2fd !important; color: #1565c0 !important; border: none !important; }
-    .btn-primary:hover { background-color: #bbdefb !important; color: #0d47a1 !important; }
+    .btn-primary { background-color: #504E76 !important; color: #ffffff !important; border: none !important; }
+    .btn-primary:hover { background-color: #3b3958 !important; color: #ffffff !important; }
     .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
-    .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important; border: 1px solid #f5f5f5 !important; background-color: #fdfdfd !important; }
-    .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; }
+    .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #fcfbf5 !important; }
+    .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(80, 78, 118, 0.15) !important; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
-    .chip { display: inline-flex; align-items: center; padding: 8px 16px; margin-right: 12px; margin-bottom: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 50px; color: #495057; font-weight: 500; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
-    .chip:hover { background-color: #e3f2fd; border-color: #90caf9; color: #1565c0; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
-    .chip i { margin-right: 8px; font-size: 1.1em; color: #64b5f6; transition: color 0.2s ease; }
-    .chip:hover i { color: #1565c0; }
+
 </style>
 <div class="row">
     <div class="col-md-9">
@@ -29,19 +26,15 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="alert alert-success" style="background-color: #e8f5e9; color: #2e7d32; margin-bottom: 20px;">
-                            <h4 style="color: #2e7d32;"><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
+                        <div class="alert alert-success" style="background-color: #6dc7be; color: #ffffff; margin-bottom: 20px; margin-top:10px">
+                            <h4 style="color: #ffffff;"><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
                             <p>El submódulo <strong>AADD</strong> se ha enlazado de forma exitosa a la estructura y enrutador principal de la aplicación Laravel. Este es un entorno de pruebas aislado y protegido.</p>
                         </div>
                         
-                        <div style="margin-bottom: 15px;">
-                            <a href="/aadd/beneficio-diario" class="chip">
-                                <i class="fa fa-line-chart"></i> Beneficio Diario
-                            </a>
-                            <a href="/aadd/importaciones" class="chip">
-                                <i class="fa fa-upload"></i> Importador de Archivos
-                            </a>
-                        </div>
+                        @include('aadd::Componentes.navegacion-chips', [
+                            'pantalla' => 'index',
+                            'containerStyle' => 'margin-bottom: 15px;'
+                        ])
                         
                         <div class="well" style="padding: 20px;">
                             <h3 style="margin-top: 0; font-family: Roboto-Condensed, sans-serif; font-weight: 500; color: #555;">Información del Submódulo</h3>
@@ -83,7 +76,7 @@
     <div class="col-md-3">
         <div class="panel panel-default" style="border-left: 4px solid #90caf9;">
             <div class="panel-heading">
-                <h4><i class="fa fa-info-circle" style="color: #64b5f6;"></i> Estado</h4>
+                <h4><i class="fa fa-info-circle" style="color: #504E76;"></i> Estado</h4>
             </div>
             <div class="panel-body">
                 <p>Este submódulo fue diseñado para trabajar de forma modular y autónoma dentro del directorio <code>aadd/</code>, sin afectar el núcleo de la aplicación (<code>app/</code>).</p>

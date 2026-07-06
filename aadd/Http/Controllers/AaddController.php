@@ -239,9 +239,52 @@ class AaddController extends Controller
     }
 
     /**
+     * Obtiene el acumulado mensual para todas las plataformas.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function acumuladoMensual(Request $request)
+    {
+        $mes = $request->input('mes');
+        if (!$mes || !preg_match('/^\d{4}-\d{2}$/', $mes)) {
+            return response()->json(['error' => 'Mes inválido'], 400);
+        }
+
+        $anio = substr($mes, 0, 4);
+        $mesNum = substr($mes, 5, 2);
+        
+        $fechaInicio = "$anio-$mesNum-01";
+        $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mesNum, $anio);
+        $fechaFin = "$anio-$mesNum-$diasEnMes";
+
+        $acumulados = \AADD\Entities\BeneficioDiario::whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->select('id_plataforma', \DB::raw('SUM(ggr) as total_ggr'))
+            ->groupBy('id_plataforma')
+            ->get();
+            
+        $plataformas = \AADD\Enums\Plataforma::obtenerTodas();
+        $resultados = [];
+        foreach ($plataformas as $plat) {
+            $resultados[$plat] = 0;
+        }
+
+        foreach ($acumulados as $a) {
+            $resultados[$a->id_plataforma] = (float) $a->total_ggr;
+        }
+
+        $concluido = date('Y-m-d') > $fechaFin;
+
+        return response()->json([
+            'concluido' => $concluido,
+            'acumulados' => $resultados
+        ]);
+    }
+
+    /**
      * Muestra la vista de beneficio diario o la tabla filtrada si es AJAX.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
     public function beneficioDiario(Request $request)
     {
@@ -283,11 +326,28 @@ class AaddController extends Controller
                 return date('Y-m-d', strtotime($item->fecha));
             });
 
+        // Calcular acumulados de rango para todas las plataformas
+        $acumuladosQuery = \AADD\Entities\BeneficioDiario::whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->select('id_plataforma', \DB::raw('SUM(ggr) as total_ggr'))
+            ->groupBy('id_plataforma')
+            ->get();
+        
+        $acumuladosRango = [];
+        foreach ($plataformas as $plat) {
+            $acumuladosRango[$plat] = 0;
+        }
+        foreach ($acumuladosQuery as $a) {
+            $acumuladosRango[$a->id_plataforma] = (float) $a->total_ggr;
+        }
+
         if ($request->ajax()) {
-            return view('aadd::Componentes.tablaBeneficioDiario', [
-                'dias' => $dias,
-                'plataformaSeleccionada' => $plataformaSeleccionada,
-                'beneficios' => $beneficios
+            return response()->json([
+                'html' => view('aadd::Componentes.tablaBeneficioDiario', [
+                    'dias' => $dias,
+                    'plataformaSeleccionada' => $plataformaSeleccionada,
+                    'beneficios' => $beneficios
+                ])->render(),
+                'acumulados_rango' => $acumuladosRango
             ]);
         }
 
@@ -296,6 +356,7 @@ class AaddController extends Controller
             'plataformaSeleccionada' => $plataformaSeleccionada,
             'dias' => $dias,
             'beneficios' => $beneficios,
+            'acumuladosRango' => $acumuladosRango,
             'fechaDesde' => date('Y-m-d', $inicio),
             'fechaHasta' => date('Y-m-d', $fin)
         ]);

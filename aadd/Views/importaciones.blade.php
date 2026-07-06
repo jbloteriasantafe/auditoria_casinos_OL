@@ -6,79 +6,50 @@
 
 @section('contenidoVista')
 <style>
-    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; border: 1px solid #f0f0f0 !important; background-color: #ffffff; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #fafbfc !important; border-bottom: 1px solid #f0f0f0 !important; color: #555 !important; }
+    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #ffffff; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #504E76 !important; }
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
-    .btn-primary { background-color: #e8f5e9 !important; color: #2e7d32 !important; border: none !important; }
-    .btn-primary:hover { background-color: #c8e6c9 !important; color: #1b5e20 !important; }
-    .btn-default { background-color: #f5f5f5 !important; color: #555 !important; border: none !important; }
-    .btn-default:hover { background-color: #e0e0e0 !important; }
+    .btn-primary { background-color: #504E76 !important; color: #ffffff !important; border: none !important; }
+    .btn-primary:hover { background-color: #3b3958 !important; color: #ffffff !important; }
+    .btn-default { background-color: #C4C3E3 !important; color: #504E76 !important; border: none !important; }
+    .btn-default:hover { background-color: #b0afce !important; }
     .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
-    .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important; border: 1px solid #f5f5f5 !important; background-color: #fdfdfd !important; }
-    .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; }
+    .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #fcfbf5 !important; }
+    .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(80, 78, 118, 0.15) !important; }
     .table > thead > tr > th { color: #333 !important; font-weight: 600; }
     .table > tbody > tr > td { color: #222 !important; font-weight: 500; }
     .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
-    .chip { display: inline-flex; align-items: center; padding: 8px 16px; margin-right: 12px; margin-bottom: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 50px; color: #495057; font-weight: 500; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
-    .chip:hover { background-color: #e3f2fd; border-color: #90caf9; color: #1565c0; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
-    .chip i { margin-right: 8px; font-size: 1.1em; color: #64b5f6; transition: color 0.2s ease; }
-    .chip:hover i { color: #1565c0; }
+
 </style>
 <div class="row">
-    <div class="panel panel-default">
-    <div class="panel-heading" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
-        <h3 class="panel-title" style="font-weight: bold; color: #333;"><i class="fa fa-upload"></i> Importación</h3>
-    </div>
-    <div class="panel-body text-center" style="padding: 40px;">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading" style="background-color: #ffffff; border-bottom: 1px solid #C4C3E3;">
+                <h3 class="panel-title" style="font-weight: bold; color: #504E76;"><i class="fa fa-upload"></i> Importación</h3>
+            </div>
+            <div class="panel-body text-center" style="padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 40px;">
         <!-- Contenedores de alerta para cuando se cierre el modal -->
         <div id="mensajeExito" class="alert alert-success" style="display: none; text-align: left;"></div>
         <div id="mensajeError" class="alert alert-danger" style="display: none; text-align: left;"></div>
 
-        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="box-shadow: 0 4px 10px rgba(46,125,50,0.15) !important;">
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="box-shadow: 0 4px 10px rgba(80, 78, 118, 0.2) !important;">
             <i class="fa fa-upload"></i> Importación beneficio diario
         </button>
         
-        <div style="margin-top: 30px; display: flex; justify-content: center; gap: 10px;">
-            <a href="/aadd" class="chip" style="margin: 0;">
-                <i class="fa fa-arrow-left"></i> Menú Principal
-            </a>
-            <a href="/aadd/beneficio-diario" class="chip" style="margin: 0;">
-                <i class="fa fa-line-chart"></i> Beneficio Diario
-            </a>
-        </div>
+        @include('aadd::Componentes.navegacion-chips', [
+            'pantalla' => 'importaciones',
+            'containerStyle' => 'display: flex; justify-content: center; gap: 10px; width: 100%;',
+            'chipStyle' => 'margin: 0;'
+        ])
     </div>
-</div>
-    @include('aadd::Componentes.tablaEstadoMensual')
-    
+        </div>
+        @include('aadd::Componentes.tablaEstadoMensual')
+    </div>
 </div>
 
 @include('aadd::Modals.modalImportadorAadd')
 
-<!-- Modal Detalles Archivos -->
-<div class="modal fade" id="modalDetallesArchivos" tabindex="-1" role="dialog" aria-labelledby="modalDetallesArchivosLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
-      <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
-        <h4 class="modal-title" id="modalDetallesArchivosLabel" style="font-weight: bold; color: #333;"><i class="fa fa-list"></i> Archivos Cargados</h4>
-      </div>
-      <div class="modal-body">
-        <div id="cargandoDetalles" style="display: none; text-align: center; padding: 20px;">
-            <i class="fa fa-spinner fa-spin fa-2x text-primary"></i>
-            <p style="margin-top: 10px;">Buscando archivos...</p>
-        </div>
-        <ul id="listaArchivosDetalle" class="list-group" style="margin-bottom: 0; display: none;">
-            <!-- Acá se llenan los archivos -->
-        </ul>
-        <div id="mensajeSinArchivos" class="alert alert-warning" style="display: none; margin-bottom: 0;">
-            No hay archivos cargados para esta fecha y plataforma.
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
+@include('aadd::Modals.modalDetallesArchivos')
 @endsection
 
 @section('contenidoAyuda')
@@ -94,48 +65,11 @@
 @endsection
 
 @section('scripts')
+@include('aadd::Componentes.scripts-paginacion')
 <script>
     window.plataformas_disponibles = {!! json_encode($plataformas ?? []) !!};
 
-    window.paginarTabla = function(tableSelector, filasPorPagina) {
-        var $table = $(tableSelector);
-        $table.next('.paginador-custom').remove();
-        
-        var $tbody = $table.find('tbody');
-        var $tr = $tbody.find('tr:not(.no-paginar)');
-        var totalFilas = $tr.length;
-        var totalPaginas = Math.ceil(totalFilas / filasPorPagina);
-        
-        if (totalPaginas <= 1) return;
-        
-        var $paginador = $('<div class="paginador-custom text-center" style="margin-top: 15px;"></div>');
-        for (var i = 1; i <= totalPaginas; i++) {
-            var $btn = $('<button class="btn btn-default btn-sm" style="margin: 0 2px;">' + i + '</button>');
-            $btn.data('page', i);
-            $paginador.append($btn);
-        }
-        $table.after($paginador);
-        
-        function mostrarPagina(page) {
-            $paginador.find('button').removeClass('btn-primary').addClass('btn-default');
-            $paginador.find('button').filter(function() { return $(this).data('page') === page; }).removeClass('btn-default').addClass('btn-primary');
-            
-            var inicio = (page - 1) * filasPorPagina;
-            var fin = inicio + filasPorPagina;
-            
-            $tr.hide();
-            $tr.slice(inicio, fin).show();
-        }
-        
-        $paginador.on('click', 'button', function(e) {
-            e.preventDefault();
-            mostrarPagina($(this).data('page'));
-        });
-        
-        mostrarPagina(1);
-    };
-
-$(document).ready(function() {
+    $(document).ready(function() {
     var plataformas = window.plataformas_disponibles || [];
     var archivosSeleccionados = [];
 
@@ -167,8 +101,11 @@ $(document).ready(function() {
                 var tdFecha = $('<td>').append(inputFecha);
                 
                 var tdEstado = $('<td>').addClass('td-estado').html('<span class="text-muted"><i class="fa fa-clock-o"></i> Pendiente</span>');
+                
+                var btnEliminar = $('<button>').addClass('btn btn-danger btn-xs btn-eliminar-archivo').attr('title', 'Eliminar').html('<i class="fa fa-trash"></i>');
+                var tdAccion = $('<td>').append(btnEliminar);
 
-                tr.append(tdNombre).append(tdPlataforma).append(tdFecha).append(tdEstado);
+                tr.append(tdNombre).append(tdPlataforma).append(tdFecha).append(tdEstado).append(tdAccion);
                 tbody.append(tr);
             });
         } else {
@@ -176,10 +113,38 @@ $(document).ready(function() {
         }
     });
 
+    // Evento para eliminar archivos de la lista antes de subir
+    $('#tbodyArchivosPreview').on('click', '.btn-eliminar-archivo', function(e) {
+        e.preventDefault();
+        var tr = $(this).closest('tr');
+        var index = tr.attr('data-index');
+        
+        // Marcar como nulo en el array
+        archivosSeleccionados[index] = null;
+        
+        // Eliminar la fila
+        tr.remove();
+        
+        // Si no quedan filas, esconder tabla
+        if ($('#tbodyArchivosPreview tr').length === 0) {
+            $('#listaArchivosPreview').hide();
+            $('#archivoModal').val(''); // Limpiar el input para permitir elegir los mismos archivos otra vez
+            archivosSeleccionados = [];
+        }
+    });
+
     $('#btn-importar-ajax').click(function(e) {
         e.preventDefault();
         
-        if (archivosSeleccionados.length === 0) {
+        var tieneArchivos = false;
+        $('#tbodyArchivosPreview tr').each(function() {
+            var index = $(this).attr('data-index');
+            if (archivosSeleccionados[index]) {
+                tieneArchivos = true;
+            }
+        });
+
+        if (!tieneArchivos) {
             $('#errorAjaxForm').text('Debe seleccionar al menos un archivo.').show();
             return;
         }
@@ -206,9 +171,11 @@ $(document).ready(function() {
         // Recorrer filas para empaquetar archivo original + plataforma + fecha
         $('#tbodyArchivosPreview tr').each(function() {
             var index = $(this).attr('data-index');
+            var archivo = archivosSeleccionados[index];
+            if (!archivo) return; // Si es null (eliminado), ignorar
+            
             var plataforma = $(this).find('.select-plataforma').val();
             var fecha = $(this).find('.input-fecha').val();
-            var archivo = archivosSeleccionados[index];
             
             formData.append('archivos[]', archivo);
             formData.append('plataformas[]', plataforma);

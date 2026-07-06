@@ -29,9 +29,10 @@
                                         <thead>
                                              <tr>
                                                 <th>Archivo</th>
-                                                <th style="width: 35%;">Plataforma</th>
+                                                <th style="width: 30%;">Plataforma</th>
                                                 <th style="width: 25%;">Fecha</th>
                                                 <th style="width: 15%;">Estado</th>
+                                                <th style="width: 10%;">Acción</th>
                                              </tr>
                                         </thead>
                                         <tbody id="tbodyArchivosPreview">
@@ -48,7 +49,7 @@
                 </div>
             </div>
             <div class="modal-footer" style="padding-top: 15px;">
-                <button id="btn-importar-ajax" type="button" class="btn btn-success" style="background-color: #2e7d32; border-color: #1b5e20;">IMPORTAR</button>
+                <button id="btn-importar-ajax" type="button" class="btn btn-default" style="background-color: #2e7d32; border-color: #1b5e20;">IMPORTAR</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
             </div>
         </div>
