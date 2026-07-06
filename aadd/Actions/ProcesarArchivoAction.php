@@ -25,27 +25,27 @@ class ProcesarArchivoAction
 
         $registrosMapeados = $estrategiaMapeo->mapear($archivo);
 
-        foreach ($registrosMapeados as $datos) {
+        $mapeoEntidades = [
+            'diario'  => BeneficioDiario::class,
+            'mensual' => BeneficioMensual::class,
+        ];
+
+        foreach ($registrosMapeados as $item) {
+            $etiqueta = $item['etiqueta'] ?? 'diario';
+            $datos = $item['datos'] ?? $item;
+
             $datos['id_archivo'] = $archivo->id;
             $datos['id_plataforma'] = $archivo->id_plataforma;
 
-            if ($archivo->tipo_archivo === TipoArchivo::BENEFICIO_DIARIO) {
-                BeneficioDiario::updateOrCreate(
-                    [
-                        'id_plataforma' => $datos['id_plataforma'],
-                        'fecha'         => $datos['fecha'],
-                    ],
-                    $datos
-                );
-            } else {
-                BeneficioMensual::updateOrCreate(
-                    [
-                        'id_plataforma' => $datos['id_plataforma'],
-                        'fecha'         => $datos['fecha'],
-                    ],
-                    $datos
-                );
-            }
+            $claseEntityda = $mapeoEntidades[$etiqueta] ?? BeneficioDiario::class;
+
+            $claseEntityda::updateOrCreate(
+                [
+                    'id_plataforma' => $datos['id_plataforma'],
+                    'fecha'         => $datos['fecha'],
+                ],
+                $datos
+            );
         }
     }
 }

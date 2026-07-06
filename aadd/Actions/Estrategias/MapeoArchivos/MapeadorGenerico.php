@@ -4,15 +4,69 @@ namespace AADD\Actions\Estrategias\MapeoArchivos;
 
 use AADD\Entities\Archivo;
 use AADD\Enums\TipoArchivo;
+use AADD\Utils\LectorArchivos;
 use Exception;
 
 class MapeadorGenerico implements EstrategiaMapeoArchivo
 {
     /**
-     * Mapear el contenido de un archivo a un conjunto de arreglos con los datos de beneficios de forma genérica.
+     * @var array Configuración base para leer beneficios diarios.
+     */
+    protected $configuracionBeneficioDiario;
+
+    public function __construct()
+    {
+        $transformacionEntera = function($v) {
+            return (int) ($v ?? 0);
+        };
+
+        $transformacionFlotante = function($v) {
+            return (float) ($v ?? 0);
+        };
+
+        $this->configuracionBeneficioDiario = [
+            'fecha' => [
+                'transformacion' => function($v) {
+                    if (!$v) return null;
+                    if (strtoupper(trim($v)) === 'TOTAL') return 'TOTAL';
+                    return date('Y-m-d', strtotime($v));
+                }
+            ],
+            'jugadores_activos' => [
+                'alias' => ['JUGADORES ACTIVOS'],
+                'transformacion' => $transformacionEntera
+            ],
+            'apuestas_realizadas' => [
+                'alias' => ['APUESTAS REALIZADAS'],
+                'transformacion' => $transformacionEntera
+            ],
+            'turnover' => [
+                'alias' => ['TURNOVER DIARIO'],
+                'transformacion' => $transformacionFlotante
+            ],
+            'turnover_bonos' => [
+                'alias' => ['TURNOVER EN BONOS'],
+                'transformacion' => $transformacionFlotante
+            ],
+            'payout' => [
+                'alias' => ['PAYOUT DIARIO'],
+                'transformacion' => $transformacionFlotante
+            ],
+            'payout_bonos' => [
+                'alias' => ['PAYOUT EN BONOS'],
+                'transformacion' => $transformacionFlotante
+            ],
+            'ggr' => [
+                'transformacion' => $transformacionFlotante
+            ],
+        ];
+    }
+
+    /**
+     * Mapear el contenido de un archivo a un conjunto de arreglos con los datos listos.
      *
-     * @param Archivo $archivo Instancia del archivo cargado en base de datos.
-     * @return array Arreglo de arreglos con los datos listos para crear entidades.
+     * @param Archivo $archivo
+     * @return array
      * @throws Exception
      */
     public function mapear(Archivo $archivo)
@@ -21,30 +75,39 @@ class MapeadorGenerico implements EstrategiaMapeoArchivo
             case TipoArchivo::BENEFICIO_DIARIO:
                 return $this->mapearBeneficioDiario($archivo);
             default:
-                throw new Exception("Tipo de archivo no soportado para el mapeador genérico: " . $archivo->tipo_archivo);
+                throw new Exception("Tipo de archivo no soportado: " . $archivo->tipo_archivo);
         }
     }
 
     /**
-     * Mapear archivo del tipo BENEFICIO_DIARIO de forma genérica.
+     * Mapear archivo del tipo BENEFICIO_DIARIO.
      *
      * @param Archivo $archivo
      * @return array
      */
-    public function mapearBeneficioDiario(Archivo $archivo)
+    protected function mapearBeneficioDiario(Archivo $archivo)
     {
-        // Estructura de prueba genérica.
-        return [
-            [
-                'fecha' => $archivo->fecha,
-                'jugadores_activos' => 100,
-                'apuestas_realizadas' => 2000,
-                'turnover' => 40000.00,
-                'turnover_bonos' => 4000.00,
-                'payout' => 36000.00,
-                'payout_bonos' => 3000.00,
-                'ggr' => 4000.00,
-            ]
-        ];
+        $registros = [];
+
+        foreach (LectorArchivos::parsear($archivo, $this->configuracionBeneficioDiario) as $fila) {
+            if (empty($fila['fecha'])) {
+                continue; // Ignorar fila sin fecha (o vacía)
+            }
+
+            if ($fila['fecha'] === 'TOTAL') {
+                $fila['fecha'] = $archivo->fecha; 
+                $registros[] = [
+                    'etiqueta' => 'mensual',
+                    'datos' => $fila
+                ];
+            } else {
+                $registros[] = [
+                    'etiqueta' => 'diario',
+                    'datos' => $fila
+                ];
+            }
+        }
+
+        return $registros;
     }
 }
