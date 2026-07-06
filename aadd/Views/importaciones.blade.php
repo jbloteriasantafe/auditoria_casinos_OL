@@ -27,7 +27,7 @@
             <div class="panel-heading" style="background-color: #ffffff; border-bottom: 1px solid #C4C3E3;">
                 <h3 class="panel-title" style="font-weight: bold; color: #504E76;"><i class="fa fa-upload"></i> Importación</h3>
             </div>
-            <div class="panel-body text-center" style="padding: 50px 40px; display: flex; flex-direction: column; align-items: center; gap: 40px;">
+            <div class="panel-body text-center" style="padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 40px;">
         <!-- Contenedores de alerta para cuando se cierre el modal -->
         <div id="mensajeExito" class="alert alert-success" style="display: none; text-align: left;"></div>
         <div id="mensajeError" class="alert alert-danger" style="display: none; text-align: left;"></div>
@@ -101,8 +101,11 @@
                 var tdFecha = $('<td>').append(inputFecha);
                 
                 var tdEstado = $('<td>').addClass('td-estado').html('<span class="text-muted"><i class="fa fa-clock-o"></i> Pendiente</span>');
+                
+                var btnEliminar = $('<button>').addClass('btn btn-danger btn-xs btn-eliminar-archivo').attr('title', 'Eliminar').html('<i class="fa fa-trash"></i>');
+                var tdAccion = $('<td>').append(btnEliminar);
 
-                tr.append(tdNombre).append(tdPlataforma).append(tdFecha).append(tdEstado);
+                tr.append(tdNombre).append(tdPlataforma).append(tdFecha).append(tdEstado).append(tdAccion);
                 tbody.append(tr);
             });
         } else {
@@ -110,10 +113,38 @@
         }
     });
 
+    // Evento para eliminar archivos de la lista antes de subir
+    $('#tbodyArchivosPreview').on('click', '.btn-eliminar-archivo', function(e) {
+        e.preventDefault();
+        var tr = $(this).closest('tr');
+        var index = tr.attr('data-index');
+        
+        // Marcar como nulo en el array
+        archivosSeleccionados[index] = null;
+        
+        // Eliminar la fila
+        tr.remove();
+        
+        // Si no quedan filas, esconder tabla
+        if ($('#tbodyArchivosPreview tr').length === 0) {
+            $('#listaArchivosPreview').hide();
+            $('#archivoModal').val(''); // Limpiar el input para permitir elegir los mismos archivos otra vez
+            archivosSeleccionados = [];
+        }
+    });
+
     $('#btn-importar-ajax').click(function(e) {
         e.preventDefault();
         
-        if (archivosSeleccionados.length === 0) {
+        var tieneArchivos = false;
+        $('#tbodyArchivosPreview tr').each(function() {
+            var index = $(this).attr('data-index');
+            if (archivosSeleccionados[index]) {
+                tieneArchivos = true;
+            }
+        });
+
+        if (!tieneArchivos) {
             $('#errorAjaxForm').text('Debe seleccionar al menos un archivo.').show();
             return;
         }
@@ -140,9 +171,11 @@
         // Recorrer filas para empaquetar archivo original + plataforma + fecha
         $('#tbodyArchivosPreview tr').each(function() {
             var index = $(this).attr('data-index');
+            var archivo = archivosSeleccionados[index];
+            if (!archivo) return; // Si es null (eliminado), ignorar
+            
             var plataforma = $(this).find('.select-plataforma').val();
             var fecha = $(this).find('.input-fecha').val();
-            var archivo = archivosSeleccionados[index];
             
             formData.append('archivos[]', archivo);
             formData.append('plataformas[]', plataforma);

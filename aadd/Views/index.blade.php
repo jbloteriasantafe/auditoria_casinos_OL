@@ -26,7 +26,7 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="alert alert-success" style="background-color: #A3B565; color: #ffffff; margin-bottom: 20px; margin-top:10px">
+                        <div class="alert alert-success" style="background-color: #6dc7be; color: #ffffff; margin-bottom: 20px; margin-top:10px">
                             <h4 style="color: #ffffff;"><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
                             <p>El submódulo <strong>AADD</strong> se ha enlazado de forma exitosa a la estructura y enrutador principal de la aplicación Laravel. Este es un entorno de pruebas aislado y protegido.</p>
                         </div>

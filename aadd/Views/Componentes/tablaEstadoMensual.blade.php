@@ -20,12 +20,12 @@
     .table-responsive-moderna::-webkit-scrollbar-thumb { background: #C4C3E3; border-radius: 8px; }
     .table-responsive-moderna::-webkit-scrollbar-thumb:hover { background: #504E76; }
     
-    .badge-m { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.3px; min-width: 60px; box-shadow: 0 1px 2px rgba(80, 78, 118, 0.1); transition: all 0.2s ease; }
-    .badge-m:hover { transform: scale(1.05); filter: brightness(1.05); box-shadow: 0 3px 6px rgba(80, 78, 118, 0.15); cursor: pointer; }
-    .badge-success-m { background-color: #A3B565; color: #ffffff; border: 1px solid #92a454; }
-    .badge-warning-m { background-color: #FCDD9D; color: #504E76; border: 1px solid #ebc67d; }
-    .badge-danger-m { background-color: #F1642E; color: #ffffff; border: 1px solid #d4521e; }
-    .badge-m i { margin-right: 4px; font-size: 0.85em; }
+    .badge-m { font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; }
+    .badge-m:hover { transform: scale(1.05); cursor: pointer; }
+    .badge-success-m { color: #A3B565; }
+    .badge-warning-m { color: #b89c58; /* slightly darker yellow for text readability */ }
+    .badge-danger-m { color: #F1642E; }
+    .badge-m i { margin-right: 4px; font-size: 0.9em; }
 </style>
                 <div class="table-responsive table-responsive-moderna" style="max-height: 60vh; overflow-y: auto;">
                     <table class="table table-moderna text-center">
