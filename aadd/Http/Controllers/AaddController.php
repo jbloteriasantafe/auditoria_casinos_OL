@@ -326,6 +326,14 @@ class AaddController extends Controller
                 return date('Y-m-d', strtotime($item->fecha));
             });
 
+        if (strtoupper($plataformaSeleccionada) === 'BPLAY') {
+            $beneficios->transform(function ($item) {
+                $item->turnover += $item->turnover_bonos;
+                $item->payout += $item->payout_bonos;
+                return $item;
+            });
+        }
+
         // Calcular acumulados de rango para todas las plataformas
         $acumuladosQuery = \AADD\Entities\BeneficioDiario::whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
             ->select('id_plataforma', \DB::raw('SUM(ggr) as total_ggr'))
@@ -360,5 +368,70 @@ class AaddController extends Controller
             'fechaDesde' => date('Y-m-d', $inicio),
             'fechaHasta' => date('Y-m-d', $fin)
         ]);
+    }
+
+    /**
+     * Genera un PDF con el beneficio diario filtrado.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return mixed
+     */
+    public function beneficioDiarioPdf(Request $request)
+    {
+        $plataformas = \AADD\Enums\Plataforma::obtenerTodas();
+        
+        $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
+        $fechaHasta = $request->input('fecha_hasta', date('Y-m-t'));
+        
+        $plataformaSeleccionada = $request->input('plataforma');
+        if (!$plataformaSeleccionada || !in_array($plataformaSeleccionada, $plataformas)) {
+            $plataformaSeleccionada = $plataformas[0] ?? null;
+        }
+        
+        // Validar fechas
+        $inicio = strtotime($fechaDesde);
+        $fin = strtotime($fechaHasta);
+        if ($inicio > $fin) {
+            $temp = $inicio;
+            $inicio = $fin;
+            $fin = $temp;
+        }
+
+        // Limitar a máximo 60 días
+        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
+        if ($diferenciaDias > 60) {
+            $fin = strtotime('+60 days', $inicio);
+        }
+        
+        $dias = [];
+        for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
+            $dias[] = date('Y-m-d', $current);
+        }
+
+        $idPlataforma = \AADD\Enums\Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
+        $beneficios = \AADD\Entities\BeneficioDiario::where('id_plataforma', $idPlataforma)
+            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->orderBy('fecha', 'asc')
+            ->get()
+            ->keyBy(function ($item) {
+                return date('Y-m-d', strtotime($item->fecha));
+            });
+
+        if (strtoupper($plataformaSeleccionada) === 'BPLAY') {
+            $beneficios->transform(function ($item) {
+                $item->turnover += $item->turnover_bonos;
+                $item->payout += $item->payout_bonos;
+                return $item;
+            });
+        }
+
+        $view = \View::make('aadd::beneficio-diario-pdf', compact('dias', 'plataformaSeleccionada', 'beneficios', 'fechaDesde', 'fechaHasta'));
+        $dompdf = new \Dompdf\Dompdf();
+        $dompdf->set_option('isHtml5ParserEnabled', true);
+        $dompdf->set_paper('A4', 'portrait');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+
+        return $dompdf->stream('beneficio_diario_' . strtolower($plataformaSeleccionada) . '.pdf', array("Attachment" => false));
     }
 }

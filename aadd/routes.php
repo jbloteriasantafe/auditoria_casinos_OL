@@ -20,3 +20,6 @@ Route::get('/aadd/beneficio-diario', '\AADD\Http\Controllers\AaddController@bene
 
 Route::get('/aadd/acumulado-mensual', '\AADD\Http\Controllers\AaddController@acumuladoMensual')
     ->middleware('tiene_permiso');
+
+Route::get('/aadd/beneficio-diario-pdf', '\AADD\Http\Controllers\AaddController@beneficioDiarioPdf')
+    ->middleware('tiene_permiso');

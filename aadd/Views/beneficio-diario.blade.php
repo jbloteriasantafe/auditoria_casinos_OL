@@ -49,6 +49,8 @@
                     </div>
                 </form>
 
+               
+
                 <div class="row" style="margin-bottom: 20px; display: flex; flex-wrap: wrap;">
                     <!-- Acumulado del Rango -->
                     <div class="col-md-6" style="margin-bottom: 10px;">
@@ -101,6 +103,16 @@
             </div>
         </div>
     </div>
+     <div class="row" style="margin-bottom: 20px;">
+                    <div class="col-md-12" style="display: flex; justify-content: space-between; align-items: center; background-color: #f9fbff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 20px;">
+                        <span style="color: #555; font-size: 14px;">
+                            <i class="fa fa-info-circle" style="color: #4a4f87; margin-right: 5px;"></i> Se imprimirán los datos del rango de fecha seleccionado más arriba.
+                        </span>
+                        <a href="#" id="btn-exportar-pdf" class="btn btn-primary">
+                            <i class="fa fa-upload"></i> Exportar archivo
+                        </a>
+                    </div>
+                </div>
 </div>
 
 <meta name="_token" content="{!! csrf_token() !!}" />
@@ -198,6 +210,13 @@ $(document).ready(function() {
     
     // Inicializar paginación al cargar la página por primera vez
     paginarTabla('#contenedor-tabla-beneficio table', 30);
+
+    // Exportar PDF
+    $('#btn-exportar-pdf').on('click', function(e) {
+        e.preventDefault();
+        var formData = $('#filtroBeneficioDiario').serialize();
+        window.open('/aadd/beneficio-diario-pdf?' + formData, '_blank');
+    });
 });
 </script>
 @endsection
