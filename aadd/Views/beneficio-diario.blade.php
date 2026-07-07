@@ -7,13 +7,13 @@
 @section('contenidoVista')
 <style>
     .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #ffffff; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #504E76 !important; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #292639 !important; }
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
-    .btn-primary { background-color: #504E76 !important; color: #ffffff !important; border: none !important; }
-    .btn-primary:hover { background-color: #3b3958 !important; color: #ffffff !important; }
-    .panel-acumulado { background-color: #6dc7be!important; border-color: #efedf8ff !important; }
-    .panel-acumulado .panel-heading { background-color: #6dc7be!important; border-bottom: 1px solid rgba(255,255,255,0.3) !important; }
-    .panel-acumulado .panel-body { background-color: #6dc7be!important; }
+    .btn-primary { background-color: #292639 !important; color: #ffffff !important; border: none !important; }
+    .btn-primary:hover { background-color: #292639 !important; color: #ffffff !important; }
+    .panel-acumulado { background-color: #C6DA81!important; border-color: #efedf8ff !important; }
+    .panel-acumulado .panel-heading { background-color: #C6DA81!important; border-bottom: 1px solid rgba(255,255,255,0.3) !important; }
+    .panel-acumulado .panel-body { background-color: #C6DA81!important; }
     .table { border: none !important; }
     .table > thead > tr > th { text-align: center; vertical-align: middle; background-color: #f8fafd; color: #333; font-weight: 600; border-bottom: 2px solid #edf2f7; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
     .table > tbody > tr > td { text-align: center; vertical-align: middle; border-top: 1px solid #f8f9fa; color: #222; font-weight: 500; }
@@ -54,15 +54,15 @@
                     <div class="col-md-6" style="margin-bottom: 10px;">
                         <div class="panel panel-default panel-acumulado" style="border: 1px solid #C4C3E3; box-shadow: 0 4px 6px -1px rgba(80, 78, 118, 0.05); border-radius: 12px; height: 100%;">
                             <div class="panel-heading" style="border-radius: 12px 12px 0 0; padding: 15px;">
-                                <h5 style="margin: 0; color: #504E76; font-weight: bold;"><i class="fa fa-calendar-check-o"></i> Acumulado del Rango (GGR)</h5>
-                                <small class="text-muted" style="color: #ffffff !important;">Suma del rango seleccionado</small>
+                                <h5 style="margin: 0; color: #4A4F87; font-weight: bold;"><i class="fa fa-calendar-check-o"></i> Acumulado del Rango (GGR)</h5>
+                                <small class="text-muted" style="color: #4A4F87 !important;">Suma del rango seleccionado</small>
                             </div>
                             <div class="panel-body" style="padding: 15px;">
                                 <div class="row" id="acumulados-rango-container">
                                     @foreach($plataformas as $plat)
                                         <div class="col-xs-4" style="margin-bottom: 10px;">
-                                            <span style="font-size: 0.8em; color: #504E76; text-transform: uppercase;">{{ $plat }}</span><br>
-                                            <strong style="font-size: 1.1em; color: #ffffff;" id="rango-{{ $plat }}">
+                                            <span style="font-size: 0.8em; color: #4A4F87; text-transform: uppercase;">{{ $plat }}</span><br>
+                                            <strong style="font-size: 1.1em; color: #4A4F87;" id="rango-{{ $plat }}">
                                                 $ {{ number_format($acumuladosRango[$plat] ?? 0, 2, ',', '.') }}
                                             </strong>
                                         </div>
@@ -77,15 +77,15 @@
                         <div class="panel panel-default panel-acumulado" style="border: 1px solid #C4C3E3; box-shadow: 0 4px 6px -1px rgba(80, 78, 118, 0.05); border-radius: 12px; height: 100%;">
                             <div class="panel-heading" style="border-radius: 12px 12px 0 0; padding: 15px;">
                                 <div class="pull-right" style="display: flex; align-items: center; gap: 10px; margin-top: -5px;">
-                                    <span id="estado-mes-badge" class="badge" style="background-color: #F1642E; display: none;">Mes Concluido</span>
+                                    <span id="estado-mes-badge" class="badge" style="background-color: #FEB737; display: none;">Mes Concluido</span>
                                     <input type="month" id="selector_mes" class="form-control input-sm" style="width: auto; display: inline-block; border-radius: 6px;">
                                 </div>
-                                <h5 style="margin: 0; color: #504E76; font-weight: bold;"><i class="fa fa-calendar"></i> Acumulado Mensual (GGR)</h5>
-                                <small class="text-muted" style="color: #ffffff !important;">Total del mes seleccionado</small>
+                                <h5 style="margin: 0; color: #4A4F87; font-weight: bold;"><i class="fa fa-calendar"></i> Acumulado Mensual (GGR)</h5>
+                                <small class="text-muted" style="color: #4A4F87 !important;">Total del mes seleccionado</small>
                             </div>
                             <div class="panel-body" style="padding: 15px; position: relative;">
                                 <div class="row" id="acumulados-mes-container">
-                                    <div class="col-md-12 text-center" id="mensaje-seleccione-mes" style="padding: 20px; color: #ffffff;">
+                                    <div class="col-md-12 text-center" id="mensaje-seleccione-mes" style="padding: 20px; color: #4A4F87">
                                         Seleccione un mes para ver el acumulado.
                                     </div>
                                 </div>
@@ -173,8 +173,8 @@ $(document).ready(function() {
                 $.each(response.acumulados, function(plat, valor) {
                     var valorFormatted = valor.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                     html += '<div class="col-xs-4" style="margin-bottom: 10px;">' +
-                                '<span style="font-size: 0.8em; color: #504E76; text-transform: uppercase;">' + plat + '</span><br>' +
-                                '<strong style="font-size: 1.1em; color: #ffffff;">$ ' + valorFormatted + '</strong>' +
+                                '<span style="font-size: 0.8em; color: #4A4F87; text-transform: uppercase;">' + plat + '</span><br>' +
+                                '<strong style="font-size: 1.1em; color: #4A4F87;">$ ' + valorFormatted + '</strong>' +
                             '</div>';
                 });
                 $('#acumulados-mes-container').html(html);

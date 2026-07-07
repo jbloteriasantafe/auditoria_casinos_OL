@@ -7,11 +7,11 @@
 @section('contenidoVista')
 <style>
     .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #ffffff; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #504E76 !important; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #4a4f87 !important; }
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
-    .btn-primary { background-color: #504E76 !important; color: #ffffff !important; border: none !important; }
-    .btn-primary:hover { background-color: #3b3958 !important; color: #ffffff !important; }
-    .btn-default { background-color: #C4C3E3 !important; color: #504E76 !important; border: none !important; }
+    .btn-primary { background-color: #4a4f87 !important; color: #ffffff !important; border: none !important; }
+    .btn-primary:hover { background-color: #4a4f87 !important; color: #ffffff !important; }
+    .btn-default { background-color: #C4C3E3 !important; color: #4a4f87 !important; border: none !important; }
     .btn-default:hover { background-color: #b0afce !important; }
     .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
     .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #fcfbf5 !important; }
@@ -24,24 +24,20 @@
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
-            <div class="panel-heading" style="background-color: #ffffff; border-bottom: 1px solid #C4C3E3;">
-                <h3 class="panel-title" style="font-weight: bold; color: #504E76;"><i class="fa fa-upload"></i> Importación</h3>
-            </div>
-            <div class="panel-body text-center" style="padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 40px;">
-        <!-- Contenedores de alerta para cuando se cierre el modal -->
-        <div id="mensajeExito" class="alert alert-success" style="display: none; text-align: left;"></div>
-        <div id="mensajeError" class="alert alert-danger" style="display: none; text-align: left;"></div>
 
-        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="box-shadow: 0 4px 10px rgba(80, 78, 118, 0.2) !important;">
-            <i class="fa fa-upload"></i> Importación beneficio diario
-        </button>
-        
-        @include('aadd::Componentes.navegacion-chips', [
-            'pantalla' => 'importaciones',
-            'containerStyle' => 'display: flex; justify-content: center; gap: 10px; width: 100%;',
-            'chipStyle' => 'margin: 0;'
-        ])
-    </div>
+            <!-- Contenedores de alerta para cuando se cierre el modal -->
+            <div id="mensajeExito" class="alert alert-success" style="display: none; margin: 15px;"></div>
+            <div id="mensajeError" class="alert alert-danger" style="display: none; margin: 15px;"></div>
+
+            <div class="panel-body" style="display: flex; justify-content: space-around; align-items: center; padding: 20px;">
+                <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalImportadorAadd" style="box-shadow: 0 4px 10px rgba(80, 78, 118, 0.2) !important;">
+                    <i class="fa fa-upload"></i> Importación beneficio diario
+                </button>
+                
+                <div style="width: 40%;">
+                    @include('aadd::Componentes.navegacion-chips', ['pantalla' => 'importaciones'])
+                </div>
+            </div>
         </div>
         @include('aadd::Componentes.tablaEstadoMensual')
     </div>

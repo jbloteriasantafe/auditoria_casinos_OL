@@ -7,10 +7,10 @@
 @section('contenidoVista')
 <style>
     .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #ffffff; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #504E76 !important; }
+    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #4a4f87!important; }
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
-    .btn-primary { background-color: #504E76 !important; color: #ffffff !important; border: none !important; }
-    .btn-primary:hover { background-color: #3b3958 !important; color: #ffffff !important; }
+    .btn-primary { background-color: #4a4f87!important; color: #ffffff !important; border: none !important; }
+    .btn-primary:hover { background-color: #4a4f87!important; color: #ffffff !important; }
     .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
     .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #fcfbf5 !important; }
     .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(80, 78, 118, 0.15) !important; }
@@ -26,8 +26,8 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="alert alert-success" style="background-color: #6dc7be; color: #ffffff; margin-bottom: 20px; margin-top:10px">
-                            <h4 style="color: #ffffff;"><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
+                        <div class="alert alert-success" style="background-color: #FEC2E6; color: #4A4F87; margin-bottom: 20px; margin-top:10px">
+                            <h4 style="color: #4A4F87;"><i class="fa fa-fw fa-check-circle"></i> ¡Integración Correcta!</h4>
                             <p>El submódulo <strong>AADD</strong> se ha enlazado de forma exitosa a la estructura y enrutador principal de la aplicación Laravel. Este es un entorno de pruebas aislado y protegido.</p>
                         </div>
                         
@@ -76,7 +76,7 @@
     <div class="col-md-3">
         <div class="panel panel-default" style="border-left: 4px solid #90caf9;">
             <div class="panel-heading">
-                <h4><i class="fa fa-info-circle" style="color: #504E76;"></i> Estado</h4>
+                <h4><i class="fa fa-info-circle" style="color: #4a4f87;"></i> Estado</h4>
             </div>
             <div class="panel-body">
                 <p>Este submódulo fue diseñado para trabajar de forma modular y autónoma dentro del directorio <code>aadd/</code>, sin afectar el núcleo de la aplicación (<code>app/</code>).</p>
