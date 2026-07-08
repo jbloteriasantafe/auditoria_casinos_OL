@@ -55,26 +55,29 @@ class LectorArchivos
 
     private static function parsearCsv(Archivo $archivo, array $configuracion): \Generator
     {
-        $lineas = explode("\n", trim($archivo->contenido));
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, $archivo->contenido);
+        rewind($stream);
 
-        if (count($lineas) === 0) {
+        $primeraLinea = fgetcsv($stream);
+        if (!$primeraLinea) {
+            fclose($stream);
             return;
         }
 
-        $primeraLinea = array_shift($lineas);
-        $encabezados = str_getcsv($primeraLinea);
         $encabezados = array_map(function($h) {
             return strtoupper(trim($h));
-        }, $encabezados);
+        }, $primeraLinea);
 
         $filas = [];
-        foreach ($lineas as $linea) {
-            $linea = trim($linea);
-            if (empty($linea)) {
+        while (($fila = fgetcsv($stream)) !== false) {
+            // Ignorar líneas vacías o de estructura nula
+            if (empty($fila) || (count($fila) === 1 && $fila[0] === null)) {
                 continue;
             }
-            $filas[] = str_getcsv($linea);
+            $filas[] = $fila;
         }
+        fclose($stream);
 
         yield from self::extraerDatos($filas, $encabezados, $configuracion);
     }
