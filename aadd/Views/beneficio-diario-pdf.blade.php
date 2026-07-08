@@ -35,7 +35,7 @@ tr:nth-child(even) {
 </head>
 <body>
     <div class="encabezadoImg">
-      <img src="aadd/encabezado-sin-IRAM.jpeg" width="900">
+      <img src="_aadd/encabezado-sin-IRAM.jpeg" width="900">
       <h2 style="left:35%;"><span>Apuestas Deportivas | Informe de beneficios (ARS)</span></h2>
     </div>
 
