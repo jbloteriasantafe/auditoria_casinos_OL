@@ -8,7 +8,7 @@ Overview de controladores y sus responsabilidades.
   * `GET /aadd`: Renderiza la vista principal del panel de control de AADD.
 
 ## 2. `ImportacionController`
-* **Responsabilidad:** Carga y seguimiento de archivos crudos con carga detallada por lotes mensuales.
+* **Responsabilidad:** Carga y seguimiento de archivos crudos.
 * **Controlador:** [ImportacionController.php](./ImportacionController.php)
 * **Endpoints:**
   * `GET /aadd/importaciones`: Renderiza la vista del importador.
