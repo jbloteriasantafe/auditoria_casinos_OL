@@ -18,7 +18,7 @@ class Plataforma
      *
      * @return array
      */
-    public static function obtenerTodas()
+    public static function values()
     {
         return [
             self::BPLAY,
@@ -38,7 +38,7 @@ class Plataforma
      */
     public static function obtenerIdDesdeString($nombre)
     {
-        $todas = self::obtenerTodas();
+        $todas = self::values();
         $nombreUpper = strtoupper($nombre);
         return in_array($nombreUpper, $todas) ? $nombreUpper : null;
     }

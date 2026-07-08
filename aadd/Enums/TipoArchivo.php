@@ -13,7 +13,7 @@ class TipoArchivo
      *
      * @return array
      */
-    public static function obtenerTodos()
+    public static function values()
     {
         return [
             self::BENEFICIO_DIARIO,

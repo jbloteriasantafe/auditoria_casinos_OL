@@ -192,7 +192,7 @@
 
         $.ajax({
             type: 'POST',
-            url: '/aadd/importar',
+            url: '/aadd/importaciones/importar',
             data: formData,
             contentType: false,
             processData: false,
@@ -260,7 +260,7 @@
 window.actualizarTablaMensual = function(mes) {
     if (!mes) return;
     $.ajax({
-        url: '/aadd/importaciones',
+        url: '/aadd/importaciones/tabla',
         type: 'GET',
         data: { mes: mes },
         success: function(response) {
@@ -275,35 +275,25 @@ window.actualizarTablaMensual = function(mes) {
     });
 };
 
-window.verDetallesArchivos = function(fecha, plataforma) {
+window.verDetallesArchivos = function(fecha, plataforma, element) {
     $('#modalDetallesArchivosLabel').html('<i class="fa fa-list"></i> Archivos Cargados - ' + plataforma + ' (' + fecha + ')');
-    $('#listaArchivosDetalle').empty().hide();
+    var ul = $('#listaArchivosDetalle');
+    ul.empty().hide();
     $('#mensajeSinArchivos').hide();
-    $('#cargandoDetalles').show();
+    $('#cargandoDetalles').hide();
     $('#modalDetallesArchivos').modal('show');
 
-    $.ajax({
-        url: '/aadd/detalles-archivos',
-        type: 'GET',
-        data: { fecha: fecha, plataforma: plataforma },
-        success: function(response) {
-            $('#cargandoDetalles').hide();
-            if (response.archivos && response.archivos.length > 0) {
-                var ul = $('#listaArchivosDetalle');
-                response.archivos.forEach(function(archivo) {
-                    var tipoStr = archivo.tipo_archivo ? archivo.tipo_archivo.replace(/_/g, ' ') : 'Desconocido';
-                    ul.append('<li class="list-group-item"><i class="fa fa-file-text-o text-info"></i> <strong>' + tipoStr + '</strong>: ' + archivo.nombre + '</li>');
-                });
-                ul.show();
-            } else {
-                $('#mensajeSinArchivos').show();
-            }
-        },
-        error: function(err) {
-            $('#cargandoDetalles').hide();
-            $('#mensajeSinArchivos').text('Error al buscar los archivos.').show();
-        }
-    });
+    var archivos = $(element).data('archivos') || [];
+    
+    if (archivos.length > 0) {
+        archivos.forEach(function(archivo) {
+            var tipoStr = archivo.tipo_archivo ? archivo.tipo_archivo.replace(/_/g, ' ') : 'Desconocido';
+            ul.append('<li class="list-group-item"><i class="fa fa-file-text-o text-info"></i> <strong>' + tipoStr + '</strong>: ' + archivo.nombre + '</li>');
+        });
+        ul.show();
+    } else {
+        $('#mensajeSinArchivos').show();
+    }
 };
 </script>
 @endsection

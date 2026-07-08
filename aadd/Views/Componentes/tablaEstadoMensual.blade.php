@@ -45,13 +45,17 @@
                                     <tr>
                                         <td><strong>{{ date('d-m-Y', strtotime($dia)) }}</strong></td>
                                         @foreach($plataformas as $plat)
-                                            <td style="cursor: pointer;" onclick="verDetallesArchivos('{{ $dia }}', '{{ $plat }}')" title="Ver detalles de archivos">
-                                                @if($matriz[$dia][$plat] == 4)
-                                                    <span class="badge-m badge-success-m"><i class="fa fa-check"></i> {{ $matriz[$dia][$plat] }} / 4</span>
-                                                @elseif($matriz[$dia][$plat] > 0)
-                                                    <span class="badge-m badge-warning-m"><i class="fa fa-exclamation-triangle" style="display:none;"></i> {{ $matriz[$dia][$plat] }} / 4</span>
+                                            @php
+                                                $archivos = $matriz[$dia][$plat] ?? [];
+                                                $cantidad = count($archivos);
+                                            @endphp
+                                            <td style="cursor: pointer;" onclick="verDetallesArchivos('{{ $dia }}', '{{ $plat }}', this)" data-archivos="{{ json_encode($archivos) }}" title="Ver detalles de archivos">
+                                                @if($cantidad == 4)
+                                                    <span class="badge-m badge-success-m"><i class="fa fa-check"></i> {{ $cantidad }} / 4</span>
+                                                @elseif($cantidad > 0)
+                                                    <span class="badge-m badge-warning-m"><i class="fa fa-exclamation-triangle" style="display:none;"></i> {{ $cantidad }} / 4</span>
                                                 @else
-                                                    <span class="badge-m badge-danger-m"><i class="fa fa-times"></i> {{ $matriz[$dia][$plat] }} / 4</span>
+                                                    <span class="badge-m badge-danger-m"><i class="fa fa-times"></i> {{ $cantidad }} / 4</span>
                                                 @endif
                                             </td>
                                         @endforeach

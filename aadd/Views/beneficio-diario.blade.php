@@ -141,7 +141,7 @@ $(document).ready(function() {
         $('#contenedor-tabla-beneficio').css('opacity', '0.5');
 
         $.ajax({
-            url: '/aadd/beneficio-diario',
+            url: '/aadd/beneficio-diario/tabla',
             type: 'GET',
             data: formData,
             success: function(response) {
@@ -177,7 +177,7 @@ $(document).ready(function() {
         $('#estado-mes-badge').hide();
 
         $.ajax({
-            url: '/aadd/acumulado-mensual',
+            url: '/aadd/beneficio-diario/acumulado-mensual',
             type: 'GET',
             data: { mes: mes },
             success: function(response) {
@@ -215,7 +215,7 @@ $(document).ready(function() {
     $('#btn-exportar-pdf').on('click', function(e) {
         e.preventDefault();
         var formData = $('#filtroBeneficioDiario').serialize();
-        window.open('/aadd/beneficio-diario-pdf?' + formData, '_blank');
+        window.open('/aadd/informes/pdf/beneficio-diario?' + formData, '_blank');
     });
 });
 </script>
