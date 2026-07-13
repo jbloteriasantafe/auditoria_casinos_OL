@@ -49,8 +49,13 @@ class BeneficioDiarioController extends Controller
         }
 
         $idPlataforma = Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
-        $beneficios = BeneficioDiario::where('id_plataforma', $idPlataforma)
+        $subquery = BeneficioDiario::select(DB::raw('MAX(id) as id'))
+            ->where('id_plataforma', $idPlataforma)
             ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->groupBy('fecha');
+
+        $beneficios = BeneficioDiario::with('archivo')
+            ->whereIn('id', $subquery)
             ->get()
             ->keyBy(function ($item) {
                 return date('Y-m-d', strtotime($item->fecha));
@@ -65,7 +70,11 @@ class BeneficioDiarioController extends Controller
         }
 
         // Calcular acumulados de rango para todas las plataformas
-        $acumuladosQuery = BeneficioDiario::whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+        $subqueryAcumulados = BeneficioDiario::select(DB::raw('MAX(id) as id'))
+            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->groupBy('id_plataforma', 'fecha');
+
+        $acumuladosQuery = BeneficioDiario::whereIn('id', $subqueryAcumulados)
             ->select('id_plataforma', DB::raw('SUM(ggr) as total_ggr'))
             ->groupBy('id_plataforma')
             ->get();
@@ -128,8 +137,13 @@ class BeneficioDiarioController extends Controller
         }
 
         $idPlataforma = Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
-        $beneficios = BeneficioDiario::where('id_plataforma', $idPlataforma)
+        $subquery = BeneficioDiario::select(DB::raw('MAX(id) as id'))
+            ->where('id_plataforma', $idPlataforma)
             ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->groupBy('fecha');
+
+        $beneficios = BeneficioDiario::with('archivo')
+            ->whereIn('id', $subquery)
             ->get()
             ->keyBy(function ($item) {
                 return date('Y-m-d', strtotime($item->fecha));
@@ -144,7 +158,11 @@ class BeneficioDiarioController extends Controller
         }
 
         // Calcular acumulados de rango para todas las plataformas
-        $acumuladosQuery = BeneficioDiario::whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+        $subqueryAcumulados = BeneficioDiario::select(DB::raw('MAX(id) as id'))
+            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->groupBy('id_plataforma', 'fecha');
+
+        $acumuladosQuery = BeneficioDiario::whereIn('id', $subqueryAcumulados)
             ->select('id_plataforma', DB::raw('SUM(ggr) as total_ggr'))
             ->groupBy('id_plataforma')
             ->get();
@@ -187,7 +205,11 @@ class BeneficioDiarioController extends Controller
         $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mesNum, $anio);
         $fechaFin = "$anio-$mesNum-$diasEnMes";
 
-        $acumulados = BeneficioDiario::whereBetween('fecha', [$fechaInicio, $fechaFin])
+        $subqueryMensual = BeneficioDiario::select(DB::raw('MAX(id) as id'))
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->groupBy('id_plataforma', 'fecha');
+
+        $acumulados = BeneficioDiario::whereIn('id', $subqueryMensual)
             ->select('id_plataforma', DB::raw('SUM(ggr) as total_ggr'))
             ->groupBy('id_plataforma')
             ->get();
