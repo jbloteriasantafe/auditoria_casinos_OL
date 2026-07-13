@@ -52,7 +52,24 @@ class ProcesarArchivoAction
                 $hayCambios = true;
                 if ($ultimoRegistro) {
                     $datosSinArchivo = array_diff_key($datos, ['id_archivo' => true]);
+                    
+                    \Illuminate\Support\Facades\Log::info('AADD - Comparacion de Beneficio', [
+                        'fecha' => $datos['fecha'],
+                        'plataforma' => $datos['id_plataforma'],
+                        'original' => $ultimoRegistro->getAttributes(),
+                        'nuevo_a_cargar' => $datosSinArchivo,
+                    ]);
+
                     $ultimoRegistro->fill($datosSinArchivo);
+
+                    // Normalizar decimales al formato esperado por Laravel 5.4 para evitar falsos positivos en isDirty()
+                    $this->emparchar($ultimoRegistro);
+                    
+                    \Illuminate\Support\Facades\Log::info('AADD - Resultado de fill', [
+                        'dirty_attributes' => $ultimoRegistro->getDirty(),
+                        'is_dirty_result' => $ultimoRegistro->isDirty(),
+                    ]);
+
                     $hayCambios = $ultimoRegistro->isDirty();
                 }
 
@@ -64,5 +81,34 @@ class ProcesarArchivoAction
                 }
             }
         });
+    }
+
+    /**
+     * Normalizar los atributos decimales de la instancia para evitar falsos positivos en isDirty().
+     *
+     * En Laravel 5.4, isDirty() compara los atributos brutos de $attributes y $original usando strcmp()
+     * para valores numéricos. Si un número entero es cargado como float/int (ej: 0 o 350535169), se guarda 
+     * sin decimales, mientras que la base de datos retorna cadenas como "0.00" o "350535169.00".
+     * Esta función convierte números enteros o decimales a strings terminados en ".00" (o el formato correspondiente)
+     * para lograr el mismo formato de la base de datos en laravel 5.4.
+     *
+     * @param mixed $instancia
+     * @return void
+     */
+    protected function emparchar($instancia)
+    {
+        $camposDecimales = [
+            'turnover',
+            'turnover_bonos',
+            'payout',
+            'payout_bonos',
+            'ggr',
+        ];
+
+        foreach ($camposDecimales as $campo) {
+            if (isset($instancia->$campo)) {
+                $instancia->$campo = number_format((float)$instancia->$campo, 2, '.', '');
+            }
+        }
     }
 }
