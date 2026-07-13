@@ -39,6 +39,22 @@ class BeneficioMensual extends Model
     ];
 
     /**
+     * Los atributos que deben ser convertidos a tipos nativos.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'fecha' => 'datetime',
+        'jugadores_activos' => 'integer',
+        'apuestas_realizadas' => 'integer',
+        'turnover' => 'float',
+        'turnover_bonos' => 'float',
+        'payout' => 'float',
+        'payout_bonos' => 'float',
+        'ggr' => 'float',
+    ];
+
+    /**
      * Relación con el archivo de origen de la importación/modificación.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
