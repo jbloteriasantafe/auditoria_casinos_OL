@@ -11,15 +11,29 @@
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
     .btn-primary { background-color: #292639 !important; color: #ffffff !important; border: none !important; }
     .btn-primary:hover { background-color: #292639 !important; color: #ffffff !important; }
-    .panel-acumulado { background-color: #C6DA81!important; border-color: #efedf8ff !important; }
-    .panel-acumulado .panel-heading { background-color: #C6DA81!important; border-bottom: 1px solid rgba(255,255,255,0.3) !important; }
-    .panel-acumulado .panel-body { background-color: #C6DA81!important; }
-    .table { border: none !important; }
-    .table > thead > tr > th { text-align: center; vertical-align: middle; background-color: #f8fafd; color: #333; font-weight: 600; border-bottom: 2px solid #edf2f7; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
-    .table > tbody > tr > td { text-align: center; vertical-align: middle; border-top: 1px solid #f8f9fa; color: #222; font-weight: 500; }
-    .table-striped > tbody > tr:nth-of-type(odd) { background-color: #fcfcfc; }
-    .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
+    .panel-acumulado { background: linear-gradient(135deg, #f8fafd 0%, #edf2f7 100%) !important; border: none !important; box-shadow: 0 10px 25px rgba(80, 78, 118, 0.08) !important; border-radius: 16px !important; height: 100%; }
+    .panel-acumulado .panel-heading { background: transparent !important; border-bottom: 1px solid rgba(80, 78, 118, 0.08) !important; padding: 20px !important; border-radius: 16px 16px 0 0 !important; }
+    .panel-acumulado .panel-body { background: transparent !important; padding: 20px !important; }
+    .panel-acumulado h5 { color: #1e293b !important; font-size: 1.15rem !important; margin: 0 !important; font-weight: 700 !important; letter-spacing: 0.3px; }
+    .panel-acumulado small { color: #64748b !important; font-size: 0.85rem !important; }
+    .panel-acumulado strong { color: #4a4f87 !important; font-size: 1.3rem !important; }
+    .panel-acumulado span { color: #64748b !important; font-weight: 600 !important; font-size: 0.75rem !important; letter-spacing: 0.5px; }
 
+    /* Filter Bar */
+    .filtro-container { background-color: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05); border: 1px solid #edf2f7; display: flex; align-items: flex-end; flex-wrap: wrap; gap: 20px; margin-bottom: 25px; margin-top: 25px; }
+    .filtro-container .form-group { margin: 0 !important; display: flex; flex-direction: column; }
+    .filtro-container label { font-size: 0.75rem; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+    .filtro-container .form-control { border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: none; padding: 8px 12px; height: 40px; }
+    .filtro-container .form-control:focus { border-color: #4a4f87; box-shadow: 0 0 0 2px rgba(74, 79, 135, 0.2); }
+    .filtro-container .btn-default { border-radius: 8px !important; border: 1px solid #cbd5e1 !important; color: #334155 !important; padding: 8px 16px; background-color: #ffffff !important; height: 40px; font-weight: 500; }
+    .filtro-container .btn-default:hover { background-color: #f8fafc !important; }
+
+    /* Export Bar */
+    .export-bar { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to right, #f8fafc, #ffffff); border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+    .export-bar span { color: #475569; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+    .export-bar .fa-info-circle { color: #3b82f6; font-size: 1.2rem; }
+    .export-bar .btn-primary { background: linear-gradient(135deg, #4a4f87 0%, #292639 100%) !important; border-radius: 8px !important; padding: 10px 24px; font-weight: 600; letter-spacing: 0.5px; border: none; box-shadow: 0 4px 10px rgba(74, 79, 135, 0.3) !important; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 8px; }
+    .export-bar .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(74, 79, 135, 0.4) !important; }
 </style>
 <div class="row">
     <div class="col-md-12">
@@ -30,22 +44,41 @@
             <div class="panel-body">
                 @include('aadd::Componentes.navegacion-chips', ['pantalla' => 'beneficio-diario'])
 
-                <form id="filtroBeneficioDiario" class="form-inline" style="margin-bottom: 20px; margin-top: 20px;">
+                <form id="filtroBeneficioDiario" class="filtro-container">
                     <div class="form-group">
-                        <label for="fecha_desde">Desde:</label>
+                        <label for="fecha_desde">Desde</label>
                         <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="{{ $fechaDesde }}">
                     </div>
-                    <div class="form-group" style="margin-left: 10px;">
-                        <label for="fecha_hasta">Hasta:</label>
+                    <div class="form-group">
+                        <label for="fecha_hasta">Hasta</label>
                         <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="{{ $fechaHasta }}">
                     </div>
-                    <div class="form-group" style="margin-left: 20px;">
-                        <label for="plataforma">Plataforma:</label>
+                    <div class="form-group" style="flex-grow: 1; max-width: 250px;">
+                        <label for="plataforma">Plataforma</label>
                         <select class="form-control" id="plataforma" name="plataforma">
                             @foreach($plataformas as $plat)
                                 <option value="{{ $plat }}" {{ $plataformaSeleccionada == $plat ? 'selected' : '' }}>{{ $plat }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="form-group" style="margin-left: auto;">
+                        <label>Columnas Visibles</label>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <i class="fa fa-columns" style="margin-right: 5px; color: #8c8b9f;"></i> Personalizar <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-right" id="column-filter-menu" style="padding: 10px; min-width: 220px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #edf2f7;">
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="1" checked style="margin-right: 8px;"> Jugadores activos</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="2" checked style="margin-right: 8px;"> Apuestas realizadas</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="3" checked style="margin-right: 8px;"> Turnover diario</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="4" checked style="margin-right: 8px;"> Turnover en bonos</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="5" checked style="margin-right: 8px;"> Payout diario</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="6" checked style="margin-right: 8px;"> Payout en bonos</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="7" checked style="margin-right: 8px;"> GGR Calculado</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="8" checked style="margin-right: 8px;"> GGR original</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="9" checked style="margin-right: 8px;"> Diferencia</label></li>
+                            </ul>
+                        </div>
                     </div>
                 </form>
 
@@ -103,13 +136,14 @@
             </div>
         </div>
     </div>
-     <div class="row" style="margin-bottom: 20px;">
-                    <div class="col-md-12" style="display: flex; justify-content: space-between; align-items: center; background-color: #f9fbff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 20px;">
-                        <span style="color: #555; font-size: 14px;">
-                            <i class="fa fa-info-circle" style="color: #4a4f87; margin-right: 5px;"></i> Se imprimirán los datos del rango de fecha seleccionado más arriba.
+                <div class="row" style="margin-bottom: 20px; padding: 0 15px;">
+                    <div class="col-md-12 export-bar">
+                        <span>
+                            <i class="fa fa-info-circle"></i> 
+                            Se imprimirán los datos del rango de fechas y la plataforma seleccionados arriba.
                         </span>
                         <a href="#" id="btn-exportar-pdf" class="btn btn-primary">
-                            <i class="fa fa-upload"></i> Exportar archivo
+                            <i class="fa fa-file-pdf-o"></i> Exportar reporte PDF
                         </a>
                     </div>
                 </div>
@@ -157,6 +191,9 @@ $(document).ready(function() {
                 }
                 
                 paginarTabla('#contenedor-tabla-beneficio table', 30);
+                if (typeof aplicarFiltroColumnas === 'function') {
+                    aplicarFiltroColumnas();
+                }
             },
             error: function(err) {
                 console.error('Error al actualizar la tabla', err);
@@ -208,8 +245,40 @@ $(document).ready(function() {
     var mesActualStr = hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2);
     $('#selector_mes').val(mesActualStr).trigger('change');
     
-    // Inicializar paginación al cargar la página por primera vez
+    // Filtro de columnas
+    function aplicarFiltroColumnas() {
+        $('#column-filter-menu input[type="checkbox"]').each(function() {
+            var colIdx = $(this).val();
+            var isChecked = $(this).is(':checked');
+            $('#contenedor-tabla-beneficio table tr').each(function() {
+                var cell = $(this).children('th, td').eq(colIdx);
+                if(isChecked) {
+                    cell.show();
+                } else {
+                    cell.hide();
+                }
+            });
+        });
+    }
+
+    // Evitar que el dropdown se cierre al clickear un checkbox
+    $('#column-filter-menu').on('click', function(e) {
+        e.stopPropagation();
+    });
+
+    $('#column-filter-menu input[type="checkbox"]').on('change', function() {
+        aplicarFiltroColumnas();
+    });
+
+    // Sobreescribimos el success de actualizarTabla para que aplique el filtro
+    var _oldSuccess = actualizarTabla;
+    // Esto es un parche porque actualizarTabla ya está definida arriba.
+    // Simplemente llamaremos aplicarFiltroColumnas dentro del AJAX success original o podemos mutar la función.
+    // Como actualizarTabla es una función dentro del ready, lo mejor es actualizar la función original.
+
+    // Inicializar paginación y filtro al cargar la página por primera vez
     paginarTabla('#contenedor-tabla-beneficio table', 30);
+    aplicarFiltroColumnas();
 
     // Exportar PDF
     $('#btn-exportar-pdf').on('click', function(e) {
