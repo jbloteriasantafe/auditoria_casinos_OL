@@ -36,10 +36,24 @@ class MapeadorBetwarrior extends MapeadorGenerico
     private function limpiarNumero($valor)
     {
         $valor = trim($valor);
-        // Si por casualidad viene con puntos de miles (1.234,00), removemos el punto
-        $valor = str_replace('.', '', $valor);
-        // Reemplazamos coma decimal por punto decimal
-        $valor = str_replace(',', '.', $valor);
+        
+        $ultimoPunto = strrpos($valor, '.');
+        $ultimaComa = strrpos($valor, ',');
+
+        if ($ultimoPunto !== false && $ultimaComa !== false) {
+            if ($ultimoPunto > $ultimaComa) {
+                // Formato inglés: 1,234.56
+                $valor = str_replace(',', '', $valor);
+            } else {
+                // Formato español: 1.234,56
+                $valor = str_replace('.', '', $valor);
+                $valor = str_replace(',', '.', $valor);
+            }
+        } elseif ($ultimaComa !== false) {
+            // Solo coma: 1234,56
+            $valor = str_replace(',', '.', $valor);
+        }
+        // Si solo tiene punto, ya está en formato float: 1234.56 o 1234
         
         return $valor;
     }

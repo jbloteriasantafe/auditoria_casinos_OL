@@ -71,11 +71,10 @@
 
     // Cuando se seleccionan archivos
     $('#archivoModal').on('change', function(e) {
-        archivosSeleccionados = Array.from(e.target.files);
+        var nuevosArchivos = Array.from(e.target.files);
         var tbody = $('#tbodyArchivosPreview');
-        tbody.empty();
 
-        if(archivosSeleccionados.length > 0) {
+        if(nuevosArchivos.length > 0) {
             $('#listaArchivosPreview').show();
             
             var opcionesPlataforma = '<option value="" disabled selected>Seleccione...</option>';
@@ -85,7 +84,9 @@
 
             var hoy = new Date().toISOString().split('T')[0];
 
-            archivosSeleccionados.forEach(function(archivo, index) {
+            nuevosArchivos.forEach(function(archivo) {
+                var index = archivosSeleccionados.length;
+                archivosSeleccionados.push(archivo);
                 var tr = $('<tr>').attr('data-index', index);
                 
                 var tdNombre = $('<td>').text(archivo.name);
@@ -104,8 +105,9 @@
                 tr.append(tdNombre).append(tdPlataforma).append(tdFecha).append(tdEstado).append(tdAccion);
                 tbody.append(tr);
             });
-        } else {
-            $('#listaArchivosPreview').hide();
+
+            // Limpiar el input para permitir añadir más archivos, incluso los mismos
+            $(this).val('');
         }
     });
 

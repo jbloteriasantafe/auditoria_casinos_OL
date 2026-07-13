@@ -5,7 +5,7 @@
     .chip:hover i { color: #FCDD9D; }
 </style>
 
-<div style="height: 50px; display: flex; flex-direction: row; justify-content: end; width: 100%; align-items: center">
+<div style="height: 50px; display: flex; flex-direction: row; justify-content: space-around; width: 100%; align-items: center">
     @if(!isset($pantalla) || $pantalla !== 'index')
     <a href="/aadd" class="chip " >
         <i class="fa fa-arrow-left"></i> Menú Principal

@@ -36,7 +36,7 @@
                             'containerStyle' => 'margin-bottom: 15px;'
                         ])
                         
-                        <div class="well" style="padding: 20px;">
+                        <div class="well" style="padding: 20px; margin-top: 10px">
                             <h3 style="margin-top: 0; font-family: Roboto-Condensed, sans-serif; font-weight: 500; color: #555;">Información del Submódulo</h3>
                             <hr style="border-top: 1px solid #eee; margin-top: 10px; margin-bottom: 15px;">
                             
