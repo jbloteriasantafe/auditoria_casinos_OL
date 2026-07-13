@@ -239,23 +239,23 @@ class InformesController extends Controller
                         case 'apuestas_realizadas':
                             $row[] = $b->apuestas_realizadas; break;
                         case 'turnover':
-                            $row[] = number_format($b->turnover, 2, ',', '.'); break;
+                            $row[] = number_format($b->turnover, 2, '.', ''); break;
                         case 'turnover_bonos':
-                            $row[] = number_format($b->turnover_bonos, 2, ',', '.'); break;
+                            $row[] = number_format($b->turnover_bonos, 2, '.', ''); break;
                         case 'payout':
-                            $row[] = number_format($b->payout, 2, ',', '.'); break;
+                            $row[] = number_format($b->payout, 2, '.', ''); break;
                         case 'payout_bonos':
-                            $row[] = number_format($b->payout_bonos, 2, ',', '.'); break;
+                            $row[] = number_format($b->payout_bonos, 2, '.', ''); break;
                         case 'ggr_calculado':
                             $ggrCalculado = $b->turnover - $b->payout;
-                            $row[] = number_format($ggrCalculado, 2, ',', '.'); break;
+                            $row[] = number_format($ggrCalculado, 2, '.', ''); break;
                         case 'ggr':
-                            $row[] = number_format($b->ggr, 2, ',', '.'); break;
+                            $row[] = number_format($b->ggr, 2, '.', ''); break;
                         case 'diferencia':
                             $ggrCalculado = $b->turnover - $b->payout;
                             $diferencia = round($ggrCalculado - $b->ggr, 2);
                             if ($diferencia == -0) $diferencia = 0;
-                            $row[] = number_format($diferencia, 2, ',', '.'); break;
+                            $row[] = number_format($diferencia, 2, '.', ''); break;
                         default:
                             $row[] = ''; break;
                     }

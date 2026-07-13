@@ -143,7 +143,7 @@
                             Se imprimirán los datos del rango de fechas y la plataforma seleccionados arriba.
                         </span>
                         <div style="display: flex; gap: 10px;">
-                            <a href="#" id="btn-exportar-excel" class="btn btn-success" style="border-radius: 8px !important; padding: 10px 24px; font-weight: 600; letter-spacing: 0.5px; border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 8px; background-color: #10b981;">
+                            <a href="#" id="btn-exportar-excel" class="btn btn-primary" style="border-radius: 8px !important; padding: 10px 24px; font-weight: 600; letter-spacing: 0.5px; border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 8px; background-color: #10b981;">
                                 <i class="fa fa-file-excel-o"></i> Exportar CSV
                             </a>
                             <a href="#" id="btn-exportar-pdf" class="btn btn-primary">
@@ -277,10 +277,7 @@ $(document).ready(function() {
 
     // Sobreescribimos el success de actualizarTabla para que aplique el filtro
     var _oldSuccess = actualizarTabla;
-    // Esto es un parche porque actualizarTabla ya está definida arriba.
-    // Simplemente llamaremos aplicarFiltroColumnas dentro del AJAX success original o podemos mutar la función.
-    // Como actualizarTabla es una función dentro del ready, lo mejor es actualizar la función original.
-
+    
     // Inicializar paginación y filtro al cargar la página por primera vez
     paginarTabla('#contenedor-tabla-beneficio table', 30);
     aplicarFiltroColumnas();
