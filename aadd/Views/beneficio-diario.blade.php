@@ -11,7 +11,7 @@
     .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
     .btn-primary { background-color: #292639 !important; color: #ffffff !important; border: none !important; }
     .btn-primary:hover { background-color: #292639 !important; color: #ffffff !important; }
-    .panel-acumulado { background: linear-gradient(135deg, #f8fafd 0%, #edf2f7 100%) !important; border: none !important; box-shadow: 0 10px 25px rgba(80, 78, 118, 0.08) !important; border-radius: 16px !important; height: 100%; }
+    .panel-acumulado { background: linear-gradient(135deg, #f8fafd 0%, #edf2f7 100%) !important; border: solid #cbd5e1; box-shadow: 0 10px 25px rgba(80, 78, 118, 0.08) !important; border-radius: 16px !important; height: 100%; }
     .panel-acumulado .panel-heading { background: transparent !important; border-bottom: 1px solid rgba(80, 78, 118, 0.08) !important; padding: 20px !important; border-radius: 16px 16px 0 0 !important; }
     .panel-acumulado .panel-body { background: transparent !important; padding: 20px !important; }
     .panel-acumulado h5 { color: #1e293b !important; font-size: 1.15rem !important; margin: 0 !important; font-weight: 700 !important; letter-spacing: 0.3px; }
@@ -68,15 +68,15 @@
                                 <i class="fa fa-columns" style="margin-right: 5px; color: #8c8b9f;"></i> Personalizar <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-right" id="column-filter-menu" style="padding: 10px; min-width: 220px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #edf2f7;">
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="1" checked style="margin-right: 8px;"> Jugadores activos</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="2" checked style="margin-right: 8px;"> Apuestas realizadas</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="3" checked style="margin-right: 8px;"> Turnover diario</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="4" checked style="margin-right: 8px;"> Turnover en bonos</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="5" checked style="margin-right: 8px;"> Payout diario</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="6" checked style="margin-right: 8px;"> Payout en bonos</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="7" checked style="margin-right: 8px;"> GGR Calculado</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="8" checked style="margin-right: 8px;"> GGR original</label></li>
-                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" value="9" checked style="margin-right: 8px;"> Diferencia</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="jugadores_activos" data-col="1" checked style="margin-right: 8px;"> Jugadores activos</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="apuestas_realizadas" data-col="2" checked style="margin-right: 8px;"> Apuestas realizadas</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="turnover" data-col="3" checked style="margin-right: 8px;"> Turnover diario</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="turnover_bonos" data-col="4" checked style="margin-right: 8px;"> Turnover en bonos</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="payout" data-col="5" checked style="margin-right: 8px;"> Payout diario</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="payout_bonos" data-col="6" checked style="margin-right: 8px;"> Payout en bonos</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="ggr_calculado" data-col="7" checked style="margin-right: 8px;"> GGR Calculado</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="ggr" data-col="8" checked style="margin-right: 8px;"> GGR original</label></li>
+                                <li><label style="font-weight: 500; display: block; padding: 4px 8px; cursor: pointer; color: #334155;"><input type="checkbox" name="columnas[]" value="diferencia" data-col="9" checked style="margin-right: 8px;"> Diferencia</label></li>
                             </ul>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
                 <div class="row" style="margin-bottom: 20px; display: flex; flex-wrap: wrap;">
                     <!-- Acumulado del Rango -->
                     <div class="col-md-6" style="margin-bottom: 10px;">
-                        <div class="panel panel-default panel-acumulado" style="border: 1px solid #C4C3E3; box-shadow: 0 4px 6px -1px rgba(80, 78, 118, 0.05); border-radius: 12px; height: 100%;">
+                        <div class="panel panel-default panel-acumulado" >
                             <div class="panel-heading" style="border-radius: 12px 12px 0 0; padding: 15px;">
                                 <h5 style="margin: 0; color: #4A4F87; font-weight: bold;"><i class="fa fa-calendar-check-o"></i> Acumulado del Rango (GGR)</h5>
                                 <small class="text-muted" style="color: #4A4F87 !important;">Suma del rango seleccionado</small>
@@ -142,9 +142,14 @@
                             <i class="fa fa-info-circle"></i> 
                             Se imprimirán los datos del rango de fechas y la plataforma seleccionados arriba.
                         </span>
-                        <a href="#" id="btn-exportar-pdf" class="btn btn-primary">
-                            <i class="fa fa-file-pdf-o"></i> Exportar reporte PDF
-                        </a>
+                        <div style="display: flex; gap: 10px;">
+                            <a href="#" id="btn-exportar-excel" class="btn btn-success" style="border-radius: 8px !important; padding: 10px 24px; font-weight: 600; letter-spacing: 0.5px; border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 8px; background-color: #10b981;">
+                                <i class="fa fa-file-excel-o"></i> Exportar CSV
+                            </a>
+                            <a href="#" id="btn-exportar-pdf" class="btn btn-primary">
+                                <i class="fa fa-file-pdf-o"></i> Exportar reporte PDF
+                            </a>
+                        </div>
                     </div>
                 </div>
 </div>
@@ -248,7 +253,7 @@ $(document).ready(function() {
     // Filtro de columnas
     function aplicarFiltroColumnas() {
         $('#column-filter-menu input[type="checkbox"]').each(function() {
-            var colIdx = $(this).val();
+            var colIdx = $(this).data('col');
             var isChecked = $(this).is(':checked');
             $('#contenedor-tabla-beneficio table tr').each(function() {
                 var cell = $(this).children('th, td').eq(colIdx);
@@ -285,6 +290,13 @@ $(document).ready(function() {
         e.preventDefault();
         var formData = $('#filtroBeneficioDiario').serialize();
         window.open('/aadd/informes/pdf/beneficio-diario?' + formData, '_blank');
+    });
+
+    // Exportar Excel
+    $('#btn-exportar-excel').on('click', function(e) {
+        e.preventDefault();
+        var formData = $('#filtroBeneficioDiario').serialize();
+        window.open('/aadd/informes/excel/beneficio-diario?' + formData, '_blank');
     });
 });
 </script>

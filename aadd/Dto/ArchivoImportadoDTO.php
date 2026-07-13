@@ -2,7 +2,7 @@
 
 namespace AADD\Dto;
 
-class ArchivoImportadoDTO implements \JsonSerializable
+class ArchivoImportadoDTO
 {
     public $nombre_archivo;
     public $plataforma;
@@ -27,16 +27,5 @@ class ArchivoImportadoDTO implements \JsonSerializable
     public static function crearError($nombre_archivo, $plataforma, $mensaje)
     {
         return new self($nombre_archivo, $plataforma, 'error', null, $mensaje);
-    }
-
-    public function jsonSerialize()
-    {
-        return [
-            'nombre_archivo' => $this->nombre_archivo,
-            'plataforma' => $this->plataforma,
-            'estado' => $this->estado,
-            'ruta' => $this->ruta,
-            'mensaje' => $this->mensaje
-        ];
     }
 }

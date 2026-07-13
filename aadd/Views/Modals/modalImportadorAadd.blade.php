@@ -124,33 +124,33 @@
         text-align: right;
     }
     #modalImportadorAadd .btn-importar {
-        background-color: #10b981;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 24px;
-        font-weight: 600;
-        transition: all 0.2s;
-        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+        background-color: #10b981 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 10px 24px !important;
+        font-weight: 600 !important;
+        transition: all 0.2s !important;
+        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2) !important;
     }
     #modalImportadorAadd .btn-importar:hover {
-        background-color: #059669;
-        box-shadow: 0 6px 8px rgba(16, 185, 129, 0.3);
-        color: white;
+        background-color: #059669 !important;
+        box-shadow: 0 6px 8px rgba(16, 185, 129, 0.3) !important;
+        color: white !important;
     }
     #modalImportadorAadd .btn-cancelar {
-        background-color: #f1f5f9;
-        color: #475569;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-weight: 600;
-        transition: all 0.2s;
-        margin-right: 10px;
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        font-weight: 600 !important;
+        transition: all 0.2s !important;
+        margin-right: 10px !important;
     }
     #modalImportadorAadd .btn-cancelar:hover {
-        background-color: #e2e8f0;
-        color: #1e293b;
+        background-color: #e2e8f0 !important;
+        color: #1e293b !important;
     }
     #modalImportadorAadd .form-control {
         border-radius: 8px;
