@@ -21,7 +21,9 @@
                 <th>Turnover en bonos</th>
                 <th>Payout diario</th>
                 <th>Payout en bonos</th>
+                <th>GGR Calculado</th>
                 <th>GGR</th>
+                <th>Diferencia</th>
             </tr>
         </thead>
         <tbody>
@@ -33,14 +35,22 @@
                     <tr>
                         <td><strong>{{ date('d-m-Y', strtotime($dia)) }}</strong></td>
                         @if($b)
+                            @php
+                                $ggrCalculado = $b->turnover - $b->payout;
+                                $diferencia = $ggrCalculado - $b->ggr;
+                            @endphp
                             <td>{{ $b->jugadores_activos }}</td>
                             <td>{{ $b->apuestas_realizadas }}</td>
                             <td>$ {{ number_format($b->turnover, 2, ',', '.') }}</td>
                             <td>$ {{ number_format($b->turnover_bonos, 2, ',', '.') }}</td>
                             <td>$ {{ number_format($b->payout, 2, ',', '.') }}</td>
                             <td>$ {{ number_format($b->payout_bonos, 2, ',', '.') }}</td>
+                            <td class="text-info"><strong>$ {{ number_format($ggrCalculado, 2, ',', '.') }}</strong></td>
                             <td><strong>$ {{ number_format($b->ggr, 2, ',', '.') }}</strong></td>
+                            <td class="{{ abs($diferencia) > 0.01 ? 'text-danger' : 'text-success' }}"><strong>$ {{ number_format($diferencia, 2, ',', '.') }}</strong></td>
                         @else
+                            <td class="text-muted">-</td>
+                            <td class="text-muted">-</td>
                             <td class="text-muted">-</td>
                             <td class="text-muted">-</td>
                             <td class="text-muted">-</td>
@@ -53,7 +63,7 @@
                 @endforeach
             @else
                 <tr>
-                    <td colspan="8" class="text-center text-muted" style="padding: 20px;">
+                    <td colspan="10" class="text-center text-muted" style="padding: 20px;">
                         <em>Aún no hay datos cargados para mostrar en este rango.</em>
                     </td>
                 </tr>
