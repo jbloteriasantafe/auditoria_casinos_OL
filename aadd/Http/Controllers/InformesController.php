@@ -67,8 +67,12 @@ class InformesController extends Controller
         }
 
         $idPlataforma = Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
-        $beneficios = BeneficioDiario::where('id_plataforma', $idPlataforma)
+        $subqueryPdf = BeneficioDiario::select(DB::raw('MAX(id) as id'))
+            ->where('id_plataforma', $idPlataforma)
             ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
+            ->groupBy('fecha');
+
+        $beneficios = BeneficioDiario::whereIn('id', $subqueryPdf)
             ->orderBy('fecha', 'asc')
             ->get()
             ->keyBy(function ($item) {

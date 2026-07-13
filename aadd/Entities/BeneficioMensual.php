@@ -37,4 +37,15 @@ class BeneficioMensual extends Model
         'payout_bonos',
         'ggr',
     ];
+
+    /**
+     * Relación con el archivo de origen de la importación/modificación.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function archivo()
+    {
+        return $this->belongsTo(Archivo::class, 'id_archivo');
+    }
 }
+

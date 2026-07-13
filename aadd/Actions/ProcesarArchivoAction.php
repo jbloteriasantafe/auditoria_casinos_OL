@@ -42,17 +42,24 @@ class ProcesarArchivoAction
 
                 $claseEntidad = $mapeoEntidades[$etiqueta] ?? BeneficioDiario::class;
 
-                // Buscar el registro existente o instanciar uno nuevo
-                $instancia = $claseEntidad::firstOrNew([
-                    'id_plataforma' => $datos['id_plataforma'],
-                    'fecha'         => $datos['fecha'],
-                ]);
+                // Buscar la última versión registrada para esa plataforma y fecha
+                $ultimoRegistro = $claseEntidad::where('id_plataforma', $datos['id_plataforma'])
+                    ->where('fecha', $datos['fecha'])
+                    ->orderBy('id', 'desc')
+                    ->first();
 
-                // Asignar los nuevos valores
-                $instancia->fill($datos);
+                // Comprobar si hay cambios usando isDirty() (excluyendo id_archivo del análisis)
+                $hayCambios = true;
+                if ($ultimoRegistro) {
+                    $datosSinArchivo = array_diff_key($datos, ['id_archivo' => true]);
+                    $ultimoRegistro->fill($datosSinArchivo);
+                    $hayCambios = $ultimoRegistro->isDirty();
+                }
 
-                // Guardar únicamente si el registro sufrió modificaciones o es nuevo
-                if ($instancia->isDirty()) {
+                // Crear una nueva fila solo si no existe o si los datos cambiaron
+                if (!$ultimoRegistro || $hayCambios) {
+                    $instancia = new $claseEntidad();
+                    $instancia->fill($datos);
                     $instancia->save();
                 }
             }
