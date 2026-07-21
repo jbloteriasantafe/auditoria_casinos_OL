@@ -51,12 +51,12 @@ $mensaje = $mensaje ?? null;
     </style>
 
   </head>
-  <body class="<?php echo $rutaImagen ?>" style="position:relative; min-height:700px; height:100%;">
+  <body class="<?php echo $rutaImagen ?>">
 
-      <section style="height:100vh;">
+      <section>
         <div class="container">
           <div class="row" style="">
-            <div id="boxLog" class="col-lg-4 col-lg-offset-4 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-10 col-xs-offset-1">
+            <div id="boxLog" class="col-lg-4 col-lg-offset-7 col-md-6 col-md-offset-5 col-sm-8 col-sm-offset-2 col-xs-10 col-xs-offset-1">
 
               <div id="contenedorFormulario" style="background-color: #fff; padding: 30px 15px; margin: 10px;">
                     <div class="login-logo">
@@ -96,7 +96,7 @@ $mensaje = $mensaje ?? null;
                         'router' => 'olvideMiContrasena',
                         'accion' => 'ingresarUser'
                       ]); ?>
-                      <center><a href="/login?{!! $q !!}" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
+                      <center><a href="/login?{!! $q !!}" style="color: #6E2C91; font-weight: 600;">+   Olvidé mi Contraseña</a><br></center>
                       <br>
                       @if($CAS_ENDPOINT)
                       <div class="row">
@@ -216,7 +216,7 @@ $mensaje = $mensaje ?? null;
       </section>
 
 
-      <div class="container-fluid" style="position:absolute; bottom:0px; height:auto; width:100%; background:#000; color:#eee;">
+      <div id="footerIndex" class="container-fluid" style="width:100%;">
           <div class="row">
               <!-- <div class="col-lg-4">
 
