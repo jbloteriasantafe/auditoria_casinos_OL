@@ -39,8 +39,8 @@
                         <td><strong>{{ date('d-m-Y', strtotime($dia)) }}</strong></td>
                         @if($b)
                             @php
-                                $ggrCalculado = $b->turnover - $b->payout;
-                                $diferencia = round($ggrCalculado - $b->ggr, 2);
+                                $ggrCalculado = $b->ggr_calculado ?? ($b->turnover - $b->payout);
+                                $diferencia = isset($b->diferencia) ? $b->diferencia : round($ggrCalculado - $b->ggr, 2);
                                 if ($diferencia == -0) {
                                     $diferencia = 0;
                                 }

@@ -65,6 +65,11 @@ class BeneficioDiarioController extends Controller
             $beneficios->transform(function ($item) {
                 $item->turnover += $item->turnover_bonos;
                 $item->payout += $item->payout_bonos;
+                $item->ggr_calculado = $item->turnover - $item->payout;
+                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
+                if ($item->diferencia == -0) {
+                    $item->diferencia = 0.0;
+                }
                 return $item;
             });
         }
@@ -153,6 +158,11 @@ class BeneficioDiarioController extends Controller
             $beneficios->transform(function ($item) {
                 $item->turnover += $item->turnover_bonos;
                 $item->payout += $item->payout_bonos;
+                $item->ggr_calculado = $item->turnover - $item->payout;
+                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
+                if ($item->diferencia == -0) {
+                    $item->diferencia = 0.0;
+                }
                 return $item;
             });
         }
@@ -224,10 +234,18 @@ class BeneficioDiarioController extends Controller
             $resultados[$a->id_plataforma] = (float) $a->total_ggr;
         }
 
-        $concluido = date('Y-m-d') > $fechaFin;
+        $hoy = date('Y-m-d');
+        if ($hoy > $fechaFin) {
+            $estado = 'concluido';
+        } elseif ($hoy < $fechaInicio) {
+            $estado = 'proximo';
+        } else {
+            $estado = 'en_curso';
+        }
 
         return response()->json([
-            'concluido' => $concluido,
+            'concluido' => $estado === 'concluido',
+            'estado' => $estado,
             'acumulados' => $resultados
         ]);
     }

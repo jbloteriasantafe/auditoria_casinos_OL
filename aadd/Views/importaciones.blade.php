@@ -6,20 +6,104 @@
 
 @section('contenidoVista')
 <style>
-    .panel { border-radius: 12px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #ffffff; }
-    .panel-heading { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background-color: #ffffff !important; border-bottom: 1px solid #C4C3E3 !important; color: #4a4f87 !important; }
-    .btn { border-radius: 8px !important; font-weight: 500; transition: all 0.2s ease; box-shadow: none !important; }
-    .btn-primary { background-color: #4a4f87 !important; color: #ffffff !important; border: none !important; }
-    .btn-primary:hover { background-color: #4a4f87 !important; color: #ffffff !important; }
-    .btn-default { background-color: #C4C3E3 !important; color: #4a4f87 !important; border: none !important; }
-    .btn-default:hover { background-color: #b0afce !important; }
-    .alert { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: none !important; }
-    .well { border-radius: 12px !important; box-shadow: 0 2px 10px rgba(80, 78, 118, 0.05) !important; border: 1px solid #C4C3E3 !important; background-color: #fcfbf5 !important; }
-    .modal-content { border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 30px rgba(80, 78, 118, 0.15) !important; }
-    .table > thead > tr > th { color: #333 !important; font-weight: 600; }
-    .table > tbody > tr > td { color: #222 !important; font-weight: 500; }
-    .container-fluid { padding-right: 20px !important; padding-left: 20px !important; }
+    /* Google Fonts y tipografía premium */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
+    .aadd-container {
+        font-family: 'Inter', sans-serif;
+        color: #504E76;
+    }
+
+    .panel {
+        border-radius: 12px !important;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important;
+        border: 1px solid #C4C3E3 !important;
+        background-color: #ffffff;
+    }
+
+    .panel-heading {
+        border-top-left-radius: 12px !important;
+        border-top-right-radius: 12px !important;
+        background-color: #ffffff !important;
+        border-bottom: 1px solid #C4C3E3 !important;
+        color: #4a4f87 !important;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+    }
+
+    .panel-heading h4 {
+        margin: 0;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        color: #4a4f87;
+    }
+
+    .btn {
+        border-radius: 8px !important;
+        font-weight: 500;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s ease;
+        box-shadow: none !important;
+    }
+
+    .btn-primary {
+        background-color: #4a4f87 !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+
+    .btn-primary:hover {
+        background-color: #3b3f6f !important;
+        color: #ffffff !important;
+    }
+
+    .btn-default {
+        background-color: #C4C3E3 !important;
+        color: #4a4f87 !important;
+        border: none !important;
+    }
+
+    .btn-default:hover {
+        background-color: #b0afce !important;
+        color: #4a4f87 !important;
+    }
+
+    .alert {
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        border: none !important;
+    }
+
+    .well {
+        border-radius: 12px !important;
+        box-shadow: 0 2px 10px rgba(80, 78, 118, 0.05) !important;
+        border: 1px solid #C4C3E3 !important;
+        background-color: #fcfbf5 !important;
+    }
+
+    .modal-content {
+        border-radius: 12px !important;
+        overflow: hidden;
+        border: none !important;
+        box-shadow: 0 10px 30px rgba(80, 78, 118, 0.15) !important;
+    }
+
+    .table > thead > tr > th {
+        color: #4a4f87 !important;
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .table > tbody > tr > td {
+        color: #504E76 !important;
+        font-weight: 500;
+    }
+
+    .container-fluid {
+        padding-right: 20px !important;
+        padding-left: 20px !important;
+    }
 </style>
 <div class="row">
     <div class="col-md-12">

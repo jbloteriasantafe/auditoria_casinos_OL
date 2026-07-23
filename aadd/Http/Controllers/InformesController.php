@@ -101,6 +101,11 @@ class InformesController extends Controller
             $beneficios->transform(function ($item) {
                 $item->turnover += $item->turnover_bonos;
                 $item->payout += $item->payout_bonos;
+                $item->ggr_calculado = $item->turnover - $item->payout;
+                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
+                if ($item->diferencia == -0) {
+                    $item->diferencia = 0.0;
+                }
                 return $item;
             });
         }
@@ -171,6 +176,11 @@ class InformesController extends Controller
             $beneficios->transform(function ($item) {
                 $item->turnover += $item->turnover_bonos;
                 $item->payout += $item->payout_bonos;
+                $item->ggr_calculado = $item->turnover - $item->payout;
+                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
+                if ($item->diferencia == -0) {
+                    $item->diferencia = 0.0;
+                }
                 return $item;
             });
         }
@@ -247,14 +257,14 @@ class InformesController extends Controller
                         case 'payout_bonos':
                             $row[] = number_format($b->payout_bonos, 2, '.', ''); break;
                         case 'ggr_calculado':
-                            $ggrCalculado = $b->turnover - $b->payout;
+                            $ggrCalculado = $b->ggr_calculado ?? ($b->turnover - $b->payout);
                             $row[] = number_format($ggrCalculado, 2, '.', ''); break;
                         case 'ggr':
                             $row[] = number_format($b->ggr, 2, '.', ''); break;
                         case 'diferencia':
-                            $ggrCalculado = $b->turnover - $b->payout;
-                            $diferencia = round($ggrCalculado - $b->ggr, 2);
-                            if ($diferencia == -0) $diferencia = 0;
+                            $ggrCalculado = $b->ggr_calculado ?? ($b->turnover - $b->payout);
+                            $diferencia = isset($b->diferencia) ? $b->diferencia : round($ggrCalculado - $b->ggr, 2);
+                            if ($diferencia == -0) $diferencia = 0.0;
                             $row[] = number_format($diferencia, 2, '.', ''); break;
                         default:
                             $row[] = ''; break;

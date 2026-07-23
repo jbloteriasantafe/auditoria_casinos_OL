@@ -103,6 +103,8 @@ class ProcesarArchivoAction
             'payout',
             'payout_bonos',
             'ggr',
+            'ggr_calculado',
+            'diferencia',
         ];
 
         foreach ($camposDecimales as $campo) {

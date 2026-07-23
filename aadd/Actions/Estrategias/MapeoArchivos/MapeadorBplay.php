@@ -9,15 +9,15 @@ class MapeadorBplay extends MapeadorGenerico
         parent::__construct();
 
         // BPLAY no envía la cantidad de apuestas
-        $this->configuracionBeneficioDiario['apuestas_realizadas']['transformacion'] = function($v) {
+        $this->configuracionBeneficioDiario['apuestas_realizadas']['transformacion'] = function ($v) {
             return 0;
         };
 
         // BPLAY utiliza encabezados diferentes para sus montos
-        $this->configuracionBeneficioDiario['turnover']['alias'] = ['APUESTAS REALIZADAS EFECTIVO'];
-        $this->configuracionBeneficioDiario['turnover_bonos']['alias'] = ['APUESTAS BONOS'];
-        $this->configuracionBeneficioDiario['payout']['alias'] = ['PREMIOS PAGADOS EFECTIVO'];
-        $this->configuracionBeneficioDiario['payout_bonos']['alias'] = ['PREMIOS BONOS'];
-        $this->configuracionBeneficioDiario['ggr']['alias'] = ['GGR EFECTIVO'];
+        $this->configuracionBeneficioDiario['turnover']['alias'] = ['Turnover real'];
+        $this->configuracionBeneficioDiario['turnover_bonos']['alias'] = ['Turnover bonos'];
+        $this->configuracionBeneficioDiario['payout']['alias'] = ['Payout real'];
+        $this->configuracionBeneficioDiario['payout_bonos']['alias'] = ['Payout bonos'];
+        $this->configuracionBeneficioDiario['ggr']['alias'] = ['GGR'];
     }
 }

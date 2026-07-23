@@ -36,6 +36,8 @@ class BeneficioDiario extends Model
         'payout',
         'payout_bonos',
         'ggr',
+        'ggr_calculado',
+        'diferencia',
     ];
 
     protected $casts = [
@@ -47,6 +49,8 @@ class BeneficioDiario extends Model
         'payout' => 'float',
         'payout_bonos' => 'float',
         'ggr' => 'float',
+        'ggr_calculado' => 'float',
+        'diferencia' => 'float',
     ];
 
     /**

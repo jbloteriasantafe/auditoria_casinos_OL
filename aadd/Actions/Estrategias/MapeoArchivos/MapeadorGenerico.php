@@ -101,6 +101,14 @@ class MapeadorGenerico implements EstrategiaMapeoArchivo
                     'datos' => $fila
                 ];
             } else {
+                $ggrCalculado = ($fila['turnover'] ?? 0.0) - ($fila['payout'] ?? 0.0);
+                $diferencia = round($ggrCalculado - ($fila['ggr'] ?? 0.0), 2);
+                if ($diferencia == -0) {
+                    $diferencia = 0.0;
+                }
+                $fila['ggr_calculado'] = $ggrCalculado;
+                $fila['diferencia'] = $diferencia;
+
                 $registros[] = [
                     'etiqueta' => 'diario',
                     'datos' => $fila
