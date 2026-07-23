@@ -1,84 +1,118 @@
-
-
-.imgIndex1 {
-  background-image: url(../img/img_principalOL1.jpg);
-  background-repeat:no-repeat;
-  background-position: center center;
-  background-attachment: fixed;
-  background-size: cover;
+/* ===== Fondo ===== */
+html, body {
+  height: 100%;
+  margin: 0;
 }
+
+/* Ambas variantes muestran la misma imagen de monitoreo (título a la izquierda).
+   Velo degradado hacia la derecha: mantiene visible el logo/título de la imagen
+   y da contraste para que la tarjeta de login resalte a la derecha. */
+.imgIndex1,
 .imgIndex2 {
-  background-image: url(../img/img_principalOL2.jpg);
-  background-repeat:no-repeat;
-  background-position: center center;
+  background-image:
+    linear-gradient(105deg, rgba(30, 22, 54, 0) 40%, rgba(30, 22, 54, 0.55) 100%),
+    url(../img/img_principalOL_monitoreo.png);
+  background-repeat: no-repeat;
+  background-position: left center;
   background-attachment: fixed;
   background-size: cover;
+
+  /* Layout a pantalla completa, sin scroll */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
 }
 
-/*footer {
-  height: 10vh;
-  background-color: #000;
+/* Zona del formulario: centrada verticalmente y elástica */
+.imgIndex1 > section,
+.imgIndex2 > section {
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 24px 0;
+}
+
+#boxLog {
+  margin-top: 0;
+}
+
+/* ===== Tarjeta del formulario ===== */
+#contenedorFormulario {
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 22px 55px rgba(15, 10, 35, 0.38);
+  padding: 34px 28px !important;
+  margin: 10px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Barra superior con el degradado de marca (naranja → magenta → violeta) */
+#contenedorFormulario::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #F5821F 0%, #E6297C 50%, #6E2C91 100%);
+}
+
+.login-box-msg {
+  color: #3f3d56;
+  font-weight: 600;
+}
+
+/* ===== Botones principales con la identidad de marca ===== */
+.imgIndex1 .btn-primary,
+.imgIndex2 .btn-primary {
+  background: linear-gradient(90deg, #F5821F 0%, #E6297C 52%, #6E2C91 100%);
+  border: none;
+  font-weight: 600;
+  letter-spacing: .3px;
+  box-shadow: 0 6px 16px rgba(110, 44, 145, 0.35);
+  transition: filter .15s ease, transform .05s ease;
+}
+.imgIndex1 .btn-primary:hover,
+.imgIndex1 .btn-primary:focus,
+.imgIndex1 .btn-primary:active,
+.imgIndex2 .btn-primary:hover,
+.imgIndex2 .btn-primary:focus,
+.imgIndex2 .btn-primary:active {
+  background: linear-gradient(90deg, #F5821F 0%, #E6297C 52%, #6E2C91 100%);
+  filter: brightness(1.07);
   color: #fff;
-}*/
+}
+.imgIndex1 .btn-primary:active,
+.imgIndex2 .btn-primary:active {
+  transform: translateY(1px);
+}
 
-/*section {
-  height: 90vh;
-}*/
-/*#boxLog {
-  top: 230px;
-}*/
+/* ===== Inputs ===== */
+.imgIndex1 .form-control,
+.imgIndex2 .form-control {
+  border-radius: 8px;
+  border-color: #e2e0ea;
+  box-shadow: none;
+}
+.imgIndex1 .form-control:focus,
+.imgIndex2 .form-control:focus {
+  border-color: #E6297C;
+  box-shadow: 0 0 0 3px rgba(230, 41, 124, 0.12);
+}
 
-/*@media screen and (max-height: 850px){
-  #boxLog{
-    top: 100px;
-  }
-}*/
-
-/*@media screen and (max-height: 650px){
-    body {
-      height: 100%;
-    }
-    section {
-      height: auto;
-    }
-    footer {
-      position: relative;
-      bottom: -80px;
-    }
-    #boxLog{
-      top: 0px;
-    }
-}*/
-
-/*@media screen and (min-width: 767px) {
-  #boxLog{
-    margin-top: 230px;
-  }
-}*/
+/* ===== Footer en el flujo (pegado abajo, sin generar scroll) ===== */
+#footerIndex {
+  flex-shrink: 0;
+  margin-top: auto;
+  background: rgba(20, 14, 38, 0.92);
+  color: #eee;
+}
 
 #columnaCopyright {
   text-align: center;
 }
-
-#columnaCopyright h5 {
-  /*margin-left: 20px;*/
-}
-
-#boxLog{
-  margin-top: 260px;
-}
-
-@media (max-height: 800px) {
-  #boxLog{
-    margin-top: 60px;
-  }
-}
-@media (max-width: 800px) {
-  #boxLog{
-    margin-top: 20px;
-  }
-}
-
 
 @media (max-width: 1200px) {
   #columnaCopyright {
@@ -86,5 +120,17 @@
   }
   #columnaCopyright h5 {
     margin-left: 20px;
+  }
+}
+
+/* En pantallas medianas/chicas centramos el fondo y reforzamos el velo
+   para que el formulario quede legible sin importar el recorte de la imagen. */
+@media (max-width: 991px) {
+  .imgIndex1,
+  .imgIndex2 {
+    background-position: center center;
+    background-image:
+      linear-gradient(180deg, rgba(30, 22, 54, 0.35) 0%, rgba(30, 22, 54, 0.60) 100%),
+      url(../img/img_principalOL_monitoreo.png);
   }
 }
