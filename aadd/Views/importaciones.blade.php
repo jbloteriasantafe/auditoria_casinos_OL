@@ -310,6 +310,8 @@
                                 }
                             });
                         }
+
+
                     },
                     error: function(data) {
                         $('#btn-importar-ajax').prop('disabled', false).text('IMPORTAR');
@@ -345,6 +347,16 @@
                 $('.input-fecha').prop('disabled', false);
                 $('#archivoModal').prop('disabled', false);
                 archivosSeleccionados = [];
+            });
+
+            // Actualizar la tabla mensual cuando se cierra el modal manualmente
+            $('#modalImportadorAadd').on('hidden.bs.modal', function() {
+                var mesVal = $('#mes-selector').val();
+                if (mesVal) {
+                    actualizarTablaMensual(mesVal);
+                } else {
+                    location.reload();
+                }
             });
 
             // Inicializar paginación al cargar la vista
