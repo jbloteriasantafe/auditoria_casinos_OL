@@ -17,7 +17,8 @@ use Throwable;
 class ImportacionController extends Controller
 {
 
-    private function construirMatrizArchivos($plataformas, $dias, $archivosMes){
+    private function construirMatrizArchivos($plataformas, $dias, $archivosMes)
+    {
         $matrizArchivos = [];
         foreach ($dias as $dia) {
             foreach ($plataformas as $plat) {
@@ -46,7 +47,7 @@ class ImportacionController extends Controller
     public function index(Request $request)
     {
         $plataformas = Plataforma::values();
-        
+
         $mesSeleccionado = $request->input('mes');
         if ($mesSeleccionado && preg_match('/^\d{4}-\d{2}$/', $mesSeleccionado)) {
             $partes = explode('-', $mesSeleccionado);
@@ -56,7 +57,7 @@ class ImportacionController extends Controller
             $mes = date('m');
             $anio = date('Y');
         }
-        
+
         $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mes, $anio);
         $dias = [];
         for ($i = 1; $i <= $diasEnMes; $i++) {
@@ -64,9 +65,9 @@ class ImportacionController extends Controller
         }
 
         $archivosMes = Archivo::where('fecha', 'like', "$anio-$mes-%")
-                               ->select('fecha', 'id_plataforma', 'nombre', 'tipo_archivo')
-                               ->get();
-        
+            ->select('fecha', 'id_plataforma', 'nombre', 'tipo_archivo')
+            ->get();
+
         $matrizArchivos = $this->construirMatrizArchivos($plataformas, $dias, $archivosMes);
 
         return view('aadd::importaciones', [
@@ -87,7 +88,7 @@ class ImportacionController extends Controller
     public function tabla(Request $request)
     {
         $plataformas = Plataforma::values();
-        
+
         $mesSeleccionado = $request->input('mes');
         if ($mesSeleccionado && preg_match('/^\d{4}-\d{2}$/', $mesSeleccionado)) {
             $partes = explode('-', $mesSeleccionado);
@@ -97,7 +98,7 @@ class ImportacionController extends Controller
             $mes = date('m');
             $anio = date('Y');
         }
-        
+
         $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mes, $anio);
         $dias = [];
         for ($i = 1; $i <= $diasEnMes; $i++) {
@@ -106,9 +107,9 @@ class ImportacionController extends Controller
 
         // Consultamos todos los archivos del mes seleccionando solo las columnas necesarias
         $archivosMes = Archivo::where('fecha', 'like', "$anio-$mes-%")
-                               ->select('fecha', 'id_plataforma', 'nombre', 'tipo_archivo')
-                               ->get();
-        
+            ->select('fecha', 'id_plataforma', 'nombre', 'tipo_archivo')
+            ->get();
+
         $matrizArchivos = $this->construirMatrizArchivos($plataformas, $dias, $archivosMes);
 
         return view('aadd::Componentes.tablaEstadoMensual', [
@@ -139,7 +140,7 @@ class ImportacionController extends Controller
         $archivos = $request->file('archivos');
         $plataformas = $request->input('plataformas');
         $fechas = $request->input('fechas');
-        
+
         $resultados = [];
         $cargarAction = new CargarArchivoAction();
 
@@ -148,11 +149,11 @@ class ImportacionController extends Controller
             $plataformaString = isset($plataformas[$index]) ? $plataformas[$index] : 'Desconocida';
             $fecha = isset($fechas[$index]) ? $fechas[$index] : date('Y-m-d');
             $extension = strtolower($file->getClientOriginalExtension());
-            
+
             if (!in_array($extension, ['csv', 'xlsx', 'xls'])) {
                 $resultados[] = ArchivoImportadoDTO::crearError(
-                    $nombreOriginal, 
-                    $plataformaString, 
+                    $nombreOriginal,
+                    $plataformaString,
                     'Extensión inválida. Solo csv, xlsx, xls.'
                 );
                 continue;
@@ -162,8 +163,8 @@ class ImportacionController extends Controller
 
             if (is_null($idPlataforma)) {
                 $resultados[] = ArchivoImportadoDTO::crearError(
-                    $nombreOriginal, 
-                    $plataformaString, 
+                    $nombreOriginal,
+                    $plataformaString,
                     'Plataforma no válida.'
                 );
                 continue;
@@ -177,17 +178,17 @@ class ImportacionController extends Controller
                 $procesarAction->ejecutar($archivoEntidad);
 
                 $resultados[] = ArchivoImportadoDTO::crearExito(
-                    $nombreOriginal, 
-                    $plataformaString, 
+                    $nombreOriginal,
+                    $plataformaString,
                     'db_id: ' . $archivoEntidad->id,
-                    'Guardado y procesado con éxito en BD'
+                    'Guardado'
                 );
             } catch (Throwable $e) {
                 Log::error("Error procesando archivo: " . $e->getMessage(), ['exception' => $e]);
                 $resultados[] = ArchivoImportadoDTO::crearError(
-                    $nombreOriginal, 
-                    $plataformaString, 
-                    'Error al guardar en base de datos: ' . $e->getMessage()
+                    $nombreOriginal,
+                    $plataformaString,
+                    'Error al guardar: ' . $e->getMessage()
                 );
             }
         }

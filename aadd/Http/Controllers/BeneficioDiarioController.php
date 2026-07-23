@@ -19,15 +19,15 @@ class BeneficioDiarioController extends Controller
     public function index(Request $request)
     {
         $plataformas = Plataforma::values();
-        
+
         $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
         $fechaHasta = $request->input('fecha_hasta', date('Y-m-t'));
-        
+
         $plataformaSeleccionada = $request->input('plataforma');
         if (!$plataformaSeleccionada || !in_array($plataformaSeleccionada, $plataformas)) {
             $plataformaSeleccionada = $plataformas[0] ?? null;
         }
-        
+
         // Validar fechas
         $inicio = strtotime($fechaDesde);
         $fin = strtotime($fechaHasta);
@@ -42,7 +42,7 @@ class BeneficioDiarioController extends Controller
         if ($diferenciaDias > 60) {
             $fin = strtotime('+60 days', $inicio);
         }
-        
+
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
             $dias[] = date('Y-m-d', $current);
@@ -61,19 +61,6 @@ class BeneficioDiarioController extends Controller
                 return date('Y-m-d', strtotime($item->fecha));
             });
 
-        if (strtoupper($plataformaSeleccionada) === 'BPLAY') {
-            $beneficios->transform(function ($item) {
-                $item->turnover += $item->turnover_bonos;
-                $item->payout += $item->payout_bonos;
-                $item->ggr_calculado = $item->turnover - $item->payout;
-                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
-                if ($item->diferencia == -0) {
-                    $item->diferencia = 0.0;
-                }
-                return $item;
-            });
-        }
-
         // Calcular acumulados de rango para todas las plataformas
         $subqueryAcumulados = BeneficioDiario::select(DB::raw('MAX(id) as id'))
             ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
@@ -83,7 +70,7 @@ class BeneficioDiarioController extends Controller
             ->select('id_plataforma', DB::raw('SUM(ggr) as total_ggr'))
             ->groupBy('id_plataforma')
             ->get();
-        
+
         $acumuladosRango = [];
         foreach ($plataformas as $plat) {
             $acumuladosRango[$plat] = 0;
@@ -112,15 +99,15 @@ class BeneficioDiarioController extends Controller
     public function tabla(Request $request)
     {
         $plataformas = Plataforma::values();
-        
+
         $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
         $fechaHasta = $request->input('fecha_hasta', date('Y-m-t'));
-        
+
         $plataformaSeleccionada = $request->input('plataforma');
         if (!$plataformaSeleccionada || !in_array($plataformaSeleccionada, $plataformas)) {
             $plataformaSeleccionada = $plataformas[0] ?? null;
         }
-        
+
         // Validar fechas
         $inicio = strtotime($fechaDesde);
         $fin = strtotime($fechaHasta);
@@ -135,7 +122,7 @@ class BeneficioDiarioController extends Controller
         if ($diferenciaDias > 60) {
             $fin = strtotime('+60 days', $inicio);
         }
-        
+
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
             $dias[] = date('Y-m-d', $current);
@@ -153,20 +140,6 @@ class BeneficioDiarioController extends Controller
             ->keyBy(function ($item) {
                 return date('Y-m-d', strtotime($item->fecha));
             });
-
-        if (strtoupper($plataformaSeleccionada) === 'BPLAY') {
-            $beneficios->transform(function ($item) {
-                $item->turnover += $item->turnover_bonos;
-                $item->payout += $item->payout_bonos;
-                $item->ggr_calculado = $item->turnover - $item->payout;
-                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
-                if ($item->diferencia == -0) {
-                    $item->diferencia = 0.0;
-                }
-                return $item;
-            });
-        }
-
         // Calcular acumulados de rango para todas las plataformas
         $subqueryAcumulados = BeneficioDiario::select(DB::raw('MAX(id) as id'))
             ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
@@ -176,7 +149,7 @@ class BeneficioDiarioController extends Controller
             ->select('id_plataforma', DB::raw('SUM(ggr) as total_ggr'))
             ->groupBy('id_plataforma')
             ->get();
-        
+
         $acumuladosRango = [];
         foreach ($plataformas as $plat) {
             $acumuladosRango[$plat] = 0;
@@ -210,7 +183,7 @@ class BeneficioDiarioController extends Controller
 
         $anio = substr($mes, 0, 4);
         $mesNum = substr($mes, 5, 2);
-        
+
         $fechaInicio = "$anio-$mesNum-01";
         $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mesNum, $anio);
         $fechaFin = "$anio-$mesNum-$diasEnMes";
@@ -223,7 +196,7 @@ class BeneficioDiarioController extends Controller
             ->select('id_plataforma', DB::raw('SUM(ggr) as total_ggr'))
             ->groupBy('id_plataforma')
             ->get();
-            
+
         $plataformas = Plataforma::values();
         $resultados = [];
         foreach ($plataformas as $plat) {

@@ -27,12 +27,12 @@ class ProcesarArchivoAction
         $registrosMapeados = $estrategiaMapeo->mapear($archivo);
 
         $mapeoEntidades = [
-            'diario'  => BeneficioDiario::class,
+            'diario' => BeneficioDiario::class,
             'mensual' => BeneficioMensual::class,
         ];
 
         // Envolver todas las inserciones del archivo en una transacción atómica
-        DB::connection('aadd')->transaction(function() use ($registrosMapeados, $archivo, $mapeoEntidades) {
+        DB::connection('aadd')->transaction(function () use ($registrosMapeados, $archivo, $mapeoEntidades) {
             foreach ($registrosMapeados as $item) {
                 $etiqueta = $item['etiqueta'] ?? 'diario';
                 $datos = $item['datos'] ?? $item;
@@ -52,7 +52,7 @@ class ProcesarArchivoAction
                 $hayCambios = true;
                 if ($ultimoRegistro) {
                     $datosSinArchivo = array_diff_key($datos, ['id_archivo' => true]);
-                    
+
                     \Illuminate\Support\Facades\Log::info('AADD - Comparacion de Beneficio', [
                         'fecha' => $datos['fecha'],
                         'plataforma' => $datos['id_plataforma'],
@@ -64,7 +64,7 @@ class ProcesarArchivoAction
 
                     // Normalizar decimales al formato esperado por Laravel 5.4 para evitar falsos positivos en isDirty()
                     $this->emparchar($ultimoRegistro);
-                    
+
                     \Illuminate\Support\Facades\Log::info('AADD - Resultado de fill', [
                         'dirty_attributes' => $ultimoRegistro->getDirty(),
                         'is_dirty_result' => $ultimoRegistro->isDirty(),
@@ -74,7 +74,7 @@ class ProcesarArchivoAction
                 }
 
                 // Crear una nueva fila solo si no existe o si los datos cambiaron
-                if (!$ultimoRegistro || $hayCambios) {
+                if (!$ultimoRegistro || $hayCambios || $archivo->fecha >= $datos["fecha"]) {
                     $instancia = new $claseEntidad();
                     $instancia->fill($datos);
                     $instancia->save();
@@ -109,7 +109,7 @@ class ProcesarArchivoAction
 
         foreach ($camposDecimales as $campo) {
             if (isset($instancia->$campo)) {
-                $instancia->$campo = number_format((float)$instancia->$campo, 2, '.', '');
+                $instancia->$campo = number_format((float) $instancia->$campo, 2, '.', '');
             }
         }
     }

@@ -8,10 +8,6 @@ class MapeadorBplay extends MapeadorGenerico
     {
         parent::__construct();
 
-        // BPLAY no envía la cantidad de apuestas
-        $this->configuracionBeneficioDiario['apuestas_realizadas']['transformacion'] = function ($v) {
-            return 0;
-        };
 
         // BPLAY utiliza encabezados diferentes para sus montos
         $this->configuracionBeneficioDiario['turnover']['alias'] = ['Turnover real'];

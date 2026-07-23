@@ -16,19 +16,21 @@ class MapeadorGenerico implements EstrategiaMapeoArchivo
 
     public function __construct()
     {
-        $transformacionEntera = function($v) {
+        $transformacionEntera = function ($v) {
             return (int) ($v ?? 0);
         };
 
-        $transformacionFlotante = function($v) {
+        $transformacionFlotante = function ($v) {
             return (float) ($v ?? 0);
         };
 
         $this->configuracionBeneficioDiario = [
             'fecha' => [
-                'transformacion' => function($v) {
-                    if (!$v) return null;
-                    if (strtoupper(trim($v)) === 'TOTAL') return 'TOTAL';
+                'transformacion' => function ($v) {
+                    if (!$v)
+                        return null;
+                    if (strtoupper(trim($v)) === 'TOTAL')
+                        return 'TOTAL';
                     return date('Y-m-d', strtotime($v));
                 }
             ],
@@ -95,7 +97,7 @@ class MapeadorGenerico implements EstrategiaMapeoArchivo
             }
 
             if ($fila['fecha'] === 'TOTAL') {
-                $fila['fecha'] = $archivo->fecha; 
+                $fila['fecha'] = $archivo->fecha;
                 $registros[] = [
                     'etiqueta' => 'mensual',
                     'datos' => $fila
