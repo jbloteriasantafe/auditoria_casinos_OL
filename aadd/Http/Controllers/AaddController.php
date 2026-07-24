@@ -5,6 +5,7 @@ namespace AADD\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\DB;
 use AADD\Entities\Archivo;
 use AADD\Entities\BeneficioDiario;
 
@@ -20,10 +21,15 @@ class AaddController extends Controller
     {
         try {
             $totalArchivos = Archivo::count();
-            $totalDiasAuditados = BeneficioDiario::count();
+            $subqueryUltimos = BeneficioDiario::select(DB::raw('MAX(id) as id'))
+                ->groupBy('id_plataforma', 'fecha');
+
+            $totalDiasAuditados = BeneficioDiario::whereIn('id', $subqueryUltimos)->count();
             
-            // Contar diferencias significativas (diferencia != 0)
-            $diferenciasDetectadas = BeneficioDiario::where('diferencia', '!=', 0)->count();
+            // Contar diferencias significativas (diferencia != 0) en los últimos registros importados
+            $diferenciasDetectadas = BeneficioDiario::whereIn('id', $subqueryUltimos)
+                ->where('diferencia', '!=', 0)
+                ->count();
 
             // Obtener última fecha de importación
             $ultimoArchivo = Archivo::orderBy('created_at', 'desc')->first();

@@ -14,7 +14,7 @@
             color: #504E76;
         }
 
-        .panel {
+        an .panel {
             border-radius: 12px !important;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(80, 78, 118, 0.05) !important;
@@ -383,168 +383,169 @@
             </div>
         </div>
 
-    <meta name="_token" content="{!! csrf_token() !!}" />
-@endsection
+        <meta name="_token" content="{!! csrf_token() !!}" />
+    @endsection
 
-@section('tituloDeAyuda')
-    <h3 class="modal-title" style="color: #fff;">| AYUDA BENEFICIO DIARIO</h3>
-@endsection
+    @section('tituloDeAyuda')
+        <h3 class="modal-title" style="color: #fff;">| AYUDA BENEFICIO DIARIO</h3>
+    @endsection
 
-@section('contenidoAyuda')
-    <div class="col-md-12">
-        <h5>Beneficio Diario</h5>
-        <p>Esta sección muestra los reportes diarios de beneficios, incluyendo jugadores activos, apuestas, turnover, payout
-            y GGR.</p>
-    </div>
-@endsection
+    @section('contenidoAyuda')
+        <div class="col-md-12">
+            <h5>Beneficio Diario</h5>
+            <p>Esta sección muestra los reportes diarios de beneficios, incluyendo jugadores activos, apuestas, turnover,
+                payout
+                y GGR.</p>
+        </div>
+    @endsection
 
-@section('scripts')
-    @include('aadd::Componentes.scripts-paginacion')
-    <script>
-        $(document).ready(function() {
+    @section('scripts')
+        @include('aadd::Componentes.scripts-paginacion')
+        <script>
+            $(document).ready(function() {
 
-            function actualizarTabla() {
-                var formData = $('#filtroBeneficioDiario').serialize();
+                function actualizarTabla() {
+                    var formData = $('#filtroBeneficioDiario').serialize();
 
-                // Opcional: mostrar un indicador de carga en la tabla
-                $('#contenedor-tabla-beneficio').css('opacity', '0.5');
+                    // Opcional: mostrar un indicador de carga en la tabla
+                    $('#contenedor-tabla-beneficio').css('opacity', '0.5');
 
-                $.ajax({
-                    url: '/aadd/beneficio-diario/tabla',
-                    type: 'GET',
-                    data: formData,
-                    success: function(response) {
-                        // Ahora el controlador devuelve un JSON con html y acumulados_rango
-                        $('#contenedor-tabla-beneficio').html(response.html);
-                        $('#contenedor-tabla-beneficio').css('opacity', '1');
+                    $.ajax({
+                        url: '/aadd/beneficio-diario/tabla',
+                        type: 'GET',
+                        data: formData,
+                        success: function(response) {
+                            // Ahora el controlador devuelve un JSON con html y acumulados_rango
+                            $('#contenedor-tabla-beneficio').html(response.html);
+                            $('#contenedor-tabla-beneficio').css('opacity', '1');
 
-                        // Actualizar las tarjetas de acumulado de rango
-                        if (response.acumulados_rango) {
-                            $.each(response.acumulados_rango, function(plat, valor) {
-                                $('#rango-' + plat).text('$ ' + valor.toLocaleString('es-AR', {
+                            // Actualizar las tarjetas de acumulado de rango
+                            if (response.acumulados_rango) {
+                                $.each(response.acumulados_rango, function(plat, valor) {
+                                    $('#rango-' + plat).text('$ ' + valor.toLocaleString('es-AR', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }));
+                                });
+                            }
+
+                            paginarTabla('#contenedor-tabla-beneficio table', 30);
+                            if (typeof aplicarFiltroColumnas === 'function') {
+                                aplicarFiltroColumnas();
+                            }
+                        },
+                        error: function(err) {
+                            console.error('Error al actualizar la tabla', err);
+                            $('#contenedor-tabla-beneficio').css('opacity', '1');
+                        }
+                    });
+                }
+
+                $('#fecha_desde, #fecha_hasta, #plataforma').on('change', function() {
+                    actualizarTabla();
+                });
+
+                $('#selector_mes').on('change', function() {
+                    var mes = $(this).val();
+                    if (!mes) return;
+
+                    $('#acumulados-mes-container').html(
+                        '<div class="col-md-12 text-center"><i class="fa fa-spinner fa-spin text-primary"></i></div>'
+                    );
+                    $('#estado-mes-badge').hide();
+
+                    $.ajax({
+                        url: '/aadd/beneficio-diario/acumulado-mensual',
+                        type: 'GET',
+                        data: {
+                            mes: mes
+                        },
+                        success: function(response) {
+                            var html = '';
+                            $.each(response.acumulados, function(plat, valor) {
+                                var valorFormatted = valor.toLocaleString('es-AR', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                }));
+                                });
+                                html +=
+                                    '<div class="col-xs-4" style="margin-bottom: 10px;">' +
+                                    '<span style="font-size: 0.8em; color: #4A4F87; text-transform: uppercase;">' +
+                                    plat + '</span><br>' +
+                                    '<strong style="font-size: 1.1em; color: #4A4F87;">$ ' +
+                                    valorFormatted + '</strong>' +
+                                    '</div>';
                             });
-                        }
+                            $('#acumulados-mes-container').html(html);
 
-                        paginarTabla('#contenedor-tabla-beneficio table', 30);
-                        if (typeof aplicarFiltroColumnas === 'function') {
-                            aplicarFiltroColumnas();
-                        }
-                    },
-                    error: function(err) {
-                        console.error('Error al actualizar la tabla', err);
-                        $('#contenedor-tabla-beneficio').css('opacity', '1');
-                    }
-                });
-            }
-
-            $('#fecha_desde, #fecha_hasta, #plataforma').on('change', function() {
-                actualizarTabla();
-            });
-
-            $('#selector_mes').on('change', function() {
-                var mes = $(this).val();
-                if (!mes) return;
-
-                $('#acumulados-mes-container').html(
-                    '<div class="col-md-12 text-center"><i class="fa fa-spinner fa-spin text-primary"></i></div>'
-                );
-                $('#estado-mes-badge').hide();
-
-                $.ajax({
-                    url: '/aadd/beneficio-diario/acumulado-mensual',
-                    type: 'GET',
-                    data: {
-                        mes: mes
-                    },
-                    success: function(response) {
-                        var html = '';
-                        $.each(response.acumulados, function(plat, valor) {
-                            var valorFormatted = valor.toLocaleString('es-AR', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
-                            html +=
-                                '<div class="col-xs-4" style="margin-bottom: 10px;">' +
-                                '<span style="font-size: 0.8em; color: #4A4F87; text-transform: uppercase;">' +
-                                plat + '</span><br>' +
-                                '<strong style="font-size: 1.1em; color: #4A4F87;">$ ' +
-                                valorFormatted + '</strong>' +
-                                '</div>';
-                        });
-                        $('#acumulados-mes-container').html(html);
-
-                        if (response.estado === 'concluido') {
-                            $('#estado-mes-badge').text('Mes Concluido').css('background-color',
-                                '#d1dfa4ff').show();
-                        } else if (response.estado === 'proximo') {
-                            $('#estado-mes-badge').text('Mes Próximo').css('background-color',
-                                '#f7f4d0ff').show();
-                        } else {
-                            $('#estado-mes-badge').text('Mes en Curso').css('background-color',
-                                '#abc2eeff').show();
-                        }
-                    },
-                    error: function() {
-                        $('#acumulados-mes-container').html(
-                            '<div class="col-md-12 text-center text-danger">Error al cargar datos.</div>'
-                        );
-                    }
-                });
-            });
-
-            // Inicializar el selector de mes con el mes actual y disparar la carga
-            var hoy = new Date();
-            var mesActualStr = hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2);
-            $('#selector_mes').val(mesActualStr).trigger('change');
-
-            // Filtro de columnas
-            function aplicarFiltroColumnas() {
-                $('#column-filter-menu input[type="checkbox"]').each(function() {
-                    var colIdx = $(this).data('col');
-                    var isChecked = $(this).is(':checked');
-                    $('#contenedor-tabla-beneficio table tr').each(function() {
-                        var cell = $(this).children('th, td').eq(colIdx);
-                        if (isChecked) {
-                            cell.show();
-                        } else {
-                            cell.hide();
+                            if (response.estado === 'concluido') {
+                                $('#estado-mes-badge').text('Mes Concluido').css('background-color',
+                                    '#d1dfa4ff').show();
+                            } else if (response.estado === 'proximo') {
+                                $('#estado-mes-badge').text('Mes Próximo').css('background-color',
+                                    '#f7f4d0ff').show();
+                            } else {
+                                $('#estado-mes-badge').text('Mes en Curso').css('background-color',
+                                    '#abc2eeff').show();
+                            }
+                        },
+                        error: function() {
+                            $('#acumulados-mes-container').html(
+                                '<div class="col-md-12 text-center text-danger">Error al cargar datos.</div>'
+                            );
                         }
                     });
                 });
-            }
 
-            // Evitar que el dropdown se cierre al clickear un checkbox
-            $('#column-filter-menu').on('click', function(e) {
-                e.stopPropagation();
-            });
+                // Inicializar el selector de mes con el mes actual y disparar la carga
+                var hoy = new Date();
+                var mesActualStr = hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2);
+                $('#selector_mes').val(mesActualStr).trigger('change');
 
-            $('#column-filter-menu input[type="checkbox"]').on('change', function() {
+                // Filtro de columnas
+                function aplicarFiltroColumnas() {
+                    $('#column-filter-menu input[type="checkbox"]').each(function() {
+                        var colIdx = $(this).data('col');
+                        var isChecked = $(this).is(':checked');
+                        $('#contenedor-tabla-beneficio table tr').each(function() {
+                            var cell = $(this).children('th, td').eq(colIdx);
+                            if (isChecked) {
+                                cell.show();
+                            } else {
+                                cell.hide();
+                            }
+                        });
+                    });
+                }
+
+                // Evitar que el dropdown se cierre al clickear un checkbox
+                $('#column-filter-menu').on('click', function(e) {
+                    e.stopPropagation();
+                });
+
+                $('#column-filter-menu input[type="checkbox"]').on('change', function() {
+                    aplicarFiltroColumnas();
+                });
+
+                // Sobreescribimos el success de actualizarTabla para que aplique el filtro
+                var _oldSuccess = actualizarTabla;
+
+                // Inicializar paginación y filtro al cargar la página por primera vez
+                paginarTabla('#contenedor-tabla-beneficio table', 30);
                 aplicarFiltroColumnas();
+
+                // Exportar PDF
+                $('#btn-exportar-pdf').on('click', function(e) {
+                    e.preventDefault();
+                    var formData = $('#filtroBeneficioDiario').serialize();
+                    window.open('/aadd/informes/pdf/beneficio-diario?' + formData, '_blank');
+                });
+
+                // Exportar Excel
+                $('#btn-exportar-excel').on('click', function(e) {
+                    e.preventDefault();
+                    var formData = $('#filtroBeneficioDiario').serialize();
+                    window.open('/aadd/informes/excel/beneficio-diario?' + formData, '_blank');
+                });
             });
-
-            // Sobreescribimos el success de actualizarTabla para que aplique el filtro
-            var _oldSuccess = actualizarTabla;
-
-            // Inicializar paginación y filtro al cargar la página por primera vez
-            paginarTabla('#contenedor-tabla-beneficio table', 30);
-            aplicarFiltroColumnas();
-
-            // Exportar PDF
-            $('#btn-exportar-pdf').on('click', function(e) {
-                e.preventDefault();
-                var formData = $('#filtroBeneficioDiario').serialize();
-                window.open('/aadd/informes/pdf/beneficio-diario?' + formData, '_blank');
-            });
-
-            // Exportar Excel
-            $('#btn-exportar-excel').on('click', function(e) {
-                e.preventDefault();
-                var formData = $('#filtroBeneficioDiario').serialize();
-                window.open('/aadd/informes/excel/beneficio-diario?' + formData, '_blank');
-            });
-        });
-    </script>
-@endsection
+        </script>
+    @endsection

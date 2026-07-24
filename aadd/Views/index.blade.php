@@ -293,17 +293,7 @@
                     </div>
                 </div>
             </div>
-            <div style="width: 260px; flex-shrink: 0; display: inline-block;">
-                <div class="dashboard-stat-card stat-cyan">
-                    <div class="stat-icon-wrapper">
-                        <i class="fa fa-gears"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-val">{{ $mapeadoresActivos }}</div>
-                        <div class="stat-lbl">Mapeadores Activos</div>
-                    </div>
-                </div>
-            </div>
+            
         </div>
 
         <!-- Fila Principal (Contenido) -->

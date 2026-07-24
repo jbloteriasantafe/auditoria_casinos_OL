@@ -1,3 +1,4 @@
 {
-    "php.version": "7.0"
+    "php.version": "7.0",
+    "bladeFormatter.format.noPhpSyntaxCheck": false
 }
