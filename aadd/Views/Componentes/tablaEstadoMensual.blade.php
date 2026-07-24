@@ -154,7 +154,10 @@
                                     @foreach ($plataformas as $plat)
                                         @php
                                             $archivos = $matriz[$dia][$plat] ?? [];
-                                            $cantidad = count($archivos);
+                                            $activos = array_filter($archivos, function($a) {
+                                                return empty($a['eliminado']);
+                                            });
+                                            $cantidad = count($activos);
                                         @endphp
                                         <td style="cursor: pointer;"
                                             onclick="verDetallesArchivos('{{ $dia }}', '{{ $plat }}', this)"

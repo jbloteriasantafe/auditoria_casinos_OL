@@ -11,9 +11,9 @@ class MapeadorBplay extends MapeadorGenerico
 
         // BPLAY utiliza encabezados diferentes para sus montos
         $this->configuracionBeneficioDiario['turnover']['alias'] = ['Turnover real'];
-        $this->configuracionBeneficioDiario['turnover_bonos']['alias'] = ['Turnover bonos'];
+        $this->configuracionBeneficioDiario['turnover_bonos']['alias'] = ['Turnover en bonos'];
         $this->configuracionBeneficioDiario['payout']['alias'] = ['Payout real'];
-        $this->configuracionBeneficioDiario['payout_bonos']['alias'] = ['Payout bonos'];
+        $this->configuracionBeneficioDiario['payout_bonos']['alias'] = ['Payout en bonos'];
         $this->configuracionBeneficioDiario['ggr']['alias'] = ['GGR'];
     }
 }
