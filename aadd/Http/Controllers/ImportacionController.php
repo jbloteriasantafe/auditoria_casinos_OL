@@ -29,8 +29,11 @@ class ImportacionController extends Controller
         foreach ($archivosMes as $archivo) {
             if (isset($matrizArchivos[$archivo->fecha][$archivo->id_plataforma])) {
                 $matrizArchivos[$archivo->fecha][$archivo->id_plataforma][] = [
+                    'id' => $archivo->id,
                     'nombre' => $archivo->nombre,
-                    'tipo_archivo' => $archivo->tipo_archivo
+                    'tipo_archivo' => $archivo->tipo_archivo,
+                    'eliminado' => !is_null($archivo->deleted_at),
+                    'fecha_eliminacion' => $archivo->deleted_at ? $archivo->deleted_at->format('d/m/Y H:i') : null
                 ];
             }
         }
@@ -64,8 +67,8 @@ class ImportacionController extends Controller
             $dias[] = sprintf("%04d-%02d-%02d", $anio, $mes, $i);
         }
 
-        $archivosMes = Archivo::where('fecha', 'like', "$anio-$mes-%")
-            ->select('fecha', 'id_plataforma', 'nombre', 'tipo_archivo')
+        $archivosMes = Archivo::withTrashed()->where('fecha', 'like', "$anio-$mes-%")
+            ->select('id', 'fecha', 'id_plataforma', 'nombre', 'tipo_archivo', 'deleted_at')
             ->get();
 
         $matrizArchivos = $this->construirMatrizArchivos($plataformas, $dias, $archivosMes);
@@ -106,8 +109,8 @@ class ImportacionController extends Controller
         }
 
         // Consultamos todos los archivos del mes seleccionando solo las columnas necesarias
-        $archivosMes = Archivo::where('fecha', 'like', "$anio-$mes-%")
-            ->select('fecha', 'id_plataforma', 'nombre', 'tipo_archivo')
+        $archivosMes = Archivo::withTrashed()->where('fecha', 'like', "$anio-$mes-%")
+            ->select('id', 'fecha', 'id_plataforma', 'nombre', 'tipo_archivo', 'deleted_at')
             ->get();
 
         $matrizArchivos = $this->construirMatrizArchivos($plataformas, $dias, $archivosMes);
@@ -194,5 +197,38 @@ class ImportacionController extends Controller
         }
 
         return response()->json($resultados);
+    }
+
+    /**
+     * Elimina un archivo cargado y revierte/elimina sus beneficios diarios y mensuales.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function eliminar($id)
+    {
+        try {
+            DB::connection('aadd')->transaction(function () use ($id) {
+                // Eliminar beneficio diario asociado
+                \AADD\Entities\BeneficioDiario::where('id_archivo', $id)->delete();
+
+                // Eliminar beneficio mensual asociado
+                \AADD\Entities\BeneficioMensual::where('id_archivo', $id)->delete();
+
+                // Eliminar el archivo
+                Archivo::destroy($id);
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Archivo y datos asociados eliminados correctamente.'
+            ]);
+        } catch (Throwable $e) {
+            Log::error("Error eliminando archivo: " . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al eliminar el archivo: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -13,6 +13,12 @@
         <ul id="listaArchivosDetalle" class="list-group" style="margin-bottom: 0; display: none;">
             <!-- Acá se llenan los archivos -->
         </ul>
+        <div id="seccionArchivosEliminados" style="margin-top: 15px; display: none;">
+            <h5 style="font-weight: bold; color: #d9534f; margin-bottom: 10px; border-bottom: 1px solid #f2dede; padding-bottom: 5px;"><i class="fa fa-trash-o"></i> Archivos Eliminados</h5>
+            <ul id="listaArchivosEliminados" class="list-group" style="margin-bottom: 0;">
+                <!-- Acá se llenan los archivos eliminados -->
+            </ul>
+        </div>
         <div id="mensajeSinArchivos" class="alert alert-warning" style="display: none; margin-bottom: 0;">
             No hay archivos cargados para esta fecha y plataforma.
         </div>

@@ -113,6 +113,8 @@
     @include('aadd::Modals.modalImportadorAadd')
 
     @include('aadd::Modals.modalDetallesArchivos')
+
+    @include('aadd::Modals.modalEliminarConfirmar')
 @endsection
 
 @section('contenidoAyuda')
@@ -359,6 +361,61 @@
                 }
             });
 
+            // Evento para preparar la eliminación de un archivo cargado en la base de datos
+            $('#listaArchivosDetalle').on('click', '.btn-eliminar-archivo-cargado', function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                if (!id) return;
+
+                // Guardamos el id del archivo a eliminar en el botón de confirmación del modal
+                $('#btn-confirmar-eliminar-archivo').data('id', id);
+                // Mostramos el modal de confirmación
+                $('#modalEliminarConfirmar').modal('show');
+            });
+
+            // Evento para ejecutar la eliminación desde el modal de confirmación
+            $('#btn-confirmar-eliminar-archivo').click(function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var id = btn.data('id');
+                if (!id) return;
+
+                btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Eliminando...');
+
+                $.ajax({
+                    url: '/aadd/importaciones/' + id,
+                    type: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') || $('input[name="_token"]').val()
+                    },
+                    success: function(response) {
+                        btn.prop('disabled', false).text('ELIMINAR');
+                        $('#modalEliminarConfirmar').modal('hide');
+                        $('#modalDetallesArchivos').modal('hide');
+                        
+                        $('#mensajeExito').text(response.message || 'Archivo eliminado correctamente.').show();
+                        setTimeout(function() {
+                            $('#mensajeExito').fadeOut();
+                        }, 5000);
+                        
+                        var mesVal = $('#mes-selector').val();
+                        if (mesVal) {
+                            actualizarTablaMensual(mesVal);
+                        } else {
+                            location.reload();
+                        }
+                    },
+                    error: function(err) {
+                        btn.prop('disabled', false).text('ELIMINAR');
+                        $('#modalEliminarConfirmar').modal('hide');
+                        
+                        var response = err.responseJSON;
+                        var msg = (response && response.message) ? response.message : 'Error al eliminar el archivo.';
+                        alert(msg);
+                    }
+                });
+            });
+
             // Inicializar paginación al cargar la vista
             if (typeof paginarTabla === 'function') {
                 paginarTabla('#contenedor-tabla-mensual table', 30);
@@ -388,23 +445,56 @@
         window.verDetallesArchivos = function(fecha, plataforma, element) {
             $('#modalDetallesArchivosLabel').html('<i class="fa fa-list"></i> Archivos Cargados - ' + plataforma +
                 ' (' + fecha + ')');
-            var ul = $('#listaArchivosDetalle');
-            ul.empty().hide();
+            var ulActivos = $('#listaArchivosDetalle');
+            var ulEliminados = $('#listaArchivosEliminados');
+            var seccionEliminados = $('#seccionArchivosEliminados');
+
+            ulActivos.empty().hide();
+            ulEliminados.empty();
+            seccionEliminados.hide();
             $('#mensajeSinArchivos').hide();
             $('#cargandoDetalles').hide();
             $('#modalDetallesArchivos').modal('show');
 
             var archivos = $(element).data('archivos') || [];
 
+            var activosCount = 0;
+            var eliminadosCount = 0;
+
             if (archivos.length > 0) {
                 archivos.forEach(function(archivo) {
                     var tipoStr = archivo.tipo_archivo ? archivo.tipo_archivo.replace(/_/g, ' ') :
                         'Desconocido';
-                    ul.append(
-                        '<li class="list-group-item"><i class="fa fa-file-text-o text-info"></i> <strong>' +
-                        tipoStr + '</strong>: ' + archivo.nombre + '</li>');
+                    
+                    if (archivo.eliminado) {
+                        eliminadosCount++;
+                        var fechaElim = archivo.fecha_eliminacion ? ' (Eliminado: ' + archivo.fecha_eliminacion + ')' : '';
+                        ulEliminados.append(
+                            '<li class="list-group-item text-muted" style="background-color: #fcfcfc;"><i class="fa fa-file-text-o text-muted"></i> <strong>' +
+                            tipoStr + '</strong>: ' + archivo.nombre + '<span class="label label-danger pull-right" style="margin-top: 2px;">Eliminado</span><br><small class="text-danger">' + fechaElim + '</small></li>'
+                        );
+                    } else {
+                        activosCount++;
+                        var btnEliminar = '';
+                        if (archivo.id) {
+                            btnEliminar = '<button class="btn btn-danger btn-xs btn-eliminar-archivo-cargado pull-right" data-id="' + archivo.id + '" title="Eliminar archivo y revertir datos" style="margin-top: -2px;"><i class="fa fa-trash color" style="color:#ffffff !important" ></i></button>';
+                        }
+                        ulActivos.append(
+                            '<li class="list-group-item clearfix"><i class="fa fa-file-text-o text-info"></i> <strong>' +
+                            tipoStr + '</strong>: ' + archivo.nombre + btnEliminar + '</li>');
+                    }
                 });
-                ul.show();
+                
+                if (activosCount > 0) {
+                    ulActivos.show();
+                }
+                if (eliminadosCount > 0) {
+                    seccionEliminados.show();
+                }
+                
+                if (activosCount === 0 && eliminadosCount === 0) {
+                    $('#mensajeSinArchivos').show();
+                }
             } else {
                 $('#mensajeSinArchivos').show();
             }

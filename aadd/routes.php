@@ -14,6 +14,9 @@ Route::get('/aadd/importaciones/tabla', '\AADD\Http\Controllers\ImportacionContr
 Route::post('/aadd/importaciones/importar', '\AADD\Http\Controllers\ImportacionController@importar')
     ->middleware('tiene_permiso');
 
+Route::delete('/aadd/importaciones/{id}', '\AADD\Http\Controllers\ImportacionController@eliminar')
+    ->middleware('tiene_permiso');
+
 // Beneficio Diario (Informes Visuales y AJAX)
 Route::get('/aadd/beneficio-diario', '\AADD\Http\Controllers\BeneficioDiarioController@index')
     ->middleware('tiene_permiso');
