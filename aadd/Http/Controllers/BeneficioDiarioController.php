@@ -38,11 +38,7 @@ class BeneficioDiarioController extends Controller
             $fin = $temp;
         }
 
-        // Limitar a máximo 60 días para evitar sobrecarga
-        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
-        if ($diferenciaDias > 60) {
-            $fin = strtotime('+60 days', $inicio);
-        }
+
 
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
@@ -112,11 +108,7 @@ class BeneficioDiarioController extends Controller
             $fin = $temp;
         }
 
-        // Limitar a máximo 60 días para evitar sobrecarga
-        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
-        if ($diferenciaDias > 60) {
-            $fin = strtotime('+60 days', $inicio);
-        }
+
 
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {

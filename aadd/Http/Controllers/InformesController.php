@@ -76,11 +76,7 @@ class InformesController extends Controller
             $fin = $temp;
         }
 
-        // Limitar a máximo 60 días
-        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
-        if ($diferenciaDias > 60) {
-            $fin = strtotime('+60 days', $inicio);
-        }
+
         
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
@@ -134,11 +130,7 @@ class InformesController extends Controller
             $fin = $temp;
         }
 
-        // Limitar a máximo 60 días
-        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
-        if ($diferenciaDias > 60) {
-            $fin = strtotime('+60 days', $inicio);
-        }
+        
 
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
