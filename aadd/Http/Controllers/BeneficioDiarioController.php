@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use AADD\Enums\Plataforma;
 use AADD\Entities\BeneficioDiario;
+use AADD\Actions\ObtenerBeneficioDiarioAction;
 
 class BeneficioDiarioController extends Controller
 {
@@ -48,18 +49,12 @@ class BeneficioDiarioController extends Controller
             $dias[] = date('Y-m-d', $current);
         }
 
-        $idPlataforma = Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
-        $subquery = BeneficioDiario::select(DB::raw('MAX(id) as id'))
-            ->where('id_plataforma', $idPlataforma)
-            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
-            ->groupBy('fecha');
-
-        $beneficios = BeneficioDiario::with('archivo')
-            ->whereIn('id', $subquery)
-            ->get()
-            ->keyBy(function ($item) {
-                return date('Y-m-d', strtotime($item->fecha));
-            });
+        $obtenerBeneficiosAction = new ObtenerBeneficioDiarioAction();
+        $beneficios = $obtenerBeneficiosAction->ejecutar(
+            $plataformaSeleccionada,
+            date('Y-m-d', $inicio),
+            date('Y-m-d', $fin)
+        );
 
         // Calcular acumulados de rango para todas las plataformas
         $subqueryAcumulados = BeneficioDiario::select(DB::raw('MAX(id) as id'))
@@ -128,18 +123,12 @@ class BeneficioDiarioController extends Controller
             $dias[] = date('Y-m-d', $current);
         }
 
-        $idPlataforma = Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
-        $subquery = BeneficioDiario::select(DB::raw('MAX(id) as id'))
-            ->where('id_plataforma', $idPlataforma)
-            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
-            ->groupBy('fecha');
-
-        $beneficios = BeneficioDiario::with('archivo')
-            ->whereIn('id', $subquery)
-            ->get()
-            ->keyBy(function ($item) {
-                return date('Y-m-d', strtotime($item->fecha));
-            });
+        $obtenerBeneficiosAction = new ObtenerBeneficioDiarioAction();
+        $beneficios = $obtenerBeneficiosAction->ejecutar(
+            $plataformaSeleccionada,
+            date('Y-m-d', $inicio),
+            date('Y-m-d', $fin)
+        );
         // Calcular acumulados de rango para todas las plataformas
         $subqueryAcumulados = BeneficioDiario::select(DB::raw('MAX(id) as id'))
             ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])

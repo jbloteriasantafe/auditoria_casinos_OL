@@ -371,7 +371,7 @@
                         <div style="display: flex; gap: 10px;">
                             <a href="#" id="btn-exportar-excel" class="btn btn-primary"
                                 style="border-radius: 8px !important; padding: 10px 24px; font-weight: 600; letter-spacing: 0.5px; border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 8px; background-color: #10b981;">
-                                <i class="fa fa-file-excel-o"></i> Exportar CSV
+                                <i class="fa fa-file-excel-o"></i> Exportar Excel
                             </a>
                             <a href="#" id="btn-exportar-pdf" class="btn btn-primary">
                                 <i class="fa fa-file-pdf-o"></i> Exportar reporte PDF
