@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 use AADD\Enums\Plataforma;
 use AADD\Entities\BeneficioDiario;
 use Dompdf\Dompdf;
+use AADD\Actions\ObtenerBeneficioDiarioAction;
+require_once base_path('aadd/Libs/SimpleXLSXGen.php');
+use Shuchkin\SimpleXLSXGen;
 
 class InformesController extends Controller
 {
@@ -73,42 +76,21 @@ class InformesController extends Controller
             $fin = $temp;
         }
 
-        // Limitar a máximo 60 días
-        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
-        if ($diferenciaDias > 60) {
-            $fin = strtotime('+60 days', $inicio);
-        }
+
         
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
             $dias[] = date('Y-m-d', $current);
         }
 
-        $idPlataforma = Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
-        $subqueryPdf = BeneficioDiario::select(DB::raw('MAX(id) as id'))
-            ->where('id_plataforma', $idPlataforma)
-            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
-            ->groupBy('fecha');
+        $obtenerBeneficiosAction = new ObtenerBeneficioDiarioAction();
+        $beneficios = $obtenerBeneficiosAction->ejecutar(
+            $plataformaSeleccionada,
+            date('Y-m-d', $inicio),
+            date('Y-m-d', $fin)
+        );
 
-        $beneficios = BeneficioDiario::whereIn('id', $subqueryPdf)
-            ->orderBy('fecha', 'asc')
-            ->get()
-            ->keyBy(function ($item) {
-                return date('Y-m-d', strtotime($item->fecha));
-            });
-
-        if (strtoupper($plataformaSeleccionada) === 'BPLAY') {
-            $beneficios->transform(function ($item) {
-                $item->turnover += $item->turnover_bonos;
-                $item->payout += $item->payout_bonos;
-                $item->ggr_calculado = $item->turnover - $item->payout;
-                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
-                if ($item->diferencia == -0) {
-                    $item->diferencia = 0.0;
-                }
-                return $item;
-            });
-        }
+        
 
         $view = ViewFacade::make('aadd::beneficio-diario-pdf', compact('dias', 'plataformaSeleccionada', 'beneficios', 'fechaDesde', 'fechaHasta'));
         $dompdf = new Dompdf();
@@ -148,47 +130,26 @@ class InformesController extends Controller
             $fin = $temp;
         }
 
-        // Limitar a máximo 60 días
-        $diferenciaDias = round(($fin - $inicio) / (60 * 60 * 24));
-        if ($diferenciaDias > 60) {
-            $fin = strtotime('+60 days', $inicio);
-        }
+        
 
         $dias = [];
         for ($current = $inicio; $current <= $fin; $current = strtotime('+1 day', $current)) {
             $dias[] = date('Y-m-d', $current);
         }
 
-        $idPlataforma = Plataforma::obtenerIdDesdeString($plataformaSeleccionada);
-        $subqueryExcel = BeneficioDiario::select(DB::raw('MAX(id) as id'))
-            ->where('id_plataforma', $idPlataforma)
-            ->whereBetween('fecha', [date('Y-m-d', $inicio), date('Y-m-d', $fin)])
-            ->groupBy('fecha');
+        $obtenerBeneficiosAction = new ObtenerBeneficioDiarioAction();
+        $beneficios = $obtenerBeneficiosAction->ejecutar(
+            $plataformaSeleccionada,
+            date('Y-m-d', $inicio),
+            date('Y-m-d', $fin)
+        );
 
-        $beneficios = BeneficioDiario::whereIn('id', $subqueryExcel)
-            ->orderBy('fecha', 'asc')
-            ->get()
-            ->keyBy(function ($item) {
-                return date('Y-m-d', strtotime($item->fecha));
-            });
+        
 
-        if (strtoupper($plataformaSeleccionada) === 'BPLAY') {
-            $beneficios->transform(function ($item) {
-                $item->turnover += $item->turnover_bonos;
-                $item->payout += $item->payout_bonos;
-                $item->ggr_calculado = $item->turnover - $item->payout;
-                $item->diferencia = round($item->ggr_calculado - $item->ggr, 2);
-                if ($item->diferencia == -0) {
-                    $item->diferencia = 0.0;
-                }
-                return $item;
-            });
-        }
-
-        // Generar CSV
-        $filename = 'beneficio_diario_' . strtolower($plataformaSeleccionada) . '_' . date('Ymd_His') . '.csv';
+        // Generar XLSX
+        $filename = 'beneficio_diario_' . strtolower($plataformaSeleccionada) . '_' . date('Ymd_His') . '.xlsx';
         $headers = [
-            "Content-type"        => "text/csv",
+            "Content-Type"        => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "Content-Disposition" => "attachment; filename=$filename",
             "Pragma"              => "no-cache",
             "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
@@ -216,64 +177,64 @@ class InformesController extends Controller
             }
         }
 
-        $callback = function() use($dias, $beneficios, $mapaColumnas, $columnasAMostrar) {
-            $file = fopen('php://output', 'w');
-            // Escribir BOM para Excel (ayuda con acentos)
-            fputs($file, "\xEF\xBB\xBF");
-            
-            // Fila de encabezados
-            $headersRow = [];
-            foreach ($columnasAMostrar as $col) {
-                $headersRow[] = $mapaColumnas[$col];
-            }
-            fputcsv($file, $headersRow, ';'); // Excel prefiere punto y coma en regiones hispanas
+        $rows = [];
 
-            foreach ($dias as $dia) {
-                $b = isset($beneficios[$dia]) ? $beneficios[$dia] : null;
-                $row = [];
-                
-                foreach ($columnasAMostrar as $col) {
-                    if ($col === 'fecha') {
-                        $row[] = date('d/m/Y', strtotime($dia));
-                        continue;
-                    }
-                    
-                    if (!$b) {
-                        $row[] = '-';
-                        continue;
-                    }
-                    
-                    switch($col) {
-                        case 'jugadores_activos':
-                            $row[] = $b->jugadores_activos; break;
-                        case 'apuestas_realizadas':
-                            $row[] = $b->apuestas_realizadas; break;
-                        case 'turnover':
-                            $row[] = number_format($b->turnover, 2, '.', ''); break;
-                        case 'turnover_bonos':
-                            $row[] = number_format($b->turnover_bonos, 2, '.', ''); break;
-                        case 'payout':
-                            $row[] = number_format($b->payout, 2, '.', ''); break;
-                        case 'payout_bonos':
-                            $row[] = number_format($b->payout_bonos, 2, '.', ''); break;
-                        case 'ggr_calculado':
-                            $ggrCalculado = $b->ggr_calculado ?? ($b->turnover - $b->payout);
-                            $row[] = number_format($ggrCalculado, 2, '.', ''); break;
-                        case 'ggr':
-                            $row[] = number_format($b->ggr, 2, '.', ''); break;
-                        case 'diferencia':
-                            $ggrCalculado = $b->ggr_calculado ?? ($b->turnover - $b->payout);
-                            $diferencia = isset($b->diferencia) ? $b->diferencia : round($ggrCalculado - $b->ggr, 2);
-                            if ($diferencia == -0) $diferencia = 0.0;
-                            $row[] = number_format($diferencia, 2, '.', ''); break;
-                        default:
-                            $row[] = ''; break;
-                    }
+        // Fila de encabezados
+        $headersRow = [];
+        foreach ($columnasAMostrar as $col) {
+            $headersRow[] = $mapaColumnas[$col];
+        }
+        $rows[] = $headersRow;
+
+        // Filas de datos
+        foreach ($dias as $dia) {
+            $b = isset($beneficios[$dia]) ? $beneficios[$dia] : null;
+            $row = [];
+
+            foreach ($columnasAMostrar as $col) {
+                if ($col === 'fecha') {
+                    $row[] = date('d/m/Y', strtotime($dia));
+                    continue;
                 }
-                
-                fputcsv($file, $row, ';');
+
+                if (!$b) {
+                    $row[] = '-';
+                    continue;
+                }
+
+                $value = '';
+                switch($col) {
+                    case 'jugadores_activos':
+                        $value = $b->jugadores_activos; break;
+                    case 'apuestas_realizadas':
+                        $value = $b->apuestas_realizadas; break;
+                    case 'turnover':
+                        $value = $b->turnover; break;
+                    case 'turnover_bonos':
+                        $value = $b->turnover_bonos; break;
+                    case 'payout':
+                        $value = $b->payout; break;
+                    case 'payout_bonos':
+                        $value = $b->payout_bonos; break;
+                    case 'ggr_calculado':
+                        $value = $b->ggr_calculado ?? ($b->turnover - $b->payout); break;
+                    case 'ggr':
+                        $value = $b->ggr; break;
+                    case 'diferencia':
+                        $ggrCalculado = $b->ggr_calculado ?? ($b->turnover - $b->payout);
+                        $value = isset($b->diferencia) ? $b->diferencia : round($ggrCalculado - $b->ggr, 2);
+                        if ($value == -0) $value = 0.0;
+                        break;
+                }
+
+                $row[] = $value;
             }
-            fclose($file);
+            $rows[] = $row;
+        }
+
+        $xlsx = SimpleXLSXGen::fromArray($rows);
+        $callback = function() use ($xlsx) {
+            echo $xlsx;
         };
 
         return response()->stream($callback, 200, $headers);
