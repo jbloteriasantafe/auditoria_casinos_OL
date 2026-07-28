@@ -404,13 +404,18 @@
         <script>
             $(document).ready(function() {
 
-                function actualizarTabla() {
+                var xhrActualizar = null;
+               async function actualizarTabla() {
+                    if (xhrActualizar) {
+                        xhrActualizar.abort();
+                    }
+
                     var formData = $('#filtroBeneficioDiario').serialize();
 
                     // Opcional: mostrar un indicador de carga en la tabla
                     $('#contenedor-tabla-beneficio').css('opacity', '0.5');
 
-                    $.ajax({
+                    xhrActualizar = $.ajax({
                         url: '/aadd/beneficio-diario/tabla',
                         type: 'GET',
                         data: formData,
@@ -435,14 +440,44 @@
                             }
                         },
                         error: function(err) {
-                            console.error('Error al actualizar la tabla', err);
-                            $('#contenedor-tabla-beneficio').css('opacity', '1');
+                            if (err.statusText !== 'abort') {
+                                console.error('Error al actualizar la tabla', err);
+                                $('#contenedor-tabla-beneficio').css('opacity', '1');
+                            }
+                        },
+                        complete: function() {
+                            xhrActualizar = null;
                         }
                     });
                 }
 
-                $('#fecha_desde, #fecha_hasta, #plataforma').on('change', function() {
-                    actualizarTabla();
+                var timerFiltro = null;
+                $('#fecha_desde, #fecha_hasta, #plataforma').on('change input', function() {
+                    clearTimeout(timerFiltro);
+                    
+                    // Si cambia la plataforma, actualizamos inmediatamente
+                    if ($(this).attr('id') === 'plataforma') {
+                        actualizarTabla();
+                        return;
+                    }
+                    
+                    // Si cambia una fecha, debouncemos y validamos
+                    timerFiltro = setTimeout(function() {
+                        var desde = $('#fecha_desde').val();
+                        var hasta = $('#fecha_hasta').val();
+                        
+                        // Si alguna fecha está vacía, dejamos que actualice (el backend usará defaults)
+                        if (!desde || !hasta) {
+                            actualizarTabla();
+                            return;
+                        }
+                        
+                        // Si ambas tienen valores, validamos formato YYYY-MM-DD (año 2000-2099)
+                        var dateRegex = /^[2][0-9]{3}-[0-9]{2}-[0-9]{2}$/;
+                        if (dateRegex.test(desde) && dateRegex.test(hasta)) {
+                            actualizarTabla();
+                        }
+                    }, 500);
                 });
 
                 $('#selector_mes').on('change', function() {

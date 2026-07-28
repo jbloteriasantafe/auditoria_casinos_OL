@@ -21,21 +21,43 @@ class BeneficioDiarioController extends Controller
     {
         $plataformas = Plataforma::values();
 
-        $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
-        $fechaHasta = $request->input('fecha_hasta', date('Y-m-t'));
+        $fechaDesde = $request->input('fecha_desde');
+        $fechaHasta = $request->input('fecha_hasta');
 
         $plataformaSeleccionada = $request->input('plataforma');
         if (!$plataformaSeleccionada || !in_array($plataformaSeleccionada, $plataformas)) {
             $plataformaSeleccionada = $plataformas[0] ?? null;
         }
 
-        // Validar fechas
-        $inicio = strtotime($fechaDesde);
-        $fin = strtotime($fechaHasta);
+        // Validar fechas de forma robusta
+        $parseDate = function ($dateStr, $default) {
+            if (empty($dateStr) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateStr)) {
+                return $default;
+            }
+            $time = strtotime($dateStr);
+            if ($time === false) {
+                return $default;
+            }
+            $year = (int)date('Y', $time);
+            if ($year < 2000 || $year > 2099) {
+                return $default;
+            }
+            return $time;
+        };
+
+        $inicio = $parseDate($fechaDesde, strtotime(date('Y-m-01')));
+        $fin = $parseDate($fechaHasta, strtotime(date('Y-m-t')));
+
         if ($inicio > $fin) {
             $temp = $inicio;
             $inicio = $fin;
             $fin = $temp;
+        }
+
+        // Limitar rango a un máximo de 366 días para evitar sobrecarga de memoria o ciclos infinitos
+        $maxDiff = 366 * 24 * 60 * 60;
+        if (($fin - $inicio) > $maxDiff) {
+            $fin = $inicio + $maxDiff;
         }
 
 
@@ -91,17 +113,33 @@ class BeneficioDiarioController extends Controller
     {
         $plataformas = Plataforma::values();
 
-        $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
-        $fechaHasta = $request->input('fecha_hasta', date('Y-m-t'));
+        $fechaDesde = $request->input('fecha_desde');
+        $fechaHasta = $request->input('fecha_hasta');
 
         $plataformaSeleccionada = $request->input('plataforma');
         if (!$plataformaSeleccionada || !in_array($plataformaSeleccionada, $plataformas)) {
             $plataformaSeleccionada = $plataformas[0] ?? null;
         }
 
-        // Validar fechas
-        $inicio = strtotime($fechaDesde);
-        $fin = strtotime($fechaHasta);
+        // Validar fechas de forma robusta
+        $parseDate = function ($dateStr, $default) {
+            if (empty($dateStr) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateStr)) {
+                return $default;
+            }
+            $time = strtotime($dateStr);
+            if ($time === false) {
+                return $default;
+            }
+            $year = (int)date('Y', $time);
+            if ($year < 2000 || $year > 3000) {
+                return $default;
+            }
+            return $time;
+        };
+
+        $inicio = $parseDate($fechaDesde, strtotime(date('Y-m-01')));
+        $fin = $parseDate($fechaHasta, strtotime(date('Y-m-t')));
+
         if ($inicio > $fin) {
             $temp = $inicio;
             $inicio = $fin;
