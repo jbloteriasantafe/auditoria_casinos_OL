@@ -405,7 +405,7 @@
             $(document).ready(function() {
 
                 var xhrActualizar = null;
-               async function actualizarTabla() {
+                async function actualizarTabla() {
                     if (xhrActualizar) {
                         xhrActualizar.abort();
                     }

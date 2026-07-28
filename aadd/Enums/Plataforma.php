@@ -10,7 +10,7 @@ class Plataforma
     const CITYCENTER = 'CITYCENTER';
     const JUGADON = 'JUGADON';
     const BETWARRIOR = 'BETWARRIOR';
-    const BETSON = 'BETSON';
+    const BETSON = 'BETSSON';
     const BET365 = 'BET365';
 
     /**
