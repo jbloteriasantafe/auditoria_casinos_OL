@@ -9,6 +9,23 @@
         /* Google Fonts y tipografía premium */
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
+        /* Doble barra de scroll: el calc() de .contenedorVistaPrincipal en
+           estiloDashboard.css asume un header de 60px, pero el header mide 98px.
+           Main queda 38px más abajo del viewport y el body gana una segunda barra
+           pegada a la del contenido. Con flex, main ocupa exactamente el alto que
+           sobra, mida lo que mida el header. Scopeado a AADD para no tocar el
+           resto del sistema. */
+        .contenedor {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contenedorVistaPrincipal {
+            height: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
         .aadd-container {
             font-family: 'Inter', sans-serif;
             color: #504E76;
@@ -397,7 +414,7 @@
                                 });
                             }
 
-                            paginarTabla('#contenedor-tabla-datos table', 30);
+                            paginarTabla('#contenedor-tabla-datos table', 50);
                             aplicarFiltroPlataformas();
                         },
                         error: function(err) {
@@ -499,7 +516,7 @@
                 });
 
                 // Inicializar paginación y filtro al cargar la página por primera vez
-                paginarTabla('#contenedor-tabla-datos table', 30);
+                paginarTabla('#contenedor-tabla-datos table', 50);
                 aplicarFiltroPlataformas();
 
                 $('#btn-exportar-pdf').on('click', function(e) {

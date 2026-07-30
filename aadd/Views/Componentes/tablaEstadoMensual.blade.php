@@ -39,9 +39,6 @@
                     border-left: none !important;
                     border-right: none !important;
                     vertical-align: middle;
-                    position: sticky;
-                    top: 0;
-                    z-index: 10;
                     box-shadow: 0 2px 4px rgba(80, 78, 118, 0.02);
                 }
 
@@ -129,7 +126,7 @@
                 }
             </style>
 
-            <div class="table-responsive table-responsive-moderna" style="max-height: 60vh; overflow-y: auto;">
+            <div class="table-responsive table-responsive-moderna">
                 <table class="table table-moderna text-center">
                     <thead>
                         <tr>

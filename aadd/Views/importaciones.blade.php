@@ -6,6 +6,23 @@
 
 @section('contenidoVista')
     <style>
+        /* Doble barra de scroll: el calc() de .contenedorVistaPrincipal en
+           estiloDashboard.css asume un header de 60px, pero el header mide 98px.
+           Main queda 38px más abajo del viewport y el body gana una segunda barra
+           pegada a la del contenido. Con flex, main ocupa exactamente el alto que
+           sobra, mida lo que mida el header. Scopeado a AADD para no tocar el
+           resto del sistema. */
+        .contenedor {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contenedorVistaPrincipal {
+            height: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
         .panel {
             border-radius: 12px !important;
             overflow: hidden;
@@ -418,7 +435,7 @@
 
             // Inicializar paginación al cargar la vista
             if (typeof paginarTabla === 'function') {
-                paginarTabla('#contenedor-tabla-mensual table', 30);
+                paginarTabla('#contenedor-tabla-mensual table', 50);
             }
         });
 
@@ -433,7 +450,7 @@
                 success: function(response) {
                     $('#contenedor-tabla-mensual').replaceWith(response);
                     if (typeof paginarTabla === 'function') {
-                        paginarTabla('#contenedor-tabla-mensual table', 30);
+                        paginarTabla('#contenedor-tabla-mensual table', 50);
                     }
                 },
                 error: function(err) {

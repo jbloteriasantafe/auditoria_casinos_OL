@@ -10,11 +10,10 @@
     .table-responsive-moderna::-webkit-scrollbar-thumb { background: #C4C3E3; border-radius: 8px; }
     .table-responsive-moderna::-webkit-scrollbar-thumb:hover { background: #504E76; }
 
-    /* Cabecera de dos niveles: plataforma arriba, métricas abajo. Las alturas
-       son explícitas porque la segunda fila se pega justo debajo de la primera. */
+    /* Cabecera de dos niveles: plataforma arriba, métricas abajo. */
     .tabla-datos-rapidos thead th { padding: 0 12px !important; }
-    .tabla-datos-rapidos thead tr:first-child th { height: 38px; top: 0; border-bottom: 1px solid #C4C3E3 !important; }
-    .tabla-datos-rapidos thead tr:last-child th { height: 32px; top: 38px; font-size: 0.68rem; letter-spacing: 0.03em; color: #8c8b9f !important; }
+    .tabla-datos-rapidos thead tr:first-child th { height: 38px; border-bottom: 1px solid #C4C3E3 !important; }
+    .tabla-datos-rapidos thead tr:last-child th { height: 32px; font-size: 0.68rem; letter-spacing: 0.03em; color: #8c8b9f !important; }
 
     /* Solo la columna Fecha queda fija al hacer scroll horizontal. */
     .tabla-datos-rapidos .celda-fecha { position: sticky; left: 0; background-color: #ffffff !important; box-shadow: 2px 0 4px rgba(80, 78, 118, 0.05); }
@@ -28,7 +27,7 @@
     .tabla-datos-rapidos .ggr-negativo { color: #EF4444; }
     .tabla-datos-rapidos .sin-dato { color: #b9b8c8; }
 </style>
-<div class="table-responsive table-responsive-moderna" style="max-height: 60vh; overflow: auto;">
+<div class="table-responsive table-responsive-moderna">
     <table class="table table-moderna tabla-datos-rapidos text-center">
         <thead>
             <tr>
