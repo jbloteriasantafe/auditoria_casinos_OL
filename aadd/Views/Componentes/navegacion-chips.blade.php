@@ -18,7 +18,13 @@
     </a>
     @endif
 
-    @if(!isset($pantalla) || $pantalla !== 'importaciones')
+    @if(!isset($pantalla) || $pantalla !== 'datos-rapidos')
+    <a href="/aadd/datos-rapidos" class="chip" >
+        <i class="fa fa-table"></i> Comparación de beneficios por plataforma
+    </a>
+    @endif
+
+    @if(!isset($pantalla) || ($pantalla !== 'importaciones' && $pantalla !== 'datos-rapidos'))
     <a href="/aadd/importaciones" class="chip i" >
         <i class="fa fa-upload"></i> Importador de Archivos
     </a>

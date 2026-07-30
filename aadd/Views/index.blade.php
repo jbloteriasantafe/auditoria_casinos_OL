@@ -425,7 +425,7 @@
                         </a>
 
                         <!-- Acceso Beneficio Diario -->
-                        <a href="/aadd/beneficio-diario" class="action-tile-card" style="margin-bottom: 0;">
+                        <a href="/aadd/beneficio-diario" class="action-tile-card">
                             <div class="action-tile-inner">
                                 <div class="action-tile-icon-box" style="color: #FCDD9D;">
                                     <i class="fa fa-bar-chart"></i>
@@ -433,6 +433,20 @@
                                 <div class="action-tile-text-box">
                                     <h5>Beneficios Diarios</h5>
                                     <p>Consulte reportes, audite diferencias de GGR y exporte informes en PDF/Excel.</p>
+                                </div>
+                                <div class="action-tile-arrow">
+                                    <i class="fa fa-chevron-right"></i>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Acceso Comparación de Beneficios -->
+                        <a href="/aadd/datos-rapidos" class="action-tile-card" style="margin-bottom: 0;">
+                            <div class="action-tile-inner">
+                                <div class="action-tile-icon-box"></div>
+                                <div class="action-tile-text-box">
+                                    <h5>Comparación de beneficios por plataforma</h5>
+                                    <p>Compare todas las plataformas de un vistazo: jugadores activos y GGR por día.</p>
                                 </div>
                                 <div class="action-tile-arrow">
                                     <i class="fa fa-chevron-right"></i>

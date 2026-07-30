@@ -27,6 +27,16 @@ Route::get('/aadd/beneficio-diario/tabla', '\AADD\Http\Controllers\BeneficioDiar
 Route::get('/aadd/beneficio-diario/acumulado-mensual', '\AADD\Http\Controllers\BeneficioDiarioController@acumuladoMensual')
     ->middleware('tiene_permiso');
 
+// Comparación de beneficios por plataforma (vista consolidada de todas las plataformas)
+Route::get('/aadd/datos-rapidos', '\AADD\Http\Controllers\DatosRapidosController@index')
+    ->middleware('tiene_permiso');
+
+Route::get('/aadd/datos-rapidos/tabla', '\AADD\Http\Controllers\DatosRapidosController@tabla')
+    ->middleware('tiene_permiso');
+
+Route::get('/aadd/datos-rapidos/acumulado-mensual', '\AADD\Http\Controllers\DatosRapidosController@acumuladoMensual')
+    ->middleware('tiene_permiso');
+
 // Emisión extensible de informes PDF y Excel
 Route::get('/aadd/informes/pdf/{reporte}', '\AADD\Http\Controllers\InformesController@exportarPdf')
     ->middleware('tiene_permiso');
