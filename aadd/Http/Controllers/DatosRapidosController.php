@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use AADD\Enums\Plataforma;
 use AADD\Entities\BeneficioDiario;
+use AADD\Entities\BeneficioMensual;
 use AADD\Actions\ObtenerDatosRapidosAction;
 use AADD\Utils\RangoDeFechas;
 
@@ -62,11 +63,16 @@ class DatosRapidosController extends Controller
     }
 
     /**
-     * Total de jugadores activos del mes por plataforma.
+     * Jugadores activos del mes por plataforma.
      *
-     * Es la suma de los conteos diarios, o sea jugador-día: quien jugó varios
-     * días del mes se cuenta una vez por día. Los archivos que importamos vienen
-     * agregados por día, así que no hay forma de deduplicar a nivel jugador.
+     * Sale de aadd_t_beneficio_mensual, que es el dato que informa la propia
+     * plataforma ya deduplicado. NO se suman los conteos diarios: un jugador que
+     * jugó varios días aparece en el diario de cada uno de esos días, así que
+     * sumarlos multiplica el total (en julio 2026 la suma diaria daba entre 3 y
+     * 5 veces el valor real).
+     *
+     * Las plataformas sin archivo mensual importado devuelven null, no cero, para
+     * poder distinguir "no informó" de "cero jugadores".
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -84,22 +90,26 @@ class DatosRapidosController extends Controller
         $fechaInicio = "$anio-$mesNum-01";
         $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mesNum, $anio);
         $fechaFin = "$anio-$mesNum-$diasEnMes";
+        $inicioMesSiguiente = date('Y-m-01', strtotime("$fechaInicio +1 month"));
 
-        $subqueryMensual = BeneficioDiario::select(DB::raw('MAX(id) as id'))
-            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
-            ->groupBy('id_plataforma', 'fecha');
+        // La fecha del registro mensual es un día cualquiera dentro del mes (en
+        // los archivos actuales, el último del período), no el día 1. Por eso se
+        // acota por mes y no por fecha exacta.
+        $subqueryMensual = BeneficioMensual::select(DB::raw('MAX(id) as id'))
+            ->where('fecha', '>=', $fechaInicio)
+            ->where('fecha', '<', $inicioMesSiguiente)
+            ->groupBy('id_plataforma');
 
-        $acumulados = BeneficioDiario::whereIn('id', $subqueryMensual)
-            ->select('id_plataforma', DB::raw('SUM(jugadores_activos) as total_jugadores'))
-            ->groupBy('id_plataforma')
+        $mensuales = BeneficioMensual::whereIn('id', $subqueryMensual)
+            ->select('id_plataforma', 'jugadores_activos')
             ->get();
 
         $resultados = [];
         foreach (Plataforma::values() as $plat) {
-            $resultados[$plat] = 0;
+            $resultados[$plat] = null;
         }
-        foreach ($acumulados as $acumulado) {
-            $resultados[$acumulado->id_plataforma] = (int) $acumulado->total_jugadores;
+        foreach ($mensuales as $mensual) {
+            $resultados[$mensual->id_plataforma] = (int) $mensual->jugadores_activos;
         }
 
         $hoy = date('Y-m-d');

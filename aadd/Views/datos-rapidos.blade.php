@@ -294,8 +294,8 @@
                                     </div>
                                     <h5 style="margin: 0; color: #4A4F87; font-weight: bold;"><i
                                             class="fa fa-users"></i> Acumulado Mensual (Jugadores Activos)</h5>
-                                    <small class="text-muted" style="color: #4A4F87 !important;">Suma de los conteos
-                                        diarios del mes seleccionado</small>
+                                    <small class="text-muted" style="color: #4A4F87 !important;">Del archivo mensual de
+                                        cada plataforma, sin sumar días</small>
                                 </div>
                                 <div class="panel-body" style="padding: 15px; position: relative;">
                                     <div class="row" id="acumulados-mes-container">
@@ -347,9 +347,10 @@
             <p>Vista consolidada de todas las plataformas a la vez: una fila por día, y para cada plataforma sus jugadores
                 activos y su GGR de ese día. Sirve para comparar plataformas entre sí sin tener que ir cambiando el
                 selector.</p>
-            <p>El <strong>Acumulado Mensual</strong> suma los conteos diarios de jugadores activos, de modo que quien jugó
-                varios días del mes se cuenta una vez por cada día. Los archivos que importan las plataformas vienen
-                agregados por día, así que no es posible deduplicar a nivel de jugador.</p>
+            <p>El <strong>Acumulado Mensual</strong> muestra los jugadores activos que informa el archivo mensual de cada
+                plataforma. <strong>No es la suma de los días</strong>: un mismo jugador aparece en el diario de cada día
+                que jugó, así que sumarlos multiplicaría el total. Si una plataforma no tiene archivo mensual importado
+                para el mes elegido se muestra <em>sin datos</em>, que no es lo mismo que cero jugadores.</p>
         </div>
     @endsection
 
@@ -450,13 +451,16 @@
                         success: function(response) {
                             var html = '';
                             $.each(response.acumulados, function(plat, valor) {
-                                var valorFormatted = valor.toLocaleString('es-AR');
+                                // null = la plataforma no tiene archivo mensual importado,
+                                // que no es lo mismo que haber tenido cero jugadores
+                                var contenido = (valor === null) ?
+                                    '<span style="font-size: 0.95em; color: #b9b8c8;">sin datos</span>' :
+                                    '<strong style="font-size: 1.1em; color: #4A4F87;">' +
+                                    valor.toLocaleString('es-AR') + '</strong>';
                                 html +=
                                     '<div class="col-xs-4" style="margin-bottom: 10px;">' +
                                     '<span style="font-size: 0.8em; color: #4A4F87; text-transform: uppercase;">' +
-                                    plat + '</span><br>' +
-                                    '<strong style="font-size: 1.1em; color: #4A4F87;">' +
-                                    valorFormatted + '</strong>' +
+                                    plat + '</span><br>' + contenido +
                                     '</div>';
                             });
                             $('#acumulados-mes-container').html(html);

@@ -55,6 +55,13 @@
             text-align: justify;
             margin-bottom: 8px;
         }
+
+        .nota {
+            font: 8px Helvetica, Sans-Serif;
+            text-align: justify;
+            margin-top: 6px;
+            color: #444444;
+        }
     </style>
 </head>
 
@@ -70,8 +77,7 @@
     <div class="introduccion">
         Detalle diario de <b>jugadores activos</b> y <b>GGR</b> por plataforma para el período del
         <b>{{ date('d/m/Y', strtotime($fechaDesde)) }}</b> al <b>{{ date('d/m/Y', strtotime($fechaHasta)) }}</b>.
-        Los jugadores activos son el conteo informado por cada plataforma para ese día; al totalizar la columna, quien
-        jugó varios días se cuenta una vez por día.
+        Los jugadores activos son el conteo informado por cada plataforma para ese día.
     </div>
 
     @php
@@ -118,12 +124,18 @@
             <tr class="total">
                 <td class="fecha">TOTAL</td>
                 @foreach ($plataformas as $plat)
-                    <td class="grupo">{{ number_format($totalJugadores[$plat], 0, ',', '.') }}</td>
+                    <td class="grupo">{{ number_format($totalJugadores[$plat], 0, ',', '.') }} <sup>(1)</sup></td>
                     <td>{{ number_format($totalGgr[$plat], 2, ',', '.') }}</td>
                 @endforeach
             </tr>
         </tbody>
     </table>
+
+    <div class="nota">
+        <b>(1)</b> Jugador-día, <b>no jugadores distintos</b>: quien jugó varios días del período suma una vez por cada
+        día. La cantidad de jugadores distintos del mes la informa cada plataforma en su archivo mensual, y se consulta
+        en la tarjeta “Acumulado Mensual” de la pantalla.
+    </div>
 </body>
 
 </html>
