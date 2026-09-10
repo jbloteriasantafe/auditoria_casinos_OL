@@ -1,6 +1,6 @@
 <style>
     .table-moderna { border-collapse: separate !important; border-spacing: 0; width: 100%; margin-bottom: 0; background-color: transparent; border: none !important; }
-    .table-moderna thead th { background-color: #ffffff !important; color: #504E76 !important; font-weight: 700 !important; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 16px 12px !important; border-bottom: 2px solid #C4C3E3 !important; border-top: none !important; border-left: none !important; border-right: none !important; vertical-align: middle; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 4px rgba(80,78,118,0.05); white-space: nowrap; text-align: center }
+    .table-moderna thead th { background-color: #ffffff !important; color: #504E76 !important; font-weight: 700 !important; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 16px 12px !important; border-bottom: 2px solid #C4C3E3 !important; border-top: none !important; border-left: none !important; border-right: none !important; vertical-align: middle; position: sticky; z-index: 10; box-shadow: 0 2px 4px rgba(80,78,118,0.05); white-space: nowrap; text-align: center }
     .table-moderna thead th:first-child { left: 0; z-index: 11; box-shadow: 2px 2px 4px rgba(80,78,118,0.05); }
     .table-moderna tbody td { padding: 14px 12px !important; vertical-align: middle !important; border-bottom: 1px solid #eaeaef !important; border-top: none !important; border-left: none !important; border-right: none !important; color: #504E76; font-size: 0.9rem; font-weight: 500; transition: all 0.2s ease; white-space: nowrap; }
     .table-moderna tbody td:first-child { position: sticky; left: 0; z-index: 5; background-color: #ffffff !important; box-shadow: 2px 0 4px rgba(80,78,118,0.05); }
@@ -13,7 +13,7 @@
     .table-responsive-moderna::-webkit-scrollbar-thumb { background: #C4C3E3; border-radius: 8px; }
     .table-responsive-moderna::-webkit-scrollbar-thumb:hover { background: #504E76; }
 </style>
-<div class="table-responsive table-responsive-moderna" style="max-height: 60vh; overflow-y: auto;">
+<div class="table-responsive table-responsive-moderna">
     <table class="table table-moderna text-center">
         <thead>
             <tr>

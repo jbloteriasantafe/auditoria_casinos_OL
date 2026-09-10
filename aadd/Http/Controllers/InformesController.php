@@ -10,6 +10,8 @@ use AADD\Enums\Plataforma;
 use AADD\Entities\BeneficioDiario;
 use Dompdf\Dompdf;
 use AADD\Actions\ObtenerBeneficioDiarioAction;
+use AADD\Actions\ObtenerDatosRapidosAction;
+use AADD\Utils\RangoDeFechas;
 require_once base_path('aadd/Libs/SimpleXLSXGen.php');
 use Shuchkin\SimpleXLSXGen;
 
@@ -27,6 +29,8 @@ class InformesController extends Controller
         switch ($reporte) {
             case 'beneficio-diario':
                 return $this->generarBeneficioDiarioPdf($request);
+            case 'datos-rapidos':
+                return $this->generarDatosRapidosPdf($request);
             default:
                 abort(404, 'Informe en PDF no encontrado.');
         }
@@ -44,6 +48,8 @@ class InformesController extends Controller
         switch ($reporte) {
             case 'beneficio-diario':
                 return $this->generarBeneficioDiarioExcel($request);
+            case 'datos-rapidos':
+                return $this->generarDatosRapidosExcel($request);
             default:
                 abort(404, 'Informe en Excel no encontrado.');
         }
@@ -282,5 +288,110 @@ class InformesController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Generador del PDF de comparación de beneficios: todas las plataformas en columnas y
+     * una fila por día. Va en horizontal porque son dos columnas por plataforma.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return mixed
+     */
+    protected function generarDatosRapidosPdf(Request $request)
+    {
+        $plataformas = $this->plataformasSeleccionadas($request);
+        $rango = RangoDeFechas::resolver($request->input('fecha_desde'), $request->input('fecha_hasta'));
+
+        $accion = new ObtenerDatosRapidosAction();
+        $datos = $accion->ejecutar(date('Y-m-d', $rango['inicio']), date('Y-m-d', $rango['fin']));
+
+        $view = ViewFacade::make('aadd::datos-rapidos-pdf', [
+            'plataformas' => $plataformas,
+            'dias' => $rango['dias'],
+            'datos' => $datos,
+            'fechaDesde' => date('Y-m-d', $rango['inicio']),
+            'fechaHasta' => date('Y-m-d', $rango['fin']),
+        ]);
+
+        $dompdf = new Dompdf();
+        $dompdf->set_option('isHtml5ParserEnabled', true);
+        $dompdf->set_paper('A4', 'landscape');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+
+        return $dompdf->stream('datos_rapidos_' . date('Ymd_His') . '.pdf', array("Attachment" => false));
+    }
+
+    /**
+     * Generador del Excel de comparación de beneficios. Los dos niveles de encabezado de la
+     * pantalla se aplanan en un solo título por columna ("BPLAY - GGR") para que
+     * la planilla sea filtrable y ordenable.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return mixed
+     */
+    protected function generarDatosRapidosExcel(Request $request)
+    {
+        $plataformas = $this->plataformasSeleccionadas($request);
+        $rango = RangoDeFechas::resolver($request->input('fecha_desde'), $request->input('fecha_hasta'));
+
+        $accion = new ObtenerDatosRapidosAction();
+        $datos = $accion->ejecutar(date('Y-m-d', $rango['inicio']), date('Y-m-d', $rango['fin']));
+
+        $filename = 'datos_rapidos_' . date('Ymd_His') . '.xlsx';
+        $headers = [
+            "Content-Type"        => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $rows = [];
+
+        $encabezado = ['Fecha'];
+        foreach ($plataformas as $plat) {
+            $encabezado[] = $plat . ' - Jugadores activos';
+            $encabezado[] = $plat . ' - GGR';
+        }
+        $rows[] = $encabezado;
+
+        foreach ($rango['dias'] as $dia) {
+            $row = [date('d/m/Y', strtotime($dia))];
+            foreach ($plataformas as $plat) {
+                $d = isset($datos[$dia][$plat]) ? $datos[$dia][$plat] : null;
+                $row[] = $d ? $d['jugadores_activos'] : '-';
+                $row[] = $d ? $d['ggr'] : '-';
+            }
+            $rows[] = $row;
+        }
+
+        $xlsx = SimpleXLSXGen::fromArray($rows);
+        $callback = function() use ($xlsx) {
+            echo $xlsx;
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Plataformas tildadas en el filtro, respetando el orden del enum. Si no
+     * llega ninguna se informan todas: una planilla con solo la fecha no sirve.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return array
+     */
+    protected function plataformasSeleccionadas(Request $request)
+    {
+        $todas = Plataforma::values();
+
+        $pedidas = $request->input('plataformas', []);
+        if (!is_array($pedidas)) {
+            $pedidas = [$pedidas];
+        }
+
+        $filtradas = array_values(array_intersect($todas, $pedidas));
+
+        return empty($filtradas) ? $todas : $filtradas;
     }
 }

@@ -9,6 +9,23 @@
         /* Google Fonts y tipografía premium */
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
+        /* Doble barra de scroll: el calc() de .contenedorVistaPrincipal en
+           estiloDashboard.css asume un header de 60px, pero el header mide 98px.
+           Main queda 38px más abajo del viewport y el body gana una segunda barra
+           pegada a la del contenido. Con flex, main ocupa exactamente el alto que
+           sobra, mida lo que mida el header. Scopeado a AADD para no tocar el
+           resto del sistema. */
+        .contenedor {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contenedorVistaPrincipal {
+            height: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
         .aadd-container {
             font-family: 'Inter', sans-serif;
             color: #334155;
@@ -425,7 +442,7 @@
                         </a>
 
                         <!-- Acceso Beneficio Diario -->
-                        <a href="/aadd/beneficio-diario" class="action-tile-card" style="margin-bottom: 0;">
+                        <a href="/aadd/beneficio-diario" class="action-tile-card">
                             <div class="action-tile-inner">
                                 <div class="action-tile-icon-box" style="color: #FCDD9D;">
                                     <i class="fa fa-bar-chart"></i>
@@ -433,6 +450,20 @@
                                 <div class="action-tile-text-box">
                                     <h5>Beneficios Diarios</h5>
                                     <p>Consulte reportes, audite diferencias de GGR y exporte informes en PDF/Excel.</p>
+                                </div>
+                                <div class="action-tile-arrow">
+                                    <i class="fa fa-chevron-right"></i>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Acceso Comparación de Beneficios -->
+                        <a href="/aadd/datos-rapidos" class="action-tile-card" style="margin-bottom: 0;">
+                            <div class="action-tile-inner">
+                                <div class="action-tile-icon-box"></div>
+                                <div class="action-tile-text-box">
+                                    <h5>Comparación de beneficios por plataforma</h5>
+                                    <p>Compare todas las plataformas de un vistazo: jugadores activos y GGR por día.</p>
                                 </div>
                                 <div class="action-tile-arrow">
                                     <i class="fa fa-chevron-right"></i>

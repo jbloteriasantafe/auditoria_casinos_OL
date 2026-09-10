@@ -9,6 +9,8 @@ use Exception;
 require_once base_path('aadd/Libs/SimpleXLSX.php');
 use Shuchkin\SimpleXLSX;
 
+use Illuminate\Support\Facades\Log;
+
 class LectorArchivos
 {
     /**
@@ -47,7 +49,7 @@ class LectorArchivos
 
         $encabezados = array_shift($filas);
         $encabezados = array_map(function($h) {
-            return strtoupper(trim($h));
+            return strtoupper(trim(preg_replace('/\s+/', ' ', (string) $h)));
         }, $encabezados);
 
         yield from self::extraerDatos($filas, $encabezados, $configuracion);
@@ -59,18 +61,27 @@ class LectorArchivos
         fwrite($stream, $archivo->contenido);
         rewind($stream);
 
-        $primeraLinea = fgetcsv($stream);
+        // Detectar automáticamente el delimitador del CSV validando la consistencia en todas las filas
+        $delimitador = self::detectarDelimitador($stream, $archivo);
+        rewind($stream);
+
+        $primeraLinea = fgetcsv($stream, 0, $delimitador);
         if (!$primeraLinea) {
             fclose($stream);
             return;
         }
 
+        // Limpiar BOM UTF-8 del primer encabezado si existe
+        if (isset($primeraLinea[0])) {
+            $primeraLinea[0] = preg_replace('/^\xEF\xBB\xBF/', '', $primeraLinea[0]);
+        }
+
         $encabezados = array_map(function($h) {
-            return strtoupper(trim($h));
+            return strtoupper(trim(preg_replace('/\s+/', ' ', (string) $h)));
         }, $primeraLinea);
 
         $filas = [];
-        while (($fila = fgetcsv($stream)) !== false) {
+        while (($fila = fgetcsv($stream, 0, $delimitador)) !== false) {
             // Ignorar líneas vacías o de estructura nula
             if (empty($fila) || (count($fila) === 1 && $fila[0] === null)) {
                 continue;
@@ -82,6 +93,72 @@ class LectorArchivos
         yield from self::extraerDatos($filas, $encabezados, $configuracion);
     }
 
+    /**
+     * Detecta el delimitador de un stream CSV analizando que todas las filas tengan
+     * la misma cantidad consistente de columnas (> 1).
+     *
+     * @param resource $stream
+     * @param Archivo|null $archivo
+     * @return string
+     */
+    private static function detectarDelimitador($stream, Archivo $archivo = null): string
+    {
+        $posInicial = ftell($stream);
+        rewind($stream);
+
+        // Leer todas las líneas no vacías para validar la consistencia
+        $lineas = [];
+        while (($linea = fgets($stream)) !== false) {
+            $lineaLimpia = trim($linea);
+            if ($lineaLimpia !== '') {
+                $lineas[] = $linea;
+            }
+        }
+        fseek($stream, $posInicial);
+
+        if (empty($lineas)) {
+            return ',';
+        }
+
+        // Limpiar BOM UTF-8 de la primera línea si existe
+        $lineas[0] = preg_replace('/^\xEF\xBB\xBF/', '', $lineas[0]);
+
+        $delimitadores = [';', ',', "\t", '|'];
+        $mejorDelimitador = null;
+        $maxColumnas = 1;
+
+        foreach ($delimitadores as $delim) {
+            $columnasEncabezado = count(str_getcsv($lineas[0], $delim));
+
+            if ($columnasEncabezado <= 1) {
+                continue;
+            }
+
+            // Validar que todas las filas tengan exactamente la misma cantidad de columnas
+            $esConsistente = true;
+            foreach ($lineas as $linea) {
+                $columnasFila = count(str_getcsv($linea, $delim));
+                if ($columnasFila !== $columnasEncabezado) {
+                    $esConsistente = false;
+                    break;
+                }
+            }
+
+            if ($esConsistente && $columnasEncabezado > $maxColumnas) {
+                $maxColumnas = $columnasEncabezado;
+                $mejorDelimitador = $delim;
+            }
+        }
+
+        if ($mejorDelimitador === null) {
+            $nombreArchivo = $archivo ? $archivo->nombre : 'desconocido';
+            Log::warning("AADD LectorArchivos: No se encontró un delimitador válido con más de una columna consistente por fila para el archivo '{$nombreArchivo}'.");
+            return ',';
+        }
+
+        return $mejorDelimitador;
+    }
+
     private static function extraerDatos(array $filas, array $encabezados, array $configuracion): \Generator
     {
         // 1. Mapear índices
@@ -90,7 +167,9 @@ class LectorArchivos
             $alias = $configCol['alias'] ?? [];
 
             $nombresPosibles = array_merge([$clave], $alias);
-            $nombresPosibles = array_map(function($n) { return strtoupper(trim($n)); }, $nombresPosibles);
+            $nombresPosibles = array_map(function($n) {
+                return strtoupper(trim(preg_replace('/\s+/', ' ', (string) $n)));
+            }, $nombresPosibles);
 
             $indiceEncontrado = false;
             foreach ($nombresPosibles as $nombreBuscado) {
