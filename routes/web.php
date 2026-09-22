@@ -21,6 +21,9 @@ Route::get('/', function () {
   return view('seccionInicio', $datos_inf);
 });
 
+//Los guards de este archivo son necesarios porque en los tests la aplicacion se crea
+//varias veces y las rutas se vuelven a incluir, lo que redeclararia estas funciones
+if(!function_exists('Route_olvideMiContrasena')){
 function Route_olvideMiContrasena(Request $request,string $accion,array $Vattrs){
   $AC = App\Http\Controllers\OlvideMiContrasenaController::getInstancia();
   $accion_form = [
@@ -53,7 +56,9 @@ function Route_olvideMiContrasena(Request $request,string $accion,array $Vattrs)
   
   return view('index',$Vattrs);
 }
+}
 
+if(!function_exists('Route_CAS')){
 function Route_CAS(Request $request,string $accion,array $Vattrs){
   if($accion == 'logearUsuario'){
     if(!empty($request->user_name)){
@@ -103,6 +108,7 @@ function Route_CAS(Request $request,string $accion,array $Vattrs){
     }
   }
   return view('index',$Vattrs);
+}
 }
 
 Route::get('login', function (Request $request) {
@@ -291,6 +297,11 @@ Route::group(['prefix' => 'certificadoSoft', 'middleware' => 'tiene_permiso:ver_
   Route::get('/buscarLabs/{codigo?}', 'GliSoftController@buscarLabs');
   Route::get('/obtenerLab/{id_laboratorio}', 'GliSoftController@obtenerLab');
   Route::get('/buscarExpedientePorNumero/{busqueda}', 'ExpedienteController@buscarExpedientePorNumero');
+  //Rectificaciones: reemplazo masivo del certificado de juegos ya cargados.
+  //Van por POST porque el Route::get('/{id}') de mas arriba se come cualquier GET de un segmento
+  Route::post('/parsearRectificacion', 'RectificacionCertificadosController@parsearRectificacion');
+  Route::post('/validarRectificacion', 'RectificacionCertificadosController@validarRectificacion');
+  Route::post('/guardarRectificacion', 'RectificacionCertificadosController@guardarRectificacion');
 });
 
 //Lo necesitan los auditores

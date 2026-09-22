@@ -66,9 +66,10 @@ class GliSoftController extends Controller
         }
         $juegosarr[$nombre][] = $j;
       }
-      return view('seccionGLISoft' , 
+      return view('seccionGLISoft' ,
       ['plataformas' => $user->plataformas,
-      'juegos' => $juegosarr]);
+      'juegos' => $juegosarr,
+      'laboratorios' => Laboratorio::all()]);//Los usa el modal de rectificacion
   }
 
   public function obtenerGliSoft(Request $request,$id){

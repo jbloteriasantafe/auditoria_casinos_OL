@@ -135,6 +135,22 @@ $id_usuario = session('id_usuario');
                 </div>
                </a>
               </div>
+              <div class="col-xl-12 col-lg-4">
+               <a href="" id="btn-rectificacion" style="text-decoration: none;">
+                <div class="panel panel-default panelBotonNuevo">
+                    <center><img class="imgNuevo" src="/img/logos/software_white.png"><center>
+                    <div class="backgroundNuevo"></div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                          <center>
+                              <h5 class="txtLogo">↻</h5>
+                              <h4 class="txtNuevo">RECTIFICAR CERTIFICADOS</h4>
+                          </center>
+                        </div>
+                    </div>
+                </div>
+               </a>
+              </div>
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
               <div class="col-xl-12 col-lg-4">
                 <a href="/expedientes" style="text-decoration:none;">
@@ -353,6 +369,7 @@ $id_usuario = session('id_usuario');
       </div>
     </div><!-- FIN CUERPO MODAL -->
 
+@component('seccionGLISoftComponenteRectificacion',['laboratorios' => $laboratorios])@endcomponent
 
 @endsection
 
@@ -376,6 +393,18 @@ $id_usuario = session('id_usuario');
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     <script src="/js/seccionGliSoft.js?1"></script>
+
+    <!-- Va aparte y como modulo: seccionGliSoft.js se carga como script clasico
+         y sus funciones globales se romperian si se lo convirtiera a modulo -->
+    <script src="/js/seccionGliSoftComponenteRectificacion.js?1" charset="utf-8" type="module"></script>
+    <script type="module">
+      $('#btn-rectificacion').click(function(e){
+        e.preventDefault();
+        $('[data-js-modal-rectificacion]').trigger('mostrar').one('completado',function(e2,rectificados){
+          $('#buscarCertificado').trigger('click');
+        });
+      });
+    </script>
 
     <!-- Custom input Bootstrap -->
     <script src="/js/fileinput.min.js" type="text/javascript"></script>

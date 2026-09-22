@@ -20,17 +20,21 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AuthenticationController;
 use Illuminate\Support\Facades\DB;
 
-class VerificarPermisoObtenerBruto {
-  public function handle($request,$next){
-    $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
-      
-    if(is_null($api_token) || !($api_token->metadata['puede_obtener_bruto'] ?? true)){
-      return response()->json(['privilegios' => 'No puede realizar la acción'],422);
+//El guard es necesario porque en los tests la aplicacion se crea varias veces
+//y este archivo se vuelve a incluir, lo que redeclararia la clase
+if(!class_exists('VerificarPermisoObtenerBruto')){
+  class VerificarPermisoObtenerBruto {
+    public function handle($request,$next){
+      $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
+
+      if(is_null($api_token) || !($api_token->metadata['puede_obtener_bruto'] ?? true)){
+        return response()->json(['privilegios' => 'No puede realizar la acción'],422);
+      }
+
+      return $next($request);
     }
-      
-    return $next($request);
-  }
-};
+  };
+}
 
 Route::group(['prefix' => 'auditoria', 'middleware' => ['check_API_token']],function(){
   Route::get('plataformasYJuegos',function(){

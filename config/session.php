@@ -1,8 +1,5 @@
 <?php
 
-function prefix_cookie($s){
-	return env('COOKIE_PREFIX',$_SERVER['SERVER_PORT'] ?? '').'_'.$s;
-}
 
 return [
 

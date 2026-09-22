@@ -330,6 +330,44 @@ class JuegoController extends Controller
     });
   }
 
+  //Reemplaza el certificado de un juego dejando TODO lo demas igual (nombre, categoria,
+  //porcentaje, proveedor, plataformas y estados). Los parametros salen del propio juego,
+  //asi el alcance queda garantizado por construccion.
+  //Pasa por crear_o_modificar_juego para que quede el snapshot en juego_log_norm con el
+  //motivo, igual que cuando se reemplaza a mano desde la pantalla de juegos.
+  public function reemplazarCertificadoDeJuego($id_juego, $motivo, $id_gli_soft)
+  {
+    $juego = Juego::find($id_juego);
+    if (is_null($juego))
+      return null;
+
+    $params = [];
+    foreach ([
+      'nombre_juego',
+      'cod_juego',
+      'denominacion_juego',
+      'porcentaje_devolucion',
+      'escritorio',
+      'movil',
+      'codigo_operador',
+      'proveedor',
+      'id_tipo_moneda',
+      'id_categoria_juego'
+    ] as $attr) {
+      $params[$attr] = $juego->{$attr};
+    }
+
+    //Se reenvian las plataformas tal cual estan para que el sync no las altere
+    $plataformas_estado = [];
+    $plataforma_tiene_juego = DB::table('plataforma_tiene_juego')
+      ->where('id_juego', $id_juego)->get();
+    foreach ($plataforma_tiene_juego as $pj) {
+      $plataformas_estado[$pj->id_plataforma] = ['id_estado_juego' => $pj->id_estado_juego];
+    }
+
+    return $this->crear_o_modificar_juego($id_juego, $motivo, $params, $plataformas_estado, [$id_gli_soft]);
+  }
+
   public function eliminarJuego($id)
   {
     $juego = Juego::find($id);
@@ -658,9 +696,10 @@ class JuegoController extends Controller
           } else if (preg_match($REGEX_EN_PJE, $pje)) {
             $pje = str_replace('%', '', $pje);
           } else if (preg_match($REGEX_ES_DEC, $pje)) {
-            $pje = bcmul(str_replace(',', '.', $pje), 100, 2);
+            //No se usa bcmul porque la extension bcmath no esta instalada
+            $pje = number_format(((float) str_replace(',', '.', $pje)) * 100, 2, '.', '');
           } else if (preg_match($REGEX_EN_DEC, $pje)) {
-            $pje = bcmul($pje, 100, 4);
+            $pje = number_format(((float) $pje) * 100, 4, '.', '');
           } else {
             $pje = 'ERROR';
           }
@@ -789,6 +828,34 @@ class JuegoController extends Controller
     return [$ret, $id_plataforma];
   }
 
+  //Fallback de parsearArchivo para cuando no esta disponible ssconvert (gnumeric).
+  //Devuelve [hoja_anexo,hoja_proveedor] con el mismo formato que dan los CSV de ssconvert
+  //(array de filas, cada fila array de celdas), o [null,null] si no pudo leer el archivo.
+  private function leerHojasConSimpleXLSX($path)
+  {
+    require_once base_path('aadd/Libs/SimpleXLSX.php');
+
+    $xlsx = \Shuchkin\SimpleXLSX::parse($path);
+    if ($xlsx === false)
+      return [null, null];
+
+    $anexo = null;
+    $proveedor = null;
+    for ($i = 0; $i < $xlsx->sheetsCount(); $i++) {
+      $filas = $xlsx->rows($i);
+      if (count($filas) == 0)
+        continue;
+      //Mismo criterio que con los CSV: se reconoce la hoja por su primera celda
+      $primera = trim($filas[0][0] ?? '');
+      if ($primera == 'ANEXO A')
+        $anexo = $filas;
+      else if ($primera == 'Proveedor')
+        $proveedor = $filas;
+    }
+
+    return [$anexo, $proveedor];
+  }
+
   public function parsearArchivo(Request $request)
   {
     $rmdir = function ($dir) use (&$rmdir) {//Borra recursivamente... cuidado con que se lo llama
@@ -839,37 +906,45 @@ class JuegoController extends Controller
       }
     };
 
-    if ($return_var != 0) {
-      $ret['mensaje'] .= '<span>Code: ' . $return_var . '</span>';
-      $ret['mensaje'] .= '<p>Output:<pre><code></code>' . implode("\r\n", $output) . '</pre></p>';
-      $ret['mensaje'] .= '<p>Error:<pre><code></code>' . file_get_contents($err_file) . '</pre></p>';
-      $clean();
-      return $ret;
-    }
-
-    $candidatos = scandir($out_dir);
     $datos = null;
     $datos_proveedor = null;
-    foreach ($candidatos as $cand) {
-      if ($cand == '.' || $cand == '..')
-        continue;
-      $abs_cand = $out_dir . '/' . $cand;
-      $fhandle = fopen($abs_cand, 'r');
-      if ($fhandle === FALSE)
-        continue;
-      $linea = fgetcsv($fhandle);
-      $es_anexo = count($linea) > 0 && $linea[0] == "ANEXO A";
-      $es_proveedor = count($linea) > 0 && $linea[0] == "Proveedor";
-      if ($es_anexo) {
-        $datos = [$linea];
-        while (($linea = fgetcsv($fhandle)) !== FALSE)
-          $datos[] = $linea;
-      } else if ($es_proveedor) {
-        $datos_proveedor = [$linea];
-        while (($linea = fgetcsv($fhandle)) !== FALSE)
-          $datos_proveedor[] = $linea;
+
+    if ($return_var != 0) {
+      //Si no esta ssconvert (o fallo) leo el excel directamente desde PHP
+      $aux = $this->leerHojasConSimpleXLSX($excel);
+      $datos = $aux[0];
+      $datos_proveedor = $aux[1];
+
+      if ($datos === null) {
+        $ret['mensaje'] .= '<span>Code: ' . $return_var . '</span>';
+        $ret['mensaje'] .= '<p>Output:<pre><code></code>' . implode("\r\n", $output) . '</pre></p>';
+        $ret['mensaje'] .= '<p>Error:<pre><code></code>' . file_get_contents($err_file) . '</pre></p>';
+        $clean();
+        return $ret;
       }
-      fclose($fhandle);
+    } else {
+      $candidatos = scandir($out_dir);
+      foreach ($candidatos as $cand) {
+        if ($cand == '.' || $cand == '..')
+          continue;
+        $abs_cand = $out_dir . '/' . $cand;
+        $fhandle = fopen($abs_cand, 'r');
+        if ($fhandle === FALSE)
+          continue;
+        $linea = fgetcsv($fhandle);
+        $es_anexo = count($linea) > 0 && $linea[0] == "ANEXO A";
+        $es_proveedor = count($linea) > 0 && $linea[0] == "Proveedor";
+        if ($es_anexo) {
+          $datos = [$linea];
+          while (($linea = fgetcsv($fhandle)) !== FALSE)
+            $datos[] = $linea;
+        } else if ($es_proveedor) {
+          $datos_proveedor = [$linea];
+          while (($linea = fgetcsv($fhandle)) !== FALSE)
+            $datos_proveedor[] = $linea;
+        }
+        fclose($fhandle);
+      }
     }
 
     if ($datos === null) {
